@@ -3,6 +3,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Tugas_audit extends CI_Controller {
 
+    /** @var CI_Session */
+    public $session;
+
+    /** @var Auth_guard */
+    public $auth_guard;
+
+    /** @var Tugas_audit_service */
+    protected $tugas_audit_service;
+
     public function __construct()
     {
         parent::__construct();
@@ -37,6 +46,24 @@ class Tugas_audit extends CI_Controller {
         $data['hasil'] = $this->tugas_audit_service->get_hasil_audit();
         
         $this->load->view('tugas_audit/hasil', $data);
+    }
+
+    public function show($id)
+    {
+        $result = $this->tugas_audit_service->get_detail((int) $id);
+
+        if (!$result['success']) {
+            show_error($result['message'], 404, 'Tugas tidak ditemukan');
+            return;
+        }
+
+        $data = $result;
+        $data['title'] = 'Detail Tugas Audit - AMI';
+        $data['page_title'] = 'Detail Tugas Audit';
+        $data['page_subtitle'] = 'Beranda / Tugas Audit / Detail';
+        $data['active_menu'] = 'tugas_audit';
+
+        $this->load->view('tugas_audit/show', $data);
     }
 
     public function create()

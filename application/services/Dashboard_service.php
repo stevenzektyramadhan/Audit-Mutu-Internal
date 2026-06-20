@@ -50,10 +50,11 @@ class Dashboard_service
             'stats' => [
                 'total_tugas' => $this->tugas_audit_model->count_all($where),
                 'belum_dinilai' => $this->tugas_audit_model->count_all($where, STATUS_DINILAI),
+                'siap_dinilai' => $this->tugas_audit_model->count_all($where + ['status' => STATUS_DIISI]),
                 'dinilai' => $this->tugas_audit_model->count_all($where + ['status' => STATUS_DINILAI]),
             ],
-            'pending_tugas' => $this->tugas_audit_model->get_recent(['tugas_audit.auditor_id' => (int) $user_id, 'tugas_audit.status' => STATUS_DIISI], 5),
-            'graded_tugas' => $this->tugas_audit_model->get_recent(['tugas_audit.auditor_id' => (int) $user_id, 'tugas_audit.status' => STATUS_DINILAI], 5),
+            'pending_tugas' => $this->tugas_audit_model->get_by_auditor((int) $user_id, STATUS_DIISI, 5),
+            'graded_tugas' => $this->tugas_audit_model->get_by_auditor((int) $user_id, STATUS_DINILAI, 5),
         ];
     }
 
@@ -68,7 +69,7 @@ class Dashboard_service
                 'diisi' => $this->tugas_audit_model->count_all(['auditee_id' => $user_id, 'status' => STATUS_DIISI]),
                 'dinilai' => $this->tugas_audit_model->count_all(['auditee_id' => $user_id, 'status' => STATUS_DINILAI]),
             ],
-            'tugas_saya' => $this->tugas_audit_model->get_recent(['tugas_audit.auditee_id' => $user_id], 5),
+            'tugas_saya' => $this->tugas_audit_model->get_by_auditee($user_id, NULL, 5),
         ];
     }
 }

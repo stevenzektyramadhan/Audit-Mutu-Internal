@@ -8,7 +8,7 @@ $active_menu = 'dashboard';
 $stats = isset($stats) ? $stats : [];
 $pending_tugas = isset($pending_tugas) ? $pending_tugas : [];
 $graded_tugas = isset($graded_tugas) ? $graded_tugas : [];
-$menu_badges = ['tugas_audit' => isset($stats['total_tugas']) ? $stats['total_tugas'] : 0];
+$menu_badges = ['tugas_audit' => isset($stats['siap_dinilai']) ? $stats['siap_dinilai'] : 0];
 $stat_cards = [
     ['label' => 'Total tugas', 'value' => isset($stats['total_tugas']) ? $stats['total_tugas'] : 0, 'icon' => 'fa-clipboard-list', 'tone' => 'tone-blue'],
     ['label' => 'Belum dinilai', 'value' => isset($stats['belum_dinilai']) ? $stats['belum_dinilai'] : 0, 'icon' => 'fa-clock', 'tone' => 'tone-amber'],
@@ -62,7 +62,7 @@ include APPPATH . 'views/layouts/sidebar.php';
 <?php endif; ?>
 
 <div class="ami-section-head">
-    <h2 class="ami-section-title">Sudah dinilai</h2>
+    <h2 class="ami-section-title">Hasil penilaian terakhir</h2>
 </div>
 <div class="ami-panel">
     <?php if (!empty($graded_tugas)): ?>
@@ -72,7 +72,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <tr>
                     <th>Auditee</th>
                     <th>Standar</th>
-                    <th>Status</th>
+                    <th>Rata-rata skor</th>
                     <th class="text-right">Aksi</th>
                 </tr>
                 </thead>
@@ -81,8 +81,12 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <tr>
                         <td><?php echo html_escape($tugas->auditee_nama); ?></td>
                         <td><?php echo html_escape($tugas->nama_standar); ?></td>
-                        <td><span class="ami-status status-dinilai"><i class="fas fa-check-circle" aria-hidden="true"></i>Dinilai</span></td>
-                        <td class="text-right"><a href="<?php echo site_url('auditor/nilai/' . (int) $tugas->id); ?>">Detail</a></td>
+                        <td>
+                            <span class="<?php echo (float) $tugas->rata_rata >= 3 ? 'text-success' : 'text-warning'; ?> font-weight-bold">
+                                <?php echo html_escape(number_format((float) $tugas->rata_rata, 1)); ?> / 4
+                            </span>
+                        </td>
+                        <td class="text-right"><a href="<?php echo site_url('auditor/nilai/' . (int) $tugas->id); ?>">Lihat detail</a></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>

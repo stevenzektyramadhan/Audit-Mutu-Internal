@@ -5,12 +5,15 @@ class Tugas_audit_service
 {
     protected $ci;
     protected $tugas_audit_model;
+    protected $jawaban_audit_model;
 
     public function __construct()
     {
         $this->ci = &get_instance();
         $this->ci->load->model('Tugas_audit_model');
+        $this->ci->load->model('Jawaban_audit_model');
         $this->tugas_audit_model = $this->ci->Tugas_audit_model;
+        $this->jawaban_audit_model = $this->ci->Jawaban_audit_model;
     }
 
     public function get_all_tugas()
@@ -21,6 +24,33 @@ class Tugas_audit_service
     public function get_hasil_audit()
     {
         return $this->tugas_audit_model->get_hasil_audit_with_stats();
+    }
+
+    public function get_detail($id)
+    {
+        $tugas = $this->tugas_audit_model->find_with_relations($id);
+
+        if (!$tugas) {
+            return ['success' => FALSE, 'message' => 'Tugas audit tidak ditemukan.'];
+        }
+
+        $jawaban = $this->jawaban_audit_model->get_by_tugas($id);
+        $total_skor = 0;
+        $jumlah_skor = 0;
+
+        foreach ($jawaban as $item) {
+            if ($item->skor !== NULL) {
+                $total_skor += (int) $item->skor;
+                $jumlah_skor++;
+            }
+        }
+
+        return [
+            'success' => TRUE,
+            'tugas' => $tugas,
+            'jawaban' => $jawaban,
+            'rata_rata' => $jumlah_skor > 0 ? $total_skor / $jumlah_skor : NULL,
+        ];
     }
 
     public function create_tugas($data)
@@ -42,8 +72,7 @@ class Tugas_audit_service
                     'pertanyaan_id' => $p->id
                 ];
             }
-            $this->ci->load->model('Jawaban_audit_model');
-            $this->ci->Jawaban_audit_model->insert_batch($jawaban_data);
+            $this->jawaban_audit_model->insert_batch($jawaban_data);
         }
 
         $this->ci->db->trans_complete();
