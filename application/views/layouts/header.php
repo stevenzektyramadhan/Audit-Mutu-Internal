@@ -37,6 +37,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             margin: 0;
             background: var(--ami-bg);
             color: var(--ami-text);
+            color-scheme: dark;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             font-size: 14px;
             letter-spacing: 0;
@@ -108,6 +109,16 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             font-weight: 700;
             font-size: 12px;
             flex: 0 0 34px;
+        }
+
+        .ami-avatar.avatar-auditor {
+            background: #3b6d11;
+            color: #ffffff;
+        }
+
+        .ami-avatar.avatar-auditee {
+            background: #a15c05;
+            color: #ffffff;
         }
 
         .ami-user-name {
@@ -220,6 +231,31 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
 
         .ami-content {
             padding: 24px;
+            color: var(--ami-text);
+        }
+
+        .ami-content a:not(.btn) {
+            color: #4da3ff;
+        }
+
+        .ami-content a:not(.btn):hover {
+            color: #82c0ff;
+        }
+
+        .ami-content .text-muted {
+            color: var(--ami-muted) !important;
+        }
+
+        .ami-content .text-primary {
+            color: #4da3ff !important;
+        }
+
+        .ami-content .text-success {
+            color: #75c94b !important;
+        }
+
+        .ami-content .text-warning {
+            color: #f0ad4e !important;
         }
 
         .ami-stat-grid {
@@ -235,6 +271,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             background: var(--ami-panel);
             border: 1px solid var(--ami-border);
             border-radius: 8px;
+            color: var(--ami-text);
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
         }
 
@@ -326,6 +363,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
         .ami-table {
             margin: 0;
             font-size: 13px;
+            color: var(--ami-text);
         }
 
         .ami-table th {
@@ -340,6 +378,57 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
         .ami-table td {
             vertical-align: middle;
             border-top: 1px solid var(--ami-border);
+            color: var(--ami-text);
+        }
+
+        .ami-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.035);
+            color: #ffffff;
+        }
+
+        .ami-table tbody tr:hover td {
+            color: #ffffff;
+        }
+
+        .ami-content label,
+        .ami-content .form-label {
+            color: var(--ami-text);
+        }
+
+        .ami-content .form-control {
+            background-color: #191b1f;
+            border-color: #4a4f57;
+            color: var(--ami-text);
+        }
+
+        .ami-content .form-control:focus {
+            background-color: #191b1f;
+            border-color: #4da3ff;
+            color: #ffffff;
+            box-shadow: 0 0 0 .2rem rgba(77, 163, 255, 0.18);
+        }
+
+        .ami-content .form-control::placeholder {
+            color: #858b94;
+            opacity: 1;
+        }
+
+        .ami-content .form-control:disabled,
+        .ami-content .form-control[readonly] {
+            background-color: #25282d;
+            color: #c7cbd1;
+            opacity: 1;
+        }
+
+        .ami-content select.form-control option {
+            background: #191b1f;
+            color: var(--ami-text);
+        }
+
+        .ami-content .btn-primary,
+        .ami-content .btn-primary:hover,
+        .ami-content .btn-primary:focus {
+            color: #ffffff;
         }
 
         .ami-status {

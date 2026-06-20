@@ -52,6 +52,105 @@ class Tugas_audit_model extends CI_Model
             ->result();
     }
 
+    public function get_by_auditor($auditor_id, $status = NULL, $limit = NULL)
+    {
+        if (!$this->tables_exist(['tugas_audit', 'users', 'standar', 'jawaban_audit'])) {
+            return [];
+        }
+
+        $this->db
+            ->select('tugas_audit.id, tugas_audit.status, tugas_audit.created_at, tugas_audit.auditor_id, tugas_audit.auditee_id, tugas_audit.standar_id, standar.nama_standar, auditee.nama AS auditee_nama, COUNT(jawaban_audit.id) AS jumlah_pertanyaan, AVG(jawaban_audit.skor) AS rata_rata')
+            ->from($this->table)
+            ->join('users AS auditee', 'auditee.id = tugas_audit.auditee_id', 'left')
+            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
+            ->join('jawaban_audit', 'jawaban_audit.tugas_audit_id = tugas_audit.id', 'left')
+            ->where('tugas_audit.auditor_id', (int) $auditor_id);
+
+        if ($status !== NULL) {
+            $this->db->where('tugas_audit.status', $status);
+        }
+
+        $this->db
+            ->group_by('tugas_audit.id')
+            ->order_by('tugas_audit.id', 'DESC');
+
+        if ($limit !== NULL) {
+            $this->db->limit((int) $limit);
+        }
+
+        return $this->db->get()->result();
+    }
+
+    public function find_for_auditor($tugas_id, $auditor_id)
+    {
+        if (!$this->tables_exist(['tugas_audit', 'users', 'standar'])) {
+            return NULL;
+        }
+
+        return $this->db
+            ->select('tugas_audit.*, standar.nama_standar, standar.deskripsi AS standar_deskripsi, auditee.nama AS auditee_nama, auditee.email AS auditee_email')
+            ->from($this->table)
+            ->join('users AS auditee', 'auditee.id = tugas_audit.auditee_id', 'left')
+            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
+            ->where('tugas_audit.id', (int) $tugas_id)
+            ->where('tugas_audit.auditor_id', (int) $auditor_id)
+            ->get()
+            ->row();
+    }
+
+    public function get_by_auditee($auditee_id, $status = NULL, $limit = NULL)
+    {
+        if (!$this->tables_exist(['tugas_audit', 'users', 'standar', 'jawaban_audit'])) {
+            return [];
+        }
+
+        $this->db
+            ->select('tugas_audit.id, tugas_audit.status, tugas_audit.created_at, tugas_audit.auditor_id, tugas_audit.auditee_id, tugas_audit.standar_id, standar.nama_standar, auditor.nama AS auditor_nama, COUNT(jawaban_audit.id) AS jumlah_pertanyaan, AVG(jawaban_audit.skor) AS rata_rata')
+            ->from($this->table)
+            ->join('users AS auditor', 'auditor.id = tugas_audit.auditor_id', 'left')
+            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
+            ->join('jawaban_audit', 'jawaban_audit.tugas_audit_id = tugas_audit.id', 'left')
+            ->where('tugas_audit.auditee_id', (int) $auditee_id);
+
+        if ($status !== NULL) {
+            $this->db->where('tugas_audit.status', $status);
+        }
+
+        $this->db
+            ->group_by('tugas_audit.id')
+            ->order_by('tugas_audit.id', 'DESC');
+
+        if ($limit !== NULL) {
+            $this->db->limit((int) $limit);
+        }
+
+        return $this->db->get()->result();
+    }
+
+    public function find_for_auditee($tugas_id, $auditee_id)
+    {
+        if (!$this->tables_exist(['tugas_audit', 'users', 'standar'])) {
+            return NULL;
+        }
+
+        return $this->db
+            ->select('tugas_audit.*, standar.nama_standar, standar.deskripsi AS standar_deskripsi, auditor.nama AS auditor_nama, auditor.email AS auditor_email')
+            ->from($this->table)
+            ->join('users AS auditor', 'auditor.id = tugas_audit.auditor_id', 'left')
+            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
+            ->where('tugas_audit.id', (int) $tugas_id)
+            ->where('tugas_audit.auditee_id', (int) $auditee_id)
+            ->get()
+            ->row();
+    }
+
+    public function update_status($id, $status)
+    {
+        return $this->db
+            ->where('id', (int) $id)
+            ->update($this->table, ['status' => $status]);
+    }
+
     public function get_all_tugas()
     {
         if (!$this->tables_exist(['tugas_audit', 'users', 'standar'])) {
@@ -67,6 +166,23 @@ class Tugas_audit_model extends CI_Model
             ->order_by('tugas_audit.id', 'ASC')
             ->get()
             ->result();
+    }
+
+    public function find_with_relations($id)
+    {
+        if (!$this->tables_exist(['tugas_audit', 'users', 'standar'])) {
+            return NULL;
+        }
+
+        return $this->db
+            ->select('tugas_audit.*, standar.nama_standar, standar.deskripsi AS standar_deskripsi, auditor.nama AS auditor_nama, auditor.email AS auditor_email, auditee.nama AS auditee_nama, auditee.email AS auditee_email')
+            ->from($this->table)
+            ->join('users AS auditor', 'auditor.id = tugas_audit.auditor_id', 'left')
+            ->join('users AS auditee', 'auditee.id = tugas_audit.auditee_id', 'left')
+            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
+            ->where('tugas_audit.id', (int) $id)
+            ->get()
+            ->row();
     }
 
     public function get_hasil_audit_with_stats()

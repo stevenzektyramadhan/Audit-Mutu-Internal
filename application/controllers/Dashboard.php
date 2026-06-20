@@ -3,6 +3,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Dashboard extends CI_Controller {
 
+    /** @var CI_Session */
+    public $session;
+
+    /** @var Auth_guard */
+    public $auth_guard;
+
+    /** @var Dashboard_service */
+    protected $dashboard_service;
+
     public function __construct()
     {
         parent::__construct();

@@ -22,13 +22,13 @@ $menus = [
     'auditor' => [
         ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
         ['key' => 'tugas_audit', 'label' => 'Tugas Audit', 'icon' => 'fa-clipboard-list', 'url' => 'auditor/tugas'],
-        ['key' => 'penilaian', 'label' => 'Penilaian Auditee', 'icon' => 'fa-star', 'url' => 'auditor/tugas'],
+        ['key' => 'penilaian', 'label' => 'Penilaian Auditee', 'icon' => 'fa-star', 'url' => 'auditor'],
     ],
     'auditee' => [
         ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
         ['key' => 'tugas_saya', 'label' => 'Tugas Saya', 'icon' => 'fa-clipboard-list', 'url' => 'auditee/tugas'],
-        ['key' => 'pengisian', 'label' => 'Pengisian Audit', 'icon' => 'fa-pen', 'url' => 'auditee/tugas'],
-        ['key' => 'hasil_penilaian', 'label' => 'Hasil Penilaian', 'icon' => 'fa-eye', 'url' => 'auditee/tugas'],
+        ['key' => 'pengisian', 'label' => 'Pengisian Audit', 'icon' => 'fa-pen', 'url' => 'auditee'],
+        ['key' => 'hasil_penilaian', 'label' => 'Hasil Penilaian', 'icon' => 'fa-eye', 'url' => 'auditee/tugas?status=dinilai'],
     ],
 ];
 $current_menus = isset($menus[$role]) ? $menus[$role] : [];
@@ -50,7 +50,7 @@ if ($initial === '') {
     </div>
 
     <div class="ami-user">
-        <div class="ami-avatar"><?php echo html_escape($initial); ?></div>
+        <div class="ami-avatar avatar-<?php echo html_escape($role); ?>"><?php echo html_escape($initial); ?></div>
         <div>
             <div class="ami-user-name"><?php echo html_escape($nama); ?></div>
             <div class="ami-user-role"><?php echo html_escape(isset($role_labels[$role]) ? $role_labels[$role] : $role); ?></div>
