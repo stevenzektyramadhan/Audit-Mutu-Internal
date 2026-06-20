@@ -284,7 +284,7 @@ class CI_Security {
 					'domain'   => config_item('cookie_domain'),
 					'secure'   => $secure_cookie,
 					'httponly' => config_item('cookie_httponly'),
-					'samesite' => 'Strict'
+					'samesite' => 'Lax'
 				)
 			);
 		}
@@ -298,7 +298,7 @@ class CI_Security {
 					.($domain === '' ? '' : '; Domain='.$domain)
 					.($secure_cookie ? '; Secure' : '')
 					.(config_item('cookie_httponly') ? '; HttpOnly' : '')
-					.'; SameSite=Strict'
+					.'; SameSite=Lax'
 			);
 		}
 
