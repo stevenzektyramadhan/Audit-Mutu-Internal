@@ -9,6 +9,8 @@ class Dashboard extends CI_Controller {
         $this->load->library('session');
         $this->load->helper('url');
         $this->load->library('auth_guard');
+        require_once APPPATH . 'services/Dashboard_service.php';
+        $this->dashboard_service = new Dashboard_service();
     }
 
     public function index()
@@ -16,19 +18,23 @@ class Dashboard extends CI_Controller {
         $this->auth_guard->check();
 
         $role = $this->session->userdata('role');
+        $user_id = (int) $this->session->userdata('user_id');
 
         if ($role === 'super_admin') {
-            $this->load->view('dashboard/super_admin');
+            $data = $this->dashboard_service->get_super_admin_data();
+            $this->load->view('dashboard/super_admin', $data);
             return;
         }
 
         if ($role === 'auditor') {
-            $this->load->view('dashboard/auditor');
+            $data = $this->dashboard_service->get_auditor_data($user_id);
+            $this->load->view('dashboard/auditor', $data);
             return;
         }
 
         if ($role === 'auditee') {
-            $this->load->view('dashboard/auditee');
+            $data = $this->dashboard_service->get_auditee_data($user_id);
+            $this->load->view('dashboard/auditee', $data);
             return;
         }
 

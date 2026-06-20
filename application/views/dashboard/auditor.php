@@ -1,54 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Auditor</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" integrity="sha512-P5MgXuoE..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body class="bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-    <div class="container">
-        <a class="navbar-brand" href="<?php echo site_url('dashboard'); ?>">AMI Dashboard</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item active"><a class="nav-link" href="<?php echo site_url('dashboard'); ?>">Home</a></li>
-            </ul>
-            <span class="navbar-text text-white mr-3">Auditor</span>
-            <a class="btn btn-outline-light" href="<?php echo site_url('auth/logout'); ?>">Logout</a>
-        </div>
-    </div>
-</nav>
-<div class="container mt-4">
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h3 class="card-title">Dashboard Auditor</h3>
-            <p class="card-text">Selamat datang, <?php echo html_escape($this->session->userdata('nama')); ?>. Di sini Anda bisa melihat tugas audit dan menilai jawaban auditee.</p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card border-info h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Tugas Audit</h5>
-                    <p class="card-text">Akses daftar tugas yang ditugaskan kepada Anda.</p>
-                </div>
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+$title = 'Dashboard Auditor';
+$page_title = 'Dashboard Auditor';
+$page_subtitle = 'Daftar tugas audit dan progres penilaian auditee';
+$active_menu = 'dashboard';
+$stats = isset($stats) ? $stats : [];
+$pending_tugas = isset($pending_tugas) ? $pending_tugas : [];
+$graded_tugas = isset($graded_tugas) ? $graded_tugas : [];
+$menu_badges = ['tugas_audit' => isset($stats['total_tugas']) ? $stats['total_tugas'] : 0];
+$stat_cards = [
+    ['label' => 'Total tugas', 'value' => isset($stats['total_tugas']) ? $stats['total_tugas'] : 0, 'icon' => 'fa-clipboard-list', 'tone' => 'tone-blue'],
+    ['label' => 'Belum dinilai', 'value' => isset($stats['belum_dinilai']) ? $stats['belum_dinilai'] : 0, 'icon' => 'fa-clock', 'tone' => 'tone-amber'],
+    ['label' => 'Sudah dinilai', 'value' => isset($stats['dinilai']) ? $stats['dinilai'] : 0, 'icon' => 'fa-check-circle', 'tone' => 'tone-green'],
+];
+include APPPATH . 'views/layouts/header.php';
+include APPPATH . 'views/layouts/sidebar.php';
+?>
+
+<div class="ami-stat-grid">
+    <?php foreach ($stat_cards as $card): ?>
+        <div class="ami-stat-card">
+            <div class="ami-stat-icon <?php echo html_escape($card['tone']); ?>">
+                <i class="fas <?php echo html_escape($card['icon']); ?>" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="ami-stat-label"><?php echo html_escape($card['label']); ?></div>
+                <div class="ami-stat-value"><?php echo html_escape((string) $card['value']); ?></div>
             </div>
         </div>
-        <div class="col-md-6 mb-3">
-            <div class="card border-secondary h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Penilaian</h5>
-                    <p class="card-text">Beri skor dan catatan untuk jawaban auditee.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <?php endforeach; ?>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.slim.min.js" integrity="sha512-DfXdz2..." crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js" integrity="sha512-Piv4xV..." crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-</body>
-</html>
+
+<div class="ami-section-head">
+    <h2 class="ami-section-title">Tugas menunggu penilaian</h2>
+    <a href="<?php echo site_url('auditor/tugas'); ?>" class="small font-weight-bold">Lihat tugas</a>
+</div>
+
+<?php if (!empty($pending_tugas)): ?>
+    <?php foreach ($pending_tugas as $tugas): ?>
+        <div class="ami-task-card">
+            <div class="ami-task-icon tone-blue"><i class="fas fa-building" aria-hidden="true"></i></div>
+            <div class="ami-task-main">
+                <div class="ami-task-title"><?php echo html_escape($tugas->auditee_nama); ?></div>
+                <div class="ami-task-meta">
+                    <?php echo html_escape($tugas->nama_standar); ?> &middot; Jawaban auditee sudah masuk
+                </div>
+            </div>
+            <div>
+                <a class="btn btn-primary btn-ami" href="<?php echo site_url('auditor/nilai/' . (int) $tugas->id); ?>">
+                    <i class="fas fa-star" aria-hidden="true"></i>
+                    Nilai
+                </a>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php else: ?>
+    <div class="ami-panel">
+        <div class="ami-empty">Belum ada tugas yang siap dinilai.</div>
+    </div>
+<?php endif; ?>
+
+<div class="ami-section-head">
+    <h2 class="ami-section-title">Sudah dinilai</h2>
+</div>
+<div class="ami-panel">
+    <?php if (!empty($graded_tugas)): ?>
+        <div class="table-responsive">
+            <table class="table ami-table">
+                <thead>
+                <tr>
+                    <th>Auditee</th>
+                    <th>Standar</th>
+                    <th>Status</th>
+                    <th class="text-right">Aksi</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($graded_tugas as $tugas): ?>
+                    <tr>
+                        <td><?php echo html_escape($tugas->auditee_nama); ?></td>
+                        <td><?php echo html_escape($tugas->nama_standar); ?></td>
+                        <td><span class="ami-status status-dinilai"><i class="fas fa-check-circle" aria-hidden="true"></i>Dinilai</span></td>
+                        <td class="text-right"><a href="<?php echo site_url('auditor/nilai/' . (int) $tugas->id); ?>">Detail</a></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php else: ?>
+        <div class="ami-empty">Belum ada tugas yang sudah dinilai.</div>
+    <?php endif; ?>
+</div>
+
+<?php include APPPATH . 'views/layouts/footer.php'; ?>
