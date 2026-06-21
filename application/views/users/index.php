@@ -53,10 +53,7 @@ $role_labels = [
                                 </span>
                             </td>
                             <td>
-                                <?php 
-                                    $date = new DateTime($user->created_at);
-                                    echo $date->format('d M Y'); 
-                                ?>
+                                <?php echo html_escape(format_tanggal_indo($user->created_at)); ?>
                             </td>
                             <td>
                                 <a href="<?php echo site_url('users/edit/'.$user->id); ?>" class="action-link edit">Edit</a>

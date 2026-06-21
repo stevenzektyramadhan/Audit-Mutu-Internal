@@ -16,9 +16,14 @@ class Pertanyaan_service
         $this->standar_model = $this->ci->Standar_model;
     }
 
-    public function get_all_pertanyaan()
+    public function get_all_pertanyaan($standar_id = NULL)
     {
-        return $this->pertanyaan_model->get_all_with_standar();
+        $standar_id = $standar_id !== NULL ? (int) $standar_id : NULL;
+        if ($standar_id !== NULL && !$this->standar_model->find($standar_id)) {
+            $standar_id = NULL;
+        }
+
+        return $this->pertanyaan_model->get_all_with_standar($standar_id);
     }
 
     public function get_pertanyaan($id)

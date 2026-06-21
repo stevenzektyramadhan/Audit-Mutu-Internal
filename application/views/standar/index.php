@@ -43,10 +43,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <span class="text-primary font-weight-bold"><?php echo (int) $row->total_pertanyaan; ?></span>
                             </td>
                             <td>
-                                <?php 
-                                    $date = new DateTime($row->created_at);
-                                    echo $date->format('d M Y'); 
-                                ?>
+                                <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
                                 <a href="<?php echo site_url('standar/edit/'.$row->id); ?>" class="action-link edit">Edit</a>

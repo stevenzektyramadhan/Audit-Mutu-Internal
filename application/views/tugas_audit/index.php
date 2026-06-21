@@ -4,17 +4,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
-$status_tones = [
-    'dinilai' => 'tone-green',
-    'diisi' => 'tone-blue',
-    'belum_diisi' => 'tone-amber'
-];
-
-$status_labels = [
-    'dinilai' => 'Dinilai',
-    'diisi' => 'Diisi',
-    'belum_diisi' => 'Belum diisi'
-];
 ?>
 
 <div class="ami-panel">
@@ -42,21 +31,19 @@ $status_labels = [
                 <tbody>
                 <?php if (!empty($tugas)): ?>
                     <?php $no = 1; foreach ($tugas as $row): ?>
+                        <?php $status_meta = status_audit_meta($row->status); ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
                             <td><?php echo html_escape($row->auditee_nama); ?></td>
                             <td><?php echo html_escape($row->auditor_nama); ?></td>
                             <td><?php echo html_escape($row->nama_standar); ?></td>
                             <td>
-                                <span class="ami-status <?php echo isset($status_tones[$row->status]) ? $status_tones[$row->status] : 'tone-blue'; ?>">
-                                    <?php echo html_escape(isset($status_labels[$row->status]) ? $status_labels[$row->status] : $row->status); ?>
+                                <span class="ami-status <?php echo html_escape($status_meta['tone']); ?>">
+                                    <?php echo html_escape($status_meta['label']); ?>
                                 </span>
                             </td>
                             <td>
-                                <?php 
-                                    $date = new DateTime($row->created_at);
-                                    echo $date->format('d M Y'); 
-                                ?>
+                                <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
                                 <a href="<?php echo site_url('tugas_audit/show/'.$row->id); ?>" class="action-link edit">Detail</a>

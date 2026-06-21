@@ -47,7 +47,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <?php echo html_escape(isset($status_labels[$item->status]) ? $status_labels[$item->status] : $item->status); ?>
                             </span>
                         </td>
-                        <td><?php echo html_escape(date('d M Y', strtotime($item->created_at))); ?></td>
+                        <td><?php echo html_escape(format_tanggal_indo($item->created_at)); ?></td>
                         <td>
                             <?php if ($item->status === STATUS_BELUM_DIISI): ?>
                                 <span class="text-muted">Menunggu auditee</span>

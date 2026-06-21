@@ -45,19 +45,22 @@ class Pertanyaan_model extends CI_Model
         return (int) $this->db->count_all_results($this->table);
     }
 
-    public function get_all_with_standar()
+    public function get_all_with_standar($standar_id = NULL)
     {
         if (!$this->db->table_exists($this->table)) {
             return [];
         }
 
-        return $this->db
+        $this->db
             ->select('pertanyaan.*, standar.nama_standar')
             ->from($this->table)
-            ->join('standar', 'standar.id = pertanyaan.standar_id', 'left')
-            ->order_by('pertanyaan.id', 'ASC')
-            ->get()
-            ->result();
+            ->join('standar', 'standar.id = pertanyaan.standar_id', 'left');
+
+        if ($standar_id !== NULL) {
+            $this->db->where('pertanyaan.standar_id', (int) $standar_id);
+        }
+
+        return $this->db->order_by('pertanyaan.id', 'ASC')->get()->result();
     }
 
     public function get_by_standar($standar_id)

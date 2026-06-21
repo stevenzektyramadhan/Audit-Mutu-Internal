@@ -16,16 +16,23 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
             </a>
         </div>
 
-        <div class="mb-3" style="width: 250px;">
-            <select class="form-control bg-dark text-light border-secondary" style="border-radius: 7px; height: 42px; font-size: 14px;">
-                <option value="">Semua standar</option>
-                <?php if (!empty($standar)): ?>
+        <form method="get" action="<?php echo site_url('pertanyaan'); ?>" class="ami-actions align-items-end mb-3">
+            <div style="width:280px;max-width:100%;">
+                <label for="standar-filter" class="ami-stat-label">Filter standar</label>
+                <select id="standar-filter" name="standar_id" class="form-control">
+                    <option value="">Semua standar</option>
                     <?php foreach ($standar as $std): ?>
-                        <option value="<?php echo $std->id; ?>"><?php echo html_escape($std->nama_standar); ?></option>
+                        <option value="<?php echo (int) $std->id; ?>" <?php echo (int) $filter_standar_id === (int) $std->id ? 'selected' : ''; ?>>
+                            <?php echo html_escape($std->nama_standar); ?>
+                        </option>
                     <?php endforeach; ?>
-                <?php endif; ?>
-            </select>
-        </div>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-ami"><i class="fas fa-filter" aria-hidden="true"></i>Terapkan</button>
+            <?php if ($filter_standar_id !== NULL): ?>
+                <a href="<?php echo site_url('pertanyaan'); ?>" class="btn btn-outline-ami btn-ami">Reset</a>
+            <?php endif; ?>
+        </form>
 
         <div class="table-responsive">
             <table class="table ami-table">
@@ -60,10 +67,7 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
                                 <?php echo html_escape($row->isi_pertanyaan); ?>
                             </td>
                             <td>
-                                <?php 
-                                    $date = new DateTime($row->created_at);
-                                    echo $date->format('d M Y'); 
-                                ?>
+                                <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
                                 <a href="<?php echo site_url('pertanyaan/edit/'.$row->id); ?>" class="action-link edit">Edit</a>

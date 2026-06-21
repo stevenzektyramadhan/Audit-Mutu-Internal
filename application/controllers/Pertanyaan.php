@@ -34,12 +34,16 @@ class Pertanyaan extends CI_Controller {
 
     public function index()
     {
+        $filter_standar_id = (int) $this->input->get('standar_id', TRUE);
+        $filter_standar_id = $filter_standar_id > 0 ? $filter_standar_id : NULL;
+
         $data['title'] = 'Data Pertanyaan - AMI';
         $data['page_title'] = 'Data Pertanyaan';
         $data['page_subtitle'] = 'Beranda / Data Pertanyaan';
         $data['active_menu'] = 'pertanyaan';
-        $data['pertanyaan'] = $this->pertanyaan_service->get_all_pertanyaan();
+        $data['pertanyaan'] = $this->pertanyaan_service->get_all_pertanyaan($filter_standar_id);
         $data['standar'] = $this->pertanyaan_service->get_all_standar();
+        $data['filter_standar_id'] = $filter_standar_id;
         
         $this->load->view('pertanyaan/index', $data);
     }
