@@ -6,6 +6,12 @@ class Tugas_audit extends CI_Controller {
     /** @var CI_Session */
     public $session;
 
+    /** @var CI_Input */
+    public $input;
+
+    /** @var CI_Form_validation */
+    public $form_validation;
+
     /** @var Auth_guard */
     public $auth_guard;
 
@@ -89,18 +95,18 @@ class Tugas_audit extends CI_Controller {
         $this->load->helper('form');
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('auditor_id', 'Auditor', 'required');
-        $this->form_validation->set_rules('auditee_id', 'Auditee', 'required');
-        $this->form_validation->set_rules('standar_id', 'Standar', 'required');
+        $this->form_validation->set_rules('auditor_id', 'Auditor', 'required|integer');
+        $this->form_validation->set_rules('auditee_id', 'Auditee', 'required|integer');
+        $this->form_validation->set_rules('standar_id', 'Standar', 'required|integer');
 
         if ($this->form_validation->run() === FALSE) {
             $this->create();
         } else {
             $data = [
-                'auditor_id' => $this->input->post('auditor_id'),
-                'auditee_id' => $this->input->post('auditee_id'),
-                'standar_id' => $this->input->post('standar_id'),
-                'status' => 'belum_diisi'
+                'auditor_id' => $this->input->post('auditor_id', TRUE),
+                'auditee_id' => $this->input->post('auditee_id', TRUE),
+                'standar_id' => $this->input->post('standar_id', TRUE),
+                'status' => STATUS_BELUM_DIISI
             ];
 
             $result = $this->tugas_audit_service->create_tugas($data);
@@ -113,5 +119,17 @@ class Tugas_audit extends CI_Controller {
                 $this->create();
             }
         }
+    }
+
+    public function delete($id)
+    {
+        if ($this->input->method(TRUE) !== 'POST') {
+            show_error('Method tidak diizinkan.', 405, 'Method Not Allowed');
+            return;
+        }
+
+        $result = $this->tugas_audit_service->delete_tugas((int) $id);
+        $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
+        redirect('tugas_audit');
     }
 }

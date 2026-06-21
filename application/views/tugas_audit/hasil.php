@@ -49,6 +49,9 @@ $score_tones = [
                 <div class="text-muted" style="font-size: 12px; margin-top: 4px;">
                     rata-rata / 4
                 </div>
+                <a href="<?php echo site_url('tugas_audit/show/' . (int) $row->id); ?>" class="btn btn-outline-ami btn-ami mt-3">
+                    <i class="fas fa-eye" aria-hidden="true"></i>Lihat detail
+                </a>
             </div>
         </div>
     </div>

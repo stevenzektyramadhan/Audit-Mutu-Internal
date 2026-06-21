@@ -2,11 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $jawaban = isset($jawaban) ? $jawaban : [];
-$status_labels = [
-    STATUS_BELUM_DIISI => 'Belum diisi',
-    STATUS_DIISI => 'Sudah diisi',
-    STATUS_DINILAI => 'Sudah dinilai',
-];
+$status_meta = status_audit_meta($tugas->status);
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
@@ -30,8 +26,8 @@ include APPPATH . 'views/layouts/sidebar.php';
             </div>
             <div class="col-md-3">
                 <div class="ami-stat-label">Status</div>
-                <span class="ami-status status-<?php echo html_escape($tugas->status); ?>">
-                    <?php echo html_escape(isset($status_labels[$tugas->status]) ? $status_labels[$tugas->status] : $tugas->status); ?>
+                <span class="ami-status <?php echo html_escape($status_meta['tone']); ?>">
+                    <?php echo html_escape($status_meta['label']); ?>
                 </span>
             </div>
         </div>

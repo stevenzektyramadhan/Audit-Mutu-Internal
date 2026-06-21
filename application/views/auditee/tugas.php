@@ -12,10 +12,6 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
-<?php if ($this->session->flashdata('success')): ?>
-    <div class="alert alert-success"><?php echo html_escape($this->session->flashdata('success')); ?></div>
-<?php endif; ?>
-
 <div class="ami-section-head mt-0">
     <h2 class="ami-section-title">Daftar tugas audit saya</h2>
 </div>

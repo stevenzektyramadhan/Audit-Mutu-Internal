@@ -7,10 +7,6 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
-<?php if ($this->session->flashdata('error')): ?>
-    <div class="alert alert-danger"><?php echo html_escape($this->session->flashdata('error')); ?></div>
-<?php endif; ?>
-
 <?php if (validation_errors()): ?>
     <div class="alert alert-danger"><?php echo validation_errors(); ?></div>
 <?php endif; ?>
@@ -68,7 +64,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <label for="skor-<?php echo (int) $item->id; ?>">Skor</label>
                             <select id="skor-<?php echo (int) $item->id; ?>" name="skor[<?php echo (int) $item->id; ?>]" class="form-control bg-dark text-light border-secondary" required <?php echo $read_only ? 'disabled' : ''; ?>>
                                 <option value="">Pilih skor</option>
-                                <?php foreach ([1 => 'Tidak sesuai', 2 => 'Kurang sesuai', 3 => 'Sesuai', 4 => 'Sangat sesuai'] as $skor => $label): ?>
+                                <?php foreach (skor_audit_options() as $skor => $label): ?>
                                     <option value="<?php echo $skor; ?>" <?php echo $current_skor === $skor ? 'selected' : ''; ?>>
                                         <?php echo $skor . ' - ' . html_escape($label); ?>
                                     </option>

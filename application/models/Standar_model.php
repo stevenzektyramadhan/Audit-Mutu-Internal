@@ -10,6 +10,21 @@ class Standar_model extends CI_Model
         return $this->db->insert($this->table, $data);
     }
 
+    public function find($id)
+    {
+        return $this->db->where('id', (int) $id)->get($this->table)->row();
+    }
+
+    public function update($id, $data)
+    {
+        return $this->db->where('id', (int) $id)->update($this->table, $data);
+    }
+
+    public function delete($id)
+    {
+        return $this->db->where('id', (int) $id)->delete($this->table);
+    }
+
     public function get_all_with_count()
     {
         if (!$this->db->table_exists($this->table)) {

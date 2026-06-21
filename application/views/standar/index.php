@@ -43,15 +43,14 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <span class="text-primary font-weight-bold"><?php echo (int) $row->total_pertanyaan; ?></span>
                             </td>
                             <td>
-                                <?php 
-                                    $date = new DateTime($row->created_at);
-                                    echo $date->format('d M Y'); 
-                                ?>
+                                <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
                                 <a href="<?php echo site_url('standar/edit/'.$row->id); ?>" class="action-link edit">Edit</a>
                                 <span class="text-muted mx-1">&middot;</span>
-                                <a href="<?php echo site_url('standar/delete/'.$row->id); ?>" class="action-link delete" onclick="return confirm('Apakah Anda yakin ingin menghapus standar ini beserta seluruh pertanyaannya?');">Hapus</a>
+                                <?php echo form_open('standar/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Standar, pertanyaan, tugas, dan jawaban terkait akan dihapus. Lanjutkan?');"]); ?>
+                                    <button type="submit" class="action-link delete btn btn-link p-0 border-0 align-baseline">Hapus</button>
+                                <?php echo form_close(); ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
