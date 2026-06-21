@@ -490,6 +490,28 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             font-size: 13px;
         }
 
+        .ami-flash {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            font-size: 13px;
+        }
+
+        .ami-flash-success {
+            background: rgba(59, 109, 17, 0.2);
+            border: 1px solid rgba(117, 201, 75, 0.38);
+            color: #b9ea9f;
+        }
+
+        .ami-flash-error {
+            background: rgba(153, 53, 86, 0.2);
+            border: 1px solid rgba(235, 108, 150, 0.38);
+            color: #ffc0d5;
+        }
+
         .ami-actions {
             display: flex;
             flex-wrap: wrap;

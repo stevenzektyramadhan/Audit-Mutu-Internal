@@ -86,3 +86,15 @@ if ($initial === '') {
         </div>
     </div>
     <div class="ami-content">
+        <?php if ($this->session->flashdata('success')): ?>
+            <div class="alert ami-flash ami-flash-success" role="alert">
+                <i class="fas fa-check-circle" aria-hidden="true"></i>
+                <span><?php echo html_escape($this->session->flashdata('success')); ?></span>
+            </div>
+        <?php endif; ?>
+        <?php if ($this->session->flashdata('error')): ?>
+            <div class="alert ami-flash ami-flash-error" role="alert">
+                <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+                <span><?php echo html_escape($this->session->flashdata('error')); ?></span>
+            </div>
+        <?php endif; ?>

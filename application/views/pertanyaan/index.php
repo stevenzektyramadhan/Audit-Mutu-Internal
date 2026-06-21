@@ -68,7 +68,9 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
                             <td>
                                 <a href="<?php echo site_url('pertanyaan/edit/'.$row->id); ?>" class="action-link edit">Edit</a>
                                 <span class="text-muted mx-1">&middot;</span>
-                                <a href="<?php echo site_url('pertanyaan/delete/'.$row->id); ?>" class="action-link delete" onclick="return confirm('Apakah Anda yakin ingin menghapus pertanyaan ini?');">Hapus</a>
+                                <?php echo form_open('pertanyaan/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Apakah Anda yakin ingin menghapus pertanyaan ini?');"]); ?>
+                                    <button type="submit" class="action-link delete btn btn-link p-0 border-0 align-baseline">Hapus</button>
+                                <?php echo form_close(); ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

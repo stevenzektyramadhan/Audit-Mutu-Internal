@@ -61,7 +61,9 @@ $role_labels = [
                             <td>
                                 <a href="<?php echo site_url('users/edit/'.$user->id); ?>" class="action-link edit">Edit</a>
                                 <span class="text-muted mx-1">&middot;</span>
-                                <a href="<?php echo site_url('users/delete/'.$user->id); ?>" class="action-link delete" onclick="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?');">Hapus</a>
+                                <?php echo form_open('users/delete/' . (int) $user->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Pengguna dan tugas audit terkait akan dihapus. Lanjutkan?');"]); ?>
+                                    <button type="submit" class="action-link delete btn btn-link p-0 border-0 align-baseline">Hapus</button>
+                                <?php echo form_close(); ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

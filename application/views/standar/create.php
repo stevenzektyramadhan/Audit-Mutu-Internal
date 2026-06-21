@@ -15,12 +15,6 @@ include APPPATH . 'views/layouts/sidebar.php';
             </div>
         <?php endif; ?>
 
-        <?php if ($this->session->flashdata('error')): ?>
-            <div class="alert alert-danger" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.2); color: #ea868f; border-radius: 7px; padding: 12px 15px; font-size: 14px; margin-bottom: 20px;">
-                <?php echo $this->session->flashdata('error'); ?>
-            </div>
-        <?php endif; ?>
-
         <?php echo form_open('standar/store'); ?>
             
             <div class="mb-3">

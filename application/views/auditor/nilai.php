@@ -7,10 +7,6 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
-<?php if ($this->session->flashdata('error')): ?>
-    <div class="alert alert-danger"><?php echo html_escape($this->session->flashdata('error')); ?></div>
-<?php endif; ?>
-
 <?php if (validation_errors()): ?>
     <div class="alert alert-danger"><?php echo validation_errors(); ?></div>
 <?php endif; ?>

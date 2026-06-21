@@ -61,7 +61,9 @@ $status_labels = [
                             <td>
                                 <a href="<?php echo site_url('tugas_audit/show/'.$row->id); ?>" class="action-link edit">Detail</a>
                                 <span class="text-muted mx-1">&middot;</span>
-                                <a href="<?php echo site_url('tugas_audit/delete/'.$row->id); ?>" class="action-link delete" onclick="return confirm('Apakah Anda yakin ingin menghapus tugas ini beserta seluruh jawabannya?');">Hapus</a>
+                                <?php echo form_open('tugas_audit/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Apakah Anda yakin ingin menghapus tugas ini beserta seluruh jawabannya?');"]); ?>
+                                    <button type="submit" class="action-link delete btn btn-link p-0 border-0 align-baseline">Hapus</button>
+                                <?php echo form_close(); ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

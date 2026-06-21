@@ -11,6 +11,11 @@ class Tugas_audit_model extends CI_Model
         return $this->db->insert_id();
     }
 
+    public function delete($id)
+    {
+        return $this->db->where('id', (int) $id)->delete($this->table);
+    }
+
     public function count_all($where = [], $excluded_status = NULL)
     {
         if (!$this->db->table_exists($this->table)) {
