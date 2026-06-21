@@ -70,17 +70,31 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
                                 <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
-                                <a href="<?php echo site_url('pertanyaan/edit/'.$row->id); ?>" class="action-link edit">Edit</a>
-                                <span class="text-muted mx-1">&middot;</span>
-                                <?php echo form_open('pertanyaan/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Apakah Anda yakin ingin menghapus pertanyaan ini?');"]); ?>
-                                    <button type="submit" class="action-link delete btn btn-link p-0 border-0 align-baseline">Hapus</button>
-                                <?php echo form_close(); ?>
+                                <div class="ami-row-actions">
+                                    <a href="<?php echo site_url('pertanyaan/edit/'.$row->id); ?>" class="ami-action-btn" title="Edit pertanyaan">
+                                        <i class="fas fa-edit" aria-hidden="true"></i><span>Edit</span>
+                                    </a>
+                                    <?php echo form_open('pertanyaan/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Apakah Anda yakin ingin menghapus pertanyaan ini?');"]); ?>
+                                        <button type="submit" class="ami-action-btn danger" title="Hapus pertanyaan">
+                                            <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Hapus</span>
+                                        </button>
+                                    <?php echo form_close(); ?>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">Belum ada data pertanyaan audit.</td>
+                        <td colspan="5"><div class="ami-empty">
+                            <div class="ami-empty-icon"><i class="fas fa-question-circle" aria-hidden="true"></i></div>
+                            <div class="ami-empty-title">Pertanyaan tidak ditemukan</div>
+                            <div><?php echo $filter_standar_id !== NULL ? 'Belum ada pertanyaan pada standar yang dipilih.' : 'Tambahkan pertanyaan audit berdasarkan standar.'; ?></div>
+                            <?php if ($filter_standar_id !== NULL): ?>
+                                <a href="<?php echo site_url('pertanyaan'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-undo" aria-hidden="true"></i>Reset filter</a>
+                            <?php else: ?>
+                                <a href="<?php echo site_url('pertanyaan/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah pertanyaan</a>
+                            <?php endif; ?>
+                        </div></td>
                     </tr>
                 <?php endif; ?>
                 </tbody>

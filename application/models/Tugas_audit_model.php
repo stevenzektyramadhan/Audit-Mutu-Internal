@@ -156,21 +156,33 @@ class Tugas_audit_model extends CI_Model
             ->update($this->table, ['status' => $status]);
     }
 
-    public function get_all_tugas()
+    public function get_all_tugas($filters = [])
     {
         if (!$this->tables_exist(['tugas_audit', 'users', 'standar'])) {
             return [];
         }
 
-        return $this->db
+        $this->db
             ->select('tugas_audit.id, tugas_audit.status, tugas_audit.created_at, standar.nama_standar, auditor.nama AS auditor_nama, auditee.nama AS auditee_nama')
             ->from($this->table)
             ->join('users AS auditor', 'auditor.id = tugas_audit.auditor_id', 'left')
             ->join('users AS auditee', 'auditee.id = tugas_audit.auditee_id', 'left')
-            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
-            ->order_by('tugas_audit.id', 'ASC')
-            ->get()
-            ->result();
+            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left');
+
+        if (!empty($filters['q'])) {
+            $this->db
+                ->group_start()
+                    ->like('auditee.nama', $filters['q'])
+                    ->or_like('auditor.nama', $filters['q'])
+                    ->or_like('standar.nama_standar', $filters['q'])
+                ->group_end();
+        }
+
+        if (!empty($filters['status'])) {
+            $this->db->where('tugas_audit.status', $filters['status']);
+        }
+
+        return $this->db->order_by('tugas_audit.id', 'ASC')->get()->result();
     }
 
     public function find_with_relations($id)
@@ -190,22 +202,30 @@ class Tugas_audit_model extends CI_Model
             ->row();
     }
 
-    public function get_hasil_audit_with_stats()
+    public function get_hasil_audit_with_stats($filters = [])
     {
         if (!$this->tables_exist(['tugas_audit', 'users', 'standar', 'jawaban_audit'])) {
             return [];
         }
 
-        $tugas = $this->db
+        $this->db
             ->select('tugas_audit.id, tugas_audit.created_at, standar.nama_standar, auditor.nama AS auditor_nama, auditee.nama AS auditee_nama')
             ->from($this->table)
             ->join('users AS auditor', 'auditor.id = tugas_audit.auditor_id', 'left')
             ->join('users AS auditee', 'auditee.id = tugas_audit.auditee_id', 'left')
             ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
-            ->where('tugas_audit.status', 'dinilai')
-            ->order_by('tugas_audit.id', 'DESC')
-            ->get()
-            ->result();
+            ->where('tugas_audit.status', STATUS_DINILAI);
+
+        if (!empty($filters['q'])) {
+            $this->db
+                ->group_start()
+                    ->like('auditee.nama', $filters['q'])
+                    ->or_like('auditor.nama', $filters['q'])
+                    ->or_like('standar.nama_standar', $filters['q'])
+                ->group_end();
+        }
+
+        $tugas = $this->db->order_by('tugas_audit.id', 'DESC')->get()->result();
 
         foreach ($tugas as &$t) {
             $jawaban = $this->db->select('skor')

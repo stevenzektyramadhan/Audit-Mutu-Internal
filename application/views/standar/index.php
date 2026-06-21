@@ -46,17 +46,27 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
-                                <a href="<?php echo site_url('standar/edit/'.$row->id); ?>" class="action-link edit">Edit</a>
-                                <span class="text-muted mx-1">&middot;</span>
-                                <?php echo form_open('standar/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Standar, pertanyaan, tugas, dan jawaban terkait akan dihapus. Lanjutkan?');"]); ?>
-                                    <button type="submit" class="action-link delete btn btn-link p-0 border-0 align-baseline">Hapus</button>
-                                <?php echo form_close(); ?>
+                                <div class="ami-row-actions">
+                                    <a href="<?php echo site_url('standar/edit/'.$row->id); ?>" class="ami-action-btn" title="Edit standar">
+                                        <i class="fas fa-edit" aria-hidden="true"></i><span>Edit</span>
+                                    </a>
+                                    <?php echo form_open('standar/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Standar, pertanyaan, tugas, dan jawaban terkait akan dihapus. Lanjutkan?');"]); ?>
+                                        <button type="submit" class="ami-action-btn danger" title="Hapus standar">
+                                            <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Hapus</span>
+                                        </button>
+                                    <?php echo form_close(); ?>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">Belum ada data standar audit.</td>
+                        <td colspan="6"><div class="ami-empty">
+                            <div class="ami-empty-icon"><i class="fas fa-book" aria-hidden="true"></i></div>
+                            <div class="ami-empty-title">Belum ada standar audit</div>
+                            <div>Buat standar terlebih dahulu sebelum menambahkan pertanyaan.</div>
+                            <a href="<?php echo site_url('standar/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah standar</a>
+                        </div></td>
                     </tr>
                 <?php endif; ?>
                 </tbody>

@@ -33,7 +33,12 @@ include APPPATH . 'views/layouts/sidebar.php';
     <?php endforeach; ?>
 <?php else: ?>
     <div class="ami-panel">
-        <div class="ami-empty">Tidak ada tugas yang perlu diisi saat ini.</div>
+        <div class="ami-empty">
+            <div class="ami-empty-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></div>
+            <div class="ami-empty-title">Semua tugas sudah ditangani</div>
+            <div>Tidak ada tugas yang perlu diisi saat ini.</div>
+            <a href="<?php echo site_url('auditee/tugas'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-list" aria-hidden="true"></i>Lihat semua tugas</a>
+        </div>
     </div>
 <?php endif; ?>
 

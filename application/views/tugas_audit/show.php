@@ -41,6 +41,35 @@ include APPPATH . 'views/layouts/sidebar.php';
     </div>
 </div>
 
+<?php
+$status_order = [STATUS_BELUM_DIISI, STATUS_DIISI, STATUS_DINILAI];
+$current_status_index = array_search($tugas->status, $status_order, TRUE);
+$current_status_index = $current_status_index === FALSE ? 0 : $current_status_index;
+$timeline_steps = [
+    ['label' => 'Tugas dibuat', 'icon' => 'fa-clipboard-list'],
+    ['label' => 'Diisi auditee', 'icon' => 'fa-pen'],
+    ['label' => 'Dinilai auditor', 'icon' => 'fa-star'],
+];
+?>
+<div class="ami-panel mb-3">
+    <div class="ami-panel-body">
+        <div class="ami-stat-label mb-2">Perjalanan status tugas</div>
+        <div class="ami-timeline" aria-label="Status tugas audit">
+            <?php foreach ($timeline_steps as $index => $step): ?>
+                <?php
+                $step_class = $index < $current_status_index ? 'is-complete' : ($index === $current_status_index ? 'is-current' : '');
+                ?>
+                <div class="ami-timeline-step <?php echo $step_class; ?>"<?php echo $index === $current_status_index ? ' aria-current="step"' : ''; ?>>
+                    <div class="ami-timeline-marker">
+                        <i class="fas <?php echo html_escape($step['icon']); ?>" aria-hidden="true"></i>
+                    </div>
+                    <div class="ami-timeline-label"><?php echo html_escape($step['label']); ?></div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+
 <?php if ($rata_rata !== NULL): ?>
     <div class="ami-panel mb-3">
         <div class="ami-panel-body d-flex align-items-center justify-content-between">
@@ -91,7 +120,12 @@ include APPPATH . 'views/layouts/sidebar.php';
         </div>
     <?php endforeach; ?>
 <?php else: ?>
-    <div class="ami-panel"><div class="ami-empty">Belum ada pertanyaan pada tugas audit ini.</div></div>
+    <div class="ami-panel"><div class="ami-empty">
+        <div class="ami-empty-icon"><i class="fas fa-question-circle" aria-hidden="true"></i></div>
+        <div class="ami-empty-title">Belum ada pertanyaan</div>
+        <div>Tambahkan pertanyaan pada standar ini agar tugas dapat diisi.</div>
+        <a href="<?php echo site_url('pertanyaan/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah pertanyaan</a>
+    </div></div>
 <?php endif; ?>
 
 <div class="ami-actions justify-content-end mt-3">

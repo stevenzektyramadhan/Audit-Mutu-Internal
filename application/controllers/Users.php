@@ -35,11 +35,18 @@ class Users extends CI_Controller {
 
     public function index()
     {
+        $role_filter = (string) $this->input->get('role', TRUE);
+        $filters = [
+            'q' => trim((string) $this->input->get('q', TRUE)),
+            'role' => in_array($role_filter, ['super_admin', 'auditor', 'auditee'], TRUE) ? $role_filter : '',
+        ];
+
         $data['title'] = 'Data Pengguna - AMI';
         $data['page_title'] = 'Data Pengguna';
         $data['page_subtitle'] = 'Beranda / Data Pengguna';
         $data['active_menu'] = 'users';
-        $data['users'] = $this->user_service->get_all_users();
+        $data['users'] = $this->user_service->get_all_users($filters);
+        $data['filters'] = $filters;
         
         $this->load->view('users/index', $data);
     }

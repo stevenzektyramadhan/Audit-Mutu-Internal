@@ -4,6 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
+$filters = isset($filters) ? $filters : ['q' => ''];
 $score_tones = [
     4 => 'tone-green',
     3 => 'tone-amber',
@@ -20,6 +21,17 @@ $score_tones = [
         Hanya menampilkan tugas dengan status <span class="font-weight-bold" style="color: var(--ami-blue);">dinilai</span>. Skor rata-rata dihitung dari seluruh pertanyaan.
     </div>
 </div>
+
+<form method="get" action="<?php echo site_url('tugas_audit/hasil'); ?>" class="ami-filter-bar">
+    <div class="ami-filter-grow">
+        <label for="hasil-search" class="ami-stat-label">Cari hasil audit</label>
+        <input id="hasil-search" type="search" name="q" class="form-control" value="<?php echo html_escape($filters['q']); ?>" placeholder="Auditee, auditor, atau standar">
+    </div>
+    <button type="submit" class="btn btn-primary btn-ami"><i class="fas fa-search" aria-hidden="true"></i>Cari</button>
+    <?php if ($filters['q'] !== ''): ?>
+        <a href="<?php echo site_url('tugas_audit/hasil'); ?>" class="btn btn-outline-ami btn-ami">Reset</a>
+    <?php endif; ?>
+</form>
 
 <?php if (!empty($hasil)): ?>
     <?php foreach ($hasil as $row): ?>
@@ -61,8 +73,17 @@ $score_tones = [
         Menampilkan <?php echo count($hasil); ?> hasil audit yang sudah selesai dinilai
     </div>
 <?php else: ?>
-    <div class="ami-panel text-center py-5">
-        <div class="text-muted">Belum ada hasil audit dengan status dinilai.</div>
+    <div class="ami-panel">
+        <div class="ami-empty">
+            <div class="ami-empty-icon"><i class="fas fa-chart-bar" aria-hidden="true"></i></div>
+            <div class="ami-empty-title">Hasil audit tidak ditemukan</div>
+            <div><?php echo $filters['q'] !== '' ? 'Tidak ada hasil yang cocok dengan pencarian.' : 'Hasil akan muncul setelah auditor menyelesaikan penilaian.'; ?></div>
+            <?php if ($filters['q'] !== ''): ?>
+                <a href="<?php echo site_url('tugas_audit/hasil'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-undo" aria-hidden="true"></i>Reset pencarian</a>
+            <?php else: ?>
+                <a href="<?php echo site_url('tugas_audit'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-clipboard-list" aria-hidden="true"></i>Lihat tugas audit</a>
+            <?php endif; ?>
+        </div>
     </div>
 <?php endif; ?>
 

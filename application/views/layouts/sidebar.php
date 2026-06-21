@@ -43,10 +43,13 @@ if ($initial === '') {
     $initial = 'A';
 }
 ?>
-<aside class="ami-sidebar">
+<aside class="ami-sidebar" id="ami-sidebar" aria-label="Navigasi utama">
     <div class="ami-brand">
         <div class="ami-logo"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
         <div class="ami-brand-title">AMI<br>Perguruan Tinggi</div>
+        <button type="button" class="ami-sidebar-close" data-sidebar-close aria-label="Tutup menu">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
     </div>
 
     <div class="ami-user">
@@ -78,12 +81,23 @@ if ($initial === '') {
     </div>
 </aside>
 
+<button type="button" class="ami-sidebar-overlay" data-sidebar-close aria-label="Tutup menu"></button>
+
 <main class="ami-main">
     <div class="ami-topbar">
-        <div>
-            <h1 class="ami-page-title"><?php echo html_escape($page_title); ?></h1>
-            <div class="ami-page-subtitle"><?php echo html_escape($page_subtitle); ?></div>
+        <div class="ami-topbar-heading">
+            <button type="button" class="ami-menu-toggle" data-sidebar-toggle aria-controls="ami-sidebar" aria-expanded="false" aria-label="Buka menu">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <div>
+                <h1 class="ami-page-title"><?php echo html_escape($page_title); ?></h1>
+                <div class="ami-page-subtitle"><?php echo html_escape($page_subtitle); ?></div>
+            </div>
         </div>
+        <button type="button" class="ami-theme-toggle" data-theme-toggle aria-label="Aktifkan mode terang" title="Ubah tema">
+            <i class="fas fa-sun" data-theme-icon aria-hidden="true"></i>
+            <span class="d-none d-sm-inline" data-theme-label>Mode terang</span>
+        </button>
     </div>
     <div class="ami-content">
         <?php if ($this->session->flashdata('success')): ?>

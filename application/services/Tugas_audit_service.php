@@ -25,14 +25,23 @@ class Tugas_audit_service
         $this->pertanyaan_model = $this->ci->Pertanyaan_model;
     }
 
-    public function get_all_tugas()
+    public function get_all_tugas($filters = [])
     {
-        return $this->tugas_audit_model->get_all_tugas();
+        return $this->tugas_audit_model->get_all_tugas($this->normalize_filters($filters, TRUE));
     }
     
-    public function get_hasil_audit()
+    public function get_hasil_audit($filters = [])
     {
-        return $this->tugas_audit_model->get_hasil_audit_with_stats();
+        return $this->tugas_audit_model->get_hasil_audit_with_stats($this->normalize_filters($filters, FALSE));
+    }
+
+    public function get_form_options()
+    {
+        return [
+            'auditor' => $this->user_model->get_by_role('auditor'),
+            'auditee' => $this->user_model->get_by_role('auditee'),
+            'standar' => $this->standar_model->get_all_with_count(),
+        ];
     }
 
     public function get_detail($id)
@@ -126,5 +135,19 @@ class Tugas_audit_service
         }
 
         return ['success' => FALSE, 'message' => 'Gagal menghapus tugas audit.'];
+    }
+
+    private function normalize_filters($filters, $with_status)
+    {
+        $result = ['q' => trim(isset($filters['q']) ? $filters['q'] : '')];
+
+        if ($with_status) {
+            $status = isset($filters['status']) ? $filters['status'] : '';
+            $result['status'] = in_array($status, [STATUS_BELUM_DIISI, STATUS_DIISI, STATUS_DINILAI], TRUE)
+                ? $status
+                : '';
+        }
+
+        return $result;
     }
 }

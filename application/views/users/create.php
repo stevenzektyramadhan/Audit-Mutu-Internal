@@ -29,7 +29,12 @@ include APPPATH . 'views/layouts/sidebar.php';
 
             <div class="mb-3">
                 <label for="password" class="form-label text-light">Password</label>
-                <input type="password" class="form-control bg-dark text-light border-secondary" id="password" name="password" required style="border-radius: 7px;">
+                <div class="ami-password-wrap">
+                    <input type="password" class="form-control bg-dark text-light border-secondary" id="password" name="password" required style="border-radius: 7px;">
+                    <button type="button" class="ami-password-toggle" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="mb-4">

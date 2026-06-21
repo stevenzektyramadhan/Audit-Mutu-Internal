@@ -52,9 +52,9 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <?php if ($item->status === STATUS_BELUM_DIISI): ?>
                                 <span class="text-muted">Menunggu auditee</span>
                             <?php elseif ($item->status === STATUS_DIISI): ?>
-                                <a href="<?php echo site_url('auditor/nilai/' . (int) $item->id); ?>">Nilai</a>
+                                <a class="ami-action-btn" href="<?php echo site_url('auditor/nilai/' . (int) $item->id); ?>"><i class="fas fa-star" aria-hidden="true"></i>Nilai</a>
                             <?php else: ?>
-                                <a href="<?php echo site_url('auditor/nilai/' . (int) $item->id); ?>">Lihat</a>
+                                <a class="ami-action-btn" href="<?php echo site_url('auditor/nilai/' . (int) $item->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Detail</a>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -63,7 +63,11 @@ include APPPATH . 'views/layouts/sidebar.php';
             </table>
         </div>
     <?php else: ?>
-        <div class="ami-empty">Belum ada tugas audit yang ditugaskan kepada Anda.</div>
+        <div class="ami-empty">
+            <div class="ami-empty-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></div>
+            <div class="ami-empty-title">Belum ada tugas audit</div>
+            <div>Penugasan dari super admin akan tampil di halaman ini.</div>
+        </div>
     <?php endif; ?>
 </div>
 

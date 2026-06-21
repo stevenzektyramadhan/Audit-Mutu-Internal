@@ -34,22 +34,32 @@ class Tugas_audit extends CI_Controller {
 
     public function index()
     {
+        $status_filter = (string) $this->input->get('status', TRUE);
+        $filters = [
+            'q' => trim((string) $this->input->get('q', TRUE)),
+            'status' => in_array($status_filter, [STATUS_BELUM_DIISI, STATUS_DIISI, STATUS_DINILAI], TRUE) ? $status_filter : '',
+        ];
+
         $data['title'] = 'Tugas Audit - AMI';
         $data['page_title'] = 'Tugas Audit';
         $data['page_subtitle'] = 'Beranda / Tugas Audit';
         $data['active_menu'] = 'tugas_audit';
-        $data['tugas'] = $this->tugas_audit_service->get_all_tugas();
+        $data['tugas'] = $this->tugas_audit_service->get_all_tugas($filters);
+        $data['filters'] = $filters;
         
         $this->load->view('tugas_audit/index', $data);
     }
     
     public function hasil()
     {
+        $filters = ['q' => trim((string) $this->input->get('q', TRUE))];
+
         $data['title'] = 'Hasil Audit - AMI';
         $data['page_title'] = 'Hasil Audit';
         $data['page_subtitle'] = 'Beranda / Hasil Audit';
         $data['active_menu'] = 'hasil_audit';
-        $data['hasil'] = $this->tugas_audit_service->get_hasil_audit();
+        $data['hasil'] = $this->tugas_audit_service->get_hasil_audit($filters);
+        $data['filters'] = $filters;
         
         $this->load->view('tugas_audit/hasil', $data);
     }
@@ -75,17 +85,13 @@ class Tugas_audit extends CI_Controller {
     public function create()
     {
         $this->load->helper('form');
-        $this->load->model('User_model');
-        $this->load->model('Standar_model');
 
         $data['title'] = 'Buat Tugas Audit - AMI';
         $data['page_title'] = 'Buat Tugas Audit';
         $data['page_subtitle'] = 'Beranda / Tugas Audit / Buat Tugas';
         $data['active_menu'] = 'tugas_audit';
-        
-        $data['auditor'] = $this->User_model->get_by_role('auditor');
-        $data['auditee'] = $this->User_model->get_by_role('auditee');
-        $data['standar'] = $this->Standar_model->get_all_with_count();
+
+        $data = array_merge($data, $this->tugas_audit_service->get_form_options());
         
         $this->load->view('tugas_audit/create', $data);
     }
