@@ -45,7 +45,7 @@ if ($initial === '') {
 ?>
 <aside class="ami-sidebar" id="ami-sidebar" aria-label="Navigasi utama">
     <div class="ami-brand">
-        <div class="ami-logo"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
+        <img src="<?= base_url('assets/img/logo-2.png'); ?>" alt="Logo LPM" class="ami-logo-img">
         <div class="ami-brand-title">AMI<br>Perguruan Tinggi</div>
         <button type="button" class="ami-sidebar-close" data-sidebar-close aria-label="Tutup menu">
             <i class="fas fa-times" aria-hidden="true"></i>
