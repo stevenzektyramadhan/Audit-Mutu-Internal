@@ -83,8 +83,12 @@ class Auditor_service
             return $detail;
         }
 
-        if ($detail['tugas']->status === STATUS_BELUM_DIISI) {
-            return ['success' => FALSE, 'message' => 'Auditee belum mengisi tugas audit ini.'];
+        if ($detail['tugas']->status !== STATUS_DIISI) {
+            $message = $detail['tugas']->status === STATUS_BELUM_DIISI
+                ? 'Auditee belum mengisi tugas audit ini.'
+                : 'Tugas audit ini sudah dinilai dan tidak dapat dinilai ulang.';
+
+            return ['success' => FALSE, 'message' => $message];
         }
 
         $skor_input = isset($input['skor']) && is_array($input['skor']) ? $input['skor'] : [];

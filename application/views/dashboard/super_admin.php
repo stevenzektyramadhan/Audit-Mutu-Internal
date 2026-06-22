@@ -141,7 +141,10 @@ include APPPATH . 'views/layouts/sidebar.php';
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <div class="ami-empty py-3">Belum ada standar audit.</div>
+            <div class="ami-empty py-3">
+                <div class="ami-empty-title">Belum ada standar audit</div>
+                <a href="<?php echo site_url('standar/create'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah standar</a>
+            </div>
         <?php endif; ?>
     </section>
 </div>
@@ -185,7 +188,12 @@ include APPPATH . 'views/layouts/sidebar.php';
             </table>
         </div>
     <?php else: ?>
-        <div class="ami-empty">Belum ada tugas audit.</div>
+        <div class="ami-empty">
+            <div class="ami-empty-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></div>
+            <div class="ami-empty-title">Belum ada tugas audit</div>
+            <div>Buat tugas setelah pengguna, standar, dan pertanyaan tersedia.</div>
+            <a href="<?php echo site_url('tugas_audit/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Buat tugas</a>
+        </div>
     <?php endif; ?>
 </div>
 

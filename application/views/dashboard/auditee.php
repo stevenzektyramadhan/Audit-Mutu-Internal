@@ -79,7 +79,11 @@ include APPPATH . 'views/layouts/sidebar.php';
     <?php endforeach; ?>
 <?php else: ?>
     <div class="ami-panel">
-        <div class="ami-empty">Belum ada tugas audit untuk akun ini.</div>
+        <div class="ami-empty">
+            <div class="ami-empty-icon"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
+            <div class="ami-empty-title">Belum ada tugas audit</div>
+            <div>Tugas yang diberikan super admin akan tampil di sini.</div>
+        </div>
     </div>
 <?php endif; ?>
 

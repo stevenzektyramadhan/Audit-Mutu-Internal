@@ -57,9 +57,23 @@ class User_model extends CI_Model
             ->count_all_results('tugas_audit') > 0;
     }
 
-    public function get_all()
+    public function get_all($filters = [])
     {
-        return $this->db->get($this->table)->result();
+        $this->db->from($this->table);
+
+        if (!empty($filters['q'])) {
+            $this->db
+                ->group_start()
+                    ->like('nama', $filters['q'])
+                    ->or_like('email', $filters['q'])
+                ->group_end();
+        }
+
+        if (!empty($filters['role'])) {
+            $this->db->where('role', $filters['role']);
+        }
+
+        return $this->db->order_by('id', 'ASC')->get()->result();
     }
 
     public function get_by_role($role)

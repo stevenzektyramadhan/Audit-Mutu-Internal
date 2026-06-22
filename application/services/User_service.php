@@ -15,9 +15,16 @@ class User_service
         $this->user_model = $this->ci->User_model;
     }
 
-    public function get_all_users()
+    public function get_all_users($filters = [])
     {
-        return $this->user_model->get_all();
+        $role = isset($filters['role']) && in_array($filters['role'], self::ALLOWED_ROLES, TRUE)
+            ? $filters['role']
+            : '';
+
+        return $this->user_model->get_all([
+            'q' => trim(isset($filters['q']) ? $filters['q'] : ''),
+            'role' => $role,
+        ]);
     }
 
     public function get_user($id)

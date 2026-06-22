@@ -15,6 +15,7 @@ $role_labels = [
     'auditor' => 'auditor',
     'auditee' => 'auditee'
 ];
+$filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
 ?>
 
 
@@ -27,6 +28,26 @@ $role_labels = [
                 <i class="fas fa-plus"></i> Tambah pengguna
             </a>
         </div>
+
+        <form method="get" action="<?php echo site_url('users'); ?>" class="ami-filter-bar">
+            <div class="ami-filter-grow">
+                <label for="user-search" class="ami-stat-label">Cari pengguna</label>
+                <input id="user-search" type="search" name="q" class="form-control" value="<?php echo html_escape($filters['q']); ?>" placeholder="Nama atau email">
+            </div>
+            <div class="ami-filter-select">
+                <label for="role-filter" class="ami-stat-label">Role</label>
+                <select id="role-filter" name="role" class="form-control">
+                    <option value="">Semua role</option>
+                    <option value="super_admin" <?php echo $filters['role'] === 'super_admin' ? 'selected' : ''; ?>>Super Admin</option>
+                    <option value="auditor" <?php echo $filters['role'] === 'auditor' ? 'selected' : ''; ?>>Auditor</option>
+                    <option value="auditee" <?php echo $filters['role'] === 'auditee' ? 'selected' : ''; ?>>Auditee</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-ami"><i class="fas fa-filter" aria-hidden="true"></i>Terapkan</button>
+            <?php if ($filters['q'] !== '' || $filters['role'] !== ''): ?>
+                <a href="<?php echo site_url('users'); ?>" class="btn btn-outline-ami btn-ami">Reset</a>
+            <?php endif; ?>
+        </form>
 
         <div class="table-responsive">
             <table class="table ami-table">
@@ -56,17 +77,33 @@ $role_labels = [
                                 <?php echo html_escape(format_tanggal_indo($user->created_at)); ?>
                             </td>
                             <td>
-                                <a href="<?php echo site_url('users/edit/'.$user->id); ?>" class="action-link edit">Edit</a>
-                                <span class="text-muted mx-1">&middot;</span>
-                                <?php echo form_open('users/delete/' . (int) $user->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Pengguna dan tugas audit terkait akan dihapus. Lanjutkan?');"]); ?>
-                                    <button type="submit" class="action-link delete btn btn-link p-0 border-0 align-baseline">Hapus</button>
-                                <?php echo form_close(); ?>
+                                <div class="ami-row-actions">
+                                    <a href="<?php echo site_url('users/edit/'.$user->id); ?>" class="ami-action-btn" title="Edit pengguna">
+                                        <i class="fas fa-edit" aria-hidden="true"></i><span>Edit</span>
+                                    </a>
+                                    <?php echo form_open('users/delete/' . (int) $user->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Pengguna dan tugas audit terkait akan dihapus. Lanjutkan?');"]); ?>
+                                        <button type="submit" class="ami-action-btn danger" title="Hapus pengguna">
+                                            <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Hapus</span>
+                                        </button>
+                                    <?php echo form_close(); ?>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">Belum ada data pengguna.</td>
+                        <td colspan="6">
+                            <div class="ami-empty">
+                                <div class="ami-empty-icon"><i class="fas fa-users" aria-hidden="true"></i></div>
+                                <div class="ami-empty-title">Pengguna tidak ditemukan</div>
+                                <div><?php echo $filters['q'] !== '' || $filters['role'] !== '' ? 'Coba ubah kata kunci atau filter role.' : 'Tambahkan akun auditor atau auditee untuk memulai.'; ?></div>
+                                <?php if ($filters['q'] !== '' || $filters['role'] !== ''): ?>
+                                    <a href="<?php echo site_url('users'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-undo" aria-hidden="true"></i>Reset filter</a>
+                                <?php else: ?>
+                                    <a href="<?php echo site_url('users/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah pengguna</a>
+                                <?php endif; ?>
+                            </div>
+                        </td>
                     </tr>
                 <?php endif; ?>
                 </tbody>

@@ -23,7 +23,12 @@ include APPPATH . 'views/layouts/sidebar.php';
             </div>
             <div class="form-group">
                 <label for="password">Password Baru</label>
-                <input type="password" class="form-control" id="password" name="password">
+                <div class="ami-password-wrap">
+                    <input type="password" class="form-control" id="password" name="password">
+                    <button type="button" class="ami-password-toggle" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
                 <small class="text-muted">Kosongkan jika password tidak ingin diubah.</small>
             </div>
             <div class="form-group mb-4">

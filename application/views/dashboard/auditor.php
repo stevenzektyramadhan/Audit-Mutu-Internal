@@ -57,7 +57,12 @@ include APPPATH . 'views/layouts/sidebar.php';
     <?php endforeach; ?>
 <?php else: ?>
     <div class="ami-panel">
-        <div class="ami-empty">Belum ada tugas yang siap dinilai.</div>
+        <div class="ami-empty">
+            <div class="ami-empty-icon"><i class="fas fa-hourglass-half" aria-hidden="true"></i></div>
+            <div class="ami-empty-title">Belum ada tugas siap dinilai</div>
+            <div>Tugas akan siap setelah auditee mengirim jawabannya.</div>
+            <a href="<?php echo site_url('auditor/tugas'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-list" aria-hidden="true"></i>Lihat semua tugas</a>
+        </div>
     </div>
 <?php endif; ?>
 
@@ -86,14 +91,18 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <?php echo html_escape(number_format((float) $tugas->rata_rata, 1)); ?> / 4
                             </span>
                         </td>
-                        <td class="text-right"><a href="<?php echo site_url('auditor/nilai/' . (int) $tugas->id); ?>">Lihat detail</a></td>
+                        <td class="text-right"><a class="ami-action-btn" href="<?php echo site_url('auditor/nilai/' . (int) $tugas->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Lihat detail</a></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     <?php else: ?>
-        <div class="ami-empty">Belum ada tugas yang sudah dinilai.</div>
+        <div class="ami-empty">
+            <div class="ami-empty-icon"><i class="fas fa-star" aria-hidden="true"></i></div>
+            <div class="ami-empty-title">Belum ada penilaian selesai</div>
+            <div>Ringkasan hasil penilaian terakhir akan tampil di sini.</div>
+        </div>
     <?php endif; ?>
 </div>
 

@@ -54,11 +54,11 @@ include APPPATH . 'views/layouts/sidebar.php';
                         </td>
                         <td>
                             <?php if ($item->status === STATUS_BELUM_DIISI): ?>
-                                <a class="btn btn-primary btn-ami" href="<?php echo site_url('auditee/isi/' . (int) $item->id); ?>">Isi sekarang</a>
+                                <a class="ami-action-btn" href="<?php echo site_url('auditee/isi/' . (int) $item->id); ?>"><i class="fas fa-pen" aria-hidden="true"></i>Isi</a>
                             <?php elseif ($item->status === STATUS_DIISI): ?>
-                                <a href="<?php echo site_url('auditee/isi/' . (int) $item->id); ?>">Lihat jawaban</a>
+                                <a class="ami-action-btn" href="<?php echo site_url('auditee/isi/' . (int) $item->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Lihat jawaban</a>
                             <?php else: ?>
-                                <a href="<?php echo site_url('auditee/isi/' . (int) $item->id); ?>">Lihat hasil</a>
+                                <a class="ami-action-btn" href="<?php echo site_url('auditee/isi/' . (int) $item->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Lihat hasil</a>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -67,7 +67,11 @@ include APPPATH . 'views/layouts/sidebar.php';
             </table>
         </div>
     <?php else: ?>
-        <div class="ami-empty">Belum ada tugas audit untuk akun ini.</div>
+        <div class="ami-empty">
+            <div class="ami-empty-icon"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
+            <div class="ami-empty-title">Belum ada tugas audit</div>
+            <div>Tugas yang diberikan super admin akan tampil di sini.</div>
+        </div>
     <?php endif; ?>
 </div>
 
