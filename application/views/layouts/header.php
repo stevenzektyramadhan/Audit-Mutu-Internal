@@ -113,6 +113,14 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             flex: 0 0 36px;
         }
 
+        .ami-logo-img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: contain;
+            flex: 0 0 36px;
+        }
+
         .ami-brand-title {
             color: #ffffff;
             font-size: 14px;

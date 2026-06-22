@@ -26,7 +26,44 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
+<div class="ami-dashboard-logo-banner">
+    <img src="<?= base_url('assets/img/logo-2.png'); ?>" alt="Logo LPM" class="ami-dashboard-logo">
+    <div>
+        <div class="ami-dashboard-logo-title">Lembaga Penjaminan Mutu</div>
+        <div class="ami-dashboard-logo-subtitle">Sistem Audit Mutu Internal Perguruan Tinggi</div>
+    </div>
+</div>
+
 <style>
+    .ami-dashboard-logo-banner {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: var(--ami-panel);
+        border: 1px solid var(--ami-border);
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+    }
+    .ami-dashboard-logo {
+        height: 56px;
+        width: auto;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+    .ami-dashboard-logo-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--ami-text);
+        line-height: 1.3;
+    }
+    .ami-dashboard-logo-subtitle {
+        font-size: 13px;
+        color: var(--ami-muted);
+        margin-top: 2px;
+    }
+
     .admin-stat-grid {
         display: grid;
         grid-template-columns: repeat(6, minmax(120px, 1fr));
