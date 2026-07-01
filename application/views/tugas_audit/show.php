@@ -113,7 +113,7 @@ $timeline_steps = [
                             <?php echo $item->skor !== NULL ? html_escape((string) $item->skor) . ' / 4' : 'Belum dinilai'; ?>
                         </div>
                         <div class="ami-stat-label">Catatan atau temuan</div>
-                        <div><?php echo nl2br(html_escape($item->catatan ?: 'Belum ada catatan.')); ?></div>
+                        <div><?php echo nl2br(html_escape($item->temuan ?: 'Belum ada catatan.')); ?></div>
                     </div>
                 </div>
             </div>

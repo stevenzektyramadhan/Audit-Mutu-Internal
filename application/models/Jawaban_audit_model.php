@@ -20,7 +20,7 @@ class Jawaban_audit_model extends CI_Model
             ->select('jawaban_audit.*, pertanyaan.isi_pertanyaan')
             ->from($this->table)
             ->join('pertanyaan', 'pertanyaan.id = jawaban_audit.pertanyaan_id', 'left')
-            ->where('jawaban_audit.tugas_audit_id', (int) $tugas_id)
+            ->where('jawaban_audit.tugas_id', (int) $tugas_id)
             ->order_by('pertanyaan.id', 'ASC')
             ->get()
             ->result();

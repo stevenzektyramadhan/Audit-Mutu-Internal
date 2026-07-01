@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class User_service
 {
-    const ALLOWED_ROLES = ['super_admin', 'auditor', 'auditee'];
+    const ALLOWED_ROLES = ['super_admin', 'admin_lpmpi', 'auditor', 'auditee'];
 
     protected $ci;
     protected $user_model;

@@ -38,7 +38,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         $field_skor = 'skor[' . (int) $item->id . ']';
         $field_catatan = 'catatan[' . (int) $item->id . ']';
         $current_skor = (int) set_value($field_skor, $item->skor);
-        $current_catatan = set_value($field_catatan, $item->catatan);
+        $current_catatan = set_value($field_catatan, $item->temuan);
         ?>
         <div class="ami-panel mb-3">
             <div class="ami-panel-body">

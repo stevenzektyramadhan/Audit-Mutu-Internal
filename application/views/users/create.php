@@ -42,6 +42,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <select class="form-control bg-dark text-light border-secondary" id="role" name="role" required style="border-radius: 7px;">
                     <option value="">Pilih role...</option>
                     <option value="super_admin" <?php echo set_select('role', 'super_admin'); ?>>Super Admin</option>
+                    <option value="admin_lpmpi" <?php echo set_select('role', 'admin_lpmpi'); ?>>Admin LPMPI</option>
                     <option value="auditor" <?php echo set_select('role', 'auditor'); ?>>Auditor</option>
                     <option value="auditee" <?php echo set_select('role', 'auditee'); ?>>Auditee</option>
                 </select>

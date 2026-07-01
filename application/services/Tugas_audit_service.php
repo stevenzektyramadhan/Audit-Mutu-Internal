@@ -109,7 +109,7 @@ class Tugas_audit_service
         $jawaban_data = [];
         foreach ($pertanyaan as $p) {
             $jawaban_data[] = [
-                'tugas_audit_id' => $tugas_id,
+                'tugas_id' => $tugas_id,
                 'pertanyaan_id' => $p->id
             ];
         }

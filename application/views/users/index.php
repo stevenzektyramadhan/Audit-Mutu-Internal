@@ -6,12 +6,14 @@ include APPPATH . 'views/layouts/sidebar.php';
 
 $role_tones = [
     'super_admin' => 'tone-violet',
+    'admin_lpmpi' => 'tone-blue',
     'auditor' => 'tone-green',
     'auditee' => 'tone-amber'
 ];
 
 $role_labels = [
     'super_admin' => 'super_admin',
+    'admin_lpmpi' => 'admin_lpmpi',
     'auditor' => 'auditor',
     'auditee' => 'auditee'
 ];
@@ -39,6 +41,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
                 <select id="role-filter" name="role" class="form-control">
                     <option value="">Semua role</option>
                     <option value="super_admin" <?php echo $filters['role'] === 'super_admin' ? 'selected' : ''; ?>>Super Admin</option>
+                    <option value="admin_lpmpi" <?php echo $filters['role'] === 'admin_lpmpi' ? 'selected' : ''; ?>>Admin LPMPI</option>
                     <option value="auditor" <?php echo $filters['role'] === 'auditor' ? 'selected' : ''; ?>>Auditor</option>
                     <option value="auditee" <?php echo $filters['role'] === 'auditee' ? 'selected' : ''; ?>>Auditee</option>
                 </select>

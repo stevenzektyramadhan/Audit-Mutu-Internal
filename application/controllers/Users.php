@@ -38,7 +38,7 @@ class Users extends CI_Controller {
         $role_filter = (string) $this->input->get('role', TRUE);
         $filters = [
             'q' => trim((string) $this->input->get('q', TRUE)),
-            'role' => in_array($role_filter, ['super_admin', 'auditor', 'auditee'], TRUE) ? $role_filter : '',
+            'role' => in_array($role_filter, ['super_admin', 'admin_lpmpi', 'auditor', 'auditee'], TRUE) ? $role_filter : '',
         ];
 
         $data['title'] = 'Data Pengguna - AMI';
@@ -70,7 +70,7 @@ class Users extends CI_Controller {
         $this->form_validation->set_rules('nama', 'Nama', 'required');
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]');
         $this->form_validation->set_rules('password', 'Password', 'required');
-        $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,auditor,auditee]');
+        $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,admin_lpmpi,auditor,auditee]');
 
         if ($this->form_validation->run() === FALSE) {
             $this->create();
@@ -115,7 +115,7 @@ class Users extends CI_Controller {
     {
         $this->form_validation->set_rules('nama', 'Nama', 'required');
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-        $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,auditor,auditee]');
+        $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,admin_lpmpi,auditor,auditee]');
 
         if ($this->form_validation->run() === FALSE) {
             $this->edit($id);

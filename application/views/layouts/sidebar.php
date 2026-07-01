@@ -7,17 +7,28 @@ $active_menu = isset($active_menu) ? $active_menu : 'dashboard';
 $menu_badges = isset($menu_badges) ? $menu_badges : [];
 $role_labels = [
     'super_admin' => 'Super Admin',
+    'admin_lpmpi' => 'Admin LPMPI',
     'auditor' => 'Auditor',
     'auditee' => 'Auditee',
 ];
 $menus = [
     'super_admin' => [
         ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
+        ['key' => 'periode', 'label' => 'Periode Audit', 'icon' => 'fa-calendar-alt', 'url' => 'periode'],
         ['key' => 'users', 'label' => 'Data Pengguna', 'icon' => 'fa-users', 'url' => 'users'],
         ['key' => 'standar', 'label' => 'Data Standar', 'icon' => 'fa-award', 'url' => 'standar'],
         ['key' => 'pertanyaan', 'label' => 'Data Pertanyaan', 'icon' => 'fa-tasks', 'url' => 'pertanyaan'],
         ['key' => 'tugas_audit', 'label' => 'Tugas Audit', 'icon' => 'fa-clipboard-list', 'url' => 'tugas_audit'],
         ['key' => 'hasil_audit', 'label' => 'Hasil Audit', 'icon' => 'fa-chart-bar', 'url' => 'tugas_audit/hasil'],
+    ],
+    'admin_lpmpi' => [
+        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
+        ['key' => 'periode', 'label' => 'Periode Audit', 'icon' => 'fa-calendar-alt', 'url' => 'periode'],
+        ['key' => 'akun', 'label' => 'Akun Auditee/Auditor', 'icon' => 'fa-user-cog', 'url' => 'lpmpi/akun'],
+        ['key' => 'instrumen', 'label' => 'Instrumen Standar', 'icon' => 'fa-file-upload', 'url' => 'lpmpi/instrumen'],
+        ['key' => 'penugasan', 'label' => 'Penugasan Auditor', 'icon' => 'fa-clipboard-list', 'url' => 'lpmpi/penugasan'],
+        ['key' => 'penetapan', 'label' => 'Penetapan', 'icon' => 'fa-gavel', 'url' => 'lpmpi/penetapan'],
+        ['key' => 'laporan', 'label' => 'Laporan & Statistik', 'icon' => 'fa-chart-pie', 'url' => 'lpmpi/laporan'],
     ],
     'auditor' => [
         ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
@@ -31,6 +42,8 @@ $menus = [
         ['key' => 'hasil_penilaian', 'label' => 'Hasil Penilaian', 'icon' => 'fa-eye', 'url' => 'auditee/tugas?status=dinilai'],
     ],
 ];
+$page_title = isset($page_title) ? $page_title : 'Dashboard';
+$page_subtitle = isset($page_subtitle) ? $page_subtitle : '';
 $current_menus = isset($menus[$role]) ? $menus[$role] : [];
 $name_parts = preg_split('/\s+/', trim((string) $nama));
 $initial = '';
@@ -90,8 +103,8 @@ if ($initial === '') {
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <div>
-                <h1 class="ami-page-title"><?php echo html_escape($page_title); ?></h1>
-                <div class="ami-page-subtitle"><?php echo html_escape($page_subtitle); ?></div>
+                <h1 class="ami-page-title"><?php echo html_escape($page_title ?? 'Dashboard'); ?></h1>
+                <div class="ami-page-subtitle"><?php echo html_escape($page_subtitle ?? ''); ?></div>
             </div>
         </div>
         <button type="button" class="ami-theme-toggle" data-theme-toggle aria-label="Aktifkan mode terang" title="Ubah tema">

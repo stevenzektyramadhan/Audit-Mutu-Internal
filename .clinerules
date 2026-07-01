@@ -1,0 +1,89 @@
+# .clinerules — Audit Mutu Internal (AMI)
+# Dibaca otomatis oleh Cline setiap memulai task baru.
+
+## KONTEKS PROYEK
+Aplikasi web **Audit Mutu Internal (AMI)** untuk perguruan tinggi.
+- Framework : CodeIgniter 3 (CI3)
+- PHP       : >= 7.4
+- Database  : MySQL
+- Frontend  : Bootstrap 4 + jQuery (sesuai tema yang sudah ada)
+- Library   : PHPExcel / PhpSpreadsheet (untuk export Excel)
+
+## STRUKTUR DIREKTORI
+```
+application/
+  controllers/    → 1 file per controller, nama PascalCase
+  models/         → suffix _model.php, nama PascalCase
+  views/          → subfolder per modul (auth/, admin/, auditor/, auditee/, lpmpi/)
+  services/       → business logic, suffix _service.php
+  config/
+    routes.php    → daftarkan semua route baru di sini
+database.sql      → schema utama (jangan edit langsung, buat migration terpisah)
+docs/
+  DATABASE.md     → referensi lengkap semua tabel & kolom
+  TASKS.md        → daftar task yang harus dikerjakan
+```
+
+## 4 ROLE PENGGUNA
+| Role          | Deskripsi                                              |
+|---------------|--------------------------------------------------------|
+| super_admin   | Akses penuh ke seluruh sistem                          |
+| admin_lpmpi   | Kelola instrumen, periode, penugasan, laporan          |
+| auditor       | Nilai jawaban auditee, isi temuan & OB/KTS             |
+| auditee       | Isi jawaban instrumen, upload link bukti               |
+
+Middleware autentikasi ada di `application/core/MY_Controller.php`.
+Setiap controller harus extend class yang sesuai rolenya:
+- `Admin_Controller` → super_admin & admin_lpmpi
+- `Auditor_Controller` → auditor
+- `Auditee_Controller` → auditee
+
+## KONVENSI WAJIB
+
+### PHP / CodeIgniter
+- Selalu load model & service di constructor controller, bukan di dalam method
+- Gunakan `$this->db->escape()` atau query builder CI3 — JANGAN raw SQL string langsung
+- Validasi input selalu pakai `$this->form_validation`
+- Flash message pakai `$this->session->set_flashdata('success'/'error', 'pesan')`
+- Upload file: simpan di `uploads/instrumen/` dan `uploads/penetapan/`, catat path di DB
+- Selalu cek ownership sebelum read/update/delete data (jangan hanya cek role)
+
+### Database
+- Nama tabel   : snake_case, plural (contoh: `periode_audit`, `jawaban_audit`)
+- Nama kolom   : snake_case
+- Primary key  : selalu `id` INT AUTO_INCREMENT
+- Timestamps   : `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP, tambahkan `updated_at` jika data bisa diedit
+- Soft delete  : gunakan kolom `deleted_at` DATETIME NULL jika data sensitif, JANGAN langsung DELETE
+- Foreign key  : beri nama eksplisit, contoh: `fk_jawaban_tugas`
+
+### Alur Save vs Submit (PENTING)
+- **Save**   → simpan data, set `is_submitted = 0`, form masih bisa diedit
+- **Submit** → set `is_submitted = 1`, `submitted_at = NOW()`, form terkunci
+- **Revisi** → auditor reset `is_submitted = 0` milik auditee → auditee bisa edit lagi
+- Cek `is_submitted` di setiap endpoint yang menerima data dari auditee & auditor
+
+### Views / Frontend
+- Gunakan partial view untuk komponen berulang: `views/partials/sidebar.php`, `navbar.php`, `flash_message.php`
+- Setiap halaman baru harus extend layout utama via `$this->load->view('layouts/main', $data)`
+- Popup/modal penilaian auditor: gunakan Bootstrap Modal, jangan alert() browser
+- Tabel data: gunakan DataTables (sudah terpasang di proyek)
+
+## YANG DILARANG
+- Jangan hapus atau rename file/kolom yang sudah ada tanpa konfirmasi
+- Jangan ubah struktur tabel `users` selain menambah kolom baru
+- Jangan hardcode URL — selalu pakai `base_url()` atau `site_url()`
+- Jangan simpan password dalam bentuk plain text — selalu `password_hash()`
+- Jangan echo langsung input user — selalu `html_escape()` untuk mencegah XSS
+- Jangan buat file migration baru yang mengubah data existing tanpa backup statement di atas file
+
+## CARA MENGERJAKAN TASK
+1. Baca `docs/TASKS.md` dulu, kerjakan satu task dalam satu sesi
+2. Selalu cek `docs/DATABASE.md` sebelum menulis query — jangan menebak nama kolom
+3. Jika perlu tabel/kolom baru, buat file `migrations/YYYYMMDD_nama_perubahan.sql`
+4. Setelah selesai satu task, update status di `docs/TASKS.md` menjadi `[x]`
+5. Jika menemukan bug di luar scope task, catat di bagian "Catatan Bug" di `TASKS.md`, jangan langsung fix kecuali diminta
+
+## REFERENSI CEPAT
+- Dokumentasi CI3 : https://codeigniter.com/userguide3/
+- Schema DB lengkap: lihat `docs/DATABASE.md`
+- Daftar task      : lihat `docs/TASKS.md`
