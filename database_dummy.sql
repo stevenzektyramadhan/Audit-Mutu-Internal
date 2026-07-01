@@ -151,34 +151,34 @@ SET @tugas_pengabdian = (
 );
 
 -- Jawaban kosong otomatis untuk seluruh tugas dummy
-INSERT INTO `jawaban_audit` (`tugas_audit_id`, `pertanyaan_id`)
+INSERT INTO `jawaban_audit` (`tugas_id`, `pertanyaan_id`)
 SELECT @tugas_pendidikan, p.`id`
 FROM `pertanyaan` p
 WHERE p.`standar_id` = @standar_pendidikan
 AND @tugas_pendidikan IS NOT NULL
 AND NOT EXISTS (
     SELECT 1 FROM `jawaban_audit` j
-    WHERE j.`tugas_audit_id` = @tugas_pendidikan AND j.`pertanyaan_id` = p.`id`
+    WHERE j.`tugas_id` = @tugas_pendidikan AND j.`pertanyaan_id` = p.`id`
 );
 
-INSERT INTO `jawaban_audit` (`tugas_audit_id`, `pertanyaan_id`)
+INSERT INTO `jawaban_audit` (`tugas_id`, `pertanyaan_id`)
 SELECT @tugas_penelitian, p.`id`
 FROM `pertanyaan` p
 WHERE p.`standar_id` = @standar_penelitian
 AND @tugas_penelitian IS NOT NULL
 AND NOT EXISTS (
     SELECT 1 FROM `jawaban_audit` j
-    WHERE j.`tugas_audit_id` = @tugas_penelitian AND j.`pertanyaan_id` = p.`id`
+    WHERE j.`tugas_id` = @tugas_penelitian AND j.`pertanyaan_id` = p.`id`
 );
 
-INSERT INTO `jawaban_audit` (`tugas_audit_id`, `pertanyaan_id`)
+INSERT INTO `jawaban_audit` (`tugas_id`, `pertanyaan_id`)
 SELECT @tugas_pengabdian, p.`id`
 FROM `pertanyaan` p
 WHERE p.`standar_id` = @standar_pengabdian
 AND @tugas_pengabdian IS NOT NULL
 AND NOT EXISTS (
     SELECT 1 FROM `jawaban_audit` j
-    WHERE j.`tugas_audit_id` = @tugas_pengabdian AND j.`pertanyaan_id` = p.`id`
+    WHERE j.`tugas_id` = @tugas_pengabdian AND j.`pertanyaan_id` = p.`id`
 );
 
 -- Isi contoh hanya ketika tugas tersebut baru dibuat oleh seed ini.
@@ -187,7 +187,7 @@ SET
     `jawaban` = 'Dokumen penelitian tersedia dan telah diterapkan oleh unit.',
     `link_bukti` = 'https://example.com/bukti-penelitian',
     `updated_at` = CURRENT_TIMESTAMP
-WHERE `tugas_audit_id` = @tugas_penelitian AND @tugas_penelitian_baru = 1;
+WHERE `tugas_id` = @tugas_penelitian AND @tugas_penelitian_baru = 1;
 
 UPDATE `jawaban_audit` j
 JOIN `pertanyaan` p ON p.`id` = j.`pertanyaan_id`
@@ -195,8 +195,8 @@ SET
     j.`jawaban` = 'Dokumen kegiatan pengabdian tersedia dan telah diverifikasi.',
     j.`link_bukti` = 'https://example.com/bukti-pengabdian',
     j.`skor` = CASE WHEN MOD(p.`id`, 2) = 0 THEN 4 ELSE 3 END,
-    j.`catatan` = CASE WHEN MOD(p.`id`, 2) = 0 THEN 'Bukti sangat lengkap.' ELSE 'Sesuai, dokumentasi dapat ditingkatkan.' END,
+    j.`temuan` = CASE WHEN MOD(p.`id`, 2) = 0 THEN 'Bukti sangat lengkap.' ELSE 'Sesuai, dokumentasi dapat ditingkatkan.' END,
     j.`updated_at` = CURRENT_TIMESTAMP
-WHERE j.`tugas_audit_id` = @tugas_pengabdian AND @tugas_pengabdian_baru = 1;
+WHERE j.`tugas_id` = @tugas_pengabdian AND @tugas_pengabdian_baru = 1;
 
 COMMIT;

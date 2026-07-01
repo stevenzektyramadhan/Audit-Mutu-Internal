@@ -26,7 +26,7 @@ class Pertanyaan extends CI_Controller {
         $this->load->library('auth_guard');
         
         $this->auth_guard->check();
-        $this->auth_guard->only(['super_admin']);
+        $this->auth_guard->only(['super_admin', 'admin_lpmpi']);
         
         require_once APPPATH . 'services/Pertanyaan_service.php';
         $this->pertanyaan_service = new Pertanyaan_service();

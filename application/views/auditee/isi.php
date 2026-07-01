@@ -76,7 +76,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                         </div>
                         <div class="col-md-9">
                             <div class="ami-stat-label">Catatan atau temuan</div>
-                            <div><?php echo nl2br(html_escape($item->catatan ?: 'Tidak ada catatan.')); ?></div>
+                            <div><?php echo nl2br(html_escape($item->temuan ?: 'Tidak ada catatan.')); ?></div>
                         </div>
                     </div>
                 <?php endif; ?>

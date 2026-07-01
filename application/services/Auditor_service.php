@@ -106,7 +106,7 @@ class Auditor_service
             $updates[] = [
                 'id' => $jawaban_id,
                 'skor' => $skor,
-                'catatan' => isset($catatan_input[$jawaban_id]) ? trim($catatan_input[$jawaban_id]) : '',
+                'temuan' => isset($catatan_input[$jawaban_id]) ? trim($catatan_input[$jawaban_id]) : '',
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
         }

@@ -26,7 +26,7 @@ class Tugas_audit extends CI_Controller {
         $this->load->library('auth_guard');
         
         $this->auth_guard->check();
-        $this->auth_guard->only(['super_admin']);
+        $this->auth_guard->only(['super_admin', 'admin_lpmpi']);
         
         require_once APPPATH . 'services/Tugas_audit_service.php';
         $this->tugas_audit_service = new Tugas_audit_service();

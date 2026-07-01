@@ -29,7 +29,7 @@ class Dashboard extends CI_Controller {
         $role = $this->session->userdata('role');
         $user_id = (int) $this->session->userdata('user_id');
 
-        if ($role === 'super_admin') {
+        if ($role === 'super_admin' || $role === 'admin_lpmpi') {
             $data = $this->dashboard_service->get_super_admin_data();
             $this->load->view('dashboard/super_admin', $data);
             return;

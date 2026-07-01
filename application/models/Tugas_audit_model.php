@@ -68,7 +68,7 @@ class Tugas_audit_model extends CI_Model
             ->from($this->table)
             ->join('users AS auditee', 'auditee.id = tugas_audit.auditee_id', 'left')
             ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
-            ->join('jawaban_audit', 'jawaban_audit.tugas_audit_id = tugas_audit.id', 'left')
+            ->join('jawaban_audit', 'jawaban_audit.tugas_id = tugas_audit.id', 'left')
             ->where('tugas_audit.auditor_id', (int) $auditor_id);
 
         if ($status !== NULL) {
@@ -114,7 +114,7 @@ class Tugas_audit_model extends CI_Model
             ->from($this->table)
             ->join('users AS auditor', 'auditor.id = tugas_audit.auditor_id', 'left')
             ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
-            ->join('jawaban_audit', 'jawaban_audit.tugas_audit_id = tugas_audit.id', 'left')
+            ->join('jawaban_audit', 'jawaban_audit.tugas_id = tugas_audit.id', 'left')
             ->where('tugas_audit.auditee_id', (int) $auditee_id);
 
         if ($status !== NULL) {
@@ -230,7 +230,7 @@ class Tugas_audit_model extends CI_Model
         foreach ($tugas as &$t) {
             $jawaban = $this->db->select('skor')
                                 ->from('jawaban_audit')
-                                ->where('tugas_audit_id', $t->id)
+                                ->where('tugas_id', $t->id)
                                 ->get()
                                 ->result();
             
