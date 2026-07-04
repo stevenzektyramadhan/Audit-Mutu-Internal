@@ -16,6 +16,17 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php endif; ?>
 
         <?php echo form_open('tugas_audit/store'); ?>
+            <div class="mb-3">
+                <label for="periode_id" class="form-label text-light">Pilih Periode</label>
+                <select class="form-control bg-dark text-light border-secondary" id="periode_id" name="periode_id" required style="border-radius: 7px;">
+                    <option value="">Pilih periode...</option>
+                    <?php if (!empty($periode)): ?>
+                        <?php foreach ($periode as $p): ?>
+                            <option value="<?php echo (int) $p->id; ?>" <?php echo set_select('periode_id', $p->id); ?>><?php echo html_escape($p->nama_periode); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
             
             <div class="mb-3">
                 <label for="auditee_id" class="form-label text-light">Pilih Auditee</label>

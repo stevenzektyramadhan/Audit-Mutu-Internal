@@ -104,6 +104,7 @@ class Tugas_audit extends CI_Controller {
         $this->form_validation->set_rules('auditor_id', 'Auditor', 'required|integer');
         $this->form_validation->set_rules('auditee_id', 'Auditee', 'required|integer');
         $this->form_validation->set_rules('standar_id', 'Standar', 'required|integer');
+        $this->form_validation->set_rules('periode_id', 'Periode', 'required|integer');
 
         if ($this->form_validation->run() === FALSE) {
             $this->create();
@@ -112,6 +113,7 @@ class Tugas_audit extends CI_Controller {
                 'auditor_id' => $this->input->post('auditor_id', TRUE),
                 'auditee_id' => $this->input->post('auditee_id', TRUE),
                 'standar_id' => $this->input->post('standar_id', TRUE),
+                'periode_id' => $this->input->post('periode_id', TRUE),
                 'status' => STATUS_BELUM_DIISI
             ];
 
