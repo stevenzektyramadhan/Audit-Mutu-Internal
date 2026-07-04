@@ -37,6 +37,16 @@ class Standar_model extends CI_Model
         return $this->db->where('id', (int) $id)->update($this->table, $data);
     }
 
+    public function update_instrumen_file($id, $file_name)
+    {
+        return $this->update((int) $id, ['file_instrumen' => $file_name]);
+    }
+
+    public function clear_instrumen_file($id)
+    {
+        return $this->update((int) $id, ['file_instrumen' => NULL]);
+    }
+
     /**
      * Delete standar by ID
      * @param  int $id
