@@ -21,7 +21,7 @@ class Penetapan_model extends CI_Model
         $select = 'penetapan.id, penetapan.standar_id, penetapan.kategori, ';
         $select .= 'penetapan.status, penetapan.deskripsi, penetapan.file_path, ';
         $select .= 'penetapan.created_at, penetapan.updated_at, ';
-        $select .= 'standar.nama_standar, standar.kode_standar';
+        $select .= 'standar.nama_standar';
         $this->db->select($select);
         $this->db->from($this->table);
         $this->db->join('standar', 'standar.id = penetapan.standar_id', 'left');
@@ -31,6 +31,39 @@ class Penetapan_model extends CI_Model
         }
 
         return $this->db->order_by('standar.nama_standar', 'ASC')->get()->result();
+    }
+
+    public function get_grouped_by_kategori($kategori_list)
+    {
+        $result = [];
+
+        foreach ($kategori_list as $kategori) {
+            $result[$kategori] = $this->get_all($kategori);
+        }
+
+        return $result;
+    }
+
+    public function ensure_records_for_standar($standar_list, $kategori_list)
+    {
+        foreach ($standar_list as $standar) {
+            foreach ($kategori_list as $kategori) {
+                if (!$this->exists((int) $standar->id, $kategori)) {
+                    $this->create([
+                        'standar_id' => (int) $standar->id,
+                        'kategori' => $kategori,
+                    ]);
+                }
+            }
+        }
+    }
+
+    public function exists($standar_id, $kategori)
+    {
+        return $this->db
+            ->where('standar_id', (int) $standar_id)
+            ->where('kategori', $kategori)
+            ->count_all_results($this->table) > 0;
     }
 
     /**

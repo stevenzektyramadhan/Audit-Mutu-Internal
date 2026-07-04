@@ -9,6 +9,7 @@ class Tugas_audit_service
     protected $user_model;
     protected $standar_model;
     protected $pertanyaan_model;
+    protected $periode_model;
 
     public function __construct()
     {
@@ -18,11 +19,13 @@ class Tugas_audit_service
         $this->ci->load->model('User_model');
         $this->ci->load->model('Standar_model');
         $this->ci->load->model('Pertanyaan_model');
+        $this->ci->load->model('Periode_model');
         $this->tugas_audit_model = $this->ci->Tugas_audit_model;
         $this->jawaban_audit_model = $this->ci->Jawaban_audit_model;
         $this->user_model = $this->ci->User_model;
         $this->standar_model = $this->ci->Standar_model;
         $this->pertanyaan_model = $this->ci->Pertanyaan_model;
+        $this->periode_model = $this->ci->Periode_model;
     }
 
     public function get_all_tugas($filters = [])
@@ -41,6 +44,7 @@ class Tugas_audit_service
             'auditor' => $this->user_model->get_by_role('auditor'),
             'auditee' => $this->user_model->get_by_role('auditee'),
             'standar' => $this->standar_model->get_all_with_count(),
+            'periode' => $this->periode_model->get_all(),
         ];
     }
 
@@ -76,6 +80,11 @@ class Tugas_audit_service
         $auditor = $this->user_model->find(isset($data['auditor_id']) ? $data['auditor_id'] : 0);
         $auditee = $this->user_model->find(isset($data['auditee_id']) ? $data['auditee_id'] : 0);
         $standar = $this->standar_model->find(isset($data['standar_id']) ? $data['standar_id'] : 0);
+        $periode = $this->periode_model->find(isset($data['periode_id']) ? $data['periode_id'] : 0);
+
+        if (!$periode) {
+            return ['success' => FALSE, 'message' => 'Periode audit yang dipilih tidak valid.'];
+        }
 
         if (!$auditor || $auditor->role !== 'auditor') {
             return ['success' => FALSE, 'message' => 'Auditor yang dipilih tidak valid.'];
@@ -89,6 +98,10 @@ class Tugas_audit_service
             return ['success' => FALSE, 'message' => 'Standar yang dipilih tidak valid.'];
         }
 
+        if ($this->tugas_audit_model->exists_duplicate($periode->id, $standar->id, $auditor->id, $auditee->id)) {
+            return ['success' => FALSE, 'message' => 'Penugasan dengan periode, standar, auditor, dan auditee yang sama sudah ada.'];
+        }
+
         $pertanyaan = $this->pertanyaan_model->get_by_standar($standar->id);
         if (empty($pertanyaan)) {
             return ['success' => FALSE, 'message' => 'Standar belum memiliki pertanyaan audit.'];
@@ -98,6 +111,7 @@ class Tugas_audit_service
             'auditor_id' => (int) $auditor->id,
             'auditee_id' => (int) $auditee->id,
             'standar_id' => (int) $standar->id,
+            'periode_id' => (int) $periode->id,
             'status' => STATUS_BELUM_DIISI,
         ];
 

@@ -11,6 +11,21 @@ class Tugas_audit_model extends CI_Model
         return $this->db->insert_id();
     }
 
+    public function exists_duplicate($periode_id, $standar_id, $auditor_id, $auditee_id, $exclude_id = NULL)
+    {
+        $this->db
+            ->where('periode_id', (int) $periode_id)
+            ->where('standar_id', (int) $standar_id)
+            ->where('auditor_id', (int) $auditor_id)
+            ->where('auditee_id', (int) $auditee_id);
+
+        if ($exclude_id !== NULL) {
+            $this->db->where('id !=', (int) $exclude_id);
+        }
+
+        return $this->db->count_all_results($this->table) > 0;
+    }
+
     public function delete($id)
     {
         return $this->db->where('id', (int) $id)->delete($this->table);
@@ -163,11 +178,12 @@ class Tugas_audit_model extends CI_Model
         }
 
         $this->db
-            ->select('tugas_audit.id, tugas_audit.status, tugas_audit.created_at, standar.nama_standar, auditor.nama AS auditor_nama, auditee.nama AS auditee_nama')
+            ->select('tugas_audit.id, tugas_audit.periode_id, tugas_audit.standar_id, tugas_audit.auditor_id, tugas_audit.auditee_id, tugas_audit.status, tugas_audit.created_at, standar.nama_standar, auditor.nama AS auditor_nama, auditee.nama AS auditee_nama, auditee.nama_unit AS auditee_unit, periode_audit.nama_periode')
             ->from($this->table)
             ->join('users AS auditor', 'auditor.id = tugas_audit.auditor_id', 'left')
             ->join('users AS auditee', 'auditee.id = tugas_audit.auditee_id', 'left')
-            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left');
+            ->join('standar', 'standar.id = tugas_audit.standar_id', 'left')
+            ->join('periode_audit', 'periode_audit.id = tugas_audit.periode_id', 'left');
 
         if (!empty($filters['q'])) {
             $this->db
@@ -182,7 +198,19 @@ class Tugas_audit_model extends CI_Model
             $this->db->where('tugas_audit.status', $filters['status']);
         }
 
-        return $this->db->order_by('tugas_audit.id', 'ASC')->get()->result();
+        if (!empty($filters['periode_id'])) {
+            $this->db->where('tugas_audit.periode_id', (int) $filters['periode_id']);
+        }
+
+        if (!empty($filters['standar_id'])) {
+            $this->db->where('tugas_audit.standar_id', (int) $filters['standar_id']);
+        }
+
+        if (!empty($filters['auditee_id'])) {
+            $this->db->where('tugas_audit.auditee_id', (int) $filters['auditee_id']);
+        }
+
+        return $this->db->order_by('tugas_audit.id', 'DESC')->get()->result();
     }
 
     public function find_with_relations($id)
