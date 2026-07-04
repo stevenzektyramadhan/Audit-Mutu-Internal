@@ -81,6 +81,32 @@ class User_model extends CI_Model
         return $this->db->where('role', $role)->get($this->table)->result();
     }
 
+    public function get_lpmpi_accounts($filters = [])
+    {
+        $this->db
+            ->from($this->table)
+            ->where_in('role', ['auditor', 'auditee']);
+
+        if (!empty($filters['q'])) {
+            $this->db
+                ->group_start()
+                    ->like('nama', $filters['q'])
+                    ->or_like('email', $filters['q'])
+                    ->or_like('nama_unit', $filters['q'])
+                ->group_end();
+        }
+
+        if (!empty($filters['role']) && in_array($filters['role'], ['auditor', 'auditee'], TRUE)) {
+            $this->db->where('role', $filters['role']);
+        }
+
+        return $this->db
+            ->order_by('role', 'ASC')
+            ->order_by('nama', 'ASC')
+            ->get()
+            ->result();
+    }
+
     public function count_all()
     {
         if (!$this->db->table_exists($this->table)) {
