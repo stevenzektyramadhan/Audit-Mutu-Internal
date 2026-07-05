@@ -7,11 +7,13 @@ $page_subtitle = 'Beranda / Dashboard';
 $active_menu = 'dashboard';
 $stats = isset($stats) ? $stats : [];
 $tugas_saya = isset($tugas_saya) ? $tugas_saya : [];
-$menu_badges = ['tugas_saya' => isset($stats['belum_diisi']) ? $stats['belum_diisi'] : 0];
+$menu_badges = ['tugas_saya' => isset($stats['perlu_tindakan']) ? $stats['perlu_tindakan'] : 0];
 $status_labels = [
-    STATUS_BELUM_DIISI => ['label' => 'Belum diisi', 'icon' => 'fa-exclamation-circle', 'tone' => 'tone-amber'],
-    STATUS_DIISI => ['label' => 'Sudah diisi', 'icon' => 'fa-clock', 'tone' => 'tone-blue'],
-    STATUS_DINILAI => ['label' => 'Dinilai', 'icon' => 'fa-check-circle', 'tone' => 'tone-green'],
+    'belum_diisi' => ['label' => 'Belum diisi', 'icon' => 'fa-exclamation-circle', 'tone' => 'tone-amber'],
+    'draft' => ['label' => 'Draft', 'icon' => 'fa-save', 'tone' => 'tone-teal'],
+    'submitted' => ['label' => 'Submitted', 'icon' => 'fa-paper-plane', 'tone' => 'tone-blue'],
+    'revisi' => ['label' => 'Revisi', 'icon' => 'fa-undo', 'tone' => 'tone-amber'],
+    'dinilai' => ['label' => 'Dinilai', 'icon' => 'fa-check-circle', 'tone' => 'tone-green'],
 ];
 $stat_cards = [
     ['label' => 'Total tugas', 'value' => isset($stats['total_tugas']) ? $stats['total_tugas'] : 0, 'icon' => 'fa-clipboard-list', 'tone' => 'tone-blue'],
@@ -83,8 +85,11 @@ include APPPATH . 'views/layouts/sidebar.php';
 
 <?php if (!empty($tugas_saya)): ?>
     <?php foreach ($tugas_saya as $tugas): ?>
-        <?php $meta = isset($status_labels[$tugas->status]) ? $status_labels[$tugas->status] : ['label' => $tugas->status, 'icon' => 'fa-circle', 'tone' => 'tone-blue']; ?>
-        <div class="ami-task-card"<?php echo $tugas->status === STATUS_BELUM_DIISI ? ' style="border-left:3px solid #dc3545;"' : ''; ?>>
+        <?php
+        $status = isset($tugas->display_status) ? $tugas->display_status : $tugas->status;
+        $meta = isset($status_labels[$status]) ? $status_labels[$status] : ['label' => $status, 'icon' => 'fa-circle', 'tone' => 'tone-blue'];
+        ?>
+        <div class="ami-task-card"<?php echo in_array($status, ['belum_diisi', 'draft', 'revisi'], TRUE) ? ' style="border-left:3px solid #dc3545;"' : ''; ?>>
             <div class="ami-task-icon <?php echo html_escape($meta['tone']); ?>">
                 <i class="fas <?php echo html_escape($meta['icon']); ?>" aria-hidden="true"></i>
             </div>
@@ -92,9 +97,9 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <div class="ami-task-title"><?php echo html_escape($tugas->nama_standar); ?></div>
                 <div class="ami-task-meta">
                     Auditor: <?php echo html_escape($tugas->auditor_nama); ?> &middot;
-                    <?php if ($tugas->status === STATUS_DINILAI): ?>
+                    <?php if ($status === 'dinilai' || $status === STATUS_DINILAI): ?>
                         Rata-rata: <?php echo html_escape(number_format((float) $tugas->rata_rata, 1)); ?> / 4
-                    <?php elseif ($tugas->status === STATUS_DIISI): ?>
+                    <?php elseif ($status === 'submitted' || $status === STATUS_DIISI): ?>
                         Menunggu penilaian
                     <?php else: ?>
                         <?php echo html_escape($meta['label']); ?>
@@ -102,16 +107,16 @@ include APPPATH . 'views/layouts/sidebar.php';
                 </div>
             </div>
             <div>
-                <?php if ($tugas->status === STATUS_BELUM_DIISI): ?>
-                    <a class="btn btn-primary btn-ami" href="<?php echo site_url('auditee/isi/' . (int) $tugas->id); ?>">
+                <?php if (in_array($status, ['belum_diisi', 'draft', 'revisi', STATUS_BELUM_DIISI], TRUE)): ?>
+                    <a class="btn btn-primary btn-ami" href="<?php echo site_url('auditee/form/' . (int) $tugas->id); ?>">
                         <i class="fas fa-pen" aria-hidden="true"></i>
-                        Isi sekarang
+                        <?php echo $status === 'revisi' ? 'Perbaiki' : 'Isi sekarang'; ?>
                     </a>
                 <?php else: ?>
-                    <span class="ami-status status-<?php echo html_escape($tugas->status); ?>">
+                    <a class="btn btn-outline-ami btn-ami" href="<?php echo site_url('auditee/form/' . (int) $tugas->id); ?>">
                         <i class="fas <?php echo html_escape($meta['icon']); ?>" aria-hidden="true"></i>
-                        <?php echo html_escape($meta['label']); ?>
-                    </span>
+                        <?php echo ($status === 'dinilai' || $status === STATUS_DINILAI) ? 'Lihat hasil' : 'Lihat jawaban'; ?>
+                    </a>
                 <?php endif; ?>
             </div>
         </div>

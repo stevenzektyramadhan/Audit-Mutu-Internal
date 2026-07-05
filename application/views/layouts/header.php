@@ -534,6 +534,21 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             color: var(--ami-blue);
         }
 
+        .status-draft {
+            background: #e1f5ee;
+            color: var(--ami-teal);
+        }
+
+        .status-submitted {
+            background: #e6f1fb;
+            color: var(--ami-blue);
+        }
+
+        .status-revisi {
+            background: #faeeda;
+            color: var(--ami-amber);
+        }
+
         .status-dinilai {
             background: #eaf3de;
             color: var(--ami-green);
