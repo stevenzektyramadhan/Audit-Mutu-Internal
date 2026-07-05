@@ -63,6 +63,53 @@ class Laporan_model extends CI_Model
             ->result();
     }
 
+    public function standar_untuk_export($filters = [])
+    {
+        if (!$this->tables_exist(['standar', 'tugas_audit'])) {
+            return [];
+        }
+
+        $this->db
+            ->select('standar.id AS standar_id, standar.nama_standar')
+            ->from('standar')
+            ->join('tugas_audit', 'tugas_audit.standar_id = standar.id', 'left');
+
+        $this->apply_filters($filters);
+
+        return $this->db
+            ->group_by('standar.id')
+            ->order_by('standar.nama_standar', 'ASC')
+            ->get()
+            ->result();
+    }
+
+    public function export_per_standar($standar_id, $filters = [])
+    {
+        if (!$this->tables_exist(['jawaban_audit', 'tugas_audit', 'standar', 'pertanyaan', 'users'])) {
+            return [];
+        }
+
+        $this->db
+            ->select('auditee.nama AS auditee_nama')
+            ->select('pertanyaan.isi_pertanyaan')
+            ->select('jawaban_audit.jawaban, jawaban_audit.link_bukti, jawaban_audit.skor')
+            ->select('jawaban_audit.temuan, jawaban_audit.jenis_temuan, jawaban_audit.saran_perbaikan')
+            ->from('jawaban_audit')
+            ->join('tugas_audit', 'tugas_audit.id = jawaban_audit.tugas_id')
+            ->join('standar', 'standar.id = tugas_audit.standar_id')
+            ->join('pertanyaan', 'pertanyaan.id = jawaban_audit.pertanyaan_id', 'left')
+            ->join('users AS auditee', 'auditee.id = tugas_audit.auditee_id', 'left')
+            ->where('tugas_audit.standar_id', (int) $standar_id);
+
+        $this->apply_filters($filters);
+
+        return $this->db
+            ->order_by('auditee.nama', 'ASC')
+            ->order_by('pertanyaan.id', 'ASC')
+            ->get()
+            ->result();
+    }
+
     public function find_standar($standar_id)
     {
         return $this->db

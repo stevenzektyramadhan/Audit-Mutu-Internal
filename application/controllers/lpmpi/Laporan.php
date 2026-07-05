@@ -65,24 +65,50 @@ class Laporan extends Admin_Lpmpi_Controller
 
     public function export()
     {
+        $this->load_phpspreadsheet();
+
         $filters = $this->filters();
-        $rekap = $this->Laporan_model->rekap_per_standar($filters);
+        $standar_list = $this->Laporan_model->standar_untuk_export($filters);
 
-        $filename = 'laporan_ami_' . date('Ymd_His') . '.xls';
-        header('Content-Type: application/vnd.ms-excel; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Pragma: no-cache');
-        header('Expires: 0');
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet->getProperties()
+            ->setCreator('AMI')
+            ->setTitle('Laporan AMI')
+            ->setSubject('Export laporan audit mutu internal');
 
-        echo "Standar\tTotal Tugas\tTotal Jawaban\tRata-rata Skor\tSkor Minimum\tSkor Maksimum\n";
-        foreach ($rekap as $row) {
-            echo $this->excel_cell($row->nama_standar) . "\t";
-            echo (int) $row->total_tugas . "\t";
-            echo (int) $row->total_jawaban . "\t";
-            echo number_format((float) $row->rata_rata_skor, 2, '.', '') . "\t";
-            echo ($row->skor_min === NULL ? '-' : (int) $row->skor_min) . "\t";
-            echo ($row->skor_max === NULL ? '-' : (int) $row->skor_max) . "\n";
+        if (empty($standar_list)) {
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Laporan');
+            $this->write_export_sheet($sheet, []);
+        } else {
+            $used_titles = [];
+            foreach ($standar_list as $index => $standar) {
+                $sheet = $index === 0
+                    ? $spreadsheet->getActiveSheet()
+                    : $spreadsheet->createSheet($index);
+                $sheet->setTitle($this->sheet_title($standar->nama_standar, $used_titles));
+
+                $rows = $this->Laporan_model->export_per_standar((int) $standar->standar_id, $filters);
+                $this->write_export_sheet($sheet, $rows);
+            }
         }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $filename = 'laporan_ami_' . date('Ymd_His') . '.xlsx';
+        while (ob_get_level() > 0) {
+            @ob_end_clean();
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Pragma: public');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+        $spreadsheet->disconnectWorksheets();
+        exit;
     }
 
     private function filters()
@@ -93,8 +119,139 @@ class Laporan extends Admin_Lpmpi_Controller
         ];
     }
 
-    private function excel_cell($value)
+    private function load_phpspreadsheet()
     {
-        return str_replace(["\t", "\r", "\n"], ' ', (string) $value);
+        $autoload = FCPATH . 'vendor/autoload.php';
+        if (!is_file($autoload)) {
+            show_error('Library PhpSpreadsheet belum terpasang. Jalankan composer install terlebih dahulu.', 500, 'Export gagal');
+            exit;
+        }
+
+        require_once $autoload;
+
+        if (!class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
+            show_error('Library PhpSpreadsheet tidak dapat dimuat.', 500, 'Export gagal');
+            exit;
+        }
+    }
+
+    private function write_export_sheet($sheet, $rows)
+    {
+        $headers = [
+            'A' => 'Auditee',
+            'B' => 'Pertanyaan',
+            'C' => 'Jawaban',
+            'D' => 'Link Bukti',
+            'E' => 'Skor',
+            'F' => 'Temuan',
+            'G' => 'Jenis Temuan',
+            'H' => 'Saran Perbaikan',
+        ];
+
+        foreach ($headers as $column => $label) {
+            $this->set_cell_text($sheet, $column . '1', $label);
+        }
+
+        if (empty($rows)) {
+            $sheet->mergeCells('A2:H2');
+            $this->set_cell_text($sheet, 'A2', 'Belum ada data laporan untuk filter ini.');
+            $last_row = 2;
+        } else {
+            $row_number = 2;
+            foreach ($rows as $row) {
+                $this->set_cell_text($sheet, 'A' . $row_number, $row->auditee_nama ?? '-');
+                $this->set_cell_text($sheet, 'B' . $row_number, $row->isi_pertanyaan ?? '-');
+                $this->set_cell_text($sheet, 'C' . $row_number, $row->jawaban ?? '-');
+                $this->set_link_cell($sheet, 'D' . $row_number, $row->link_bukti ?? '');
+
+                if ($row->skor === NULL || $row->skor === '') {
+                    $this->set_cell_text($sheet, 'E' . $row_number, '-');
+                } else {
+                    $sheet->setCellValue('E' . $row_number, (int) $row->skor);
+                }
+
+                $this->set_cell_text($sheet, 'F' . $row_number, $row->temuan ?? '-');
+                $this->set_cell_text($sheet, 'G' . $row_number, !empty($row->jenis_temuan) ? strtoupper($row->jenis_temuan) : '-');
+                $this->set_cell_text($sheet, 'H' . $row_number, $row->saran_perbaikan ?? '-');
+
+                $row_number++;
+            }
+            $last_row = $row_number - 1;
+        }
+
+        $this->style_export_sheet($sheet, $last_row);
+    }
+
+    private function style_export_sheet($sheet, $last_row)
+    {
+        $widths = [
+            'A' => 26,
+            'B' => 48,
+            'C' => 42,
+            'D' => 38,
+            'E' => 10,
+            'F' => 40,
+            'G' => 16,
+            'H' => 40,
+        ];
+
+        foreach ($widths as $column => $width) {
+            $sheet->getColumnDimension($column)->setWidth($width);
+        }
+
+        $sheet->freezePane('A2');
+        $sheet->setAutoFilter('A1:H' . max(1, (int) $last_row));
+        $sheet->getStyle('A1:H1')->getFont()->setBold(TRUE);
+        $sheet->getStyle('A1:H1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFEAF2F8');
+        $sheet->getStyle('A1:H' . max(1, (int) $last_row))->getAlignment()
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP)
+            ->setWrapText(TRUE);
+        $sheet->getStyle('A1:H1')->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    }
+
+    private function set_cell_text($sheet, $cell, $value)
+    {
+        $value = trim((string) $value);
+        $sheet->setCellValueExplicit(
+            $cell,
+            $value === '' ? '-' : $value,
+            \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING
+        );
+    }
+
+    private function set_link_cell($sheet, $cell, $value)
+    {
+        $value = trim((string) $value);
+        $this->set_cell_text($sheet, $cell, $value);
+
+        if ($value !== '' && filter_var($value, FILTER_VALIDATE_URL) !== FALSE) {
+            $sheet->getCell($cell)->getHyperlink()->setUrl($value);
+            $sheet->getStyle($cell)->getFont()
+                ->getColor()->setARGB('FF0563C1');
+            $sheet->getStyle($cell)->getFont()->setUnderline(TRUE);
+        }
+    }
+
+    private function sheet_title($value, &$used_titles)
+    {
+        $title = str_replace(['\\', '/', '?', '*', '[', ']', ':'], ' ', (string) $value);
+        $title = trim(preg_replace('/\s+/', ' ', $title));
+        $title = $title === '' ? 'Standar' : $title;
+
+        $base = mb_substr($title, 0, 31);
+        $title = $base;
+        $counter = 2;
+
+        while (isset($used_titles[strtolower($title)])) {
+            $suffix = ' ' . $counter;
+            $title = mb_substr($base, 0, 31 - mb_strlen($suffix)) . $suffix;
+            $counter++;
+        }
+
+        $used_titles[strtolower($title)] = TRUE;
+        return $title;
     }
 }
