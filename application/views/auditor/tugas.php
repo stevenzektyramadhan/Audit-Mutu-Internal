@@ -52,9 +52,9 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <?php if ($item->status === STATUS_BELUM_DIISI): ?>
                                 <span class="text-muted">Menunggu auditee</span>
                             <?php elseif ($item->status === STATUS_DIISI): ?>
-                                <a class="ami-action-btn" href="<?php echo site_url('auditor/nilai/' . (int) $item->id); ?>"><i class="fas fa-star" aria-hidden="true"></i>Nilai</a>
+                                <a class="ami-action-btn" href="<?php echo site_url('auditor/penilaian/form/' . (int) $item->id); ?>"><i class="fas fa-star" aria-hidden="true"></i>Nilai</a>
                             <?php else: ?>
-                                <a class="ami-action-btn" href="<?php echo site_url('auditor/nilai/' . (int) $item->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Detail</a>
+                                <a class="ami-action-btn" href="<?php echo site_url('auditor/penilaian/form/' . (int) $item->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Detail</a>
                             <?php endif; ?>
                         </td>
                     </tr>
