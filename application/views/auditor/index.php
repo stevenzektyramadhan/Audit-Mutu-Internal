@@ -22,7 +22,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <?php echo html_escape((string) $item->jumlah_pertanyaan); ?> pertanyaan
                 </div>
             </div>
-            <a class="btn btn-primary btn-ami" href="<?php echo site_url('auditor/nilai/' . (int) $item->id); ?>">
+            <a class="btn btn-primary btn-ami" href="<?php echo site_url('auditor/penilaian/form/' . (int) $item->id); ?>">
                 <i class="fas fa-star" aria-hidden="true"></i> Nilai sekarang
             </a>
         </div>
@@ -63,7 +63,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             </span>
                         </td>
                         <td class="text-right">
-                            <a class="ami-action-btn" href="<?php echo site_url('auditor/nilai/' . (int) $item->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Lihat detail</a>
+                            <a class="ami-action-btn" href="<?php echo site_url('auditor/penilaian/form/' . (int) $item->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Lihat detail</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

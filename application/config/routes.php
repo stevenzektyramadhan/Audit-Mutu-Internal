@@ -67,3 +67,13 @@ $route['auditee/tugas/konfirmasi/(:num)'] = 'Auditee/konfirmasi/$1';
 $route['auditee/tugas/download_instrumen/(:num)'] = 'Auditee/download_instrumen/$1';
 $route['auditee/isi/(:num)'] = 'Auditee/form/$1';
 $route['auditee/simpan_jawaban/(:num)'] = 'Auditee/submit/$1';
+
+$route['auditor/penilaian'] = 'Auditor/penilaian';
+$route['auditor/penilaian/form/(:num)'] = 'Auditor/form_penilaian/$1';
+$route['auditor/penilaian/nilai/(:num)'] = 'Auditor/form_penilaian/$1';
+$route['auditor/penilaian/save_item/(:num)'] = 'Auditor/save_penilaian_item/$1';
+$route['auditor/penilaian/save/(:num)'] = 'Auditor/save_penilaian_draft/$1';
+$route['auditor/penilaian/submit/(:num)'] = 'Auditor/submit_penilaian/$1';
+$route['auditor/penilaian/revisi/(:num)'] = 'Auditor/revisi_penilaian/$1';
+$route['auditor/penilaian/download_bukti/(:num)'] = 'Auditor/download_bukti_penilaian/$1';
+$route['auditor/nilai/(:num)'] = 'Auditor/form_penilaian/$1';
