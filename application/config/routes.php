@@ -52,3 +52,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'auth';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+$route['auditee'] = 'Auditee/index';
+$route['auditee/tugas'] = 'Auditee/tugas';
+$route['auditee/form/(:num)'] = 'Auditee/form/$1';
+$route['auditee/save/(:num)'] = 'Auditee/save/$1';
+$route['auditee/submit/(:num)'] = 'Auditee/submit/$1';
+$route['auditee/konfirmasi/(:num)'] = 'Auditee/konfirmasi/$1';
+$route['auditee/download_instrumen/(:num)'] = 'Auditee/download_instrumen/$1';
+$route['auditee/tugas/form/(:num)'] = 'Auditee/form/$1';
+$route['auditee/tugas/save/(:num)'] = 'Auditee/save/$1';
+$route['auditee/tugas/submit/(:num)'] = 'Auditee/submit/$1';
+$route['auditee/tugas/konfirmasi/(:num)'] = 'Auditee/konfirmasi/$1';
+$route['auditee/tugas/download_instrumen/(:num)'] = 'Auditee/download_instrumen/$1';
+$route['auditee/isi/(:num)'] = 'Auditee/form/$1';
+$route['auditee/simpan_jawaban/(:num)'] = 'Auditee/submit/$1';

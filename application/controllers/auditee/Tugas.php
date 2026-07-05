@@ -1,31 +1,20 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Auditee extends CI_Controller
+/**
+ * Inbox tugas dan pengisian jawaban auditee.
+ *
+ * @property CI_Input $input
+ * @property CI_Form_validation $form_validation
+ * @property CI_Session $session
+ * @property Jawaban_model $Jawaban_model
+ * @property Periode_model $Periode_model
+ */
+class Tugas extends Auditee_Controller
 {
-    /** @var CI_Session */
-    public $session;
-
-    /** @var Auth_guard */
-    public $auth_guard;
-
-    /** @var CI_Input */
-    public $input;
-
-    /** @var CI_Form_validation */
-    public $form_validation;
-
-    /** @var Jawaban_model */
-    public $Jawaban_model;
-
-    /** @var Periode_model */
-    public $Periode_model;
-
     public function __construct()
     {
         parent::__construct();
-        $this->load->library('auth_guard');
-        $this->auth_guard->only(['auditee']);
         $this->load->helper(['form', 'url', 'download']);
         $this->load->library('form_validation');
         $this->load->model('Jawaban_model');
@@ -34,16 +23,6 @@ class Auditee extends CI_Controller
 
     public function index()
     {
-        $this->tugas();
-    }
-
-    public function tugas($action = NULL, $id = NULL)
-    {
-        if ($action !== NULL) {
-            $this->dispatch_tugas_action($action, $id);
-            return;
-        }
-
         $periode_id = (int) $this->input->get('periode_id', TRUE);
         $status = (string) $this->input->get('status', TRUE);
         $allowed_status = ['belum_diisi', 'draft', 'submitted', 'revisi', 'dinilai'];
@@ -68,26 +47,16 @@ class Auditee extends CI_Controller
             'status' => $status,
         ];
         $data['periode_list'] = $this->Periode_model->get_all();
-        $data['tugas'] = $this->Jawaban_model->get_inbox_by_auditee($this->user_id(), $periode_id, $status);
-        $data['menu_badges'] = ['tugas_saya' => $this->Jawaban_model->count_need_attention($this->user_id())];
+        $data['tugas'] = $this->Jawaban_model->get_inbox_by_auditee($this->_user_id(), $periode_id, $status);
+        $data['menu_badges'] = ['tugas_saya' => $this->Jawaban_model->count_need_attention($this->_user_id())];
 
         $this->load->view('auditee/inbox', $data);
-    }
-
-    public function isi($tugas_id)
-    {
-        $this->form((int) $tugas_id);
     }
 
     public function form($tugas_id)
     {
         $detail = $this->get_detail_or_404((int) $tugas_id);
         $this->load_form_view($detail);
-    }
-
-    public function simpan_jawaban($tugas_id)
-    {
-        $this->submit((int) $tugas_id);
     }
 
     public function save($tugas_id)
@@ -168,7 +137,7 @@ class Auditee extends CI_Controller
 
     private function get_detail_or_404($tugas_id)
     {
-        $tugas = $this->Jawaban_model->find_tugas_for_auditee((int) $tugas_id, $this->user_id());
+        $tugas = $this->Jawaban_model->find_tugas_for_auditee((int) $tugas_id, $this->_user_id());
         if (!$tugas) {
             show_error('Tugas audit tidak ditemukan atau bukan milik Anda.', 404, 'Tugas tidak ditemukan');
             exit;
@@ -185,11 +154,11 @@ class Auditee extends CI_Controller
         $data = array_merge($detail, $extra);
         $data['title'] = 'Form Pengisian - AMI';
         $data['page_title'] = !empty($extra['confirmation']) ? 'Konfirmasi Submit' : 'Form Pengisian';
-        $data['page_subtitle'] = 'Beranda / Tugas Saya / ' . $data['page_title'];
+        $data['page_subtitle'] = 'Beranda / Inbox Tugas / ' . $data['page_title'];
         $data['active_menu'] = in_array($detail['tugas']->display_status, ['belum_diisi', 'draft', 'revisi'], TRUE)
             ? 'pengisian'
             : ($detail['tugas']->display_status === 'dinilai' ? 'hasil_penilaian' : 'tugas_saya');
-        $data['menu_badges'] = ['tugas_saya' => $this->Jawaban_model->count_need_attention($this->user_id())];
+        $data['menu_badges'] = ['tugas_saya' => $this->Jawaban_model->count_need_attention($this->_user_id())];
 
         $this->load->view('auditee/form_isian', $data);
     }
@@ -218,36 +187,5 @@ class Auditee extends CI_Controller
             show_error('Method tidak diizinkan.', 405, 'Method Not Allowed');
             exit;
         }
-    }
-
-    private function dispatch_tugas_action($action, $id)
-    {
-        $id = (int) $id;
-
-        switch ((string) $action) {
-            case 'form':
-                $this->form($id);
-                return;
-            case 'save':
-                $this->save($id);
-                return;
-            case 'submit':
-                $this->submit($id);
-                return;
-            case 'konfirmasi':
-                $this->konfirmasi($id);
-                return;
-            case 'download_instrumen':
-                $this->download_instrumen($id);
-                return;
-            default:
-                show_404();
-                return;
-        }
-    }
-
-    private function user_id()
-    {
-        return (int) $this->session->userdata('user_id');
     }
 }

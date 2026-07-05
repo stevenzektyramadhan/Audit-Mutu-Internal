@@ -8,6 +8,7 @@ class Dashboard_service
     protected $standar_model;
     protected $pertanyaan_model;
     protected $tugas_audit_model;
+    protected $jawaban_model;
 
     public function __construct()
     {
@@ -16,11 +17,13 @@ class Dashboard_service
         $this->ci->load->model('Standar_model');
         $this->ci->load->model('Pertanyaan_model');
         $this->ci->load->model('Tugas_audit_model');
+        $this->ci->load->model('Jawaban_model');
 
         $this->user_model = $this->ci->User_model;
         $this->standar_model = $this->ci->Standar_model;
         $this->pertanyaan_model = $this->ci->Pertanyaan_model;
         $this->tugas_audit_model = $this->ci->Tugas_audit_model;
+        $this->jawaban_model = $this->ci->Jawaban_model;
     }
 
     public function get_super_admin_data()
@@ -61,15 +64,36 @@ class Dashboard_service
     public function get_auditee_data($user_id)
     {
         $user_id = (int) $user_id;
+        $tugas = $this->jawaban_model->get_inbox_by_auditee($user_id);
+        $stats = [
+            'total_tugas' => count($tugas),
+            'belum_diisi' => 0,
+            'draft' => 0,
+            'diisi' => 0,
+            'revisi' => 0,
+            'dinilai' => 0,
+            'perlu_tindakan' => 0,
+        ];
+
+        foreach ($tugas as $item) {
+            $status = isset($item->display_status) ? $item->display_status : '';
+
+            if (isset($stats[$status])) {
+                $stats[$status]++;
+            }
+
+            if (in_array($status, ['belum_diisi', 'draft', 'revisi'], TRUE)) {
+                $stats['perlu_tindakan']++;
+            }
+
+            if ($status === 'submitted') {
+                $stats['diisi']++;
+            }
+        }
 
         return [
-            'stats' => [
-                'total_tugas' => $this->tugas_audit_model->count_all(['auditee_id' => $user_id]),
-                'belum_diisi' => $this->tugas_audit_model->count_all(['auditee_id' => $user_id, 'status' => STATUS_BELUM_DIISI]),
-                'diisi' => $this->tugas_audit_model->count_all(['auditee_id' => $user_id, 'status' => STATUS_DIISI]),
-                'dinilai' => $this->tugas_audit_model->count_all(['auditee_id' => $user_id, 'status' => STATUS_DINILAI]),
-            ],
-            'tugas_saya' => $this->tugas_audit_model->get_by_auditee($user_id, NULL, 5),
+            'stats' => $stats,
+            'tugas_saya' => array_slice($tugas, 0, 5),
         ];
     }
 }
