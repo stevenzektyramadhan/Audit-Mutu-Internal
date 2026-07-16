@@ -7,7 +7,66 @@ class Pertanyaan_model extends CI_Model
 
     public function create($data)
     {
+        if (!array_key_exists('urutan', $data) && isset($data['standar_id'])) {
+            $last_order = $this->db
+                ->select_max('urutan', 'last_order')
+                ->where('standar_id', (int) $data['standar_id'])
+                ->get($this->table)
+                ->row();
+            $data['urutan'] = $last_order && $last_order->last_order !== NULL
+                ? (int) $last_order->last_order + 1
+                : 1;
+        }
+
         return $this->db->insert($this->table, $data);
+    }
+
+    public function insert_bulk($standar_id, $data_array)
+    {
+        $standar_id = (int) $standar_id;
+        if ($standar_id <= 0 || empty($data_array)) {
+            return 0;
+        }
+
+        $last_order = $this->db
+            ->select_max('urutan', 'last_order')
+            ->where('standar_id', $standar_id)
+            ->get($this->table)
+            ->row();
+        $next_order = $last_order && $last_order->last_order !== NULL
+            ? (int) $last_order->last_order + 1
+            : 1;
+
+        $this->db->trans_start();
+
+        foreach ($data_array as $data) {
+            $row = [
+                'standar_id' => $standar_id,
+                'urutan' => $next_order++,
+                'isi_pertanyaan' => isset($data['isi_pertanyaan']) ? $data['isi_pertanyaan'] : '',
+                'nilai_standar' => isset($data['nilai_standar']) ? $data['nilai_standar'] : NULL,
+                'baseline' => isset($data['baseline']) ? $data['baseline'] : NULL,
+                'target_2025' => isset($data['target_2025']) ? $data['target_2025'] : NULL,
+                'target_2026' => isset($data['target_2026']) ? $data['target_2026'] : NULL,
+                'target_2027' => isset($data['target_2027']) ? $data['target_2027'] : NULL,
+                'target_2028' => isset($data['target_2028']) ? $data['target_2028'] : NULL,
+                'target_2029' => isset($data['target_2029']) ? $data['target_2029'] : NULL,
+                'target_2030' => isset($data['target_2030']) ? $data['target_2030'] : NULL,
+                'kategori' => isset($data['kategori']) ? $data['kategori'] : NULL,
+            ];
+
+            if (!$this->db->insert($this->table, $row)) {
+                $this->db->trans_rollback();
+                return FALSE;
+            }
+        }
+
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === FALSE) {
+            return FALSE;
+        }
+
+        return count($data_array);
     }
 
     public function find($id)
@@ -60,13 +119,18 @@ class Pertanyaan_model extends CI_Model
             $this->db->where('pertanyaan.standar_id', (int) $standar_id);
         }
 
-        return $this->db->order_by('pertanyaan.id', 'ASC')->get()->result();
+        return $this->db
+            ->order_by('pertanyaan.urutan', 'ASC')
+            ->order_by('pertanyaan.id', 'ASC')
+            ->get()
+            ->result();
     }
 
     public function get_by_standar($standar_id)
     {
         return $this->db
             ->where('standar_id', (int) $standar_id)
+            ->order_by('urutan', 'ASC')
             ->order_by('id', 'ASC')
             ->get($this->table)
             ->result();
