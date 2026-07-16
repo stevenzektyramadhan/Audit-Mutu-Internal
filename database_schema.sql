@@ -1,5 +1,5 @@
 -- Database schema for AMI CodeIgniter 3
--- Mencakup seluruh perubahan dari migration 001-007
+-- Mencakup seluruh perubahan dari migration 001-009
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -97,6 +97,53 @@ CREATE TABLE IF NOT EXISTS `penetapan` (
     `updated_at` DATETIME ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `fk_penetapan_standar`
         FOREIGN KEY (`standar_id`) REFERENCES `standar` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `profil_lembaga` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `id_pt_pddikti` VARCHAR(255) NULL,
+    `nama_pt_pddikti` VARCHAR(200) NULL,
+    `nama_pt` VARCHAR(200) NULL,
+    `kode_pt` VARCHAR(20) NULL,
+    `nomor_sk_pt` VARCHAR(100) NULL,
+    `tanggal_sk_pt` DATE NULL,
+    `tanggal_berdiri` DATE NULL,
+    `jumlah_dosen` INT NULL,
+    `jumlah_tendik` INT NULL,
+    `akreditasi` VARCHAR(100) NULL,
+    `akreditasi_berlaku_sampai` DATE NULL,
+    `status_pt` VARCHAR(50) NULL,
+    `kode_pos` VARCHAR(10) NULL,
+    `telepon` VARCHAR(30) NULL,
+    `faksimile` VARCHAR(30) NULL,
+    `email` VARCHAR(100) NULL,
+    `logo_path` VARCHAR(255) NULL,
+    `logo_url` VARCHAR(500) NULL,
+    `last_sync_at` DATETIME NULL,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `profil_prodi` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `id_prodi_pddikti` VARCHAR(255) NULL,
+    `kode_prodi` VARCHAR(20) NULL,
+    `nama_prodi` VARCHAR(200) NULL,
+    `status` VARCHAR(50) NULL,
+    `jenjang` VARCHAR(20) NULL,
+    `akreditasi` VARCHAR(50) NULL,
+    `tanggal_sk_akreditasi` DATE NULL,
+    `rasio_dosen_mahasiswa` VARCHAR(20) NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `profil_mahasiswa_stats` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `jenjang` VARCHAR(50) NULL,
+    `jumlah` INT DEFAULT 0,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users` (`nama`, `email`, `password`, `role`) VALUES
