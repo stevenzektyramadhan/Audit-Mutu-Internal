@@ -41,3 +41,7 @@ docs/DATABASE.md
 docs/DATABASE.MD
 docs/TASK.md
 docs/TASKS.md
+
+# Local dummy data and feature-testing fixtures
+/test-data/
+/outputs/

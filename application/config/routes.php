@@ -59,6 +59,10 @@ $route['profil/update'] = 'Profil/update';
 $route['profil/sinkronisasi'] = 'Profil/sinkronisasi';
 $route['profil/upload_logo'] = 'Profil/upload_logo';
 
+$route['pertanyaan/download_template/(:num)'] = 'Pertanyaan/download_template/$1';
+$route['pertanyaan/import/(:num)'] = 'Pertanyaan/import/$1';
+$route['pertanyaan/import_confirm/(:num)'] = 'Pertanyaan/import_confirm/$1';
+
 $route['auditee'] = 'Auditee/index';
 $route['auditee/tugas'] = 'Auditee/tugas';
 $route['auditee/form/(:num)'] = 'Auditee/form/$1';

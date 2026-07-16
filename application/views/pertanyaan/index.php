@@ -9,12 +9,35 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap mb-4" style="gap:12px;">
             <h2 class="ami-section-title m-0">Daftar pertanyaan audit</h2>
-            <a class="btn-ami btn-outline-ami" href="<?php echo site_url('pertanyaan/create'); ?>">
-                <i class="fas fa-plus"></i> Tambah pertanyaan
-            </a>
+            <div class="ami-actions">
+                <a class="btn-ami btn-outline-ami" href="<?php echo site_url('pertanyaan/create'); ?>">
+                    <i class="fas fa-plus"></i> Tambah pertanyaan
+                </a>
+                <?php if ($standar_id !== NULL): ?>
+                    <a href="<?php echo site_url('pertanyaan/download_template/' . (int) $standar_id); ?>" class="btn btn-outline-success btn-sm btn-ami">
+                        <i class="fas fa-file-excel" aria-hidden="true"></i> Download Template Excel
+                    </a>
+                    <button type="button" class="btn btn-outline-primary btn-sm btn-ami" data-toggle="modal" data-target="#modalImport">
+                        <i class="fas fa-upload" aria-hidden="true"></i> Import dari Excel
+                    </button>
+                <?php else: ?>
+                    <button type="button" class="btn btn-outline-success btn-sm btn-ami" disabled title="Pilih satu standar terlebih dahulu">
+                        <i class="fas fa-file-excel" aria-hidden="true"></i> Download Template Excel
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm btn-ami" disabled title="Pilih satu standar terlebih dahulu">
+                        <i class="fas fa-upload" aria-hidden="true"></i> Import dari Excel
+                    </button>
+                <?php endif; ?>
+            </div>
         </div>
+
+        <?php if ($standar_id === NULL): ?>
+            <div class="alert alert-info">
+                Pilih satu standar pada filter untuk mengaktifkan download template dan import Excel.
+            </div>
+        <?php endif; ?>
 
         <form method="get" action="<?php echo site_url('pertanyaan'); ?>" class="ami-actions align-items-end mb-3">
             <div style="width:280px;max-width:100%;">
@@ -108,5 +131,38 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
         <?php endif; ?>
     </div>
 </div>
+
+<?php if ($standar_id !== NULL): ?>
+<div class="modal fade" id="modalImport" tabindex="-1" role="dialog" aria-labelledby="modalImportLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <?php echo form_open_multipart('pertanyaan/import/' . (int) $standar_id); ?>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalImportLabel">Import Pertanyaan dari Excel</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">
+                        Upload file Excel (.xlsx atau .xls) sesuai format template, maksimal 2 MB.
+                        <a href="<?php echo site_url('pertanyaan/download_template/' . (int) $standar_id); ?>">Download template di sini</a>.
+                    </p>
+                    <div class="form-group mb-0">
+                        <label for="file-excel">File Excel <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control-file" id="file-excel" name="file_excel" accept=".xlsx,.xls" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" data-loading-text="Memproses file...">
+                        <i class="fas fa-search" aria-hidden="true"></i> Preview Import
+                    </button>
+                </div>
+            <?php echo form_close(); ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php include APPPATH . 'views/layouts/footer.php'; ?>
