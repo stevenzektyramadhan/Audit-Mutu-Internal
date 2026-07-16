@@ -53,6 +53,12 @@ $route['default_controller'] = 'auth';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
+$route['profil'] = 'Profil/index';
+$route['profil/edit'] = 'Profil/edit';
+$route['profil/update'] = 'Profil/update';
+$route['profil/sinkronisasi'] = 'Profil/sinkronisasi';
+$route['profil/upload_logo'] = 'Profil/upload_logo';
+
 $route['auditee'] = 'Auditee/index';
 $route['auditee/tugas'] = 'Auditee/tugas';
 $route['auditee/form/(:num)'] = 'Auditee/form/$1';
