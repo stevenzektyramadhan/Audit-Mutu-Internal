@@ -48,6 +48,34 @@ class Tugas_audit_model extends CI_Model
         return (int) $this->db->count_all_results($this->table);
     }
 
+    public function count_by_status_for_period($periode_id)
+    {
+        $counts = [
+            STATUS_BELUM_DIISI => 0,
+            STATUS_DIISI => 0,
+            STATUS_DINILAI => 0,
+        ];
+
+        if (!$this->db->table_exists($this->table)) {
+            return $counts;
+        }
+
+        $rows = $this->db
+            ->select('status, COUNT(*) AS total')
+            ->from($this->table)
+            ->where('periode_id', (int) $periode_id)
+            ->where_in('status', array_keys($counts))
+            ->group_by('status')
+            ->get()
+            ->result();
+
+        foreach ($rows as $row) {
+            $counts[$row->status] = (int) $row->total;
+        }
+
+        return $counts;
+    }
+
     public function get_recent($where = [], $limit = 5)
     {
         if (!$this->tables_exist(['tugas_audit', 'users', 'standar'])) {
