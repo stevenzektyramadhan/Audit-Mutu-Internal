@@ -1,5 +1,5 @@
 -- Database schema for AMI CodeIgniter 3
--- Mencakup seluruh perubahan dari migration 001-009
+-- Mencakup seluruh perubahan dari migration 001-011
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `role` ENUM('super_admin','admin_lpmpi','auditor','auditee') NOT NULL,
     `nama_unit` VARCHAR(100) NULL,
     `jenis_unit` ENUM('prodi','unit','lembaga') NULL,
+    `profile_photo_path` VARCHAR(255) NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -37,7 +38,17 @@ CREATE TABLE IF NOT EXISTS `standar` (
 CREATE TABLE IF NOT EXISTS `pertanyaan` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `standar_id` INT NOT NULL,
+    `urutan` INT NULL,
     `isi_pertanyaan` TEXT NOT NULL,
+    `nilai_standar` TEXT NULL,
+    `baseline` VARCHAR(255) NULL,
+    `target_2025` VARCHAR(255) NULL,
+    `target_2026` VARCHAR(255) NULL,
+    `target_2027` VARCHAR(255) NULL,
+    `target_2028` VARCHAR(255) NULL,
+    `target_2029` VARCHAR(255) NULL,
+    `target_2030` VARCHAR(255) NULL,
+    `kategori` ENUM('IKU', 'IKT') NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_pertanyaan_standar`
         FOREIGN KEY (`standar_id`) REFERENCES `standar` (`id`) ON DELETE CASCADE
@@ -145,12 +156,3 @@ CREATE TABLE IF NOT EXISTS `profil_mahasiswa_stats` (
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-INSERT INTO `users` (`nama`, `email`, `password`, `role`) VALUES
-('Admin Super', 'admin@ami.test', '$2y$10$NpwgFOOtWUjqClbtkVnXFeeHAK1K5NPh4PP7h2BJuWDqbv/CmnPp6', 'super_admin'),
-('Auditor Demo', 'auditor@ami.test', '$2y$10$9m5mqeBxJl1KyCW70xSIBOSYy3PdTsfrEBeC7TiNHJqAPcsgBbiOK', 'auditor'),
-('Auditee Demo', 'auditee@ami.test', '$2y$10$J/KZtzTXxrlr9oIsd9Fh9.FQznUGJL/1e3fKbEVKiOWjYy4Dzj8fi', 'auditee')
-ON DUPLICATE KEY UPDATE
-    `nama` = VALUES(`nama`),
-    `password` = VALUES(`password`),
-    `role` = VALUES(`role`);
