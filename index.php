@@ -53,7 +53,14 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	$ci_environment = isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : getenv('CI_ENV');
+	if ($ci_environment === FALSE || trim((string) $ci_environment) === '')
+	{
+		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
+		echo 'The application environment is not set correctly.';
+		exit(1);
+	}
+	define('ENVIRONMENT', trim((string) $ci_environment));
 
 /*
  *---------------------------------------------------------------

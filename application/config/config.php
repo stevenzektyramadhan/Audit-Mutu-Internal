@@ -23,7 +23,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-if (isset($_SERVER['HTTP_HOST'], $_SERVER['SCRIPT_NAME'])) {
+$app_base_url = getenv('APP_BASE_URL');
+if ($app_base_url !== FALSE && trim($app_base_url) !== '') {
+	$config['base_url'] = rtrim(trim($app_base_url), '/') . '/';
+} elseif (ENVIRONMENT === 'production') {
+	header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
+	echo 'Production configuration is incomplete.';
+	exit(1);
+} elseif (isset($_SERVER['HTTP_HOST'], $_SERVER['SCRIPT_NAME'])) {
 	$protocol = (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 	$config['base_url'] = $protocol . '://' . $_SERVER['HTTP_HOST'] . str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
 } else {
@@ -230,7 +237,10 @@ $config['allow_get_array'] = TRUE;
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 0;
+$app_log_threshold = getenv('APP_LOG_THRESHOLD');
+$config['log_threshold'] = $app_log_threshold !== FALSE && $app_log_threshold !== ''
+	? (int) $app_log_threshold
+	: (ENVIRONMENT === 'production' ? 1 : 0);
 
 /*
 |--------------------------------------------------------------------------
@@ -241,7 +251,10 @@ $config['log_threshold'] = 0;
 | application/logs/ directory. Use a full server path with trailing slash.
 |
 */
-$config['log_path'] = '';
+$app_log_path = getenv('APP_LOG_PATH');
+$config['log_path'] = $app_log_path !== FALSE && trim($app_log_path) !== ''
+	? rtrim(trim($app_log_path), '/\\') . DIRECTORY_SEPARATOR
+	: '';
 
 /*
 |--------------------------------------------------------------------------
@@ -331,7 +344,8 @@ $config['cache_query_string'] = FALSE;
 | https://codeigniter.com/userguide3/libraries/encryption.html
 |
 */
-$config['encryption_key'] = 'AMI_CI3_SecureKey_2026!@#';
+$app_encryption_key = getenv('APP_ENCRYPTION_KEY');
+$config['encryption_key'] = $app_encryption_key !== FALSE ? (string) $app_encryption_key : '';
 
 /*
 |--------------------------------------------------------------------------
@@ -416,9 +430,35 @@ $config['sess_regenerate_destroy'] = FALSE;
 $config['cookie_prefix']	= '';
 $config['cookie_domain']	= '';
 $config['cookie_path']		= parse_url($config['base_url'], PHP_URL_PATH) ?: '/';
-$config['cookie_secure']	= FALSE;
-$config['cookie_httponly'] 	= FALSE;
+$app_cookie_secure = getenv('APP_COOKIE_SECURE');
+$config['cookie_secure']	= $app_cookie_secure !== FALSE
+	? filter_var($app_cookie_secure, FILTER_VALIDATE_BOOLEAN)
+	: FALSE;
+$config['cookie_httponly'] 	= TRUE;
 $config['cookie_samesite'] 	= 'Lax';
+
+if (ENVIRONMENT === 'production') {
+	$private_storage = getenv('APP_PRIVATE_STORAGE_PATH');
+	$private_storage_path = $private_storage !== FALSE ? realpath(trim($private_storage)) : FALSE;
+	$web_root = realpath(FCPATH);
+	$log_path = $config['log_path'] !== '' ? realpath($config['log_path']) : FALSE;
+	$production_config_valid = strpos($config['base_url'], 'https://') === 0
+		&& $config['encryption_key'] !== ''
+		&& $config['cookie_secure'] === TRUE
+		&& $config['log_threshold'] > 0
+		&& $log_path !== FALSE
+		&& is_writable($log_path)
+		&& $private_storage_path !== FALSE
+		&& is_writable($private_storage_path)
+		&& strpos($private_storage_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0
+		&& strpos($log_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0;
+
+	if (!$production_config_valid) {
+		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
+		echo 'Production configuration is incomplete.';
+		exit(1);
+	}
+}
 
 /*
 |--------------------------------------------------------------------------
