@@ -59,9 +59,16 @@ $route['profil/update'] = 'Profil/update';
 $route['profil/sinkronisasi'] = 'Profil/sinkronisasi';
 $route['profil/upload_logo'] = 'Profil/upload_logo';
 
+$route['account'] = 'Account/index';
+$route['account/update'] = 'Account/update';
+$route['account/photo'] = 'Account/photo';
+
 $route['pertanyaan/download_template/(:num)'] = 'Pertanyaan/download_template/$1';
 $route['pertanyaan/import/(:num)'] = 'Pertanyaan/import/$1';
 $route['pertanyaan/import_confirm/(:num)'] = 'Pertanyaan/import_confirm/$1';
+
+$route['lpmpi/instrumen/download/(:num)'] = 'lpmpi/Instrumen/download/$1';
+$route['lpmpi/penetapan/download/(:num)'] = 'lpmpi/Penetapan/download/$1';
 
 $route['auditee'] = 'Auditee/index';
 $route['auditee/tugas'] = 'Auditee/tugas';

@@ -14,7 +14,7 @@ class Penetapan extends Admin_Lpmpi_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->helper(['form', 'url']);
+        $this->load->helper(['form', 'url', 'download']);
         $this->load->model('Penetapan_model');
         $this->load->model('Standar_model');
     }
@@ -101,6 +101,20 @@ class Penetapan extends Admin_Lpmpi_Controller
         redirect('lpmpi/penetapan');
     }
 
+    public function download($id)
+    {
+        $penetapan = $this->Penetapan_model->find((int) $id);
+        $path = $penetapan && !empty($penetapan->file_path)
+            ? private_storage_path('penetapan', $penetapan->file_path)
+            : NULL;
+        if ($path === NULL) {
+            show_error('File penetapan tidak ditemukan.', 404, 'File tidak ditemukan');
+            return;
+        }
+
+        force_download($path, NULL);
+    }
+
     private function handle_upload($id)
     {
         if (empty($_FILES['file_penetapan']['name'])) {
@@ -136,14 +150,11 @@ class Penetapan extends Admin_Lpmpi_Controller
 
     private function upload_dir()
     {
-        return FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'penetapan' . DIRECTORY_SEPARATOR;
+        return private_storage_dir('penetapan');
     }
 
     private function delete_local_file($file_name)
     {
-        $path = $this->upload_dir() . basename((string) $file_name);
-        if (is_file($path)) {
-            unlink($path);
-        }
+        delete_private_file('penetapan', $file_name);
     }
 }

@@ -30,7 +30,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <td><?php echo html_escape($row->nama_standar); ?></td>
                             <td>
                                 <?php if (!empty($row->file_instrumen)): ?>
-                                    <a href="<?php echo base_url('uploads/instrumen/' . rawurlencode($row->file_instrumen)); ?>" target="_blank" rel="noopener noreferrer" class="btn-ami btn-sm btn-outline-ami">
+                                    <a href="<?php echo site_url('lpmpi/instrumen/download/' . (int) $row->id); ?>" class="btn-ami btn-sm btn-outline-ami">
                                         <i class="fas fa-download" aria-hidden="true"></i> Download
                                     </a>
                                     <div class="text-muted mt-2" style="font-size: 12px;"><?php echo html_escape($row->file_instrumen); ?></div>
