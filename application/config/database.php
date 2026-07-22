@@ -73,12 +73,29 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $active_group = 'default';
 $query_builder = TRUE;
 
+$db_environment = array(
+	'hostname' => getenv('DB_HOST'),
+	'username' => getenv('DB_USERNAME'),
+	'password' => getenv('DB_PASSWORD'),
+	'database' => getenv('DB_DATABASE'),
+);
+
+if (ENVIRONMENT === 'production') {
+	foreach ($db_environment as $value) {
+		if ($value === FALSE || trim((string) $value) === '') {
+			header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
+			echo 'Production database configuration is incomplete.';
+			exit(1);
+		}
+	}
+}
+
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'root',
-	'password' => '',
-	'database' => 'ami',
+	'hostname' => $db_environment['hostname'] !== FALSE ? $db_environment['hostname'] : 'localhost',
+	'username' => $db_environment['username'] !== FALSE ? $db_environment['username'] : 'root',
+	'password' => $db_environment['password'] !== FALSE ? $db_environment['password'] : '',
+	'database' => $db_environment['database'] !== FALSE ? $db_environment['database'] : 'ami',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

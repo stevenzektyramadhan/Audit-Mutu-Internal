@@ -14,7 +14,7 @@ class Instrumen extends Admin_Lpmpi_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->helper(['form', 'url']);
+        $this->load->helper(['form', 'url', 'download']);
         $this->load->model('Standar_model');
     }
 
@@ -114,16 +114,27 @@ class Instrumen extends Admin_Lpmpi_Controller
         redirect('lpmpi/instrumen');
     }
 
+    public function download($id)
+    {
+        $standar = $this->Standar_model->find((int) $id);
+        $path = $standar && !empty($standar->file_instrumen)
+            ? private_storage_path('instrumen', $standar->file_instrumen)
+            : NULL;
+        if ($path === NULL) {
+            show_error('File instrumen tidak ditemukan.', 404, 'File tidak ditemukan');
+            return;
+        }
+
+        force_download($path, NULL);
+    }
+
     private function upload_dir()
     {
-        return FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'instrumen' . DIRECTORY_SEPARATOR;
+        return private_storage_dir('instrumen');
     }
 
     private function delete_local_file($file_name)
     {
-        $path = $this->upload_dir() . basename((string) $file_name);
-        if (is_file($path)) {
-            unlink($path);
-        }
+        delete_private_file('instrumen', $file_name);
     }
 }

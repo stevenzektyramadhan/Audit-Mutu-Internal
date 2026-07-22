@@ -8,6 +8,11 @@ $active_menu = 'dashboard';
 $stats = isset($stats) ? $stats : [];
 $recent_tugas = isset($recent_tugas) ? $recent_tugas : [];
 $standar_summary = isset($standar_summary) ? $standar_summary : [];
+$active_periode = isset($active_periode) ? $active_periode : NULL;
+$task_status_chart = isset($task_status_chart) ? $task_status_chart : '';
+$active_task_count = (int) (isset($stats['belum_diisi']) ? $stats['belum_diisi'] : 0)
+    + (int) (isset($stats['diisi']) ? $stats['diisi'] : 0)
+    + (int) (isset($stats['dinilai']) ? $stats['dinilai'] : 0);
 $menu_badges = ['tugas_audit' => isset($stats['total_tugas']) ? $stats['total_tugas'] : 0];
 $status_labels = [
     STATUS_BELUM_DIISI => ['label' => 'Belum diisi', 'icon' => 'fa-exclamation-circle'],
@@ -151,9 +156,45 @@ include APPPATH . 'views/layouts/sidebar.php';
     <?php endforeach; ?>
 </div>
 
+<div class="ami-section-head mt-0">
+    <h2 class="ami-section-title">Status tugas periode aktif</h2>
+    <a class="btn btn-outline-ami btn-ami py-1" href="<?php echo site_url('lpmpi/laporan'); ?>">
+        <i class="fas fa-chart-pie" aria-hidden="true"></i>
+        Laporan &amp; Statistik
+    </a>
+</div>
+<div class="ami-panel mb-3">
+    <div class="ami-panel-body">
+        <?php if ($active_periode): ?>
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: 10px;">
+                <div class="ami-stat-label mb-0">Periode aktif: <?php echo html_escape($active_periode->nama_periode); ?></div>
+                <div class="text-muted small">Laporan menyediakan analisis dan ekspor detail.</div>
+            </div>
+            <?php if ($active_task_count > 0): ?>
+                <div style="height: 320px;">
+                    <canvas id="dashboardTaskStatusChart" aria-label="Grafik status tugas periode aktif" aria-describedby="status-summary-title status-summary-counts"></canvas>
+                </div>
+            <?php else: ?>
+                <div class="ami-empty">
+                    <div class="ami-empty-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></div>
+                    <div class="ami-empty-title">Belum ada tugas audit pada periode aktif</div>
+                    <div>Grafik status akan tampil setelah tugas audit dibuat.</div>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <div class="ami-empty">
+                <div class="ami-empty-icon"><i class="fas fa-calendar-times" aria-hidden="true"></i></div>
+                <div class="ami-empty-title">Belum ada periode audit aktif</div>
+                <div>Status tugas hanya ditampilkan untuk periode yang aktif.</div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <div class="admin-overview-grid">
     <section class="admin-summary-card" aria-labelledby="status-summary-title">
         <h2 class="admin-summary-title" id="status-summary-title">Ringkasan status tugas</h2>
+        <div id="status-summary-counts">
         <div class="admin-summary-row">
             <span>Belum diisi</span>
             <span class="ami-status status-belum_diisi"><?php echo html_escape((string) (isset($stats['belum_diisi']) ? $stats['belum_diisi'] : 0)); ?> tugas</span>
@@ -165,6 +206,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="admin-summary-row">
             <span>Sudah dinilai</span>
             <span class="ami-status status-dinilai"><?php echo html_escape((string) (isset($stats['dinilai']) ? $stats['dinilai'] : 0)); ?> tugas</span>
+        </div>
         </div>
     </section>
 
@@ -233,5 +275,46 @@ include APPPATH . 'views/layouts/sidebar.php';
         </div>
     <?php endif; ?>
 </div>
+
+<?php if ($active_periode && $active_task_count > 0 && $task_status_chart !== ''): ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    (function () {
+        if (typeof Chart === 'undefined') return;
+        var canvas = document.getElementById('dashboardTaskStatusChart');
+        if (!canvas) return;
+
+        var chartData = <?php echo $task_status_chart; ?>;
+        var styles = getComputedStyle(document.documentElement);
+        var colors = [
+            styles.getPropertyValue('--ami-amber').trim(),
+            styles.getPropertyValue('--ami-blue').trim(),
+            styles.getPropertyValue('--ami-green').trim()
+        ];
+
+        new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    data: chartData.values,
+                    backgroundColor: colors,
+                    borderColor: styles.getPropertyValue('--ami-panel').trim(),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    })();
+    </script>
+<?php endif; ?>
 
 <?php include APPPATH . 'views/layouts/footer.php'; ?>

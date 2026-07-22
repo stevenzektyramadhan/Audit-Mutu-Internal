@@ -31,6 +31,14 @@ class Dashboard extends CI_Controller {
 
         if ($role === 'super_admin' || $role === 'admin_lpmpi') {
             $data = $this->dashboard_service->get_super_admin_data();
+            $data['task_status_chart'] = json_encode([
+                'labels' => ['Belum diisi', 'Diisi', 'Dinilai'],
+                'values' => [
+                    (int) $data['task_status_counts'][STATUS_BELUM_DIISI],
+                    (int) $data['task_status_counts'][STATUS_DIISI],
+                    (int) $data['task_status_counts'][STATUS_DINILAI],
+                ],
+            ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
             $this->load->view('dashboard/super_admin', $data);
             return;
         }

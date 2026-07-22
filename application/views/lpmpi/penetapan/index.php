@@ -61,7 +61,7 @@ $kategori_labels = [
                                         </td>
                                         <td>
                                             <?php if (!empty($row->file_path)): ?>
-                                                <a href="<?php echo base_url('uploads/penetapan/' . rawurlencode($row->file_path)); ?>" target="_blank" rel="noopener noreferrer" class="btn-ami btn-sm btn-outline-ami mb-2">
+                                                <a href="<?php echo site_url('lpmpi/penetapan/download/' . (int) $row->id); ?>" class="btn-ami btn-sm btn-outline-ami mb-2">
                                                     <i class="fas fa-download" aria-hidden="true"></i> Download
                                                 </a>
                                                 <div class="text-muted mb-2" style="font-size: 12px;"><?php echo html_escape($row->file_path); ?></div>

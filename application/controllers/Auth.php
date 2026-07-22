@@ -46,6 +46,11 @@ class Auth extends CI_Controller {
 
     public function logout()
     {
+        if ($this->input->method(TRUE) !== 'POST') {
+            show_error('Method tidak diizinkan.', 405, 'Method Not Allowed');
+            return;
+        }
+
         $this->session->sess_destroy();
         redirect('auth');
     }

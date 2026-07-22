@@ -37,6 +37,12 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             --ami-amber: #854f0b;
             --ami-rose: #993556;
             --ami-teal: #0f6e56;
+            --ami-link: #4da3ff;
+            --ami-link-soft: rgba(77, 163, 255, 0.15);
+            --ami-radius-sm: 7px;
+            --ami-space-sm: 8px;
+            --ami-space-md: 16px;
+            --ami-space-lg: 24px;
         }
 
         html[data-theme="light"] {
@@ -140,6 +146,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             width: 34px;
             height: 34px;
             border-radius: 50%;
+            overflow: hidden;
             background: #dbeafe;
             color: var(--ami-blue);
             display: inline-flex;
@@ -148,6 +155,15 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             font-weight: 700;
             font-size: 12px;
             flex: 0 0 34px;
+        }
+
+        .ami-avatar-image {
+            display: block;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            object-fit: cover;
+            border-radius: inherit;
         }
 
         .ami-avatar.avatar-auditor {
@@ -293,9 +309,72 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
 
         .ami-theme-toggle:hover,
         .ami-theme-toggle:focus {
-            border-color: #4da3ff;
-            color: #4da3ff;
+            border-color: var(--ami-link);
+            color: var(--ami-link);
             outline: 0;
+        }
+
+        .ami-topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--ami-space-sm);
+        }
+
+        .ami-account-toggle {
+            min-height: 38px;
+            padding: 4px var(--ami-space-sm) 4px 4px;
+            border: 1px solid var(--ami-border);
+            border-radius: var(--ami-radius-sm);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--ami-text);
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .ami-account-toggle:hover,
+        .ami-account-toggle:focus {
+            border-color: var(--ami-link);
+            color: var(--ami-link);
+            outline: 0;
+        }
+
+        .ami-topbar-avatar {
+            width: 28px;
+            height: 28px;
+            flex-basis: 28px;
+            font-size: 10px;
+        }
+
+        .ami-account-menu {
+            min-width: 170px;
+            padding: 6px;
+            border-color: var(--ami-border);
+            border-radius: var(--ami-radius-sm);
+            background: var(--ami-panel);
+        }
+
+        .ami-account-menu .dropdown-item {
+            border-radius: var(--ami-radius-sm);
+            color: var(--ami-text);
+            font-size: 13px;
+        }
+
+        .ami-account-menu .dropdown-item:hover,
+        .ami-account-menu .dropdown-item:focus {
+            background: var(--ami-link-soft);
+            color: var(--ami-link);
+        }
+
+        .ami-account-menu .dropdown-item i {
+            width: 20px;
+        }
+
+        .ami-account-menu .dropdown-divider {
+            border-top-color: var(--ami-border);
         }
 
         .ami-page-title {
@@ -500,6 +579,36 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             background-color: #25282d;
             color: #c7cbd1;
             opacity: 1;
+        }
+
+        .ami-account-panel {
+            max-width: 640px;
+        }
+
+        .ami-account-heading {
+            display: flex;
+            align-items: center;
+            gap: var(--ami-space-md);
+            margin-bottom: var(--ami-space-lg);
+        }
+
+        .ami-account-photo {
+            width: 72px;
+            height: 72px;
+            flex: 0 0 72px;
+            border: 1px solid var(--ami-border);
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .ami-account-initials {
+            background: var(--ami-link-soft);
+            color: var(--ami-blue);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
         }
 
         .ami-content select.form-control option {

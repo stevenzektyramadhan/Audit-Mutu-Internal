@@ -9,6 +9,7 @@ class Dashboard_service
     protected $pertanyaan_model;
     protected $tugas_audit_model;
     protected $jawaban_model;
+    protected $periode_model;
 
     public function __construct()
     {
@@ -18,16 +19,29 @@ class Dashboard_service
         $this->ci->load->model('Pertanyaan_model');
         $this->ci->load->model('Tugas_audit_model');
         $this->ci->load->model('Jawaban_model');
+        $this->ci->load->model('Periode_model');
 
         $this->user_model = $this->ci->User_model;
         $this->standar_model = $this->ci->Standar_model;
         $this->pertanyaan_model = $this->ci->Pertanyaan_model;
         $this->tugas_audit_model = $this->ci->Tugas_audit_model;
         $this->jawaban_model = $this->ci->Jawaban_model;
+        $this->periode_model = $this->ci->Periode_model;
     }
 
     public function get_super_admin_data()
     {
+        $active_periode = $this->periode_model->get_active();
+        $task_status_counts = [
+            STATUS_BELUM_DIISI => 0,
+            STATUS_DIISI => 0,
+            STATUS_DINILAI => 0,
+        ];
+
+        if ($active_periode) {
+            $task_status_counts = $this->tugas_audit_model->count_by_status_for_period((int) $active_periode->id);
+        }
+
         return [
             'stats' => [
                 'total_user' => $this->user_model->count_all(),
@@ -36,10 +50,12 @@ class Dashboard_service
                 'total_standar' => $this->standar_model->count_all(),
                 'total_pertanyaan' => $this->pertanyaan_model->count_all(),
                 'total_tugas' => $this->tugas_audit_model->count_all(),
-                'belum_diisi' => $this->tugas_audit_model->count_all(['status' => STATUS_BELUM_DIISI]),
-                'diisi' => $this->tugas_audit_model->count_all(['status' => STATUS_DIISI]),
-                'dinilai' => $this->tugas_audit_model->count_all(['status' => STATUS_DINILAI]),
+                'belum_diisi' => $task_status_counts[STATUS_BELUM_DIISI],
+                'diisi' => $task_status_counts[STATUS_DIISI],
+                'dinilai' => $task_status_counts[STATUS_DINILAI],
             ],
+            'active_periode' => $active_periode,
+            'task_status_counts' => $task_status_counts,
             'recent_tugas' => $this->tugas_audit_model->get_recent([], 5),
             'standar_summary' => $this->standar_model->get_summary(5),
         ];

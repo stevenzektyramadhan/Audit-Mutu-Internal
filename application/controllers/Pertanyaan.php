@@ -323,7 +323,7 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
 
     private function temporary_upload_dir()
     {
-        return FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR;
+        return private_storage_dir('tmp');
     }
 
     private function active_imports()

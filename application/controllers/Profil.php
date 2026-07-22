@@ -36,16 +36,16 @@ class Profil extends MY_Controller
             'akreditasi_summary' => $akreditasi_summary,
             'akreditasi_chart_labels' => json_encode(array_map(function ($row) {
                 return $row->akreditasi;
-            }, $akreditasi_summary)),
+            }, $akreditasi_summary), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'akreditasi_chart_values' => json_encode(array_map(function ($row) {
                 return (int) $row->jumlah;
-            }, $akreditasi_summary)),
+            }, $akreditasi_summary), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'mahasiswa_chart_labels' => json_encode(array_map(function ($row) {
                 return $row->jenjang;
-            }, $mahasiswa_stats)),
+            }, $mahasiswa_stats), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'mahasiswa_chart_values' => json_encode(array_map(function ($row) {
                 return (int) $row->jumlah;
-            }, $mahasiswa_stats)),
+            }, $mahasiswa_stats), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
         ];
 
         $this->load->view('lpmpi/profil/index', $data);
@@ -146,7 +146,8 @@ class Profil extends MY_Controller
         try {
             $result = $service->fetch_all($nama_pt, $id_pt);
         } catch (Exception $exception) {
-            $this->session->set_flashdata('error', $exception->getMessage());
+            log_message('error', 'Sinkronisasi PDDikti gagal untuk user ' . $this->_user_id() . ': ' . $exception->getMessage());
+            $this->session->set_flashdata('error', 'Sinkronisasi PDDikti gagal. Coba lagi nanti.');
             redirect('profil');
             return;
         }

@@ -38,6 +38,24 @@ class User_model extends CI_Model
         return $this->db->where('id', (int) $id)->update($this->table, $data);
     }
 
+    public function update_own_profile($id, $data)
+    {
+        return $this->db
+            ->where('id', (int) $id)
+            ->update($this->table, $data);
+    }
+
+    public function find_profile_photo_for_update($id)
+    {
+        $query = $this->db
+            ->select('profile_photo_path')
+            ->where('id', (int) $id)
+            ->limit(1)
+            ->get_compiled_select($this->table);
+
+        return $this->db->query($query . ' FOR UPDATE')->row();
+    }
+
     public function delete($id)
     {
         return $this->db->where('id', (int) $id)->delete($this->table);
