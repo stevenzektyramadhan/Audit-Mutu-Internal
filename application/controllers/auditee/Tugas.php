@@ -118,7 +118,7 @@ class Tugas extends Auditee_Controller
     public function download_instrumen($tugas_id)
     {
         $detail = $this->get_detail_or_404((int) $tugas_id);
-        $file_name = basename((string) $detail['tugas']->file_instrumen);
+        $file_name = (string) $detail['tugas']->file_instrumen;
 
         if ($file_name === '') {
             $this->session->set_flashdata('error', 'File instrumen belum tersedia.');
@@ -126,8 +126,8 @@ class Tugas extends Auditee_Controller
             return;
         }
 
-        $path = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'instrumen' . DIRECTORY_SEPARATOR . $file_name;
-        if (!is_file($path)) {
+        $path = private_storage_path('instrumen', $file_name);
+        if ($path === NULL) {
             show_error('File instrumen tidak ditemukan di server.', 404, 'File tidak ditemukan');
             return;
         }

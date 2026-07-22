@@ -183,8 +183,8 @@ class Auditor extends CI_Controller
             return;
         }
 
-        $path = $this->bukti_upload_dir() . basename((string) $jawaban->dokumen_bukti);
-        if (!is_file($path)) {
+        $path = private_storage_path('bukti_auditor', $jawaban->dokumen_bukti);
+        if ($path === NULL) {
             show_error('File bukti tidak ditemukan di server.', 404, 'File tidak ditemukan');
             return;
         }
@@ -363,15 +363,12 @@ class Auditor extends CI_Controller
 
     private function bukti_upload_dir()
     {
-        return FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'bukti_auditor' . DIRECTORY_SEPARATOR;
+        return private_storage_dir('bukti_auditor');
     }
 
     private function delete_bukti_file($file_name)
     {
-        $path = $this->bukti_upload_dir() . basename((string) $file_name);
-        if (is_file($path)) {
-            unlink($path);
-        }
+        delete_private_file('bukti_auditor', $file_name);
     }
 
     private function json_response($payload, $status = 200)
