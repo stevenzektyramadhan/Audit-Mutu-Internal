@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ami
+      MYSQL_USER: ami_local
+      MYSQL_PASSWORD: ami_local_password
+      MYSQL_ROOT_PASSWORD: local_root_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database_dummy.sql:/docker-entrypoint-initdb.d/02-demo.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_USERNAME: ami_local
+      DB_PASSWORD: ami_local_password
+      DB_DATABASE: ami
+    ports:
+      - "127.0.0.1:8081:80"
+    volumes:
+      - sessions:/var/www/html/application/cache/sessions
+      - uploads:/var/www/html/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
+  sessions:
+  uploads:
