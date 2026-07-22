@@ -3,8 +3,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once APPPATH . '../vendor/autoload.php';
 
+class AmiPertanyaanReadFilter implements \PhpOffice\PhpSpreadsheet\Reader\IReadFilter
+{
+    public function readCell($column_address, $row, $worksheet_name = '')
+    {
+        return $row >= 1
+            && $row <= Pertanyaan_service::MAX_IMPORT_ROWS
+            && in_array($column_address, range('A', 'J'), TRUE);
+    }
+}
+
 class Pertanyaan_service
 {
+    const MAX_IMPORT_ROWS = 10000;
+
     protected $ci;
     protected $pertanyaan_model;
     protected $standar_model;
@@ -139,9 +151,35 @@ class Pertanyaan_service
         }
 
         try {
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file_path);
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file_path);
+            $worksheet_info = $reader->listWorksheetInfo($file_path);
+            $pertanyaan_info = NULL;
+            foreach ($worksheet_info as $info) {
+                if ($info['worksheetName'] === 'Pertanyaan') {
+                    $pertanyaan_info = $info;
+                    break;
+                }
+            }
+
+            if ($pertanyaan_info === NULL) {
+                throw new RuntimeException("Sheet 'Pertanyaan' tidak ditemukan di file.");
+            }
+            if ((int) $pertanyaan_info['totalRows'] > self::MAX_IMPORT_ROWS) {
+                throw new RuntimeException('File melebihi batas ' . self::MAX_IMPORT_ROWS . ' baris.');
+            }
+            if ((int) $pertanyaan_info['totalColumns'] > 10) {
+                throw new RuntimeException('File hanya boleh berisi data sampai kolom J.');
+            }
+
+            $reader->setReadDataOnly(TRUE);
+            $reader->setLoadSheetsOnly('Pertanyaan');
+            $reader->setReadFilter(new AmiPertanyaanReadFilter());
+            $spreadsheet = $reader->load($file_path);
         } catch (\Throwable $exception) {
-            throw new RuntimeException('File tidak dapat dibaca, pastikan format .xlsx.', 0, $exception);
+            if ($exception instanceof RuntimeException) {
+                throw $exception;
+            }
+            throw new RuntimeException('File tidak dapat dibaca, pastikan format .xlsx atau .xls.', 0, $exception);
         }
 
         try {
