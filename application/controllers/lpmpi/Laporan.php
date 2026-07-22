@@ -34,10 +34,10 @@ class Laporan extends Admin_Lpmpi_Controller
         $data['rekap']        = $rekap;
         $data['chart_labels'] = json_encode(array_map(function ($row) {
             return $row->nama_standar;
-        }, $rekap));
+        }, $rekap), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
         $data['chart_values'] = json_encode(array_map(function ($row) {
             return round((float) $row->rata_rata_skor, 2);
-        }, $rekap));
+        }, $rekap), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 
         $this->load->view('lpmpi/laporan/index', $data);
     }
