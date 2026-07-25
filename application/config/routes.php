@@ -75,6 +75,20 @@ $route['user-unit-assignments/(:num)/create'] = 'User_unit_assignments/create/$1
 $route['user-unit-assignments/(:num)/store'] = 'User_unit_assignments/store/$1';
 $route['user-unit-assignments/end/(:num)'] = 'User_unit_assignments/end/$1';
 
+$route['spmi-versions'] = 'Spmi_versions/index';
+$route['spmi-versions/create'] = 'Spmi_versions/create';
+$route['spmi-versions/store'] = 'Spmi_versions/store';
+$route['spmi-versions/show/(:num)'] = 'Spmi_versions/show/$1';
+$route['spmi-versions/edit/(:num)'] = 'Spmi_versions/edit/$1';
+$route['spmi-versions/update/(:num)'] = 'Spmi_versions/update/$1';
+$route['spmi-versions/submit-review/(:num)'] = 'Spmi_versions/submit_review/$1';
+$route['spmi-versions/approve/(:num)'] = 'Spmi_versions/approve/$1';
+$route['spmi-versions/activate/(:num)'] = 'Spmi_versions/activate/$1';
+$route['spmi-versions/retire/(:num)'] = 'Spmi_versions/retire/$1';
+$route['spmi-versions/clone/(:num)'] = 'Spmi_versions/clone_form/$1';
+$route['spmi-versions/clone-store/(:num)'] = 'Spmi_versions/clone_store/$1';
+$route['spmi-versions/download/(:num)'] = 'Spmi_versions/download/$1';
+
 $route['pertanyaan/download_template/(:num)'] = 'Pertanyaan/download_template/$1';
 $route['pertanyaan/import/(:num)'] = 'Pertanyaan/import/$1';
 $route['pertanyaan/import_confirm/(:num)'] = 'Pertanyaan/import_confirm/$1';

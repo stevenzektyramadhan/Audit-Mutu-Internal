@@ -198,6 +198,147 @@ class File_security
         ];
     }
 
+    public function duplicate($category, $stored_name, $owner_type, $owner_id, $actor_user_id)
+    {
+        $policy = $this->policy($category);
+        if ($policy === NULL || $policy['scope'] !== 'private') {
+            return $this->failure(
+                $category,
+                $owner_type,
+                $owner_id,
+                $actor_user_id,
+                'duplicate_not_allowed',
+                'File tidak dapat disalin.'
+            );
+        }
+
+        $resolved = $this->resolve(
+            $category,
+            $stored_name,
+            $owner_type,
+            $owner_id,
+            $actor_user_id
+        );
+        if ($resolved === NULL) {
+            return $this->failure(
+                $category,
+                $owner_type,
+                $owner_id,
+                $actor_user_id,
+                'source_unavailable',
+                'File sumber tidak tersedia atau gagal diverifikasi.'
+            );
+        }
+
+        $source_asset = $resolved['asset'];
+        try {
+            $new_name = bin2hex(random_bytes(24)) . '.' . (string) $source_asset->extension;
+        } catch (Exception $exception) {
+            log_message('error', 'Random duplicate name generation failed: ' . $exception->getMessage());
+            return $this->failure(
+                $category,
+                $owner_type,
+                0,
+                $actor_user_id,
+                'random_failed',
+                'File gagal disalin.'
+            );
+        }
+
+        $directory = $this->storage_directory($category, 'private');
+        if (!is_dir($directory) && !mkdir($directory, 0700, TRUE) && !is_dir($directory)) {
+            return $this->failure(
+                $category,
+                $owner_type,
+                0,
+                $actor_user_id,
+                'storage_unavailable',
+                'Penyimpanan file tidak tersedia.'
+            );
+        }
+
+        $path = $directory . $new_name;
+        if (!copy($resolved['path'], $path)) {
+            return $this->failure(
+                $category,
+                $owner_type,
+                0,
+                $actor_user_id,
+                'copy_failed',
+                'File gagal disalin.'
+            );
+        }
+        @chmod($path, 0600);
+
+        $size = filesize($path);
+        $checksum = hash_file('sha256', $path);
+        if ($size === FALSE
+            || $checksum === FALSE
+            || (int) $size !== (int) $source_asset->size_bytes
+            || !hash_equals((string) $source_asset->sha256, (string) $checksum)) {
+            @unlink($path);
+            return $this->failure(
+                $category,
+                $owner_type,
+                0,
+                $actor_user_id,
+                'copy_integrity_failed',
+                'Salinan file gagal diverifikasi.'
+            );
+        }
+
+        $asset_id = $this->CI->File_asset_model->create_asset([
+            'category' => (string) $source_asset->category,
+            'owner_type' => $this->normalize_token($owner_type, 40),
+            'owner_id' => NULL,
+            'storage_scope' => 'private',
+            'stored_name' => $new_name,
+            'original_name' => (string) $source_asset->original_name,
+            'extension' => (string) $source_asset->extension,
+            'mime_type' => (string) $source_asset->mime_type,
+            'size_bytes' => (int) $size,
+            'sha256' => (string) $checksum,
+            'status' => 'active',
+            'is_legacy' => 0,
+            'uploaded_by' => (int) $actor_user_id > 0 ? (int) $actor_user_id : NULL,
+        ]);
+
+        if ($asset_id === NULL) {
+            @unlink($path);
+            return $this->failure(
+                $category,
+                $owner_type,
+                0,
+                $actor_user_id,
+                'metadata_failed',
+                'Metadata salinan file gagal disimpan.'
+            );
+        }
+
+        $this->event(
+            'file_duplicated',
+            'success',
+            'version_clone',
+            $category,
+            $owner_type,
+            0,
+            $actor_user_id,
+            $asset_id
+        );
+
+        return [
+            'success' => TRUE,
+            'asset_id' => $asset_id,
+            'file_name' => $new_name,
+            'original_name' => (string) $source_asset->original_name,
+            'path' => $path,
+            'mime_type' => (string) $source_asset->mime_type,
+            'size_bytes' => (int) $size,
+            'sha256' => (string) $checksum,
+            'message' => '',
+        ];
+    }
+
     public function download($category, $stored_name, $owner_type, $owner_id, $actor_user_id)
     {
         $resolved = $this->resolve($category, $stored_name, $owner_type, $owner_id, $actor_user_id);

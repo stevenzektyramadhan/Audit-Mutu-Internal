@@ -1193,6 +1193,329 @@ try {
         $results
     );
 
+    smoke_case(
+        'SPMI workflow enforces scoped approval, immutable activation, and clone history',
+        function () use ($testConnection, $fixture, $tempRoot, $roleClients) {
+            $rootUnit = smoke_db_row(
+                $testConnection,
+                "SELECT id FROM organization_units
+                 WHERE code = 'UNIVERSITY'
+                 LIMIT 1"
+            );
+            smoke_assert(!empty($rootUnit), 'SPMI workflow root unit is missing.');
+            $rootUnitId = (int) $rootUnit['id'];
+            $adminId = (int) $fixture['users']['admin_lpmpi']['id'];
+
+            $assignment = $testConnection->prepare(
+                "INSERT INTO user_unit_assignments (
+                    user_id,
+                    organization_unit_id,
+                    position_code,
+                    valid_from,
+                    valid_until,
+                    is_primary
+                ) VALUES (?, ?, 'spmi_approver', '2026-01-01', NULL, 1)"
+            );
+            $assignment->bind_param('ii', $adminId, $rootUnitId);
+            $assignment->execute();
+            $assignment->close();
+
+            $auditorDenied = $roleClients['auditor']->get('/spmi-versions');
+            smoke_assert_status(
+                $auditorDenied,
+                403,
+                'auditor SPMI version capability'
+            );
+
+            $index = $roleClients['super_admin']->get(
+                '/spmi-versions?unit_id=' . $rootUnitId
+            );
+            smoke_assert_status($index, 200, 'SPMI workflow index');
+            smoke_assert_contains(
+                $index->body,
+                'Workflow Versi SPMI',
+                'SPMI workflow index'
+            );
+
+            $sourcePath = $tempRoot . DIRECTORY_SEPARATOR . 'm3-02-source.pdf';
+            $sourceBody = "%PDF-1.4\n% M3-02 workflow source\n"
+                . "1 0 obj\n<< /Type /Catalog >>\nendobj\n"
+                . "trailer\n<< /Root 1 0 R >>\n%%EOF\n";
+            if (file_put_contents($sourcePath, $sourceBody) === FALSE) {
+                throw new SmokeFailure('Unable to create M3-02 source PDF.');
+            }
+
+            $today = date('Y-m-d');
+            $yesterday = date('Y-m-d', strtotime('-1 day'));
+            $created = smoke_post_multipart(
+                $roleClients['super_admin'],
+                '/spmi-versions/create?unit_id=' . $rootUnitId,
+                '/spmi-versions/store',
+                [
+                    'organization_unit_id' => $rootUnitId,
+                    'document_code' => 'SPMI-WORKFLOW',
+                    'title' => 'Dokumen Workflow SPMI',
+                    'revision_number' => '01',
+                    'effective_date' => $yesterday,
+                    'expires_at' => '',
+                ],
+                [
+                    'source_pdf' => [
+                        'path' => $sourcePath,
+                        'mime' => 'application/pdf',
+                        'name' => 'workflow-spmi.pdf',
+                    ],
+                ]
+            );
+            smoke_assert_status($created, 200, 'create SPMI draft');
+            smoke_assert(
+                preg_match(
+                    '~/spmi-versions/show/([0-9]+)/?$~',
+                    parse_url($created->effectiveUrl, PHP_URL_PATH),
+                    $createdMatch
+                ) === 1,
+                'SPMI draft did not redirect to its detail page.'
+            );
+            $firstId = (int) $createdMatch[1];
+
+            $draft = smoke_db_row(
+                $testConnection,
+                'SELECT v.status, v.created_by, v.source_file_asset_id,
+                        f.owner_id, f.storage_scope, f.status AS file_status
+                 FROM spmi_versions v
+                 JOIN file_assets f ON f.id = v.source_file_asset_id
+                 WHERE v.id = ' . $firstId
+            );
+            smoke_assert(
+                $draft['status'] === 'draft'
+                    && (int) $draft['created_by']
+                        === (int) $fixture['users']['super_admin']['id']
+                    && (int) $draft['owner_id'] === $firstId
+                    && $draft['storage_scope'] === 'private'
+                    && $draft['file_status'] === 'active',
+                'Created SPMI draft did not bind a private source asset.'
+            );
+
+            $edited = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/edit/' . $firstId,
+                '/spmi-versions/update/' . $firstId,
+                [
+                    'title' => 'Dokumen Workflow SPMI Diperbarui',
+                    'revision_number' => '01',
+                    'effective_date' => $yesterday,
+                    'expires_at' => '',
+                ]
+            );
+            smoke_assert_status($edited, 200, 'edit SPMI draft');
+            $editedRow = smoke_db_row(
+                $testConnection,
+                'SELECT title, status FROM spmi_versions WHERE id = ' . $firstId
+            );
+            smoke_assert(
+                $editedRow['title'] === 'Dokumen Workflow SPMI Diperbarui'
+                    && $editedRow['status'] === 'draft',
+                'Draft edit did not persist while preserving draft state.'
+            );
+
+            $submitted = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/show/' . $firstId,
+                '/spmi-versions/submit-review/' . $firstId,
+                []
+            );
+            smoke_assert_status($submitted, 200, 'submit SPMI review');
+            smoke_assert(
+                smoke_db_row(
+                    $testConnection,
+                    'SELECT status FROM spmi_versions WHERE id = ' . $firstId
+                )['status'] === 'review',
+                'Draft did not transition to review.'
+            );
+
+            $selfApproval = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/show/' . $firstId,
+                '/spmi-versions/approve/' . $firstId,
+                []
+            );
+            smoke_assert_status($selfApproval, 200, 'self approval rejection');
+            smoke_assert_contains(
+                $selfApproval->body,
+                'Pembuat versi tidak boleh menjadi satu-satunya approver.',
+                'self approval rejection'
+            );
+            smoke_assert(
+                smoke_db_row(
+                    $testConnection,
+                    'SELECT status FROM spmi_versions WHERE id = ' . $firstId
+                )['status'] === 'review',
+                'Rejected self approval changed version state.'
+            );
+
+            $wrongRoleApproval = smoke_post_form(
+                $roleClients['auditor'],
+                '/dashboard',
+                '/spmi-versions/approve/' . $firstId,
+                []
+            );
+            smoke_assert_status(
+                $wrongRoleApproval,
+                403,
+                'auditor SPMI approval endpoint'
+            );
+
+            $approved = smoke_post_form(
+                $roleClients['admin_lpmpi'],
+                '/spmi-versions/show/' . $firstId,
+                '/spmi-versions/approve/' . $firstId,
+                []
+            );
+            smoke_assert_status($approved, 200, 'approve SPMI version');
+            $approvedRow = smoke_db_row(
+                $testConnection,
+                'SELECT status, approved_by, approved_at
+                 FROM spmi_versions
+                 WHERE id = ' . $firstId
+            );
+            smoke_assert(
+                $approvedRow['status'] === 'approved'
+                    && (int) $approvedRow['approved_by'] === $adminId
+                    && $approvedRow['approved_at'] !== NULL,
+                'Approval provenance was not persisted.'
+            );
+
+            $activated = smoke_post_form(
+                $roleClients['admin_lpmpi'],
+                '/spmi-versions/show/' . $firstId,
+                '/spmi-versions/activate/' . $firstId,
+                []
+            );
+            smoke_assert_status($activated, 200, 'activate SPMI version');
+            smoke_assert(
+                smoke_db_row(
+                    $testConnection,
+                    'SELECT status FROM spmi_versions WHERE id = ' . $firstId
+                )['status'] === 'active',
+                'Approved SPMI version did not become active.'
+            );
+
+            $activeEdit = $roleClients['admin_lpmpi']->get(
+                '/spmi-versions/edit/' . $firstId
+            );
+            smoke_assert_status($activeEdit, 409, 'active SPMI edit');
+
+            $download = $roleClients['admin_lpmpi']->get(
+                '/spmi-versions/download/' . $firstId
+            );
+            smoke_assert_status($download, 200, 'private SPMI download');
+            smoke_assert_contains(
+                (string) $download->header('content-disposition'),
+                'attachment',
+                'private SPMI download disposition'
+            );
+            smoke_assert(
+                strpos($download->body, '%PDF-') === 0,
+                'Private SPMI download did not stream the verified PDF.'
+            );
+
+            $cloned = smoke_post_form(
+                $roleClients['admin_lpmpi'],
+                '/spmi-versions/clone/' . $firstId,
+                '/spmi-versions/clone-store/' . $firstId,
+                [
+                    'title' => 'Dokumen Workflow SPMI Revisi 02',
+                    'revision_number' => '02',
+                    'effective_date' => $today,
+                    'expires_at' => '',
+                ]
+            );
+            smoke_assert_status($cloned, 200, 'clone active SPMI version');
+            smoke_assert(
+                preg_match(
+                    '~/spmi-versions/show/([0-9]+)/?$~',
+                    parse_url($cloned->effectiveUrl, PHP_URL_PATH),
+                    $cloneMatch
+                ) === 1,
+                'SPMI clone did not redirect to its draft detail.'
+            );
+            $cloneId = (int) $cloneMatch[1];
+            $cloneRow = smoke_db_row(
+                $testConnection,
+                'SELECT clone.status, clone.source_file_asset_id,
+                        clone.source_file_sha256, source.source_file_asset_id AS old_asset_id,
+                        source.source_file_sha256 AS old_sha,
+                        source.status AS source_status
+                 FROM spmi_versions clone
+                 JOIN spmi_versions source ON source.id = ' . $firstId . '
+                 WHERE clone.id = ' . $cloneId
+            );
+            smoke_assert(
+                $cloneRow['status'] === 'draft'
+                    && (int) $cloneRow['source_file_asset_id']
+                        !== (int) $cloneRow['old_asset_id']
+                    && hash_equals($cloneRow['old_sha'], $cloneRow['source_file_sha256'])
+                    && $cloneRow['source_status'] === 'active',
+                'Clone did not create a new draft/private asset while preserving source history.'
+            );
+
+            smoke_post_form(
+                $roleClients['admin_lpmpi'],
+                '/spmi-versions/show/' . $cloneId,
+                '/spmi-versions/submit-review/' . $cloneId,
+                []
+            );
+            smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/show/' . $cloneId,
+                '/spmi-versions/approve/' . $cloneId,
+                []
+            );
+            $replacement = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/show/' . $cloneId,
+                '/spmi-versions/activate/' . $cloneId,
+                []
+            );
+            smoke_assert_status($replacement, 200, 'activate cloned SPMI revision');
+
+            $history = smoke_db_rows(
+                $testConnection,
+                "SELECT id, status, expires_at
+                 FROM spmi_versions
+                 WHERE organization_unit_id = $rootUnitId
+                   AND document_code = 'SPMI-WORKFLOW'
+                 ORDER BY id"
+            );
+            smoke_assert(
+                count($history) === 2
+                    && (int) $history[0]['id'] === $firstId
+                    && $history[0]['status'] === 'retired'
+                    && $history[0]['expires_at'] === $today
+                    && (int) $history[1]['id'] === $cloneId
+                    && $history[1]['status'] === 'active',
+                'Atomic replacement did not preserve retired and active history.'
+            );
+
+            $audit = smoke_db_row(
+                $testConnection,
+                "SELECT
+                    SUM(event_type = 'spmi_version_activated') AS activations,
+                    SUM(event_type = 'spmi_version_retired') AS retirements,
+                    SUM(event_type = 'spmi_version_cloned') AS clones
+                 FROM security_audit_logs
+                 WHERE object_type = 'spmi_version'"
+            );
+            smoke_assert(
+                (int) $audit['activations'] >= 2
+                    && (int) $audit['retirements'] >= 1
+                    && (int) $audit['clones'] >= 1,
+                'SPMI activation/retirement/clone audit events are incomplete.'
+            );
+        },
+        $results
+    );
+
     $sessionClient = new SmokeHttpClient($baseUrl);
     $clients[] = $sessionClient;
     $sessionUser = $fixture['users']['session_user'];

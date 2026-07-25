@@ -826,6 +826,9 @@ spmi_versions
 
 ## TASK M3-02 — Workflow Persetujuan Versi
 
+Status implementasi: **selesai dan diverifikasi pada 2026-07-25**. Detail:
+`docs/milestones/M3-02-spmi-version-approval-workflow.md`.
+
 Status:
 
 ```text

@@ -10,8 +10,8 @@ termasuk bila agent yang digunakan adalah OpenCode atau agent lain.
 - Commit implementasi M0/M1:
   `87b4b165a362311b5d6cbc4035a8960a71e5a6f1`.
 - M0 dan M1 selesai.
-- M2-01, M2-02, M2-03, dan M3-01 sudah diimplementasikan dan diverifikasi di Windows.
-- Task berikutnya: **M3-02 — Workflow Persetujuan Versi**.
+- M2-01, M2-02, M2-03, M3-01, dan M3-02 sudah diimplementasikan dan diverifikasi di Windows.
+- Task berikutnya: **M3-03 — Master 21 Standar**.
 - Seluruh task M3 memakai branch yang sama; subtask ditandai checkpoint commit.
 
 Commit paling atas dapat berupa commit dokumentasi handoff setelah commit
@@ -129,7 +129,7 @@ php tests/smoke/run.php
 Expected result dari Windows:
 
 - audit regression: 116 checks;
-- security headers: 130 checks;
+- security headers: 134 checks;
 - file security: 100 checks;
 - output encoding: 28 checks;
 - authentication: 29 checks;
@@ -137,15 +137,15 @@ Expected result dari Windows:
 - organization units: 42 checks;
 - user unit assignments: 30 checks;
 - role capability matrix: 155 checks;
-- SPMI version foundation: 83 checks;
+- SPMI version foundation/workflow: 115 checks;
 - tiga regression legacy/configuration lainnya lulus;
-- smoke suite: 33 cases.
+- smoke suite: 34 cases.
 
-Full PHP lint Windows juga lulus untuk 160 file. Ulangi lint di Linux agar
+Full PHP lint Windows juga lulus untuk 166 file. Ulangi lint di Linux agar
 case sensitivity, path separator, permission, dan dependency Linux ikut
 terverifikasi.
 
-## Guardrail sebelum melanjutkan M3-02
+## Guardrail sebelum melanjutkan M3-03
 
 - Jangan reset, rewrite, atau squash history tanpa persetujuan maintainer.
 - Jangan mengubah migration historis yang sudah digunakan.
@@ -156,6 +156,8 @@ terverifikasi.
   `docs/handoff/CURRENT_HANDOFF.md` atau handoff baru sebelum implementasi.
 - Tetap gunakan branch `codex/m3-spmi-master-versioning`. Jangan membuat branch
   baru untuk tiap subtask M3.
-- Jangan membuka activation/retirement route tanpa combined
+- Jangan mengubah activation/retirement M3-02 tanpa mempertahankan combined
   `spmi.version.manage` + organization-unit guard, transaksi state transition,
   private file ownership, audit event, dan negative test.
+- Master standar M3-03 harus berelasi ke `spmi_versions`, tidak menimpa tabel
+  legacy atau mengubah versi aktif secara langsung.

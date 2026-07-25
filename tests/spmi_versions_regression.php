@@ -30,8 +30,24 @@ $migration = m301_source($root, 'migrations/017_create_spmi_versions.sql');
 $schema = m301_source($root, 'database_schema.sql');
 $model = m301_source($root, 'application/models/Spmi_version_model.php');
 $file_security = m301_source($root, 'application/libraries/File_security.php');
+$app_helper = m301_source($root, 'application/helpers/app_helper.php');
 $policy = m301_source($root, 'application/libraries/Authorization_policy.php');
 $runner = m301_source($root, 'scripts/database/apply_local_m3_01.php');
+$workflow = m301_source(
+    $root,
+    'application/services/Spmi_version_workflow_service.php'
+);
+$controller = m301_source($root, 'application/controllers/Spmi_versions.php');
+$routes = m301_source($root, 'application/config/routes.php');
+$sidebar = m301_source($root, 'application/views/layouts/sidebar.php');
+$index_view = m301_source(
+    $root,
+    'application/views/lpmpi/spmi_versions/index.php'
+);
+$show_view = m301_source(
+    $root,
+    'application/views/lpmpi/spmi_versions/show.php'
+);
 
 $minimum_columns = [
     'id',
@@ -195,15 +211,32 @@ m301_check(
     strpos($model, 'spmi_versions.organization_unit_id') !== FALSE,
     'Query model belum dibatasi dengan organization unit.'
 );
+foreach ([
+    'find_for_update',
+    'lock_identity',
+    'create',
+    'update_draft',
+    'transition',
+    'retire_active_for_identity',
+] as $method) {
+    m301_check(
+        preg_match('/public\s+function\s+' . $method . '\s*\(/', $model) === 1,
+        'M3-02 belum menyediakan primitive persistence ' . $method . '.'
+    );
+}
 m301_check(
-    preg_match('/public\s+function\s+(create|update|delete)\s*\(/i', $model) !== 1,
-    'M3-01 belum boleh membuka mutation model sebelum workflow M3-02.'
+    preg_match('/public\s+function\s+delete\s*\(/i', $model) !== 1,
+    'Workflow M3-02 tidak boleh membuka operasi delete histori versi.'
 );
 
 m301_check(
     strpos($file_security, "'spmi_source' => [") !== FALSE
         && strpos($file_security, "'extensions' => ['pdf']") !== FALSE,
     'Kategori source SPMI belum dibatasi hanya PDF.'
+);
+m301_check(
+    strpos($app_helper, "'spmi_source'") !== FALSE,
+    'Kategori spmi_source belum diizinkan oleh private storage resolver.'
 );
 m301_check(
     preg_match(
@@ -250,6 +283,113 @@ foreach ([
     );
 }
 
+foreach ([
+    'create_draft',
+    'update_draft',
+    'submit_for_review',
+    'approve',
+    'activate',
+    'retire',
+    'clone_to_draft',
+] as $method) {
+    m301_check(
+        preg_match('/public\s+function\s+' . $method . '\s*\(/', $workflow) === 1,
+        'Workflow M3-02 belum menyediakan operasi ' . $method . '.'
+    );
+}
+m301_check(
+    strpos($workflow, "'draft'") !== FALSE
+        && strpos($workflow, "'review'") !== FALSE
+        && strpos($workflow, "'approved'") !== FALSE
+        && strpos($workflow, "'active'") !== FALSE
+        && strpos($workflow, "'retired'") !== FALSE,
+    'State machine M3-02 belum memuat seluruh status.'
+);
+m301_check(
+    strpos($workflow, "(int) \$locked->created_by === \$actor_user_id") !== FALSE
+        && strpos(
+            $workflow,
+            'Pembuat versi tidak boleh menjadi satu-satunya approver.'
+        ) !== FALSE,
+    'Separation of duties creator/approver belum dipaksa di service.'
+);
+m301_check(
+    strpos($workflow, 'trans_begin()') !== FALSE
+        && strpos($workflow, 'lock_identity(') !== FALSE
+        && strpos($workflow, 'retire_active_for_identity(') !== FALSE
+        && strpos($workflow, "transition(\$id, 'approved', 'active'") !== FALSE
+        && strpos($workflow, 'trans_commit()') !== FALSE,
+    'Aktivasi dan retirement belum berada dalam transaction/lock boundary.'
+);
+m301_check(
+    strpos($workflow, "Hanya versi berstatus draft yang dapat diubah.") !== FALSE,
+    'Service belum menolak edit versi non-draft.'
+);
+m301_check(
+    strpos($workflow, "'spmi_version_activated'") !== FALSE
+        && strpos($workflow, "'spmi_version_retired'") !== FALSE
+        && strpos($workflow, "'spmi_version_approved'") !== FALSE,
+    'Transisi penting M3-02 belum dicatat ke audit ledger.'
+);
+m301_check(
+    strpos($workflow, "'spmi_version_cloned'") !== FALSE
+        && strpos($workflow, "['approved', 'active', 'retired']") !== FALSE,
+    'Clone ke draft baru belum dibatasi ke versi sumber yang stabil.'
+);
+m301_check(
+    strpos($file_security, 'public function duplicate(') !== FALSE
+        && strpos($file_security, "'storage_scope' => 'private'") !== FALSE
+        && strpos($file_security, "'owner_id' => NULL") !== FALSE
+        && strpos($file_security, "'file_duplicated'") !== FALSE,
+    'Clone belum membuat private file asset baru yang belum terikat.'
+);
+m301_check(
+    strpos($controller, 'CAP_SPMI_VERSION_MANAGE') !== FALSE
+        && strpos(
+            $controller,
+            '_require_capability_in_organization_unit'
+        ) !== FALSE,
+    'Controller versi belum menerapkan capability dan organization scope guard.'
+);
+m301_check(
+    strpos($controller, 'protected function require_post()') !== FALSE
+        && substr_count($controller, '$this->require_post();') >= 4,
+    'Mutation endpoint versi belum dipaksa menggunakan POST.'
+);
+m301_check(
+    strpos($controller, "\$this->file_security->upload(") !== FALSE
+        && strpos($controller, "\$this->file_security->duplicate(") !== FALSE
+        && strpos($controller, "\$this->file_security->download(") !== FALSE,
+    'Upload, clone, dan download PDF belum melewati File_security.'
+);
+foreach ([
+    'spmi-versions/submit-review/(:num)',
+    'spmi-versions/approve/(:num)',
+    'spmi-versions/activate/(:num)',
+    'spmi-versions/retire/(:num)',
+    'spmi-versions/clone-store/(:num)',
+    'spmi-versions/download/(:num)',
+] as $route) {
+    m301_check(
+        strpos($routes, "\$route['" . $route . "']") !== FALSE,
+        'Route eksplisit M3-02 belum tersedia: ' . $route . '.'
+    );
+}
+m301_check(
+    substr_count($sidebar, "'key' => 'spmi_versions'") === 2
+        && substr_count(
+            $sidebar,
+            "'capability' => Authorization_policy::CAP_SPMI_VERSION_MANAGE"
+        ) >= 2,
+    'Menu versi SPMI belum tersedia dan terfilter untuk kedua role pengelola.'
+);
+m301_check(
+    strpos($index_view, 'Workflow Versi SPMI') !== FALSE
+        && strpos($show_view, 'Versi aktif bersifat read-only') !== FALSE
+        && strpos($show_view, "form_open('spmi-versions/approve/") !== FALSE,
+    'UI lifecycle M3-02 belum menampilkan workflow/read-only/approval action.'
+);
+
 if (!empty($failures)) {
     foreach ($failures as $failure) {
         fwrite(STDERR, '[FAIL] ' . $failure . PHP_EOL);
@@ -259,7 +399,7 @@ if (!empty($failures)) {
 
 fwrite(
     STDOUT,
-    '[PASS] M3-01 SPMI version foundation regression ('
+    '[PASS] M3-01/M3-02 SPMI version workflow regression ('
         . $checks
         . " checks)\n"
 );

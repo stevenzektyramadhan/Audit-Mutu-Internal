@@ -2,8 +2,8 @@
 
 This harness protects the current AMI workflow, the security foundations
 added through M1-08, the M2-01 organization hierarchy, M2-02 user
-unit/position assignments, the M2-03 fine-grained capability matrix, and the
-M3-01 SPMI version schema foundation.
+unit/position assignments, the M2-03 fine-grained capability matrix, the
+M3-01 SPMI version schema foundation, and the M3-02 approval workflow.
 
 ## Run with one command
 
@@ -74,7 +74,7 @@ the test.
 
 ## Covered behavior
 
-The current suite runs 33 passing cases:
+The current suite runs 34 passing cases:
 
 - real HTTP security headers, per-request CSP nonce matching the rendered HTML,
   no-store dynamic cache policy, and development HTTP HSTS exclusion;
@@ -97,6 +97,10 @@ The current suite runs 33 passing cases:
 - private SPMI source provenance, effective-date validation, one active
   revision per document/unit, active-content immutability, retirement, and
   hard-delete denial;
+- scoped SPMI create/edit/review/approve/activate/retire/clone, denial for a
+  role without capability, creator self-approval denial, approval provenance,
+  active read-only enforcement, verified private download, new clone asset,
+  atomic replacement, preserved history, and transition audit events;
 - raw stored-XSS payload encoding across Auditee, Auditor, admin detail,
   LPMPI detail, and chart JSON;
 - unsafe stored evidence URL denial at the rendering boundary;
@@ -148,12 +152,12 @@ whose names match the exact `ami_smoke_%` prefix. Do not delete any database
 based on a broader pattern. A normal completed run leaves no smoke database or
 PHP server process.
 
-## Current M2-02 baseline result
+## Current M3-02 baseline result
 
-Validated locally on 2026-07-24 with PHP 8.3.30 and MySQL 8.4.3:
+Validated locally on 2026-07-25 with PHP 8.3.30 and MySQL 8.4.3:
 
 ```text
-Smoke tests passed: 32
+Smoke tests passed: 34
 Database isolation: temporary database only; cleanup scheduled.
 ```
 

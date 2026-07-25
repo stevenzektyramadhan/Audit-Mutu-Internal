@@ -21,6 +21,40 @@ class File_asset_model extends CI_Model
         return (int) $this->db->insert_id();
     }
 
+    public function find($id)
+    {
+        return $this->db
+            ->where('id', (int) $id)
+            ->limit(1)
+            ->get($this->asset_table)
+            ->row();
+    }
+
+    public function find_for_update($id)
+    {
+        $query = $this->db
+            ->where('id', (int) $id)
+            ->limit(1)
+            ->get_compiled_select($this->asset_table);
+
+        return $this->db->query($query . ' FOR UPDATE')->row();
+    }
+
+    public function assign_owner($id, $owner_type, $owner_id)
+    {
+        return $this->db
+            ->where('id', (int) $id)
+            ->where('status', 'active')
+            ->where('owner_type', (string) $owner_type)
+            ->group_start()
+                ->where('owner_id IS NULL', NULL, FALSE)
+                ->or_where('owner_id', (int) $owner_id)
+            ->group_end()
+            ->update($this->asset_table, [
+                'owner_id' => (int) $owner_id,
+            ]);
+    }
+
     public function find_by_storage($category, $stored_name)
     {
         return $this->db

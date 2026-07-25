@@ -183,6 +183,11 @@ Fondasi versi dokumen SPMI M3-01, private source PDF, checksum, single-active
 constraint, immutability, dan prosedur migration tersedia di
 `docs/milestones/M3-01-spmi-version-foundation.md`.
 
+Workflow persetujuan versi SPMI M3-02, separation of duties, activation
+atomik, read-only active version, clone ke draft, private PDF ownership, dan
+hasil verifikasinya tersedia di
+`docs/milestones/M3-02-spmi-version-approval-workflow.md`.
+
 File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara disimpan di private storage dan hanya diunduh melalui endpoint dengan pemeriksaan role/ownership. Logo profil tetap publik di `uploads/profil`. Production tidak membaca file sensitif dari `uploads/<kategori>`; pindahkan file legacy dengan dry-run `php scripts/migrate_private_storage.php`, lalu `--apply` setelah backup dan review.
 
 ### Database dan Upgrade Manual

@@ -108,10 +108,11 @@ There is no current UI endpoint that invokes an override. Adding one requires a 
   report, and export controllers to fine-grained capabilities. Import,
   submission, assessment finalization/revision, and export receive an
   additional action-specific guard.
-- M3-01 adds `spmi_versions.organization_unit_id` as a stable target scope but
-  intentionally exposes no mutation route. M3-02 endpoints must require
-  `spmi.version.manage` through the combined organization-unit guard, not only
-  the role-level `allows()` result.
+- M3-02 exposes the SPMI create/edit/review/approve/activate/retire/clone and
+  download routes. Every entity operation first resolves the version and then
+  requires `spmi.version.manage` through the combined organization-unit guard.
+  List/create unit choices are filtered through the same policy. Super Admin
+  has global organization scope; Admin LPMPI needs a direct active assignment.
 - Sidebar entries are capability-filtered, but controller policy remains the
   enforcement boundary.
 - Auditee route aliases and the duplicate `auditee/Tugas` controller use the same object policy.
@@ -141,6 +142,9 @@ The isolated HTTP/database matrix covers:
 - an Auditor cannot download another Auditor's evidence ID;
 - a finalized score cannot be changed and its database row remains unchanged;
 - Auditee, Auditor, and Admin LPMPI cannot cross restricted global capabilities;
-- valid role and ownership workflows continue to pass.
+- valid role and ownership workflows continue to pass;
+- an Auditor cannot open or approve an SPMI version;
+- a version creator cannot approve their own version;
+- an Admin LPMPI outside the unit scope cannot manage its version.
 
 PIC-to-PIC and RTM-finalizer HTTP tests are not applicable until those entities exist. Their callable policy methods are regression-tested to return `FALSE`, so adding a route before the model/policy is completed fails closed.

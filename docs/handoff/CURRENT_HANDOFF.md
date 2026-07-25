@@ -1,8 +1,8 @@
-# Current Handoff — M0, M1, M2, dan M3-01
+# Current Handoff — M0, M1, M2, M3-01, dan M3-02
 
 - **Tanggal handoff:** 2026-07-25
 - **Workspace asal:** Windows 11, Laragon, PHP 8.3.30, MySQL 8.4.3
-- **Status:** M0, M1, seluruh M2, dan M3-01 selesai serta diverifikasi. Task berikutnya M3-02.
+- **Status:** M0, M1, seluruh M2, M3-01, dan M3-02 selesai serta diverifikasi. Task berikutnya M3-03.
 
 Dokumen ini tidak memuat secret, password, API key, isi `.env`, credential
 database, atau data pengguna.
@@ -18,7 +18,7 @@ database, atau data pengguna.
 - Checkpoint M2-02: `2d57026 feat: implement M2-02 user unit assignments`.
 - Checkpoint M2-03: `cc08b81 feat: implement M2-03 role capability matrix`.
 - Branch kerja seluruh milestone M3: `codex/m3-spmi-master-versioning`.
-- M3-01 berada pada checkpoint `HEAD` yang memuat dokumen ini. Gunakan
+- M3-02 berada pada checkpoint `HEAD` yang memuat dokumen ini. Gunakan
   `git rev-parse HEAD` setelah checkout karena commit tidak dapat menyimpan SHA
   dirinya sendiri.
 - Branch M3 belum di-push pada saat dokumen ini diperbarui.
@@ -66,6 +66,7 @@ database, atau data pengguna.
 ### M3 — Master SPMI dan Versioning
 
 - M3-01 — Tabel Versi Dokumen SPMI.
+- M3-02 — Workflow Persetujuan Versi.
 
 ## 4. Acceptance criteria yang dipenuhi
 
@@ -249,6 +250,7 @@ handoff ini ditambahkan.
 
 - `application/controllers/Maintenance.php`
 - `application/controllers/Organization_units.php`
+- `application/controllers/Spmi_versions.php`
 - `application/controllers/User_unit_assignments.php`
 
 ### Libraries — diubah
@@ -288,6 +290,7 @@ handoff ini ditambahkan.
 ### Services — dibuat
 
 - `application/services/Organization_unit_service.php`
+- `application/services/Spmi_version_workflow_service.php`
 - `application/services/User_unit_assignment_service.php`
 
 ### Views — diubah
@@ -331,6 +334,10 @@ handoff ini ditambahkan.
 - `application/views/lpmpi/profil/index.php`
 - `application/views/lpmpi/organization_units/form.php`
 - `application/views/lpmpi/organization_units/index.php`
+- `application/views/lpmpi/spmi_versions/clone.php`
+- `application/views/lpmpi/spmi_versions/form.php`
+- `application/views/lpmpi/spmi_versions/index.php`
+- `application/views/lpmpi/spmi_versions/show.php`
 - `application/views/lpmpi/user_unit_assignments/form.php`
 - `application/views/lpmpi/user_unit_assignments/index.php`
 - `application/views/pertanyaan/create.php`
@@ -374,6 +381,7 @@ handoff ini ditambahkan.
 - `docs/milestones/M2-02-user-unit-assignments.md`
 - `docs/milestones/M2-03-role-capability-matrix.md`
 - `docs/milestones/M3-01-spmi-version-foundation.md`
+- `docs/milestones/M3-02-spmi-version-approval-workflow.md`
 
 ### Migration dan scripts — dibuat
 
@@ -500,15 +508,15 @@ git diff --check
 ```
 
 Targeted PHP lint dijalankan terhadap seluruh file PHP baru dan berubah pada
-setiap checkpoint. Sebelum checkpoint M3-01, full PHP lint juga dijalankan
-terhadap seluruh 160 file PHP di `application`, `tests`, dan `scripts`.
+setiap checkpoint. Pada checkpoint M3-02, full PHP lint juga dijalankan
+terhadap seluruh 166 file PHP di `application`, `tests`, dan `scripts`.
 
 ## 10. Hasil aktual setiap test
 
 | Command | Hasil aktual terakhir |
 |---|---|
 | `php tests/security_audit_regression.php` | PASS — 116 checks. |
-| `php tests/security_headers_regression.php` | PASS — 130 checks. |
+| `php tests/security_headers_regression.php` | PASS — 134 checks. |
 | `php tests/file_security_regression.php` | PASS — 100 checks. |
 | `php tests/output_encoding_regression.php` | PASS — 28 checks. |
 | `php tests/authentication_security_regression.php` | PASS — 29 checks. |
@@ -519,16 +527,16 @@ terhadap seluruh 160 file PHP di `application`, `tests`, dan `scripts`.
 | `php tests/organization_units_regression.php` | PASS — 42 checks. |
 | `php tests/user_unit_assignments_regression.php` | PASS — 30 checks. |
 | `php tests/role_capability_matrix_regression.php` | PASS — 155 checks. |
-| `php tests/spmi_versions_regression.php` | PASS — 83 checks. |
-| `php tests/smoke/run.php` | PASS — 33 cases; database disposable dibersihkan oleh successful run. |
-| Targeted M2-01 sampai M3-01 `php -l` | PASS. |
-| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 160 files. |
-| `php scripts/database/audit_readonly.php schema` | PASS — local schema terbaca sampai migration 014. |
+| `php tests/spmi_versions_regression.php` | PASS — 115 checks. |
+| `php tests/smoke/run.php` | PASS — 34 cases; database disposable dibersihkan oleh successful run. |
+| Targeted M2-01 sampai M3-02 `php -l` | PASS. |
+| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 166 files. |
+| `php scripts/database/audit_readonly.php schema` | PASS — local schema terbaca sampai migration 017, termasuk `spmi_versions`. |
 | `php scripts/database/audit_readonly.php checks` | Command PASS; satu known data issue: 3 tugas tanpa periode valid. |
-| `php index.php maintenance verify_audit_log` | PASS — `valid=true`, 0 entries checked, genesis head valid. |
+| `php index.php maintenance verify_audit_log` | PASS — `valid=true`, 3 entries checked. |
 | `git diff --check` | PASS/exit 0; hanya warning normalisasi LF ke CRLF pada Windows. |
 
-Smoke 33-case dijalankan pada branch milestone M3 tanggal 2026-07-25; seluruh
+Smoke 34-case dijalankan pada branch milestone M3 tanggal 2026-07-25; seluruh
 kasus lulus dan disposable database dibersihkan oleh runner.
 
 ## 11. Test yang belum dijalankan
@@ -619,8 +627,8 @@ kasus lulus dan disposable database dibersihkan oleh runner.
   berprefiks, bukan nilai mentah.
 - Event finalisasi report, finalisasi RTM, perubahan PIC/target, dan verifikasi
   follow-up belum dapat diintegrasikan karena modul tersebut belum ada.
-- Standard version create/activate yang sebenarnya belum ada sampai M3;
-  current master standard/indicator/period changes yang tersedia sudah dicatat.
+- Standard version create/review/approve/activate/retire/clone tersedia pada
+  M3-02; struktur standard/indicator di dalam versi masih menunggu M3-03+.
 - Smoke harness custom dipakai karena repository belum mempunyai test framework
   terintegrasi yang memadai.
 
@@ -639,8 +647,8 @@ kasus lulus dan disposable database dibersihkan oleh runner.
 - CDN/SRI/offline availability belum diputuskan.
 - Race condition submit/finalisasi dan replay/idempotency belum diselesaikan.
 - GET side-effect pada route legacy masih perlu inventory lanjutan.
-- Scope organisasi belum ada sampai M2; current policy hanya memakai role dan
-  ownership yang tersedia.
+- Scope organisasi langsung tersedia untuk workflow SPMI; inheritance ke unit
+  turunan belum diterapkan dan tetap deny-default.
 - Final business records masih mutable; immutable audit ledger tidak sama
   dengan immutable final snapshot.
 
@@ -667,8 +675,8 @@ kasus lulus dan disposable database dibersihkan oleh runner.
 
 - Milestone terakhir selesai penuh: **M2 — Organisasi, Role, dan Scope**.
 - Milestone aktif: **M3 — Master SPMI dan Versioning**.
-- M3-01 sudah memenuhi acceptance target.
-- Task berikutnya: **TASK M3-02 — Workflow Persetujuan Versi**.
+- M3-01 dan M3-02 sudah memenuhi acceptance target.
+- Task berikutnya: **TASK M3-03 — Master 21 Standar**.
 - Seluruh subtask M3 tetap memakai branch
   `codex/m3-spmi-master-versioning` dan menjadi checkpoint commit.
 
@@ -722,6 +730,22 @@ Acceptance M3-01 yang sudah diverifikasi:
 Detail M3-01:
 `docs/milestones/M3-01-spmi-version-foundation.md`.
 
+Acceptance M3-02 yang sudah diverifikasi:
+
+- workflow `draft → review → approved → active → retired` tersedia;
+- user tanpa capability ditolak dan seluruh operasi memakai direct active
+  organization scope;
+- creator tidak dapat menjadi satu-satunya approver;
+- hanya draft yang editable dan versi aktif read-only;
+- retirement lama + activation pengganti memakai row lock dan satu transaksi;
+- clone membuat draft serta private file asset baru tanpa mengubah sumber;
+- histori tidak mempunyai delete/reverse-state route;
+- transisi penting tercatat pada immutable audit ledger;
+- regression 115 checks dan smoke database 34-case lulus.
+
+Detail M3-02:
+`docs/milestones/M3-02-spmi-version-approval-workflow.md`.
+
 ## 18. Langkah pertama agent di Linux
 
 Langkah pertama agent Linux adalah checkout remote branch, memastikan working
@@ -741,10 +765,11 @@ Jika branch lokal dengan nama yang sama sudah ada, gunakan
 `git switch codex/m3-spmi-master-versioning` lalu `git pull --ff-only`.
 
 Agent Linux harus memastikan checkpoint M2-01 `45c6a6d`, M2-02 `2d57026`,
-M2-03 `cc08b81`, dan checkpoint M3-01 (`HEAD` dokumen ini) berada dalam
+M2-03 `cc08b81`, checkpoint M3-01 `4ec9242`, dan checkpoint M3-02 (`HEAD`
+dokumen ini) berada dalam
 history serta working tree bersih. Siapkan environment development sendiri
-tanpa menyalin secret Windows, lalu jalankan seluruh regression sampai M3-01
-serta smoke 33-case. Untuk database existing development, jalankan migration
+tanpa menyalin secret Windows, lalu jalankan seluruh regression sampai M3-02
+serta smoke 34-case. Untuk database existing development, jalankan migration
 015, 016, lalu 017; fresh install memakai `database_schema.sql`. Jangan
 menjalankan migration terhadap database bersama atau production tanpa
-prosedur DBA/deployment. Lanjutkan M3-02 pada branch milestone M3 yang sama.
+prosedur DBA/deployment. Lanjutkan M3-03 pada branch milestone M3 yang sama.

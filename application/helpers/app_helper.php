@@ -119,6 +119,7 @@ if (!function_exists('private_storage_dir')) {
     function private_storage_dir($category)
     {
         $categories = [
+            'spmi_source',
             'instrumen',
             'penetapan',
             'bukti_auditor',

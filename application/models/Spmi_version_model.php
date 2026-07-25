@@ -76,6 +76,76 @@ class Spmi_version_model extends CI_Model
         return $this->db->count_all_results() > 0;
     }
 
+    public function find_for_update($id)
+    {
+        $query = $this->db
+            ->where('id', (int) $id)
+            ->limit(1)
+            ->get_compiled_select($this->table);
+
+        return $this->db->query($query . ' FOR UPDATE')->row();
+    }
+
+    public function lock_identity($organization_unit_id, $document_code)
+    {
+        $query = $this->db
+            ->where('organization_unit_id', (int) $organization_unit_id)
+            ->where('document_code', (string) $document_code)
+            ->order_by('id', 'ASC')
+            ->get_compiled_select($this->table);
+
+        return $this->db->query($query . ' FOR UPDATE')->result();
+    }
+
+    public function create(array $data)
+    {
+        if (!$this->db->insert($this->table, $data)) {
+            return NULL;
+        }
+
+        return (int) $this->db->insert_id();
+    }
+
+    public function update_draft($id, array $data)
+    {
+        $updated = $this->db
+            ->where('id', (int) $id)
+            ->where('status', 'draft')
+            ->update($this->table, $data);
+
+        return $updated && $this->db->affected_rows() === 1;
+    }
+
+    public function transition($id, $from_status, $to_status, array $data = [])
+    {
+        $data['status'] = (string) $to_status;
+        $updated = $this->db
+            ->where('id', (int) $id)
+            ->where('status', (string) $from_status)
+            ->update($this->table, $data);
+
+        return $updated && $this->db->affected_rows() === 1;
+    }
+
+    public function retire_active_for_identity(
+        $organization_unit_id,
+        $document_code,
+        $except_id,
+        $expires_at
+    ) {
+        $query = $this->db
+            ->where('organization_unit_id', (int) $organization_unit_id)
+            ->where('document_code', (string) $document_code)
+            ->where('status', 'active')
+            ->where('id !=', (int) $except_id)
+            ->update($this->table, [
+                'status' => 'retired',
+                'expires_at' => (string) $expires_at,
+            ]);
+
+        return $query;
+    }
+
     protected function base_query()
     {
         return $this->db

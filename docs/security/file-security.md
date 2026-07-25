@@ -1,7 +1,7 @@
 # M1-06 — File Security Foundation
 
-Status: implemented for every upload route currently present in AMI; M3-01
-adds the private PDF-only `spmi_source` policy for the M3-02 workflow.
+Status: implemented for every upload route currently present in AMI. M3-02
+uses the private PDF-only `spmi_source` policy for the version workflow.
 
 ## Security boundary
 
@@ -20,9 +20,9 @@ adds the private PDF-only `spmi_source` policy for the M3-02 workflow.
 
 The registry is stored in `file_assets`; security events are stored in
 `file_security_events`. Apply `migrations/013_file_security_foundation.sql`
-before deploying this code. M3-01 additionally references a registered source
-through `spmi_versions.source_file_asset_id`; apply migration 017 before the
-version workflow is exposed.
+before deploying this code. `spmi_versions.source_file_asset_id` references
+the registered source; apply migration 017 before the version workflow is
+exposed.
 
 ## Category policy
 
@@ -54,6 +54,12 @@ php index.php maintenance purge_files 100
 Temporary XLSX import files are the explicit exception: they are destroyed immediately after parsing and recorded as purged because they are transient transport data, not audit evidence.
 
 Failed uploads that never become a registered business file may also be physically cleaned up immediately.
+
+For SPMI versions, create binds an unowned uploaded asset to the new version
+inside the create transaction. Replacing a draft file binds the new asset
+before retiring the old one. Clone makes a new random-named private asset,
+verifies size/SHA-256 against the source, and binds it to the new draft; it
+never reuses the source asset row.
 
 ## Legacy migration
 
@@ -102,7 +108,9 @@ The isolated smoke suite performs real multipart uploads and verifies:
 - integrity failure after byte tampering;
 - upload/download/blocked event records;
 - replacement soft-delete and retained bytes;
-- Auditor evidence ownership.
+- Auditor evidence ownership;
+- SPMI PDF upload, owner binding, authorized download, clone to a distinct
+  private asset, and checksum preservation.
 
 ## Residual risk
 

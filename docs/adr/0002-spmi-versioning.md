@@ -1,6 +1,6 @@
 # ADR 0002: Versioning Dokumen SPMI
 
-- Status: **Accepted — M3-01 foundation implemented; workflow pending**
+- Status: **Accepted — M3-01 foundation dan M3-02 workflow implemented**
 - Tanggal: 2026-07-24
 - Jenis: Model domain dan data
 - Menggantikan: Tidak ada
@@ -79,8 +79,12 @@ creator/approver provenance, single-active unique key, immutable-active
 trigger, dan no-delete history trigger. Migration 017 bersifat additive;
 master `standar`/`pertanyaan` lama belum di-backfill atau dipindahkan.
 
-Create/edit/review/approve/activate/retire/clone service dan UI, separation of
-duties, serta audit event transisi masih pending M3-02. Struktur standard dan
-turunannya tetap pending M3-03 dan seterusnya. Tinjau bila regulasi menetapkan
-model koeksistensi versi yang berbeda, aturan koreksi versi aktif, atau
-kebutuhan tanda tangan/sertifikasi digital.
+M3-02 mengimplementasikan create/edit/review/approve/activate/retire/clone,
+combined capability + organization scope guard, separation of duties, private
+file ownership, transaction/identity lock saat replacement, dan audit event
+transisi. Versi aktif tetap immutable dan rollback bisnis dilakukan dengan
+clone ke draft baru, bukan delete atau reverse-state.
+
+Struktur standard dan turunannya tetap pending M3-03 dan seterusnya. Tinjau
+bila regulasi menetapkan model koeksistensi versi yang berbeda, aturan koreksi
+versi aktif, atau kebutuhan tanda tangan/sertifikasi digital.
