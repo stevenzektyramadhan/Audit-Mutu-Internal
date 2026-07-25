@@ -1,6 +1,6 @@
 # ADR 0005: Otorisasi Role, Capability, dan Scope
 
-- Status: **Accepted — M1-04 foundation implemented; organization-scope model pending**
+- Status: **Accepted — M1-04 foundation and M2-01 unit master implemented; membership/scope pending**
 - Tanggal: 2026-07-24
 - Jenis: Keamanan aplikasi
 - Menggantikan: Tidak ada
@@ -84,4 +84,4 @@ Ditolak karena menyulitkan audit dan membuat satu akun dapat melewati seluruh pe
 
 ## Status dan pemicu peninjauan
 
-Keputusan ini diterapkan sebagai foundation pada `Authorization_policy`, `Auth_guard`, scoped query participant, explicit Super Admin override, dan negative matrix M1-04. Implementasi belum lengkap untuk organisasi/RTM/follow-up karena model dan keputusan bisnisnya belum ada. Tinjau setelah model organisasi ditetapkan atau bila identity provider eksternal mengubah cara identitas dan claim disediakan.
+Keputusan ini diterapkan sebagai foundation pada `Authorization_policy`, `Auth_guard`, scoped query participant, explicit Super Admin override, dan negative matrix M1-04. M2-01 menambahkan master unit ber-ID stabil serta capability pengelolaannya. Implementasi belum lengkap untuk membership/scope user, RTM, dan follow-up; M2-02 harus menambahkan assignment organisasi yang aktif sebelum unit dipakai sebagai batas kewenangan. Tinjau kembali setelah M2-02 atau bila identity provider eksternal mengubah cara identitas dan claim disediakan.

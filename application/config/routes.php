@@ -63,6 +63,13 @@ $route['account'] = 'Account/index';
 $route['account/update'] = 'Account/update';
 $route['account/photo'] = 'Account/photo';
 
+$route['organization-units'] = 'Organization_units/index';
+$route['organization-units/create'] = 'Organization_units/create';
+$route['organization-units/store'] = 'Organization_units/store';
+$route['organization-units/edit/(:num)'] = 'Organization_units/edit/$1';
+$route['organization-units/update/(:num)'] = 'Organization_units/update/$1';
+$route['organization-units/toggle-active/(:num)'] = 'Organization_units/toggle_active/$1';
+
 $route['pertanyaan/download_template/(:num)'] = 'Pertanyaan/download_template/$1';
 $route['pertanyaan/import/(:num)'] = 'Pertanyaan/import/$1';
 $route['pertanyaan/import_confirm/(:num)'] = 'Pertanyaan/import_confirm/$1';

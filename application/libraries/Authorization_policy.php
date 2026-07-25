@@ -15,6 +15,7 @@ class Authorization_policy
     const CAP_PROFILE_MANAGE = 'profile.manage';
     const CAP_USERS_MANAGE = 'users.manage';
     const CAP_PARTICIPANT_ACCOUNTS_MANAGE = 'participant_accounts.manage';
+    const CAP_ORGANIZATION_UNITS_MANAGE = 'organization_units.manage';
     const CAP_SPMI_MANAGE = 'spmi.manage';
     const CAP_ASSIGNMENTS_MANAGE = 'assignments.manage';
     const CAP_REPORTS_VIEW = 'reports.view';
@@ -39,6 +40,7 @@ class Authorization_policy
         self::CAP_PROFILE_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_USERS_MANAGE => ['super_admin'],
         self::CAP_PARTICIPANT_ACCOUNTS_MANAGE => ['super_admin', 'admin_lpmpi'],
+        self::CAP_ORGANIZATION_UNITS_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_SPMI_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_ASSIGNMENTS_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_REPORTS_VIEW => ['super_admin', 'admin_lpmpi'],
@@ -204,6 +206,11 @@ class Authorization_policy
     public function canManageSpmiVersion($user_id)
     {
         return $this->allows($user_id, self::CAP_SPMI_MANAGE);
+    }
+
+    public function canManageOrganizationUnits($user_id)
+    {
+        return $this->allows($user_id, self::CAP_ORGANIZATION_UNITS_MANAGE);
     }
 
     public function canManageRtm($user_id, $rtm_id)

@@ -149,6 +149,12 @@ $integration_expectations = [
         'audit_period_activated',
         'audit_period_deactivated',
     ],
+    'application/services/Organization_unit_service.php' => [
+        'organization_unit_created',
+        'organization_unit_updated',
+        'organization_unit_activated',
+        'organization_unit_deactivated',
+    ],
     'application/models/Jawaban_model.php' => [
         'auditee_submission_submitted',
         'auditor_assessment_submitted',

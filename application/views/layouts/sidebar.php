@@ -21,6 +21,7 @@ $menus = [
         ['key' => 'penetapan', 'label' => 'Penetapan', 'icon' => 'fa-gavel', 'url' => 'lpmpi/penetapan'],
         ['key' => 'hasil_audit', 'label' => 'Hasil Audit', 'icon' => 'fa-chart-bar', 'url' => 'tugas_audit/hasil'],
         ['key' => 'laporan', 'label' => 'Laporan & Statistik', 'icon' => 'fa-chart-pie', 'url' => 'lpmpi/laporan'],
+        ['key' => 'organization_units', 'label' => 'Unit Organisasi', 'icon' => 'fa-sitemap', 'url' => 'organization-units', 'group' => 'Pengaturan'],
         ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Pengaturan'],
     ],
     'admin_lpmpi' => [
@@ -32,6 +33,7 @@ $menus = [
         ['key' => 'penugasan', 'label' => 'Penugasan Auditor', 'icon' => 'fa-clipboard-list', 'url' => 'lpmpi/penugasan'],
         ['key' => 'penetapan', 'label' => 'Penetapan', 'icon' => 'fa-gavel', 'url' => 'lpmpi/penetapan'],
         ['key' => 'laporan', 'label' => 'Laporan & Statistik', 'icon' => 'fa-chart-pie', 'url' => 'lpmpi/laporan'],
+        ['key' => 'organization_units', 'label' => 'Unit Organisasi', 'icon' => 'fa-sitemap', 'url' => 'organization-units', 'group' => 'Pengaturan'],
         ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Pengaturan'],
     ],
     'auditor' => [

@@ -1,7 +1,7 @@
 # AMI Isolated Smoke Test
 
-This harness protects the current AMI workflow and the security foundations
-added through M1-08.
+This harness protects the current AMI workflow, the security foundations
+added through M1-08, and the M2-01 organization hierarchy.
 
 ## Run with one command
 
@@ -72,12 +72,14 @@ the test.
 
 ## Covered behavior
 
-The current suite runs 30 passing cases:
+The current suite runs 31 passing cases:
 
 - real HTTP security headers, per-request CSP nonce matching the rendered HTML,
   no-store dynamic cache policy, and development HTTP HSTS exclusion;
 - invalid and valid login for all four roles;
 - correct role dashboard rendering and login session-ID rotation;
+- organization root seed, faculty/study-program hierarchy, invalid-parent
+  rejection, history-preserving deactivation, and organization audit events;
 - complete logout invalidation, inactive-account denial, shared login
   throttling, and database-driven session revocation;
 - assignment creation and one answer row per question;

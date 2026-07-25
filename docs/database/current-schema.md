@@ -10,7 +10,7 @@
 This inventory compares four sources:
 
 1. Fresh-install baseline in `database_schema.sql`.
-2. Incremental SQL in `migrations/001_*.sql` through `migrations/014_*.sql`.
+2. Incremental SQL in `migrations/001_*.sql` through `migrations/015_*.sql`.
 3. Tables, columns, joins, filters, and writes referenced by `application/models/*.php` and their services.
 4. Runtime metadata from `INFORMATION_SCHEMA` plus aggregate consistency checks executed by `scripts/database/audit_readonly.php`.
 
@@ -21,6 +21,12 @@ M1-03 later applied additive migration `012_authentication_hardening.sql` to the
 M1-06 adds `file_assets` and `file_security_events` to the fresh-install schema and migration 013. Migration 013 was applied twice to the configured local Laragon database to verify idempotency, then re-read through the read-only audit. The same tables and runtime behavior were also exercised in the smoke suite's disposable database.
 
 M1-08 adds `security_audit_logs`, `security_audit_chain_state`, and two append-only triggers through migration 014. Migration 014 was applied twice locally, the chain verifier passed, and disposable smoke testing proved direct update/delete rejection plus end-to-end hash verification.
+
+M2-01 later adds `organization_units` through migration 015. Migration 015
+was executed twice against a disposable MySQL 8.4.3 database; the unique code,
+self foreign key, root seed, and idempotent rerun were verified. The runtime
+counts in this M0 inventory remain the earlier inspected local database through
+migration 014; they are not silently rewritten as a production attestation.
 
 Classification:
 
@@ -57,7 +63,7 @@ This is not a production database attestation. Production schema, row counts, SQ
 
 ### Main conclusions
 
-- **ACTUAL = CURRENT BASELINE:** all 15 tables and 171 columns through migration 014 were found in the inspected local runtime.
+- **ACTUAL = INSPECTED M1 BASELINE:** all 15 tables and 171 columns through migration 014 were found in the inspected local runtime. M2-01 adds a sixteenth fresh-install table through migration 015 and was verified only on disposable databases.
 - **MIGRATION coverage exists but is not a migration ledger:** expected effects of SQL files `001`–`014` are visible locally, but no table proves which raw migration ran, when, or against which predecessor schema.
 - **One current data issue was confirmed:** 3 of 8 local tasks have `periode_id IS NULL` or an unresolved period. No row identities or data values were printed. Evidence: `audit_readonly.php checks`.
 - **Correctness constraints are incomplete:** assignment uniqueness, one answer per task/question, one penetapan row per standard/category, score range, boolean flags, valid period dates, and one active period are application conventions rather than database invariants. Evidence: current indexes/checks and model/service methods listed below.
@@ -69,7 +75,7 @@ This is not a production database attestation. Production schema, row counts, SQ
 
 | Source | What it establishes | Result against local runtime |
 |---|---|---|
-| `database_schema.sql` | Fresh-install definition for 15 current tables, including changes through migration 014. | **MATCH:** table, column, key, trigger, and FK definitions match the inspected local runtime after MySQL normalization. |
+| `database_schema.sql` | Fresh-install definition for 16 current tables, including changes through migration 015. | **M1 MATCH + M2 ADDITION:** definitions through migration 014 matched the inspected local runtime; `organization_units` was verified separately on disposable MySQL. |
 | `migrations/001_add_admin_lpmpi_role.sql` | Adds `admin_lpmpi` to `users.role`. | **PRESENT:** runtime enum contains the four expected roles. |
 | `migrations/002_create_periode_audit.sql` | Creates `periode_audit`. | **PRESENT.** |
 | `migrations/003_create_penetapan.sql` | Creates `penetapan` and its standard FK. | **PRESENT.** |
@@ -85,13 +91,14 @@ This is not a production database attestation. Production schema, row counts, SQ
 | `migrations/012_authentication_hardening.sql` | Idempotently adds account status/session metadata and the authentication security-event table. | **PRESENT;** executed twice locally to verify safe re-execution. |
 | `migrations/013_file_security_foundation.sql` | Idempotently creates file metadata/retention and file security-event tables. | **PRESENT;** executed twice locally and exercised in disposable smoke databases. Production remains a separate deployment migration. |
 | `migrations/014_immutable_security_audit_log.sql` | Creates the central audit ledger, serialized chain head, and update/delete rejection triggers. | **PRESENT;** executed twice locally; chain and tamper rejection exercised in disposable smoke databases. |
-| `application/models/*.php` | Current table/query expectations. | **MATCH:** file and audit tables are present; deployment must apply migrations 013/014 before the corresponding code. |
+| `migrations/015_create_organization_units.sql` | Creates the organization hierarchy, unique code, self FK, active flag, and university root seed. | **PRESENT;** executed twice on a disposable database and covered by M2-01 regression/smoke. Production remains to verify. |
+| `application/models/*.php` | Current table/query expectations. | **MATCH:** file/audit tables are present on the inspected M1 runtime; organization master requires migration 015 before its routes are opened. |
 
 ### Important migration limitations
 
 - CodeIgniter migrations are disabled with `$config['migration_enabled'] = FALSE`. The files under `migrations/` are raw manual SQL, not CodeIgniter migration classes. Source: `application/config/migration.php`; `migrations/`.
 - There are two migrations numbered `009`; filename sorting gives an order, but the numeric sequence is ambiguous. Source: `migrations/009_alter_pertanyaan_add_columns.sql`; `migrations/009_alter_profil_pddikti_id_lengths.sql`.
-- Most historical `ALTER TABLE` migrations are not idempotent. Files `010`–`014` are safe to re-run, but earlier alter files generally fail when reapplied. Migration 014 recreates its two triggers and should run in a maintenance window.
+- Most historical `ALTER TABLE` migrations are not idempotent. Files `010`–`015` are safe to re-run, but earlier alter files generally fail when reapplied. Migration 014 recreates its two triggers and should run in a maintenance window.
 - Migration `005` expects `jawaban_audit.tugas_audit_id` and `catatan` to exist, drops a named FK, and renames those columns. It cannot be applied safely to `database_schema.sql`, which already contains `tugas_id` and `temuan`. Source: `migrations/005_alter_jawaban_audit_new_columns.sql`; `database_schema.sql`.
 - Rollback instructions are comments, not executable/versioned down migrations. DDL also causes implicit commits in MySQL. Source: all files under `migrations/`.
 - There is no runtime migration ledger table. Consequently, “effect is present” does not prove which migration produced it. Source: runtime table list.

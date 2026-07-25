@@ -66,7 +66,8 @@ check(strpos($service, "'previous_profile_photo_path' => \$account->profile_phot
     'Retirement foto lama harus memakai filename yang dikunci dan dikembalikan transaksi sukses.');
 check(strpos($routes, "\$route['account'] = 'Account/index';") !== FALSE && strpos($routes, "\$route['account/photo'] = 'Account/photo';") !== FALSE, 'Semua route akun eksplisit wajib ada.');
 check(strpos($sidebar, "'key' => 'account'") !== FALSE, 'Navigasi semua role harus memuat Akun Saya.');
-check(substr_count($sidebar, "'group' => 'Pengaturan'") === 2, 'Profil Lembaga hanya boleh berada pada pengaturan dua role manajemen.');
+check(substr_count($sidebar, "'key' => 'profil'") === 2, 'Profil Lembaga hanya boleh tampil untuk dua role manajemen.');
+check(substr_count($sidebar, "'key' => 'organization_units'") === 2, 'Unit Organisasi hanya boleh tampil untuk dua role manajemen.');
 check(strpos($helper, "'user_photos'") !== FALSE && strpos($helper, "if (\$category === 'user_photos')") !== FALSE, 'Foto akun tidak boleh punya fallback publik legacy.');
 check(strpos($schema, '`profile_photo_path` VARCHAR(255) NULL') !== FALSE, 'Baseline schema harus memiliki kolom foto profil.');
 check(strpos($migration, 'INFORMATION_SCHEMA.COLUMNS') !== FALSE && strpos($migration, 'profile_photo_path') !== FALSE, 'Migration 011 harus idempotent.');

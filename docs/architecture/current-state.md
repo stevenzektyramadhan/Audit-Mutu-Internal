@@ -42,7 +42,7 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 - **EXISTING:** aplikasi memakai driver CodeIgniter `mysqli` dan Query Builder. README menyebut MySQL/MariaDB; Docker Compose memakai MySQL `8.0`. Sumber: `application/config/database.php`; `README.md`; `compose.yaml`.
 - **EXISTING:** binary database Laragon yang tersedia saat inspeksi adalah MySQL `8.4.3`; ini tidak membuktikan versi server/schema yang sedang dipakai aplikasi. Sumber observasi: `C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysql.exe --version`.
 - **EXISTING:** konfigurasi produksi dibuat fail-closed bila environment database wajib tidak tersedia, sedangkan lingkungan lokal mempunyai fallback development. Nilai credential tidak didokumentasikan di sini. Sumber: `application/config/database.php`.
-- **EXISTING:** migrasi CodeIgniter dinonaktifkan (`migration_enabled = FALSE`); repository menyediakan SQL manual bernomor `001`–`014`, termasuk dua file bernomor `009`. Sumber: `application/config/migration.php`; `migrations/`.
+- **EXISTING:** migrasi CodeIgniter dinonaktifkan (`migration_enabled = FALSE`); repository menyediakan SQL manual bernomor `001`–`015`, termasuk dua file bernomor `009`. Sumber: `application/config/migration.php`; `migrations/`.
 - **TO VERIFY:** versi migration yang benar-benar sudah diterapkan dan perbedaan schema produksi harus diperiksa read-only pada M0-02; keberadaan file SQL tidak membuktikan penerapan pada database tertentu. Sumber: `application/config/migration.php`; `migrations/`; `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, M0-02.
 
 ### Frontend dan asset
@@ -74,7 +74,7 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 | `application/controllers/auditor/` | Proxy `Penilaian` ke controller `Auditor` root. | **EXISTING**, compatibility proxy; reachability konvensional **TO VERIFY**. |
 | `application/core/MY_Controller.php` | Base controller yang memetakan kelompok controller ke capability. | **EXISTING**; seluruh keputusan capability didelegasikan ke `Auth_guard`/`Authorization_policy`. |
 | `application/libraries/Auth_guard.php` | Validasi session/account dan gerbang capability untuk seluruh controller. | **EXISTING**; role-only `only()` sudah dihapus pada M1-04. |
-| `application/libraries/Authorization_policy.php` | Matriks capability, policy object/state, query scope, deny-default, dan explicit Super Admin override. | **EXISTING** sejak M1-04; RTM/PIC/scope organisasi belum mempunyai model dan selalu deny. |
+| `application/libraries/Authorization_policy.php` | Matriks capability, policy object/state, query scope, deny-default, dan explicit Super Admin override. | **EXISTING** sejak M1-04; M2-01 menambah capability master unit, sedangkan membership/scope user dan RTM/PIC tetap belum mempunyai model. |
 | `application/services/` | Sebagian orchestration dan validasi bisnis. | **EXISTING**; batasnya belum seragam dan tidak semua workflow aktif melewati service. |
 | `application/models/` | Query/persistence, tetapi `Jawaban_model` juga memuat state transition dan aturan workflow. | **EXISTING**; belum sesuai boundary target. |
 | `application/helpers/app_helper.php` | Helper status/label, output encoding, dan resolver private storage terbatas kategori. | **EXISTING**; production menolak fallback legacy dari document root. |
@@ -82,7 +82,7 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 | `application/views/` | Views per modul dan templates/sidebar per role. | **EXISTING**; menu role adalah indikator UI, bukan enforcement authorization. |
 | `application/cache/sessions/` dan `application/logs/` | Session file dan application log default. | **EXISTING**; konfigurasi produksi memeriksa lokasi/permission. Sumber: `application/config/config.php`. |
 | `uploads/` | Legacy files di bawah document root dan logo profil publik. | **EXISTING**; direktori legacy tertentu dilindungi `.htaccess`, sedangkan `uploads/profil` memang dilayani sebagai URL publik. |
-| `migrations/` | SQL manual incremental `001`–`014`. | **EXISTING**; tidak dijalankan otomatis karena `application/config/migration.php`. |
+| `migrations/` | SQL manual incremental `001`–`015`. | **EXISTING**; tidak dijalankan otomatis karena `application/config/migration.php`. |
 | `database_schema.sql` | Baseline schema gabungan untuk instalasi saat ini. | **EXISTING** sebagai artefak repository; kesesuaian dengan production **TO VERIFY**. |
 | `database_dummy.sql` | Seed/demo data. | **EXISTING**; mengandung credential/demo record dan tidak boleh dipakai sebagai sumber credential produksi. |
 | `tests/` | Regression source/runtime dan harness HTTP/database smoke terisolasi. | **EXISTING**; policy, authentication, encoding, file security, ownership, evidence IDOR, final-state mutation, dan workflow utama tercakup; concurrency/visual/antivirus/production belum diuji. |
@@ -647,13 +647,21 @@ Tujuan baca: schema drift, FK/cascade, duplicate/invariant, mixed state flags, d
 
 ### M2 — identity, role, capability, dan organization scope
 
+M2-01 sudah menambahkan `organization_units`, service validasi hierarki,
+capability `organization_units.manage`, UI administrasi, seed root, serta
+regression/smoke. Membership user dan organization scope tetap menunggu M2-02.
+
 1. `application/controllers/Users.php`, `lpmpi/Akun.php`, dan `Account.php`.
-2. `application/services/User_service.php` dan `Account_service.php`.
-3. `application/models/User_model.php`.
-4. `application/libraries/Auth_guard.php`; `application/core/MY_Controller.php`.
-5. `application/views/layouts/sidebar.php`.
-6. Assignment references pada `Tugas_audit_service.php` dan `Tugas_audit_model.php`.
-7. `migrations/001_add_admin_lpmpi_role.sql`, `007_alter_users_add_unit_columns.sql`, `011_add_users_profile_photo_path.sql`, `012_authentication_hardening.sql`, `013_file_security_foundation.sql`, dan `014_immutable_security_audit_log.sql`.
+2. `application/controllers/Organization_units.php`,
+   `application/services/Organization_unit_service.php`, dan
+   `application/models/Organization_unit_model.php`.
+3. `application/services/User_service.php` dan `Account_service.php`.
+4. `application/models/User_model.php`.
+5. `application/libraries/Auth_guard.php`; `application/core/MY_Controller.php`.
+6. `application/views/layouts/sidebar.php` dan
+   `application/views/lpmpi/organization_units/*`.
+7. Assignment references pada `Tugas_audit_service.php` dan `Tugas_audit_model.php`.
+8. `migrations/001_add_admin_lpmpi_role.sql`, `007_alter_users_add_unit_columns.sql`, `011_add_users_profile_photo_path.sql`, `012_authentication_hardening.sql`, `013_file_security_foundation.sql`, `014_immutable_security_audit_log.sql`, dan `015_create_organization_units.sql`.
 
 ### M3 — foundation dokumen/standar/indikator target
 

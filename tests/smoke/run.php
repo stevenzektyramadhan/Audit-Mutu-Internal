@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * M0-03 end-to-end baseline plus security checks through M1-07.
+ * M0-03 end-to-end baseline plus security checks through M2-01.
  *
  * One-command usage:
  *   php tests/smoke/run.php
@@ -987,6 +987,153 @@ try {
     }, $results);
 
     smoke_case(
+        'organization hierarchy validates, preserves, and audits unit status',
+        function () use ($roleClients, $testConnection) {
+            $index = $roleClients['super_admin']->get('/organization-units');
+            smoke_assert_status($index, 200, 'organization unit index');
+            smoke_assert_contains($index->body, 'UNIVERSITY', 'organization root seed');
+
+            $root = smoke_db_row(
+                $testConnection,
+                "SELECT id FROM organization_units WHERE code = 'UNIVERSITY' LIMIT 1"
+            );
+            smoke_assert(!empty($root), 'University root seed is missing.');
+
+            $faculty_create = smoke_post_form(
+                $roleClients['super_admin'],
+                '/organization-units/create',
+                '/organization-units/store',
+                [
+                    'code' => 'FT',
+                    'name' => 'Fakultas Teknik',
+                    'type' => 'faculty',
+                    'parent_id' => (int) $root['id'],
+                    'active' => 1,
+                ]
+            );
+            smoke_assert_status($faculty_create, 200, 'faculty creation');
+            smoke_assert_contains(
+                $faculty_create->body,
+                'Unit organisasi berhasil ditambahkan.',
+                'faculty creation'
+            );
+
+            $faculty = smoke_db_row(
+                $testConnection,
+                "SELECT id, parent_id, active
+                 FROM organization_units
+                 WHERE code = 'FT'
+                 LIMIT 1"
+            );
+            smoke_assert(
+                !empty($faculty) && (int) $faculty['parent_id'] === (int) $root['id'],
+                'Faculty hierarchy was not persisted.'
+            );
+
+            $invalid_program = smoke_post_form(
+                $roleClients['super_admin'],
+                '/organization-units/create',
+                '/organization-units/store',
+                [
+                    'code' => 'IF-BAD',
+                    'name' => 'Program Studi Tidak Valid',
+                    'type' => 'study_program',
+                    'parent_id' => (int) $root['id'],
+                    'active' => 1,
+                ]
+            );
+            smoke_assert_status($invalid_program, 200, 'invalid study program hierarchy');
+            smoke_assert_contains(
+                $invalid_program->body,
+                'Program studi wajib berada langsung di bawah fakultas/UPPS.',
+                'invalid study program hierarchy'
+            );
+
+            $program_create = smoke_post_form(
+                $roleClients['super_admin'],
+                '/organization-units/create',
+                '/organization-units/store',
+                [
+                    'code' => 'IF-S1',
+                    'name' => 'Informatika',
+                    'type' => 'study_program',
+                    'parent_id' => (int) $faculty['id'],
+                    'active' => 1,
+                ]
+            );
+            smoke_assert_status($program_create, 200, 'study program creation');
+            smoke_assert_contains(
+                $program_create->body,
+                'Unit organisasi berhasil ditambahkan.',
+                'study program creation'
+            );
+
+            $program = smoke_db_row(
+                $testConnection,
+                "SELECT id, parent_id, active
+                 FROM organization_units
+                 WHERE code = 'IF-S1'
+                 LIMIT 1"
+            );
+            smoke_assert(
+                !empty($program) && (int) $program['parent_id'] === (int) $faculty['id'],
+                'Study program is not linked to its faculty.'
+            );
+
+            $blocked_deactivation = smoke_post_form(
+                $roleClients['super_admin'],
+                '/organization-units',
+                '/organization-units/toggle-active/' . (int) $faculty['id'],
+                []
+            );
+            smoke_assert_status($blocked_deactivation, 200, 'parent deactivation guard');
+            smoke_assert_contains(
+                $blocked_deactivation->body,
+                'Nonaktifkan seluruh unit turunan yang masih aktif terlebih dahulu.',
+                'parent deactivation guard'
+            );
+
+            smoke_post_form(
+                $roleClients['super_admin'],
+                '/organization-units',
+                '/organization-units/toggle-active/' . (int) $program['id'],
+                []
+            );
+            smoke_post_form(
+                $roleClients['super_admin'],
+                '/organization-units',
+                '/organization-units/toggle-active/' . (int) $faculty['id'],
+                []
+            );
+
+            $inactive = smoke_db_row(
+                $testConnection,
+                "SELECT
+                    SUM(CASE WHEN active = 0 THEN 1 ELSE 0 END) AS inactive_count,
+                    COUNT(*) AS total
+                 FROM organization_units
+                 WHERE code IN ('FT', 'IF-S1')"
+            );
+            smoke_assert(
+                (int) $inactive['total'] === 2 && (int) $inactive['inactive_count'] === 2,
+                'Deactivation must preserve both organization rows.'
+            );
+
+            $events = smoke_db_row(
+                $testConnection,
+                "SELECT COUNT(*) AS total
+                 FROM security_audit_logs
+                 WHERE event_type IN (
+                    'organization_unit_created',
+                    'organization_unit_deactivated'
+                 )"
+            );
+            smoke_assert((int) $events['total'] >= 4, 'Organization mutations were not audited.');
+        },
+        $results
+    );
+
+    smoke_case(
         'create assignment and answer rows',
         function () use ($roleClients, $fixture, $testConnection, &$taskId, &$answerRows) {
             $response = smoke_post_form(
@@ -1722,6 +1869,7 @@ try {
         smoke_assert_status($roleClients['auditee']->get('/users'), 403, 'auditee users capability');
         smoke_assert_status($roleClients['admin_lpmpi']->get('/users'), 403, 'LPMPI users capability');
         smoke_assert_status($roleClients['auditor']->get('/lpmpi/laporan'), 403, 'auditor report capability');
+        smoke_assert_status($roleClients['auditor']->get('/organization-units'), 403, 'auditor organization capability');
     }, $results);
 
     smoke_case('LPMPI report opens', function () use ($roleClients) {

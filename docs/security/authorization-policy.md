@@ -23,6 +23,7 @@ IDs from URLs and form fields are identifiers only. They never establish permiss
 | Manage institution profile | Yes | Yes | No | No |
 | Manage all user roles | Yes | No | No | No |
 | Manage Auditor/Auditee accounts | Yes | Yes | No | No |
+| Manage organization unit master | Yes | Yes | No | No |
 | Manage current SPMI master data | Yes | Yes | No | No |
 | Manage audit assignments | Yes | Yes | No | No |
 | View current LPMPI reports/export | Yes | Yes | No | No |
@@ -30,7 +31,7 @@ IDs from URLs and form fields are identifiers only. They never establish permiss
 | Assess assigned audit | No | No | Assigned owner only | No |
 | View Auditor evidence file | Explicit override only | No | Assigned owner only | No current download route |
 
-The admin capabilities above are direct, declared administrative capabilities—not silent ownership overrides. Organization/unit scoping for admin screens cannot be enforced yet because the current identity schema has only free-text `nama_unit` and no organization-membership/scope relation. Until that model is introduced, admin access remains institution-wide and no narrower scope is inferred.
+The admin capabilities above are direct, declared administrative capabilities—not silent ownership overrides. M2-01 provides stable organization-unit IDs and a guarded master-data capability, but organization/unit scoping for other admin screens cannot be enforced yet because no user membership/scope relation exists. Until M2-02 introduces that relation, admin access remains institution-wide and no narrower scope is inferred from legacy free-text `nama_unit`.
 
 ## Object policy API
 
@@ -40,6 +41,7 @@ The central API provides:
 - `canEditAuditeeSubmission()`;
 - `canAssessAssignment()`;
 - `canViewEvidence()`;
+- `canManageOrganizationUnits()`;
 - `canManageSpmiVersion()`;
 - `canManageRtm()`;
 - `canSubmitFollowUp()`;
@@ -47,7 +49,7 @@ The central API provides:
 
 Controllers use the corresponding scoped getters when they need data, such as `getViewableAssignment()`, `getAssessableAssignment()`, and `getViewableEvidence()`. Participant assignment and evidence queries include both object ID and current `auditee_id`/`auditor_id`.
 
-RTM, PIC membership, follow-up verification, organization scope, lead Auditor, observer, and finalizer assignments do not exist in the current schema. Their policy methods return `FALSE` for every role. This implements deny-by-default without inventing unresolved business rules BIZ-008 through BIZ-010.
+User organization membership/scope, RTM, PIC membership, follow-up verification, lead Auditor, observer, and finalizer assignments do not exist in the current schema. Their target policy methods return `FALSE` for every role. This implements deny-by-default without inventing unresolved business rules BIZ-008 through BIZ-010.
 
 ## Super Admin override
 
@@ -67,6 +69,7 @@ There is no current UI endpoint that invokes an override. Adding one requires a 
 - Standalone `Users`, `Standar`, `Tugas_audit`, `Dashboard`, root `Auditee`, and root `Auditor` controllers use capabilities.
 - `MY_Controller` subclasses use the same `Auth_guard` and policy; the old role-only `only()`/`_check_role()` path was removed.
 - LPMPI account, assignment, and report controllers add their specific capabilities.
+- M2-01 organization master routes require `organization_units.manage`; Auditor and Auditee requests are denied.
 - Auditee route aliases and the duplicate `auditee/Tugas` controller use the same object policy.
 - Auditor route aliases and the `auditor/Penilaian` bridge inherit the same object policy.
 - The legacy `Auditor::simpan_nilai()` mutation now requires POST and the assessable-assignment policy.
