@@ -217,6 +217,41 @@ class Jawaban_model extends CI_Model
             ->row();
     }
 
+    public function find_jawaban_for_auditee($jawaban_id, $auditee_id)
+    {
+        if (!$this->tables_exist(['jawaban_audit', 'tugas_audit', 'pertanyaan'])) {
+            return NULL;
+        }
+
+        return $this->db
+            ->select('jawaban_audit.*, pertanyaan.isi_pertanyaan')
+            ->select('tugas_audit.auditor_id, tugas_audit.auditee_id, tugas_audit.status AS tugas_status')
+            ->from($this->table)
+            ->join('tugas_audit', 'tugas_audit.id = jawaban_audit.tugas_id', 'left')
+            ->join('pertanyaan', 'pertanyaan.id = jawaban_audit.pertanyaan_id', 'left')
+            ->where('jawaban_audit.id', (int) $jawaban_id)
+            ->where('tugas_audit.auditee_id', (int) $auditee_id)
+            ->get()
+            ->row();
+    }
+
+    public function find_jawaban_with_assignment($jawaban_id)
+    {
+        if (!$this->tables_exist(['jawaban_audit', 'tugas_audit', 'pertanyaan'])) {
+            return NULL;
+        }
+
+        return $this->db
+            ->select('jawaban_audit.*, pertanyaan.isi_pertanyaan')
+            ->select('tugas_audit.auditor_id, tugas_audit.auditee_id, tugas_audit.status AS tugas_status')
+            ->from($this->table)
+            ->join('tugas_audit', 'tugas_audit.id = jawaban_audit.tugas_id', 'left')
+            ->join('pertanyaan', 'pertanyaan.id = jawaban_audit.pertanyaan_id', 'left')
+            ->where('jawaban_audit.id', (int) $jawaban_id)
+            ->get()
+            ->row();
+    }
+
     public function save_penilaian_item($jawaban_id, $auditor_id, $data)
     {
         $jawaban = $this->find_jawaban_for_auditor((int) $jawaban_id, (int) $auditor_id);
@@ -364,6 +399,20 @@ class Jawaban_model extends CI_Model
             return ['success' => FALSE, 'message' => 'Penilaian gagal disubmit.'];
         }
 
+        $this->record_audit_event(
+            'auditor_assessment_submitted',
+            (int) $tugas_id,
+            'submit',
+            ['status' => STATUS_DIISI, 'is_nilai_submitted' => 0],
+            ['status' => STATUS_DINILAI, 'is_nilai_submitted' => 1],
+            [
+                'status_from' => STATUS_DIISI,
+                'status_to' => STATUS_DINILAI,
+                'row_count' => count($updates),
+            ],
+            (int) $auditor_id
+        );
+
         return ['success' => TRUE, 'message' => 'Penilaian berhasil disubmit dan dikunci.'];
     }
 
@@ -396,11 +445,34 @@ class Jawaban_model extends CI_Model
             return ['success' => FALSE, 'message' => 'Tugas gagal dikembalikan untuk revisi.'];
         }
 
+        $this->record_audit_event(
+            'auditee_revision_requested',
+            (int) $tugas_id,
+            'reopen',
+            ['status' => $tugas->status, 'is_submitted' => 1],
+            ['status' => STATUS_BELUM_DIISI, 'is_submitted' => 0],
+            [
+                'reason_code' => 'auditor_requested_revision',
+                'status_from' => $tugas->status,
+                'status_to' => STATUS_BELUM_DIISI,
+            ],
+            (int) $auditor_id
+        );
+
         return ['success' => TRUE, 'message' => 'Tugas berhasil dikembalikan ke auditee untuk revisi.'];
     }
 
-    public function save_answers($tugas_id, $input, $submit = FALSE)
+    public function save_answers($tugas_id, $auditee_id, $input, $submit = FALSE)
     {
+        $tugas = $this->find_tugas_for_auditee((int) $tugas_id, (int) $auditee_id);
+        if (!$tugas) {
+            return ['success' => FALSE, 'message' => 'Tugas audit tidak ditemukan atau bukan milik Anda.'];
+        }
+
+        if (!empty($tugas->is_readonly)) {
+            return ['success' => FALSE, 'message' => 'Jawaban sudah disubmit dan tidak dapat diubah.'];
+        }
+
         $jawaban = $this->get_by_tugas($tugas_id);
         if (empty($jawaban)) {
             return ['success' => FALSE, 'message' => 'Tidak ada pertanyaan audit yang dapat disimpan.'];
@@ -443,11 +515,28 @@ class Jawaban_model extends CI_Model
         $this->db->update_batch($this->table, $updates, 'id');
         $this->db
             ->where('id', (int) $tugas_id)
+            ->where('auditee_id', (int) $auditee_id)
             ->update('tugas_audit', ['status' => $submit ? STATUS_DIISI : STATUS_BELUM_DIISI]);
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
             return ['success' => FALSE, 'message' => $submit ? 'Jawaban gagal disubmit.' : 'Draft jawaban gagal disimpan.'];
+        }
+
+        if ($submit) {
+            $this->record_audit_event(
+                'auditee_submission_submitted',
+                (int) $tugas_id,
+                'submit',
+                ['status' => STATUS_BELUM_DIISI, 'is_submitted' => 0],
+                ['status' => STATUS_DIISI, 'is_submitted' => 1],
+                [
+                    'status_from' => STATUS_BELUM_DIISI,
+                    'status_to' => STATUS_DIISI,
+                    'row_count' => count($updates),
+                ],
+                (int) $auditee_id
+            );
         }
 
         return [
@@ -480,6 +569,29 @@ class Jawaban_model extends CI_Model
             ->row_array();
 
         return is_array($row) ? $row : [];
+    }
+
+    private function record_audit_event(
+        $event_type,
+        $tugas_id,
+        $action,
+        $before,
+        $after,
+        array $metadata,
+        $actor_user_id
+    ) {
+        $ci = &get_instance();
+        $ci->load->library('audit_logger');
+        $ci->audit_logger->record(
+            $event_type,
+            'audit_assignment',
+            (int) $tugas_id,
+            $action,
+            $before,
+            $after,
+            $metadata,
+            (int) $actor_user_id
+        );
     }
 
     private function attach_display_status($row)

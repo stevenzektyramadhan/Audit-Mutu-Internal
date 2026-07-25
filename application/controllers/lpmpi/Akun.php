@@ -16,6 +16,7 @@ class Akun extends Admin_Lpmpi_Controller
     public function __construct()
     {
         parent::__construct();
+        $this->_require_capability(Authorization_policy::CAP_PARTICIPANT_ACCOUNTS_MANAGE);
         $this->load->helper('form');
         $this->load->library('form_validation');
 
@@ -97,7 +98,11 @@ class Akun extends Admin_Lpmpi_Controller
             return;
         }
 
-        $result = $this->user_service->update_lpmpi_account((int) $id, $this->input_data());
+        $result = $this->user_service->update_lpmpi_account(
+            (int) $id,
+            $this->input_data(),
+            (int) $this->session->userdata('user_id')
+        );
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect($result['success'] ? 'lpmpi/akun' : 'lpmpi/akun/edit/' . (int) $id);
     }
@@ -135,6 +140,7 @@ class Akun extends Admin_Lpmpi_Controller
             'role' => $this->input->post('role', TRUE),
             'nama_unit' => $this->input->post('nama_unit', TRUE),
             'jenis_unit' => $this->input->post('jenis_unit', TRUE),
+            'is_active' => $this->input->post('is_active', TRUE),
         ];
     }
 
@@ -153,6 +159,8 @@ class Akun extends Admin_Lpmpi_Controller
 
         if ($password_required) {
             $this->form_validation->set_rules('password', 'Password', 'required');
+        } else {
+            $this->form_validation->set_rules('is_active', 'Status Akun', 'required|in_list[0,1]');
         }
     }
 }

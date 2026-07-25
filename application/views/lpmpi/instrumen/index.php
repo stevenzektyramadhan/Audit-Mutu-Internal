@@ -27,13 +27,13 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <?php foreach ($standar_list as $row): ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo html_escape($row->nama_standar); ?></td>
+                            <td><?php echo ami_e($row->nama_standar); ?></td>
                             <td>
                                 <?php if (!empty($row->file_instrumen)): ?>
                                     <a href="<?php echo site_url('lpmpi/instrumen/download/' . (int) $row->id); ?>" class="btn-ami btn-sm btn-outline-ami">
                                         <i class="fas fa-download" aria-hidden="true"></i> Download
                                     </a>
-                                    <div class="text-muted mt-2" style="font-size: 12px;"><?php echo html_escape($row->file_instrumen); ?></div>
+                                    <div class="text-muted mt-2" style="font-size: 12px;"><?php echo ami_e($file_names[$row->file_instrumen] ?? 'File instrumen'); ?></div>
                                 <?php else: ?>
                                     <span class="text-muted">Belum ada file</span>
                                 <?php endif; ?>
@@ -41,7 +41,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <td>
                                 <div class="ami-row-actions align-items-center">
                                     <?php echo form_open_multipart('lpmpi/instrumen/upload/' . (int) $row->id, ['class' => 'd-flex align-items-center gap-2']); ?>
-                                        <input type="file" name="file_instrumen" accept=".pdf,.doc,.docx" class="form-control form-control-sm" required>
+                                        <input type="file" name="file_instrumen" accept=".pdf,.docx,.xlsx,.png,.jpg,.jpeg" class="form-control form-control-sm" required>
                                         <button type="submit" class="ami-action-btn" title="Upload file instrumen">
                                             <i class="fas fa-upload" aria-hidden="true"></i><span>Upload</span>
                                         </button>

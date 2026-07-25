@@ -46,7 +46,7 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
                     <option value="">Semua standar</option>
                     <?php foreach ($standar as $std): ?>
                         <option value="<?php echo (int) $std->id; ?>" <?php echo (int) $filter_standar_id === (int) $std->id ? 'selected' : ''; ?>>
-                            <?php echo html_escape($std->nama_standar); ?>
+                            <?php echo ami_e($std->nama_standar); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -79,18 +79,18 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
                             <td><?php echo $no++; ?></td>
                             <td>
                                 <?php if (!empty($row->nama_standar)): ?>
-                                    <span class="ami-status <?php echo $tone_class; ?>">
-                                        <?php echo html_escape($standar_badge); ?>
+                                    <span class="ami-status <?php echo ami_e($tone_class); ?>">
+                                        <?php echo ami_e($standar_badge); ?>
                                     </span>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
                             <td style="max-width: 350px;">
-                                <?php echo html_escape($row->isi_pertanyaan); ?>
+                                <?php echo ami_e($row->isi_pertanyaan); ?>
                             </td>
                             <td>
-                                <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
+                                <?php echo ami_e(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
                                 <div class="ami-row-actions">
@@ -145,12 +145,12 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
                 </div>
                 <div class="modal-body">
                     <p class="text-muted">
-                        Upload file Excel (.xlsx atau .xls) sesuai format template, maksimal 2 MB.
+                    Upload file Excel (.xlsx) sesuai format template, maksimal 2 MiB.
                         <a href="<?php echo site_url('pertanyaan/download_template/' . (int) $standar_id); ?>">Download template di sini</a>.
                     </p>
                     <div class="form-group mb-0">
                         <label for="file-excel">File Excel <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="file-excel" name="file_excel" accept=".xlsx,.xls" required>
+                    <input type="file" class="form-control-file" id="file-excel" name="file_excel" accept=".xlsx" required>
                     </div>
                 </div>
                 <div class="modal-footer">

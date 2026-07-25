@@ -27,7 +27,7 @@ $status_labels = [
                     <option value="0">Semua periode</option>
                     <?php foreach ($periode_list as $periode): ?>
                         <option value="<?php echo (int) $periode->id; ?>" <?php echo (int) $filters['periode_id'] === (int) $periode->id ? 'selected' : ''; ?>>
-                            <?php echo html_escape($periode->nama_periode); ?>
+                            <?php echo ami_e($periode->nama_periode); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -38,7 +38,7 @@ $status_labels = [
                     <option value="0">Semua standar</option>
                     <?php foreach ($standar_list as $standar): ?>
                         <option value="<?php echo (int) $standar->id; ?>" <?php echo (int) $filters['standar_id'] === (int) $standar->id ? 'selected' : ''; ?>>
-                            <?php echo html_escape($standar->nama_standar); ?>
+                            <?php echo ami_e($standar->nama_standar); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -49,7 +49,7 @@ $status_labels = [
                     <option value="0">Semua auditee</option>
                     <?php foreach ($auditee_list as $auditee): ?>
                         <option value="<?php echo (int) $auditee->id; ?>" <?php echo (int) $filters['auditee_id'] === (int) $auditee->id ? 'selected' : ''; ?>>
-                            <?php echo html_escape($auditee->nama); ?>
+                            <?php echo ami_e($auditee->nama); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -81,18 +81,18 @@ $status_labels = [
                     <?php foreach ($tugas_list as $row): ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo html_escape($row->nama_periode ?? '-'); ?></td>
-                            <td><?php echo html_escape($row->nama_standar ?? '-'); ?></td>
-                            <td><?php echo html_escape($row->auditor_nama ?? '-'); ?></td>
+                            <td><?php echo ami_e($row->nama_periode ?? '-'); ?></td>
+                            <td><?php echo ami_e($row->nama_standar ?? '-'); ?></td>
+                            <td><?php echo ami_e($row->auditor_nama ?? '-'); ?></td>
                             <td>
-                                <div><?php echo html_escape($row->auditee_nama ?? '-'); ?></div>
+                                <div><?php echo ami_e($row->auditee_nama ?? '-'); ?></div>
                                 <?php if (!empty($row->auditee_unit)): ?>
-                                    <div class="text-muted" style="font-size: 12px;"><?php echo html_escape($row->auditee_unit); ?></div>
+                                    <div class="text-muted" style="font-size: 12px;"><?php echo ami_e($row->auditee_unit); ?></div>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <span class="ami-status status-<?php echo html_escape($row->status ?? STATUS_BELUM_DIISI); ?>">
-                                    <?php echo html_escape($status_labels[$row->status] ?? ($row->status ?? '-')); ?>
+                                <span class="ami-status status-<?php echo ami_e($row->status ?? STATUS_BELUM_DIISI); ?>">
+                                    <?php echo ami_e($status_labels[$row->status] ?? ($row->status ?? '-')); ?>
                                 </span>
                             </td>
                             <td>

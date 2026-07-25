@@ -4,8 +4,8 @@ services:
     environment:
       MYSQL_DATABASE: ami
       MYSQL_USER: ami_local
-      MYSQL_PASSWORD: ami_local_password
-      MYSQL_ROOT_PASSWORD: local_root_password
+      MYSQL_PASSWORD: ${AMI_DEV_DB_PASSWORD:?Set AMI_DEV_DB_PASSWORD for Docker development}
+      MYSQL_ROOT_PASSWORD: ${AMI_DEV_DB_ROOT_PASSWORD:?Set AMI_DEV_DB_ROOT_PASSWORD for Docker development}
     volumes:
       - db_data:/var/lib/mysql
       - ./database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
@@ -22,7 +22,7 @@ services:
     environment:
       DB_HOST: db
       DB_USERNAME: ami_local
-      DB_PASSWORD: ami_local_password
+      DB_PASSWORD: ${AMI_DEV_DB_PASSWORD:?Set AMI_DEV_DB_PASSWORD for Docker development}
       DB_DATABASE: ami
     ports:
       - "127.0.0.1:8081:80"

@@ -10,7 +10,7 @@ $query = http_build_query(array_filter($filters));
 <div class="ami-panel">
     <div class="ami-panel-body">
         <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0"><?php echo html_escape($standar->nama_standar); ?></h2>
+            <h2 class="ami-section-title m-0"><?php echo ami_e($standar->nama_standar); ?></h2>
             <a href="<?php echo site_url('lpmpi/laporan') . ($query ? '?' . $query : ''); ?>" class="btn-ami btn-outline-ami">
                 <i class="fas fa-arrow-left" aria-hidden="true"></i> Kembali
             </a>
@@ -32,22 +32,23 @@ $query = http_build_query(array_filter($filters));
                 <tbody>
                 <?php if (!empty($detail)): ?>
                     <?php foreach ($detail as $row): ?>
+                        <?php $safe_link_bukti = ami_safe_http_url($row->link_bukti ?? ''); ?>
                         <tr>
-                            <td><?php echo html_escape($row->nama_periode ?? '-'); ?></td>
-                            <td><?php echo html_escape($row->auditee_nama ?? '-'); ?></td>
-                            <td><?php echo html_escape($row->auditor_nama ?? '-'); ?></td>
-                            <td><?php echo html_escape($row->isi_pertanyaan ?? '-'); ?></td>
+                            <td><?php echo ami_e($row->nama_periode ?? '-'); ?></td>
+                            <td><?php echo ami_e($row->auditee_nama ?? '-'); ?></td>
+                            <td><?php echo ami_e($row->auditor_nama ?? '-'); ?></td>
+                            <td><?php echo ami_e($row->isi_pertanyaan ?? '-'); ?></td>
                             <td>
-                                <div><?php echo html_escape($row->jawaban ?? '-'); ?></div>
-                                <?php if (!empty($row->link_bukti)): ?>
-                                    <a href="<?php echo html_escape($row->link_bukti); ?>" target="_blank" rel="noopener noreferrer">Bukti</a>
+                                <div><?php echo ami_e($row->jawaban ?? '-'); ?></div>
+                                <?php if ($safe_link_bukti !== ''): ?>
+                                    <a href="<?php echo ami_e($safe_link_bukti); ?>" target="_blank" rel="noopener noreferrer">Bukti</a>
                                 <?php endif; ?>
                             </td>
                             <td><strong><?php echo $row->skor === NULL ? '-' : (int) $row->skor; ?></strong></td>
                             <td>
-                                <div><?php echo html_escape($row->temuan ?? '-'); ?></div>
+                                <div><?php echo ami_e($row->temuan ?? '-'); ?></div>
                                 <?php if (!empty($row->jenis_temuan)): ?>
-                                    <span class="text-muted" style="font-size: 12px;"><?php echo strtoupper(html_escape($row->jenis_temuan)); ?></span>
+                                    <span class="text-muted" style="font-size: 12px;"><?php echo ami_e(strtoupper($row->jenis_temuan)); ?></span>
                                 <?php endif; ?>
                             </td>
                         </tr>

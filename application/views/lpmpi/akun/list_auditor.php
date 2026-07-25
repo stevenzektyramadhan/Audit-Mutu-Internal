@@ -9,6 +9,7 @@
                 <th>#</th>
                 <th>Nama</th>
                 <th>Email</th>
+                <th>Status</th>
                 <th>Aksi</th>
             </tr>
             </thead>
@@ -16,8 +17,13 @@
             <?php $no = 1; foreach ($auditor_list as $row): ?>
                 <tr>
                     <td><?php echo $no++; ?></td>
-                    <td><?php echo html_escape($row->nama); ?></td>
-                    <td><?php echo html_escape($row->email); ?></td>
+                    <td><?php echo ami_e($row->nama); ?></td>
+                    <td><?php echo ami_e($row->email); ?></td>
+                    <td>
+                        <span class="ami-status <?php echo (int) $row->is_active === 1 ? 'tone-green' : 'tone-amber'; ?>">
+                            <?php echo (int) $row->is_active === 1 ? 'Aktif' : 'Nonaktif'; ?>
+                        </span>
+                    </td>
                     <td>
                         <div class="ami-row-actions">
                             <a href="<?php echo site_url('lpmpi/akun/edit/' . (int) $row->id); ?>" class="ami-action-btn" title="Edit akun">

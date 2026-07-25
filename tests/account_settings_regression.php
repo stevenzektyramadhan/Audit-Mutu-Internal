@@ -24,6 +24,7 @@ $model = source($root, 'application/models/User_model.php');
 $routes = source($root, 'application/config/routes.php');
 $sidebar = source($root, 'application/views/layouts/sidebar.php');
 $helper = source($root, 'application/helpers/app_helper.php');
+$file_security = source($root, 'application/libraries/File_security.php');
 $schema = source($root, 'database_schema.sql');
 $migration = source($root, 'migrations/011_add_users_profile_photo_path.sql');
 
@@ -31,9 +32,17 @@ check(strpos($account, 'class Account extends MY_Controller') !== FALSE, 'Accoun
 check(substr_count($account, '$this->_user_id()') >= 3, 'Akun harus memakai ID sesi untuk semua identitas.');
 check(strpos($account, 'function photo()') !== FALSE, 'Endpoint foto tidak boleh menerima parameter identitas.');
 check(strpos($account, "method(TRUE) !== 'POST'") !== FALSE, 'Update akun harus POST-only.');
-check(strpos($account, 'is_uploaded_file') !== FALSE && strpos($account, 'finfo_file') !== FALSE && strpos($account, 'getimagesize') !== FALSE, 'Upload foto harus memeriksa upload, MIME server, dan image data.');
-check(strpos($account, "['image/jpeg', 'image/png']") !== FALSE && strpos($account, '2 * 1024 * 1024') !== FALSE, 'Upload foto harus hanya JPEG/PNG sampai 2 MiB.');
-check(strpos($account, "private_storage_dir('user_photos')") !== FALSE && strpos($account, "private_storage_path('user_photos', \$file_name)") !== FALSE, 'Foto akun harus memakai storage private user_photos.');
+check(strpos($account, "file_security->upload(") !== FALSE
+    && strpos($file_security, 'is_uploaded_file') !== FALSE
+    && strpos($file_security, 'finfo_file') !== FALSE
+    && strpos($file_security, 'getimagesize') !== FALSE,
+    'Upload foto harus memakai pemeriksaan upload, MIME server, dan image data terpusat.');
+check(strpos($file_security, "'user_photos' =>") !== FALSE
+    && strpos($file_security, "'max_bytes' => 2097152") !== FALSE,
+    'Upload foto harus hanya JPEG/PNG sampai 2 MiB.');
+check(strpos($account, "file_security->resolve(") !== FALSE
+    && strpos($account, "'user_photos'") !== FALSE,
+    'Foto akun harus memakai storage private user_photos terpusat.');
 check(strpos($account, "set_header('Cache-Control: private, no-store, max-age=0')") !== FALSE
     && strpos($account, "set_header('Pragma: no-cache')") !== FALSE
     && strpos($account, "set_header('Expires: 0')") !== FALSE,
@@ -52,9 +61,9 @@ check($transaction_start !== FALSE && $locked_read > $transaction_start
     && $profile_update > $locked_read && $transaction_complete > $profile_update,
     'Read FOR UPDATE dan update akun harus berada dalam transaksi yang sama.');
 check(strpos($service, "'previous_profile_photo_path' => \$account->profile_photo_path") !== FALSE
-    && strpos($account, "delete_private_file('user_photos', \$result['previous_profile_photo_path'])") !== FALSE
-    && strpos($account, "delete_private_file('user_photos', \$account->profile_photo_path)") === FALSE,
-    'Cleanup foto lama harus memakai filename yang dikunci dan dikembalikan transaksi sukses.');
+    && strpos($account, "file_security->retire(") !== FALSE
+    && strpos($account, "'replaced'") !== FALSE,
+    'Retirement foto lama harus memakai filename yang dikunci dan dikembalikan transaksi sukses.');
 check(strpos($routes, "\$route['account'] = 'Account/index';") !== FALSE && strpos($routes, "\$route['account/photo'] = 'Account/photo';") !== FALSE, 'Semua route akun eksplisit wajib ada.');
 check(strpos($sidebar, "'key' => 'account'") !== FALSE, 'Navigasi semua role harus memuat Akun Saya.');
 check(substr_count($sidebar, "'group' => 'Pengaturan'") === 2, 'Profil Lembaga hanya boleh berada pada pengaturan dua role manajemen.');

@@ -19,7 +19,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
         <form method="get" action="<?php echo site_url('lpmpi/akun'); ?>" class="ami-filter-bar">
             <div class="ami-filter-grow">
                 <label for="akun-search" class="ami-stat-label">Cari akun</label>
-                <input id="akun-search" type="search" name="q" class="form-control" value="<?php echo html_escape($filters['q']); ?>" placeholder="Nama, email, atau unit">
+                <input id="akun-search" type="search" name="q" class="form-control" value="<?php echo ami_e($filters['q']); ?>" placeholder="Nama, email, atau unit">
             </div>
             <div class="ami-filter-select">
                 <label for="akun-role" class="ami-stat-label">Role</label>

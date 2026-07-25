@@ -25,7 +25,7 @@ $score_tones = [
 <form method="get" action="<?php echo site_url('tugas_audit/hasil'); ?>" class="ami-filter-bar">
     <div class="ami-filter-grow">
         <label for="hasil-search" class="ami-stat-label">Cari hasil audit</label>
-        <input id="hasil-search" type="search" name="q" class="form-control" value="<?php echo html_escape($filters['q']); ?>" placeholder="Auditee, auditor, atau standar">
+        <input id="hasil-search" type="search" name="q" class="form-control" value="<?php echo ami_e($filters['q']); ?>" placeholder="Auditee, auditor, atau standar">
     </div>
     <button type="submit" class="btn btn-primary btn-ami"><i class="fas fa-search" aria-hidden="true"></i>Cari</button>
     <?php if ($filters['q'] !== ''): ?>
@@ -38,17 +38,17 @@ $score_tones = [
     <div class="ami-panel mb-3">
         <div class="ami-panel-body p-4 d-flex justify-content-between align-items-start">
             <div>
-                <h4 class="text-light mb-1" style="font-weight: 500;"><?php echo html_escape($row->auditee_nama); ?></h4>
+                <h4 class="text-light mb-1" style="font-weight: 500;"><?php echo ami_e($row->auditee_nama); ?></h4>
                 <div class="text-muted" style="font-size: 13px;">
-                    <?php echo html_escape($row->nama_standar); ?> &middot; Auditor: <?php echo html_escape($row->auditor_nama); ?> &middot; 
+                    <?php echo ami_e($row->nama_standar); ?> &middot; Auditor: <?php echo ami_e($row->auditor_nama); ?> &middot;
                     <?php echo (new DateTime($row->created_at))->format('d M Y'); ?>
                 </div>
                 
                 <div class="mt-3 d-flex flex-wrap gap-2">
                     <?php foreach ([4, 3, 2, 1] as $s): ?>
                         <?php if (!empty($row->stats[$s])): ?>
-                            <span class="ami-status <?php echo $score_tones[$s]; ?>" style="font-size: 11.5px;">
-                                Skor <?php echo $s; ?>: <?php echo $row->stats[$s]; ?> pertanyaan
+                            <span class="ami-status <?php echo ami_e($score_tones[$s]); ?>" style="font-size: 11.5px;">
+                                Skor <?php echo (int) $s; ?>: <?php echo (int) $row->stats[$s]; ?> pertanyaan
                             </span>
                         <?php endif; ?>
                     <?php endforeach; ?>
@@ -56,7 +56,7 @@ $score_tones = [
             </div>
             <div class="text-right">
                 <div style="font-size: 28px; line-height: 1; color: <?php echo $row->rata_rata >= 3 ? '#5cc865' : '#c88c5c'; ?>;">
-                    <?php echo $row->rata_rata; ?>
+                    <?php echo ami_e(number_format((float) $row->rata_rata, 2)); ?>
                 </div>
                 <div class="text-muted" style="font-size: 12px; margin-top: 4px;">
                     rata-rata / 4

@@ -1,5 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+require_once APPPATH . 'config/security_bootstrap.php';
 
 /*
 | -------------------------------------------------------------------
@@ -83,10 +84,19 @@ $db_environment = array(
 if (ENVIRONMENT === 'production') {
 	foreach ($db_environment as $value) {
 		if ($value === FALSE || trim((string) $value) === '') {
-			header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-			echo 'Production database configuration is incomplete.';
-			exit(1);
+			ami_fail_closed();
 		}
+	}
+
+	if (
+		ami_privileged_database_username($db_environment['username'])
+		|| ami_default_database_password(
+			$db_environment['password'],
+			$db_environment['username'],
+			$db_environment['database']
+		)
+	) {
+		ami_fail_closed();
 	}
 }
 
@@ -109,5 +119,5 @@ $db['default'] = array(
 	'compress' => FALSE,
 	'stricton' => FALSE,
 	'failover' => array(),
-	'save_queries' => TRUE
+	'save_queries' => (ENVIRONMENT !== 'production')
 );

@@ -13,31 +13,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class MY_Controller extends CI_Controller
 {
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->library('auth_guard');
+    }
+
     /**
      * Cek apakah user sudah login.
      * Redirect ke halaman auth jika belum.
      */
     protected function _check_login()
     {
-        if (!$this->session->userdata('user_id')) {
-            redirect('auth');
-            exit;
-        }
+        $this->auth_guard->check();
     }
 
-    /**
-     * Cek apakah role user termasuk dalam daftar yang diizinkan.
-     *
-     * @param array $allowed_roles  Daftar role yang diizinkan
-     */
-    protected function _check_role(array $allowed_roles)
+    protected function _require_capability($capability)
+    {
+        $this->auth_guard->require_capability($capability);
+    }
+
+    protected function _can($capability)
     {
         $this->_check_login();
-
-        $role = $this->session->userdata('role');
-        if (!in_array($role, $allowed_roles, true)) {
-            show_error('Akses ditolak. Anda tidak memiliki wewenang untuk mengakses halaman ini.', 403, 'Forbidden');
-        }
+        return $this->authorization_policy->allows($this->_user_id(), $capability);
     }
 
     /**
@@ -63,7 +62,7 @@ class Admin_Controller extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_check_role(['super_admin', 'admin_lpmpi']);
+        $this->_require_capability(Authorization_policy::CAP_SPMI_MANAGE);
     }
 }
 
@@ -81,7 +80,7 @@ class Admin_Lpmpi_Controller extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_check_role(['super_admin', 'admin_lpmpi']);
+        $this->_require_capability(Authorization_policy::CAP_SPMI_MANAGE);
     }
 }
 
@@ -95,7 +94,7 @@ class Auditor_Controller extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_check_role(['auditor']);
+        $this->_require_capability(Authorization_policy::CAP_AUDITOR_WORK);
     }
 }
 
@@ -109,6 +108,6 @@ class Auditee_Controller extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_check_role(['auditee']);
+        $this->_require_capability(Authorization_policy::CAP_AUDITEE_WORK);
     }
 }

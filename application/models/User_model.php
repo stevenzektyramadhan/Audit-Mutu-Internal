@@ -38,6 +38,20 @@ class User_model extends CI_Model
         return $this->db->where('id', (int) $id)->update($this->table, $data);
     }
 
+    public function update_last_login($id)
+    {
+        return $this->db
+            ->where('id', (int) $id)
+            ->update($this->table, ['last_login_at' => date('Y-m-d H:i:s')]);
+    }
+
+    public function update_password_hash($id, $password_hash)
+    {
+        return $this->db
+            ->where('id', (int) $id)
+            ->update($this->table, ['password' => $password_hash]);
+    }
+
     public function update_own_profile($id, $data)
     {
         return $this->db
@@ -99,6 +113,15 @@ class User_model extends CI_Model
         return $this->db->where('role', $role)->get($this->table)->result();
     }
 
+    public function get_active_by_role($role)
+    {
+        return $this->db
+            ->where('role', $role)
+            ->where('is_active', 1)
+            ->get($this->table)
+            ->result();
+    }
+
     public function get_lpmpi_accounts($filters = [])
     {
         $this->db
@@ -142,6 +165,18 @@ class User_model extends CI_Model
 
         return (int) $this->db
             ->where('role', $role)
+            ->count_all_results($this->table);
+    }
+
+    public function count_active_by_role($role)
+    {
+        if (!$this->db->table_exists($this->table)) {
+            return 0;
+        }
+
+        return (int) $this->db
+            ->where('role', $role)
+            ->where('is_active', 1)
             ->count_all_results($this->table);
     }
 }

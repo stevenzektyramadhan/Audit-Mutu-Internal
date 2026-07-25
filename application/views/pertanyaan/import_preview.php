@@ -16,7 +16,7 @@ $error_row_count = count($error_rows);
         <div class="d-flex align-items-start justify-content-between flex-wrap mb-4" style="gap:12px;">
             <div>
                 <h2 class="ami-section-title mb-1">Preview Import Pertanyaan</h2>
-                <div class="text-muted"><?php echo html_escape($standar->nama_standar); ?></div>
+                <div class="text-muted"><?php echo ami_e($standar->nama_standar); ?></div>
             </div>
             <a href="<?php echo site_url('pertanyaan?standar_id=' . (int) $standar_id); ?>" class="btn btn-outline-ami btn-ami">
                 <i class="fas fa-arrow-left" aria-hidden="true"></i> Batal
@@ -33,7 +33,7 @@ $error_row_count = count($error_rows);
             <div class="col-md-4 mb-2">
                 <div class="alert <?php echo $error_row_count > 0 ? 'alert-danger' : 'alert-light'; ?> mb-0">
                     <i class="fas fa-times-circle" aria-hidden="true"></i>
-                    <strong><?php echo $error_row_count; ?></strong> baris error
+                    <strong><?php echo (int) $error_row_count; ?></strong> baris error
                 </div>
             </div>
             <div class="col-md-4 mb-2">
@@ -68,9 +68,9 @@ $error_row_count = count($error_rows);
                     ?>
                     <tr>
                         <td><?php echo (int) $row['no']; ?></td>
-                        <td title="<?php echo html_escape($indicator); ?>"><?php echo html_escape($indicator_preview); ?></td>
-                        <td><?php echo html_escape($row['nilai_standar']); ?></td>
-                        <td><?php echo html_escape($row['kategori']); ?></td>
+                        <td title="<?php echo ami_e($indicator); ?>"><?php echo ami_e($indicator_preview); ?></td>
+                        <td><?php echo ami_e($row['nilai_standar']); ?></td>
+                        <td><?php echo ami_e($row['kategori']); ?></td>
                         <td><span class="ami-status tone-green">Siap</span></td>
                     </tr>
                 <?php endforeach; ?>
@@ -93,8 +93,8 @@ $error_row_count = count($error_rows);
                     <?php foreach ($errors as $error): ?>
                         <tr>
                             <td><?php echo (int) $error['row']; ?></td>
-                            <td><?php echo html_escape($error['column']); ?></td>
-                            <td><?php echo html_escape($error['reason']); ?></td>
+                            <td><?php echo ami_e($error['column']); ?></td>
+                            <td><?php echo ami_e($error['reason']); ?></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -117,8 +117,8 @@ $error_row_count = count($error_rows);
                     <?php foreach ($warnings as $warning): ?>
                         <tr>
                             <td><?php echo (int) $warning['row']; ?></td>
-                            <td><?php echo html_escape($warning['column']); ?></td>
-                            <td><?php echo html_escape($warning['reason']); ?></td>
+                            <td><?php echo ami_e($warning['column']); ?></td>
+                            <td><?php echo ami_e($warning['reason']); ?></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -129,7 +129,7 @@ $error_row_count = count($error_rows);
         <div class="d-flex align-items-center justify-content-end flex-wrap" style="gap:10px;">
             <a href="<?php echo site_url('pertanyaan?standar_id=' . (int) $standar_id); ?>" class="btn btn-outline-ami btn-ami">Batal</a>
             <?php echo form_open('pertanyaan/import_confirm/' . (int) $standar_id, ['class' => 'd-inline']); ?>
-                <input type="hidden" name="import_token" value="<?php echo html_escape($import_token); ?>">
+                <input type="hidden" name="import_token" value="<?php echo ami_e($import_token); ?>">
                 <button type="submit" class="btn btn-primary btn-ami" data-loading-text="Mengimport data...">
                     <i class="fas fa-check" aria-hidden="true"></i> Konfirmasi Import
                 </button>

@@ -5,12 +5,15 @@ class Standar_service
 {
     protected $ci;
     protected $standar_model;
+    protected $audit_logger;
 
     public function __construct()
     {
         $this->ci = &get_instance();
         $this->ci->load->model('Standar_model');
+        $this->ci->load->library('audit_logger');
         $this->standar_model = $this->ci->Standar_model;
+        $this->audit_logger = $this->ci->audit_logger;
     }
 
     public function get_all_standar()
@@ -31,6 +34,16 @@ class Standar_service
         }
 
         if ($this->standar_model->create($data)) {
+            $standar_id = (int) $this->ci->db->insert_id();
+            $this->audit_logger->record(
+                'standard_created',
+                'standard',
+                $standar_id,
+                'create',
+                NULL,
+                $data,
+                ['changed_fields' => array_keys($data)]
+            );
             return ['success' => true, 'message' => 'Standar berhasil ditambahkan.'];
         }
         return ['success' => false, 'message' => 'Gagal menambahkan standar.'];
@@ -38,7 +51,8 @@ class Standar_service
 
     public function update_standar($id, $data)
     {
-        if (!$this->standar_model->find($id)) {
+        $existing = $this->standar_model->find($id);
+        if (!$existing) {
             return ['success' => FALSE, 'message' => 'Standar tidak ditemukan.'];
         }
 
@@ -48,6 +62,18 @@ class Standar_service
         }
 
         if ($this->standar_model->update($id, $data)) {
+            $this->audit_logger->record(
+                'standard_updated',
+                'standard',
+                (int) $id,
+                'update',
+                [
+                    'nama_standar' => $existing->nama_standar,
+                    'deskripsi' => $existing->deskripsi,
+                ],
+                $data,
+                ['changed_fields' => array_keys($data)]
+            );
             return ['success' => TRUE, 'message' => 'Standar berhasil diperbarui.'];
         }
 
@@ -56,11 +82,24 @@ class Standar_service
 
     public function delete_standar($id)
     {
-        if (!$this->standar_model->find($id)) {
+        $existing = $this->standar_model->find($id);
+        if (!$existing) {
             return ['success' => FALSE, 'message' => 'Standar tidak ditemukan.'];
         }
 
         if ($this->standar_model->delete($id)) {
+            $this->audit_logger->record(
+                'standard_deleted',
+                'standard',
+                (int) $id,
+                'delete',
+                [
+                    'nama_standar' => $existing->nama_standar,
+                    'deskripsi' => $existing->deskripsi,
+                ],
+                NULL,
+                ['changed_fields' => ['deleted']]
+            );
             return ['success' => TRUE, 'message' => 'Standar dan data audit terkait berhasil dihapus.'];
         }
 

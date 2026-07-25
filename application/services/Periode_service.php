@@ -8,12 +8,15 @@ class Periode_service
 
     /** @var Periode_model */
     protected $periode_model;
+    protected $audit_logger;
 
     public function __construct()
     {
         $this->ci = &get_instance();
         $this->ci->load->model('Periode_model');
+        $this->ci->load->library('audit_logger');
         $this->periode_model = $this->ci->Periode_model;
+        $this->audit_logger = $this->ci->audit_logger;
     }
 
     /**
@@ -68,6 +71,19 @@ class Periode_service
         $this->ci->db->trans_complete();
 
         if ($inserted && $this->ci->db->trans_status()) {
+            $periode_id = (int) $this->ci->db->insert_id();
+            $this->audit_logger->record(
+                'audit_period_created',
+                'audit_period',
+                $periode_id,
+                'create',
+                NULL,
+                $data,
+                [
+                    'status_to' => $is_aktif ? 'active' : 'inactive',
+                    'changed_fields' => array_keys($data),
+                ]
+            );
             return ['success' => TRUE, 'message' => 'Periode audit berhasil ditambahkan.'];
         }
 
@@ -112,6 +128,26 @@ class Periode_service
         $this->ci->db->trans_complete();
 
         if ($updated && $this->ci->db->trans_status()) {
+            $this->audit_logger->record(
+                'audit_period_updated',
+                'audit_period',
+                $id,
+                'update',
+                [
+                    'nama_periode' => $existing->nama_periode,
+                    'tahun_akademik' => $existing->tahun_akademik,
+                    'semester' => $existing->semester,
+                    'tanggal_buka' => $existing->tanggal_buka,
+                    'tanggal_tutup' => $existing->tanggal_tutup,
+                    'is_aktif' => (int) $existing->is_aktif,
+                ],
+                $data,
+                [
+                    'status_from' => (int) $existing->is_aktif ? 'active' : 'inactive',
+                    'status_to' => $is_aktif ? 'active' : 'inactive',
+                    'changed_fields' => array_keys($data),
+                ]
+            );
             return ['success' => TRUE, 'message' => 'Periode audit berhasil diperbarui.'];
         }
 
@@ -134,6 +170,15 @@ class Periode_service
         }
 
         if ($this->periode_model->delete($id)) {
+            $this->audit_logger->record(
+                'audit_period_deleted',
+                'audit_period',
+                $id,
+                'delete',
+                ['is_aktif' => (int) $existing->is_aktif],
+                NULL,
+                ['status_from' => (int) $existing->is_aktif ? 'active' : 'inactive']
+            );
             return ['success' => TRUE, 'message' => 'Periode audit berhasil dihapus.'];
         }
 
@@ -160,11 +205,29 @@ class Periode_service
         // Jika sudah aktif, nonaktifkan
         if ($is_aktif === 1) {
             $this->periode_model->update($id, ['is_aktif' => 0]);
+            $this->audit_logger->record(
+                'audit_period_deactivated',
+                'audit_period',
+                $id,
+                'deactivate',
+                ['is_aktif' => 1],
+                ['is_aktif' => 0],
+                ['status_from' => 'active', 'status_to' => 'inactive']
+            );
             return ['success' => TRUE, 'message' => 'Periode audit dinonaktifkan.'];
         }
 
         // Jika tidak aktif, aktifkan (nonaktifkan semua yg lain dulu)
         if ($this->periode_model->set_active($id)) {
+            $this->audit_logger->record(
+                'audit_period_activated',
+                'audit_period',
+                $id,
+                'activate',
+                ['is_aktif' => 0],
+                ['is_aktif' => 1],
+                ['status_from' => 'inactive', 'status_to' => 'active']
+            );
             return ['success' => TRUE, 'message' => 'Periode audit berhasil diaktifkan.'];
         }
 

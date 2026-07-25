@@ -12,7 +12,7 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
     <div class="ami-panel-body">
         <div class="d-flex align-items-center justify-content-between mb-4">
             <h2 class="ami-section-title m-0">Laporan & Statistik</h2>
-            <a class="btn-ami btn-outline-ami" href="<?php echo $export_url; ?>">
+            <a class="btn-ami btn-outline-ami" href="<?php echo ami_e($export_url); ?>">
                 <i class="fas fa-file-excel"></i> Export Excel
             </a>
         </div>
@@ -24,7 +24,7 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
                     <option value="0">Semua periode</option>
                     <?php foreach ($periode_list as $periode): ?>
                         <option value="<?php echo (int) $periode->id; ?>" <?php echo (int) $filters['periode_id'] === (int) $periode->id ? 'selected' : ''; ?>>
-                            <?php echo html_escape($periode->nama_periode); ?>
+                            <?php echo ami_e($periode->nama_periode); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -35,7 +35,7 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
                     <option value="0">Semua auditee</option>
                     <?php foreach ($auditee_list as $auditee): ?>
                         <option value="<?php echo (int) $auditee->id; ?>" <?php echo (int) $filters['auditee_id'] === (int) $auditee->id ? 'selected' : ''; ?>>
-                            <?php echo html_escape($auditee->nama); ?>
+                            <?php echo ami_e($auditee->nama); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -86,7 +86,7 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
                 <?php if (!empty($rekap)): ?>
                     <?php foreach ($rekap as $row): ?>
                         <tr>
-                            <td><?php echo html_escape($row->nama_standar); ?></td>
+                            <td><?php echo ami_e($row->nama_standar); ?></td>
                             <td><?php echo (int) $row->total_tugas; ?></td>
                             <td><?php echo (int) $row->total_jawaban; ?></td>
                             <td><strong><?php echo number_format((float) $row->rata_rata_skor, 2); ?></strong></td>
@@ -120,8 +120,8 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
 </div>
 
 <?php if (!empty($rekap)): ?>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+    <script nonce="<?php echo ami_csp_nonce(); ?>" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script nonce="<?php echo ami_csp_nonce(); ?>">
     (function () {
         if (typeof Chart === 'undefined') return;
         var canvas = document.getElementById('laporanChart');
@@ -130,10 +130,10 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
         new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: <?php echo $chart_labels; ?>,
+                labels: <?php echo ami_json($chart_labels); ?>,
                 datasets: [{
                     label: 'Rata-rata skor',
-                    data: <?php echo $chart_values; ?>,
+                    data: <?php echo ami_json($chart_values); ?>,
                     backgroundColor: 'rgba(77, 163, 255, 0.55)',
                     borderColor: 'rgba(77, 163, 255, 1)',
                     borderWidth: 1

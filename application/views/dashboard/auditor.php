@@ -18,7 +18,7 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
-<style>
+<style nonce="<?php echo ami_csp_nonce(); ?>">
     .ami-dashboard-logo-banner {
         display: flex;
         align-items: center;
@@ -60,12 +60,12 @@ include APPPATH . 'views/layouts/sidebar.php';
 <div class="ami-stat-grid">
     <?php foreach ($stat_cards as $card): ?>
         <div class="ami-stat-card">
-            <div class="ami-stat-icon <?php echo html_escape($card['tone']); ?>">
-                <i class="fas <?php echo html_escape($card['icon']); ?>" aria-hidden="true"></i>
+            <div class="ami-stat-icon <?php echo ami_e($card['tone']); ?>">
+                <i class="fas <?php echo ami_e($card['icon']); ?>" aria-hidden="true"></i>
             </div>
             <div>
-                <div class="ami-stat-label"><?php echo html_escape($card['label']); ?></div>
-                <div class="ami-stat-value"><?php echo html_escape((string) $card['value']); ?></div>
+                <div class="ami-stat-label"><?php echo ami_e($card['label']); ?></div>
+                <div class="ami-stat-value"><?php echo ami_e((string) $card['value']); ?></div>
             </div>
         </div>
     <?php endforeach; ?>
@@ -81,9 +81,9 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="ami-task-card">
             <div class="ami-task-icon tone-blue"><i class="fas fa-building" aria-hidden="true"></i></div>
             <div class="ami-task-main">
-                <div class="ami-task-title"><?php echo html_escape($tugas->auditee_nama); ?></div>
+                <div class="ami-task-title"><?php echo ami_e($tugas->auditee_nama); ?></div>
                 <div class="ami-task-meta">
-                    <?php echo html_escape($tugas->nama_standar); ?> &middot; Jawaban auditee sudah masuk
+                    <?php echo ami_e($tugas->nama_standar); ?> &middot; Jawaban auditee sudah masuk
                 </div>
             </div>
             <div>
@@ -123,11 +123,11 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <tbody>
                 <?php foreach ($graded_tugas as $tugas): ?>
                     <tr>
-                        <td><?php echo html_escape($tugas->auditee_nama); ?></td>
-                        <td><?php echo html_escape($tugas->nama_standar); ?></td>
+                        <td><?php echo ami_e($tugas->auditee_nama); ?></td>
+                        <td><?php echo ami_e($tugas->nama_standar); ?></td>
                         <td>
                             <span class="<?php echo (float) $tugas->rata_rata >= 3 ? 'text-success' : 'text-warning'; ?> font-weight-bold">
-                                <?php echo html_escape(number_format((float) $tugas->rata_rata, 1)); ?> / 4
+                                <?php echo ami_e(number_format((float) $tugas->rata_rata, 1)); ?> / 4
                             </span>
                         </td>
                         <td class="text-right"><a class="ami-action-btn" href="<?php echo site_url('auditor/nilai/' . (int) $tugas->id); ?>"><i class="fas fa-eye" aria-hidden="true"></i>Lihat detail</a></td>

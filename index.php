@@ -62,6 +62,20 @@
 	}
 	define('ENVIRONMENT', trim((string) $ci_environment));
 
+	try
+	{
+		$request_id = bin2hex(random_bytes(16));
+	}
+	catch (Exception $exception)
+	{
+		$request_id = hash('sha256', uniqid('', TRUE).microtime(TRUE));
+	}
+	define('AMI_REQUEST_ID', $request_id);
+	if (PHP_SAPI !== 'cli' && ! headers_sent())
+	{
+		header('X-Request-ID: '.AMI_REQUEST_ID);
+	}
+
 /*
  *---------------------------------------------------------------
  * ERROR REPORTING
@@ -311,6 +325,8 @@ switch (ENVIRONMENT)
 	}
 
 	define('VIEWPATH', $view_folder.DIRECTORY_SEPARATOR);
+
+	require_once APPPATH.'config/security_headers.php';
 
 /*
  * --------------------------------------------------------------------

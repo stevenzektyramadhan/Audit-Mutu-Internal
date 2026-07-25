@@ -31,10 +31,10 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <?php $no = 1; foreach ($standar as $row): ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo html_escape($row->nama_standar); ?></td>
+                            <td><?php echo ami_e($row->nama_standar); ?></td>
                             <td>
                                 <?php if (!empty($row->deskripsi)): ?>
-                                    <?php echo html_escape($row->deskripsi); ?>
+                                    <?php echo ami_e($row->deskripsi); ?>
                                 <?php else: ?>
                                     <span class="text-muted">&mdash;</span>
                                 <?php endif; ?>
@@ -43,7 +43,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <span class="text-primary font-weight-bold"><?php echo (int) $row->total_pertanyaan; ?></span>
                             </td>
                             <td>
-                                <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
+                                <?php echo ami_e(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
                                 <div class="ami-row-actions">

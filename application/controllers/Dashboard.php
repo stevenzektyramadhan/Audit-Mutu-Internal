@@ -24,21 +24,21 @@ class Dashboard extends CI_Controller {
 
     public function index()
     {
-        $this->auth_guard->check();
+        $this->auth_guard->require_capability(Authorization_policy::CAP_DASHBOARD_VIEW);
 
         $role = $this->session->userdata('role');
         $user_id = (int) $this->session->userdata('user_id');
 
         if ($role === 'super_admin' || $role === 'admin_lpmpi') {
             $data = $this->dashboard_service->get_super_admin_data();
-            $data['task_status_chart'] = json_encode([
+            $data['task_status_chart'] = [
                 'labels' => ['Belum diisi', 'Diisi', 'Dinilai'],
                 'values' => [
                     (int) $data['task_status_counts'][STATUS_BELUM_DIISI],
                     (int) $data['task_status_counts'][STATUS_DIISI],
                     (int) $data['task_status_counts'][STATUS_DINILAI],
                 ],
-            ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+            ];
             $this->load->view('dashboard/super_admin', $data);
             return;
         }

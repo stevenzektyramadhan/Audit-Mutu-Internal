@@ -20,10 +20,10 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="ami-task-card align-items-center" style="border-left:3px solid #dc3545;">
             <div class="ami-task-icon tone-amber"><i class="fas fa-pen" aria-hidden="true"></i></div>
             <div class="ami-task-main">
-                <div class="ami-task-title"><?php echo html_escape($item->nama_standar); ?></div>
+                <div class="ami-task-title"><?php echo ami_e($item->nama_standar); ?></div>
                 <div class="ami-task-meta">
-                    Auditor: <?php echo html_escape($item->auditor_nama); ?> &middot;
-                    <?php echo html_escape((string) $item->jumlah_pertanyaan); ?> pertanyaan
+                    Auditor: <?php echo ami_e($item->auditor_nama); ?> &middot;
+                    <?php echo ami_e((string) $item->jumlah_pertanyaan); ?> pertanyaan
                 </div>
             </div>
             <a class="btn btn-primary btn-ami" href="<?php echo site_url('auditee/isi/' . (int) $item->id); ?>">

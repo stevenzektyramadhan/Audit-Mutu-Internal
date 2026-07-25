@@ -34,7 +34,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
         <form method="get" action="<?php echo site_url('users'); ?>" class="ami-filter-bar">
             <div class="ami-filter-grow">
                 <label for="user-search" class="ami-stat-label">Cari pengguna</label>
-                <input id="user-search" type="search" name="q" class="form-control" value="<?php echo html_escape($filters['q']); ?>" placeholder="Nama atau email">
+                <input id="user-search" type="search" name="q" class="form-control" value="<?php echo ami_e($filters['q']); ?>" placeholder="Nama atau email">
             </div>
             <div class="ami-filter-select">
                 <label for="role-filter" class="ami-stat-label">Role</label>
@@ -60,6 +60,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
                     <th>Nama</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>Status</th>
                     <th>Dibuat</th>
                     <th>Aksi</th>
                 </tr>
@@ -69,15 +70,20 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
                     <?php $no = 1; foreach ($users as $user): ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo html_escape($user->nama); ?></td>
-                            <td><?php echo html_escape($user->email); ?></td>
+                            <td><?php echo ami_e($user->nama); ?></td>
+                            <td><?php echo ami_e($user->email); ?></td>
                             <td>
-                                <span class="ami-status <?php echo isset($role_tones[$user->role]) ? $role_tones[$user->role] : 'tone-blue'; ?>">
-                                    <?php echo html_escape(isset($role_labels[$user->role]) ? $role_labels[$user->role] : $user->role); ?>
+                    <span class="ami-status <?php echo ami_e(isset($role_tones[$user->role]) ? $role_tones[$user->role] : 'tone-blue'); ?>">
+                                    <?php echo ami_e(isset($role_labels[$user->role]) ? $role_labels[$user->role] : $user->role); ?>
                                 </span>
                             </td>
                             <td>
-                                <?php echo html_escape(format_tanggal_indo($user->created_at)); ?>
+                                <span class="ami-status <?php echo (int) $user->is_active === 1 ? 'tone-green' : 'tone-amber'; ?>">
+                                    <?php echo (int) $user->is_active === 1 ? 'Aktif' : 'Nonaktif'; ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php echo ami_e(format_tanggal_indo($user->created_at)); ?>
                             </td>
                             <td>
                                 <div class="ami-row-actions">
@@ -95,7 +101,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <div class="ami-empty">
                                 <div class="ami-empty-icon"><i class="fas fa-users" aria-hidden="true"></i></div>
                                 <div class="ami-empty-title">Pengguna tidak ditemukan</div>

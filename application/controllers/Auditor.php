@@ -15,6 +15,9 @@ class Auditor extends CI_Controller
     /** @var CI_Form_validation */
     public $form_validation;
 
+    /** @var Authorization_policy */
+    public $authorization_policy;
+
     /** @var Auditor_service */
     protected $auditor_service;
 
@@ -25,7 +28,9 @@ class Auditor extends CI_Controller
     {
         parent::__construct();
         $this->load->library('auth_guard');
-        $this->auth_guard->only(['auditor']);
+        $this->auth_guard->require_capability(Authorization_policy::CAP_AUDITOR_WORK);
+        $this->load->library('authorization_policy');
+        $this->load->library('file_security');
         $this->load->helper('download');
 
         require_once APPPATH . 'services/Auditor_service.php';
@@ -68,6 +73,12 @@ class Auditor extends CI_Controller
             return;
         }
 
+        foreach ($detail['jawaban'] as $jawaban) {
+            $jawaban->dokumen_bukti_name = !empty($jawaban->dokumen_bukti)
+                ? $this->file_security->original_name('bukti_auditor', $jawaban->dokumen_bukti)
+                : '';
+        }
+
         $data = $detail;
         $data['title'] = 'Form Penilaian - AMI';
         $data['page_title'] = 'Form Penilaian';
@@ -85,7 +96,10 @@ class Auditor extends CI_Controller
         }
 
         $jawaban_id = (int) $jawaban_id;
-        $jawaban = $this->Jawaban_model->find_jawaban_for_auditor($jawaban_id, $this->user_id());
+        $jawaban = $this->authorization_policy->getAssessableEvidence(
+            $this->user_id(),
+            $jawaban_id
+        );
         if (!$jawaban) {
             $this->json_response(['success' => FALSE, 'message' => 'Jawaban audit tidak ditemukan atau bukan milik Anda.'], 404);
             return;
@@ -105,7 +119,7 @@ class Auditor extends CI_Controller
         $result = $this->Jawaban_model->save_penilaian_item($jawaban_id, $this->user_id(), $data);
         if (!$result['success']) {
             if (!empty($upload['file_name'])) {
-                $this->delete_bukti_file($upload['file_name']);
+                $this->delete_bukti_file($upload['file_name'], $jawaban_id, 'database_update_failed');
             }
 
             $this->json_response($result, 422);
@@ -113,7 +127,7 @@ class Auditor extends CI_Controller
         }
 
         if (!empty($upload['file_name']) && !empty($jawaban->dokumen_bukti)) {
-            $this->delete_bukti_file($jawaban->dokumen_bukti);
+            $this->delete_bukti_file($jawaban->dokumen_bukti, $jawaban_id, 'replaced');
         }
 
         $response = $this->format_penilaian_response($result['jawaban']);
@@ -129,6 +143,11 @@ class Auditor extends CI_Controller
         }
 
         $tugas_id = (int) $tugas_id;
+        if (!$this->authorization_policy->canAssessAssignment($this->user_id(), $tugas_id)) {
+            show_error('Tugas audit tidak dapat dinilai.', 403, 'Forbidden');
+            return;
+        }
+
         $result = $this->Jawaban_model->save_penilaian_batch(
             $tugas_id,
             $this->user_id(),
@@ -146,6 +165,11 @@ class Auditor extends CI_Controller
         }
 
         $tugas_id = (int) $tugas_id;
+        if (!$this->authorization_policy->canAssessAssignment($this->user_id(), $tugas_id)) {
+            show_error('Tugas audit tidak dapat dinilai.', 403, 'Forbidden');
+            return;
+        }
+
         $draft_result = $this->Jawaban_model->save_penilaian_batch(
             $tugas_id,
             $this->user_id(),
@@ -170,6 +194,11 @@ class Auditor extends CI_Controller
         }
 
         $tugas_id = (int) $tugas_id;
+        if (!$this->authorization_policy->canRequestAuditeeRevision($this->user_id(), $tugas_id)) {
+            show_error('Tugas audit tidak dapat dikembalikan untuk revisi.', 403, 'Forbidden');
+            return;
+        }
+
         $result = $this->Jawaban_model->revisi_tugas($tugas_id, $this->user_id());
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect('auditor/penilaian');
@@ -177,19 +206,25 @@ class Auditor extends CI_Controller
 
     public function download_bukti_penilaian($jawaban_id)
     {
-        $jawaban = $this->Jawaban_model->find_jawaban_for_auditor((int) $jawaban_id, $this->user_id());
+        $jawaban = $this->authorization_policy->getViewableEvidence(
+            $this->user_id(),
+            (int) $jawaban_id
+        );
         if (!$jawaban || empty($jawaban->dokumen_bukti)) {
             show_error('File bukti tidak ditemukan.', 404, 'File tidak ditemukan');
             return;
         }
 
-        $path = private_storage_path('bukti_auditor', $jawaban->dokumen_bukti);
-        if ($path === NULL) {
+        if (!$this->file_security->download(
+            'bukti_auditor',
+            $jawaban->dokumen_bukti,
+            'jawaban_audit',
+            (int) $jawaban_id,
+            $this->user_id()
+        )) {
             show_error('File bukti tidak ditemukan di server.', 404, 'File tidak ditemukan');
             return;
         }
-
-        force_download($path, NULL);
     }
 
     public function tugas()
@@ -211,7 +246,16 @@ class Auditor extends CI_Controller
 
     public function simpan_nilai($tugas_id)
     {
+        if (!$this->require_post()) {
+            return;
+        }
+
         $tugas_id = (int) $tugas_id;
+        if (!$this->authorization_policy->canAssessAssignment($this->user_id(), $tugas_id)) {
+            show_error('Tugas audit tidak dapat dinilai.', 403, 'Forbidden');
+            return;
+        }
+
         $detail = $this->auditor_service->get_detail($tugas_id, $this->user_id());
 
         if (!$detail['success']) {
@@ -261,7 +305,10 @@ class Auditor extends CI_Controller
 
     private function get_penilaian_detail_or_404($tugas_id)
     {
-        $tugas = $this->Jawaban_model->find_tugas_for_auditor((int) $tugas_id, $this->user_id());
+        $tugas = $this->authorization_policy->getViewableAssignment(
+            $this->user_id(),
+            (int) $tugas_id
+        );
         if (!$tugas) {
             show_error('Tugas audit tidak ditemukan atau bukan milik Anda.', 404, 'Tugas tidak ditemukan');
             exit;
@@ -299,33 +346,13 @@ class Auditor extends CI_Controller
             return ['success' => TRUE, 'file_name' => NULL, 'message' => ''];
         }
 
-        $upload_dir = $this->bukti_upload_dir();
-        if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, TRUE)) {
-            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Folder upload bukti tidak dapat dibuat.'];
-        }
-
-        $config = [
-            'upload_path' => $upload_dir,
-            'allowed_types' => 'pdf|doc|docx|jpg|jpeg|png',
-            'max_size' => 5120,
-            'file_name' => 'bukti_auditor_' . (int) $jawaban_id . '_' . date('YmdHis'),
-            'overwrite' => FALSE,
-            'remove_spaces' => TRUE,
-        ];
-
-        $this->load->library('upload');
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('dokumen_bukti')) {
-            return [
-                'success' => FALSE,
-                'file_name' => NULL,
-                'message' => strip_tags($this->upload->display_errors('', '')),
-            ];
-        }
-
-        $upload_data = $this->upload->data();
-        return ['success' => TRUE, 'file_name' => $upload_data['file_name'], 'message' => ''];
+        return $this->file_security->upload(
+            'dokumen_bukti',
+            'bukti_auditor',
+            'jawaban_audit',
+            (int) $jawaban_id,
+            $this->user_id()
+        );
     }
 
     private function format_penilaian_response($jawaban)
@@ -334,6 +361,9 @@ class Auditor extends CI_Controller
         $skor_options = skor_audit_options();
         $jenis_temuan = $jawaban ? (string) $jawaban->jenis_temuan : '';
         $dokumen_bukti = $jawaban ? (string) $jawaban->dokumen_bukti : '';
+        $dokumen_bukti_name = $dokumen_bukti !== ''
+            ? $this->file_security->original_name('bukti_auditor', $dokumen_bukti)
+            : '';
 
         return [
             'csrf' => [
@@ -352,7 +382,7 @@ class Auditor extends CI_Controller
                 'tgl_bukti' => $jawaban ? (string) $jawaban->tgl_bukti : '',
                 'tgl_bukti_label' => !empty($jawaban->tgl_bukti) ? format_tanggal_indo($jawaban->tgl_bukti) : '-',
                 'dokumen_bukti' => $dokumen_bukti,
-                'dokumen_bukti_label' => $dokumen_bukti !== '' ? $dokumen_bukti : '-',
+                'dokumen_bukti_label' => $dokumen_bukti_name !== '' ? $dokumen_bukti_name : '-',
                 'download_url' => $dokumen_bukti !== '' ? site_url('auditor/penilaian/download_bukti/' . (int) $jawaban->id) : '',
                 'status_label' => $skor > 0 ? 'Sudah dinilai' : 'Belum dinilai',
                 'status_class' => $skor > 0 ? 'status-dinilai' : 'status-belum_diisi',
@@ -361,14 +391,16 @@ class Auditor extends CI_Controller
         ];
     }
 
-    private function bukti_upload_dir()
+    private function delete_bukti_file($file_name, $jawaban_id, $reason)
     {
-        return private_storage_dir('bukti_auditor');
-    }
-
-    private function delete_bukti_file($file_name)
-    {
-        delete_private_file('bukti_auditor', $file_name);
+        return $this->file_security->retire(
+            'bukti_auditor',
+            $file_name,
+            'jawaban_audit',
+            (int) $jawaban_id,
+            $this->user_id(),
+            $reason
+        );
     }
 
     private function json_response($payload, $status = 200)

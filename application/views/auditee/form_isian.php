@@ -37,21 +37,21 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="row">
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Periode</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->nama_periode ?: '-'); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->nama_periode ?: '-'); ?></div>
             </div>
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Standar</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->nama_standar ?: '-'); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->nama_standar ?: '-'); ?></div>
             </div>
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Auditor</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->auditor_nama ?: '-'); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->auditor_nama ?: '-'); ?></div>
             </div>
             <div class="col-md-3">
                 <div class="ami-stat-label">Status</div>
-                <span class="ami-status status-<?php echo html_escape($status_key); ?>">
-                    <i class="fas <?php echo html_escape($status_icons[$status_key] ?? 'fa-circle'); ?>" aria-hidden="true"></i>
-                    <?php echo html_escape($tugas->display_status_label); ?>
+                <span class="ami-status status-<?php echo ami_e($status_key); ?>">
+                    <i class="fas <?php echo ami_e($status_icons[$status_key] ?? 'fa-circle'); ?>" aria-hidden="true"></i>
+                    <?php echo ami_e($tugas->display_status_label); ?>
                 </span>
             </div>
         </div>
@@ -80,25 +80,26 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php
         $field_jawaban = 'jawaban[' . (int) $item->id . ']';
         $field_link = 'link_bukti[' . (int) $item->id . ']';
-        $current_jawaban = set_value($field_jawaban, $item->jawaban);
-        $current_link = set_value($field_link, $item->link_bukti);
+        $current_jawaban = set_value($field_jawaban, $item->jawaban, FALSE);
+        $current_link = set_value($field_link, $item->link_bukti, FALSE);
+        $safe_current_link = ami_safe_http_url($current_link);
         ?>
         <div class="ami-panel mb-3">
             <div class="ami-panel-body">
                 <div class="d-flex align-items-start mb-3">
                     <span class="ami-nav-badge mr-2" style="margin-left:0;"><?php echo (int) $index + 1; ?></span>
-                    <div class="font-weight-bold"><?php echo html_escape($item->isi_pertanyaan); ?></div>
+                    <div class="font-weight-bold"><?php echo ami_e($item->isi_pertanyaan); ?></div>
                 </div>
 
                 <div class="form-group">
                     <label for="jawaban-<?php echo (int) $item->id; ?>">Jawaban</label>
-                    <textarea id="jawaban-<?php echo (int) $item->id; ?>" name="jawaban[<?php echo (int) $item->id; ?>]" rows="4" class="form-control" <?php echo $read_only ? 'readonly' : ''; ?>><?php echo html_escape($current_jawaban); ?></textarea>
+                    <textarea id="jawaban-<?php echo (int) $item->id; ?>" name="jawaban[<?php echo (int) $item->id; ?>]" rows="4" class="form-control" <?php echo $read_only ? 'readonly' : ''; ?>><?php echo ami_e($current_jawaban); ?></textarea>
                 </div>
                 <div class="form-group mb-0">
                     <label for="link-<?php echo (int) $item->id; ?>">Link bukti</label>
-                    <input id="link-<?php echo (int) $item->id; ?>" type="url" name="link_bukti[<?php echo (int) $item->id; ?>]" value="<?php echo html_escape($current_link); ?>" class="form-control" placeholder="https://..." <?php echo $read_only ? 'readonly' : ''; ?>>
-                    <?php if (!empty($current_link)): ?>
-                        <a class="d-inline-block mt-2" href="<?php echo html_escape($current_link); ?>" target="_blank" rel="noopener noreferrer">
+                    <input id="link-<?php echo (int) $item->id; ?>" type="url" name="link_bukti[<?php echo (int) $item->id; ?>]" value="<?php echo ami_e($current_link); ?>" class="form-control" placeholder="https://..." <?php echo $read_only ? 'readonly' : ''; ?>>
+                    <?php if ($safe_current_link !== ''): ?>
+                        <a class="d-inline-block mt-2" href="<?php echo ami_e($safe_current_link); ?>" target="_blank" rel="noopener noreferrer">
                             <i class="fas fa-external-link-alt mr-1" aria-hidden="true"></i>Buka bukti
                         </a>
                     <?php endif; ?>

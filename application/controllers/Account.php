@@ -8,9 +8,10 @@ class Account extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_check_login();
+        $this->_require_capability(Authorization_policy::CAP_ACCOUNT_SELF);
         $this->load->helper(['form', 'url', 'app']);
         $this->load->library('form_validation');
+        $this->load->library('file_security');
         require_once APPPATH . 'services/Account_service.php';
         $this->account_service = new Account_service();
     }
@@ -61,7 +62,14 @@ class Account extends MY_Controller
             $upload['file_name']
         );
         if (!$result['success']) {
-            if ($upload['file_name'] !== NULL && !delete_private_file('user_photos', $upload['file_name'])) {
+            if ($upload['file_name'] !== NULL && !$this->file_security->retire(
+                'user_photos',
+                $upload['file_name'],
+                'user',
+                $user_id,
+                $user_id,
+                'database_update_failed'
+            )) {
                 log_message('error', 'Gagal membersihkan foto akun baru untuk user ' . $user_id);
             }
             $this->session->set_flashdata('error', $result['message']);
@@ -70,7 +78,14 @@ class Account extends MY_Controller
         }
 
         if ($upload['file_name'] !== NULL && !empty($result['previous_profile_photo_path'])
-            && !delete_private_file('user_photos', $result['previous_profile_photo_path'])) {
+            && !$this->file_security->retire(
+                'user_photos',
+                $result['previous_profile_photo_path'],
+                'user',
+                $user_id,
+                $user_id,
+                'replaced'
+            )) {
             log_message('error', 'Gagal membersihkan foto akun lama untuk user ' . $user_id);
         }
 
@@ -90,22 +105,37 @@ class Account extends MY_Controller
     {
         $account = $this->account_service->get_own_account($this->_user_id());
         $file_name = $account ? (string) $account->profile_photo_path : '';
-        $path = private_storage_path('user_photos', $file_name);
-        if ($path === NULL) {
+        $resolved = $this->file_security->resolve(
+            'user_photos',
+            $file_name,
+            'user',
+            $this->_user_id(),
+            $this->_user_id()
+        );
+        if ($resolved === NULL) {
             show_404();
             return;
         }
+        $path = $resolved['path'];
 
         $mime = $this->image_mime($path);
         if ($mime === NULL) {
             show_404();
             return;
         }
+        $this->file_security->record_read(
+            $resolved['asset'],
+            'user_photos',
+            'user',
+            $this->_user_id(),
+            $this->_user_id()
+        );
 
         $this->output
             ->set_header('Cache-Control: private, no-store, max-age=0')
             ->set_header('Pragma: no-cache')
             ->set_header('Expires: 0')
+            ->set_header('X-Content-Type-Options: nosniff')
             ->set_content_type($mime)
             ->set_header('Content-Length: ' . (string) filesize($path))
             ->set_output(file_get_contents($path));
@@ -117,38 +147,13 @@ class Account extends MY_Controller
             return ['success' => TRUE, 'file_name' => NULL, 'message' => ''];
         }
 
-        $file = $_FILES['profile_photo'];
-        if (!isset($file['error'], $file['tmp_name'], $file['size'])
-            || $file['error'] !== UPLOAD_ERR_OK
-            || !is_uploaded_file($file['tmp_name'])
-            || (int) $file['size'] > 2 * 1024 * 1024) {
-            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Foto harus berupa JPEG atau PNG maksimal 2 MiB.'];
-        }
-
-        $mime = $this->image_mime($file['tmp_name']);
-        $extension = $mime === 'image/jpeg' ? 'jpg' : ($mime === 'image/png' ? 'png' : NULL);
-        if ($extension === NULL) {
-            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Foto harus berupa JPEG atau PNG.'];
-        }
-
-        $directory = private_storage_dir('user_photos');
-        if (!is_dir($directory) && !mkdir($directory, 0700, TRUE) && !is_dir($directory)) {
-            log_message('error', 'Direktori foto akun tidak dapat dibuat.');
-            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Foto gagal disimpan.'];
-        }
-
-        try {
-            $file_name = bin2hex(random_bytes(24)) . '.' . $extension;
-        } catch (Exception $exception) {
-            log_message('error', 'Nama foto akun acak gagal dibuat: ' . $exception->getMessage());
-            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Foto gagal disimpan.'];
-        }
-
-        if (!move_uploaded_file($file['tmp_name'], $directory . $file_name)) {
-            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Foto gagal disimpan.'];
-        }
-
-        return ['success' => TRUE, 'file_name' => $file_name, 'message' => ''];
+        return $this->file_security->upload(
+            'profile_photo',
+            'user_photos',
+            'user',
+            $this->_user_id(),
+            $this->_user_id()
+        );
     }
 
     private function image_mime($path)

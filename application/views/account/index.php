@@ -19,9 +19,9 @@ include APPPATH . 'views/layouts/sidebar.php';
     <div class="ami-panel-body">
         <div class="ami-account-heading">
             <?php if (!empty($account->profile_photo_path)): ?>
-                <img src="<?php echo site_url('account/photo'); ?>" alt="Foto profil <?php echo html_escape($account->nama); ?>" class="ami-account-photo">
+                <img src="<?php echo site_url('account/photo'); ?>" alt="Foto profil <?php echo ami_e($account->nama); ?>" class="ami-account-photo">
             <?php else: ?>
-                <div class="ami-account-photo ami-account-initials" aria-label="Inisial <?php echo html_escape($initials); ?>"><?php echo html_escape($initials); ?></div>
+                <div class="ami-account-photo ami-account-initials" aria-label="Inisial <?php echo ami_e($initials); ?>"><?php echo ami_e($initials); ?></div>
             <?php endif; ?>
             <div>
                 <h2 class="ami-section-title mb-1">Profil akun</h2>
@@ -36,7 +36,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php echo form_open_multipart('account/update'); ?>
             <div class="form-group">
                 <label for="nama">Nama lengkap</label>
-                <input type="text" class="form-control" id="nama" name="nama" value="<?php echo html_escape(set_value('nama', $account->nama)); ?>" required maxlength="100" autocomplete="name">
+                <input type="text" class="form-control" id="nama" name="nama" value="<?php echo ami_e(set_value('nama', $account->nama, FALSE)); ?>" required maxlength="100" autocomplete="name">
             </div>
             <div class="form-group mb-4">
                 <label for="profile_photo">Foto profil</label>

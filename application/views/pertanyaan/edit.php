@@ -18,14 +18,14 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <select class="form-control" id="standar_id" name="standar_id" required>
                     <?php foreach ($standar as $std): ?>
                         <option value="<?php echo (int) $std->id; ?>" <?php echo set_select('standar_id', $std->id, (int) $pertanyaan->standar_id === (int) $std->id); ?>>
-                            <?php echo html_escape($std->nama_standar); ?>
+                            <?php echo ami_e($std->nama_standar); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div class="form-group mb-4">
                 <label for="isi_pertanyaan">Isi Pertanyaan</label>
-                <textarea class="form-control" id="isi_pertanyaan" name="isi_pertanyaan" rows="5" required><?php echo html_escape(set_value('isi_pertanyaan', $pertanyaan->isi_pertanyaan)); ?></textarea>
+                <textarea class="form-control" id="isi_pertanyaan" name="isi_pertanyaan" rows="5" required><?php echo ami_e(set_value('isi_pertanyaan', $pertanyaan->isi_pertanyaan, FALSE)); ?></textarea>
             </div>
             <div class="ami-actions justify-content-end">
                 <a href="<?php echo site_url('pertanyaan'); ?>" class="btn btn-outline-ami btn-ami">Batal</a>

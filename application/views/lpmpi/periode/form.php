@@ -22,12 +22,12 @@ include APPPATH . 'views/layouts/sidebar.php';
 
             <div class="mb-3">
                 <label for="nama_periode" class="form-label text-light">Nama Periode</label>
-                <input type="text" class="form-control bg-dark text-light border-secondary" id="nama_periode" name="nama_periode" value="<?php echo html_escape(set_value('nama_periode', $is_edit ? $periode->nama_periode : '')); ?>" required style="border-radius: 7px;" placeholder="Contoh: Semester Ganjil 2025/2026">
+                <input type="text" class="form-control bg-dark text-light border-secondary" id="nama_periode" name="nama_periode" value="<?php echo ami_e(set_value('nama_periode', $is_edit ? $periode->nama_periode : '', FALSE)); ?>" required style="border-radius: 7px;" placeholder="Contoh: Semester Ganjil 2025/2026">
             </div>
 
             <div class="mb-3">
                 <label for="tahun_akademik" class="form-label text-light">Tahun Akademik</label>
-                <input type="text" class="form-control bg-dark text-light border-secondary" id="tahun_akademik" name="tahun_akademik" value="<?php echo html_escape(set_value('tahun_akademik', $is_edit ? $periode->tahun_akademik : '')); ?>" required style="border-radius: 7px;" placeholder="Contoh: 2025/2026">
+                <input type="text" class="form-control bg-dark text-light border-secondary" id="tahun_akademik" name="tahun_akademik" value="<?php echo ami_e(set_value('tahun_akademik', $is_edit ? $periode->tahun_akademik : '', FALSE)); ?>" required style="border-radius: 7px;" placeholder="Contoh: 2025/2026">
             </div>
 
             <div class="mb-3">
@@ -40,12 +40,12 @@ include APPPATH . 'views/layouts/sidebar.php';
 
             <div class="mb-3">
                 <label for="tanggal_buka" class="form-label text-light">Tanggal Buka</label>
-                <input type="date" class="form-control bg-dark text-light border-secondary" id="tanggal_buka" name="tanggal_buka" value="<?php echo html_escape(set_value('tanggal_buka', $is_edit ? $periode->tanggal_buka : '')); ?>" required style="border-radius: 7px;">
+                    <input type="date" class="form-control bg-dark text-light border-secondary" id="tanggal_buka" name="tanggal_buka" value="<?php echo ami_e(set_value('tanggal_buka', $is_edit ? $periode->tanggal_buka : '', FALSE)); ?>" required style="border-radius: 7px;">
             </div>
 
             <div class="mb-3">
                 <label for="tanggal_tutup" class="form-label text-light">Tanggal Tutup</label>
-                <input type="date" class="form-control bg-dark text-light border-secondary" id="tanggal_tutup" name="tanggal_tutup" value="<?php echo html_escape(set_value('tanggal_tutup', $is_edit ? $periode->tanggal_tutup : '')); ?>" required style="border-radius: 7px;">
+                    <input type="date" class="form-control bg-dark text-light border-secondary" id="tanggal_tutup" name="tanggal_tutup" value="<?php echo ami_e(set_value('tanggal_tutup', $is_edit ? $periode->tanggal_tutup : '', FALSE)); ?>" required style="border-radius: 7px;">
             </div>
 
             <div class="mb-4">

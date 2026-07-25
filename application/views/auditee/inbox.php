@@ -36,7 +36,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="0">Semua periode</option>
                     <?php foreach ($periode_list as $periode): ?>
                         <option value="<?php echo (int) $periode->id; ?>" <?php echo (int) $filters['periode_id'] === (int) $periode->id ? 'selected' : ''; ?>>
-                            <?php echo html_escape($periode->nama_periode); ?>
+                            <?php echo ami_e($periode->nama_periode); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -45,8 +45,8 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <label class="ami-stat-label" for="status">Status</label>
                 <select class="form-control" id="status" name="status">
                     <?php foreach ($status_options as $value => $label): ?>
-                        <option value="<?php echo html_escape($value); ?>" <?php echo $filters['status'] === $value ? 'selected' : ''; ?>>
-                            <?php echo html_escape($label); ?>
+                        <option value="<?php echo ami_e($value); ?>" <?php echo $filters['status'] === $value ? 'selected' : ''; ?>>
+                            <?php echo ami_e($label); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -80,20 +80,20 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <tr>
                             <td><?php echo (int) $index + 1; ?></td>
                             <td>
-                                <div><?php echo html_escape($item->nama_periode ?: '-'); ?></div>
+                                <div><?php echo ami_e($item->nama_periode ?: '-'); ?></div>
                                 <?php if (!empty($item->tanggal_buka) && !empty($item->tanggal_tutup)): ?>
                                     <div class="text-muted" style="font-size:12px;">
-                                        <?php echo html_escape(format_tanggal_indo($item->tanggal_buka)); ?> - <?php echo html_escape(format_tanggal_indo($item->tanggal_tutup)); ?>
+                                        <?php echo ami_e(format_tanggal_indo($item->tanggal_buka)); ?> - <?php echo ami_e(format_tanggal_indo($item->tanggal_tutup)); ?>
                                     </div>
                                 <?php endif; ?>
                             </td>
-                            <td class="font-weight-bold"><?php echo html_escape($item->nama_standar ?: '-'); ?></td>
-                            <td><?php echo html_escape($item->auditor_nama ?: '-'); ?></td>
+                            <td class="font-weight-bold"><?php echo ami_e($item->nama_standar ?: '-'); ?></td>
+                            <td><?php echo ami_e($item->auditor_nama ?: '-'); ?></td>
                             <td><?php echo (int) $item->jumlah_terisi; ?> / <?php echo (int) $item->jumlah_pertanyaan; ?></td>
                             <td>
-                                <span class="ami-status status-<?php echo html_escape($status_key); ?>">
-                                    <i class="fas <?php echo html_escape($status_icons[$status_key] ?? 'fa-circle'); ?>" aria-hidden="true"></i>
-                                    <?php echo html_escape($item->display_status_label); ?>
+                                <span class="ami-status status-<?php echo ami_e($status_key); ?>">
+                                    <i class="fas <?php echo ami_e($status_icons[$status_key] ?? 'fa-circle'); ?>" aria-hidden="true"></i>
+                                    <?php echo ami_e($item->display_status_label); ?>
                                 </span>
                             </td>
                             <td>

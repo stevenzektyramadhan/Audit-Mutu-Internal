@@ -52,15 +52,15 @@ include APPPATH . 'views/layouts/sidebar.php';
                         ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo html_escape($row->nama_periode); ?></td>
-                            <td><?php echo html_escape($row->tahun_akademik); ?></td>
-                            <td><?php echo html_escape(ucfirst($row->semester)); ?></td>
-                            <td><?php echo html_escape(format_tanggal_indo($row->tanggal_buka)); ?></td>
-                            <td><?php echo html_escape(format_tanggal_indo($row->tanggal_tutup)); ?></td>
+                            <td><?php echo ami_e($row->nama_periode); ?></td>
+                            <td><?php echo ami_e($row->tahun_akademik); ?></td>
+                            <td><?php echo ami_e(ucfirst($row->semester)); ?></td>
+                            <td><?php echo ami_e(format_tanggal_indo($row->tanggal_buka)); ?></td>
+                            <td><?php echo ami_e(format_tanggal_indo($row->tanggal_tutup)); ?></td>
                             <td>
-                                <span class="status-badge status-<?php echo html_escape($status_class); ?>">
-                                    <i class="fas <?php echo html_escape($status_icon); ?>" aria-hidden="true"></i>
-                                    <?php echo html_escape($status_label); ?>
+                                <span class="status-badge status-<?php echo ami_e($status_class); ?>">
+                                    <i class="fas <?php echo ami_e($status_icon); ?>" aria-hidden="true"></i>
+                                    <?php echo ami_e($status_label); ?>
                                 </span>
                             </td>
                             <td>
@@ -86,7 +86,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                         <i class="fas fa-edit" aria-hidden="true"></i>
                                     </a>
 
-                                    <?php echo form_open('periode/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Yakin ingin menghapus periode &quot;" . html_escape($row->nama_periode) . "&quot;?');"]); ?>
+                                    <?php echo form_open('periode/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Yakin ingin menghapus periode &quot;" . ami_e($row->nama_periode) . "&quot;?');"]); ?>
                                         <button type="submit" class="ami-action-btn danger" title="Hapus periode">
                                             <i class="fas fa-trash-alt" aria-hidden="true"></i>
                                         </button>

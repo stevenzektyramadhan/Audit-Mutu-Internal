@@ -16,10 +16,10 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="ami-task-card align-items-center">
             <div class="ami-task-icon tone-blue"><i class="fas fa-building" aria-hidden="true"></i></div>
             <div class="ami-task-main">
-                <div class="ami-task-title"><?php echo html_escape($item->auditee_nama); ?></div>
+                <div class="ami-task-title"><?php echo ami_e($item->auditee_nama); ?></div>
                 <div class="ami-task-meta">
-                    <?php echo html_escape($item->nama_standar); ?> &middot;
-                    <?php echo html_escape((string) $item->jumlah_pertanyaan); ?> pertanyaan
+                    <?php echo ami_e($item->nama_standar); ?> &middot;
+                    <?php echo ami_e((string) $item->jumlah_pertanyaan); ?> pertanyaan
                 </div>
             </div>
             <a class="btn btn-primary btn-ami" href="<?php echo site_url('auditor/penilaian/form/' . (int) $item->id); ?>">
@@ -55,11 +55,11 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <tbody>
                 <?php foreach ($sudah_dinilai as $item): ?>
                     <tr>
-                        <td class="font-weight-bold"><?php echo html_escape($item->auditee_nama); ?></td>
-                        <td><?php echo html_escape($item->nama_standar); ?></td>
+                        <td class="font-weight-bold"><?php echo ami_e($item->auditee_nama); ?></td>
+                        <td><?php echo ami_e($item->nama_standar); ?></td>
                         <td>
                             <span class="<?php echo (float) $item->rata_rata >= 3 ? 'text-success' : 'text-warning'; ?> font-weight-bold">
-                                <?php echo html_escape(number_format((float) $item->rata_rata, 1)); ?> / 4
+                                <?php echo ami_e(number_format((float) $item->rata_rata, 1)); ?> / 4
                             </span>
                         </td>
                         <td class="text-right">

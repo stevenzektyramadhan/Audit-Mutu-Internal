@@ -40,14 +40,14 @@ include APPPATH . 'views/layouts/sidebar.php';
                     ?>
                     <tr>
                         <td><?php echo (int) $index + 1; ?></td>
-                        <td class="font-weight-bold"><?php echo html_escape($item->auditee_nama); ?></td>
-                        <td><?php echo html_escape($item->nama_standar); ?></td>
+                        <td class="font-weight-bold"><?php echo ami_e($item->auditee_nama); ?></td>
+                        <td><?php echo ami_e($item->nama_standar); ?></td>
                         <td>
-                            <span class="ami-status status-<?php echo html_escape($item->status); ?>">
-                                <?php echo html_escape(isset($status_labels[$item->status]) ? $status_labels[$item->status] : $item->status); ?>
+                            <span class="ami-status status-<?php echo ami_e($item->status); ?>">
+                                <?php echo ami_e(isset($status_labels[$item->status]) ? $status_labels[$item->status] : $item->status); ?>
                             </span>
                         </td>
-                        <td><?php echo html_escape(format_tanggal_indo($item->created_at)); ?></td>
+                        <td><?php echo ami_e(format_tanggal_indo($item->created_at)); ?></td>
                         <td>
                             <?php if ($item->status === STATUS_BELUM_DIISI): ?>
                                 <span class="text-muted">Menunggu auditee</span>

@@ -39,7 +39,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     </div>
 </div>
 
-<style>
+<style nonce="<?php echo ami_csp_nonce(); ?>">
     .ami-dashboard-logo-banner {
         display: flex;
         align-items: center;
@@ -145,12 +145,12 @@ include APPPATH . 'views/layouts/sidebar.php';
 <div class="admin-stat-grid">
     <?php foreach ($stat_cards as $card): ?>
         <div class="ami-stat-card">
-            <div class="ami-stat-icon <?php echo html_escape($card['tone']); ?>">
-                <i class="fas <?php echo html_escape($card['icon']); ?>" aria-hidden="true"></i>
+            <div class="ami-stat-icon <?php echo ami_e($card['tone']); ?>">
+                <i class="fas <?php echo ami_e($card['icon']); ?>" aria-hidden="true"></i>
             </div>
             <div>
-                <div class="ami-stat-label"><?php echo html_escape($card['label']); ?></div>
-                <div class="ami-stat-value"><?php echo html_escape((string) $card['value']); ?></div>
+                <div class="ami-stat-label"><?php echo ami_e($card['label']); ?></div>
+                <div class="ami-stat-value"><?php echo ami_e((string) $card['value']); ?></div>
             </div>
         </div>
     <?php endforeach; ?>
@@ -167,7 +167,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     <div class="ami-panel-body">
         <?php if ($active_periode): ?>
             <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: 10px;">
-                <div class="ami-stat-label mb-0">Periode aktif: <?php echo html_escape($active_periode->nama_periode); ?></div>
+                <div class="ami-stat-label mb-0">Periode aktif: <?php echo ami_e($active_periode->nama_periode); ?></div>
                 <div class="text-muted small">Laporan menyediakan analisis dan ekspor detail.</div>
             </div>
             <?php if ($active_task_count > 0): ?>
@@ -197,15 +197,15 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div id="status-summary-counts">
         <div class="admin-summary-row">
             <span>Belum diisi</span>
-            <span class="ami-status status-belum_diisi"><?php echo html_escape((string) (isset($stats['belum_diisi']) ? $stats['belum_diisi'] : 0)); ?> tugas</span>
+            <span class="ami-status status-belum_diisi"><?php echo ami_e((string) (isset($stats['belum_diisi']) ? $stats['belum_diisi'] : 0)); ?> tugas</span>
         </div>
         <div class="admin-summary-row">
             <span>Sudah diisi</span>
-            <span class="ami-status status-diisi"><?php echo html_escape((string) (isset($stats['diisi']) ? $stats['diisi'] : 0)); ?> tugas</span>
+            <span class="ami-status status-diisi"><?php echo ami_e((string) (isset($stats['diisi']) ? $stats['diisi'] : 0)); ?> tugas</span>
         </div>
         <div class="admin-summary-row">
             <span>Sudah dinilai</span>
-            <span class="ami-status status-dinilai"><?php echo html_escape((string) (isset($stats['dinilai']) ? $stats['dinilai'] : 0)); ?> tugas</span>
+            <span class="ami-status status-dinilai"><?php echo ami_e((string) (isset($stats['dinilai']) ? $stats['dinilai'] : 0)); ?> tugas</span>
         </div>
         </div>
     </section>
@@ -215,8 +215,8 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php if (!empty($standar_summary)): ?>
             <?php foreach ($standar_summary as $standar): ?>
                 <div class="admin-summary-row">
-                    <span><?php echo html_escape($standar->nama_standar); ?></span>
-                    <span class="text-primary font-weight-bold"><?php echo html_escape((string) $standar->total_pertanyaan); ?> soal</span>
+                    <span><?php echo ami_e($standar->nama_standar); ?></span>
+                    <span class="text-primary font-weight-bold"><?php echo ami_e((string) $standar->total_pertanyaan); ?> soal</span>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
@@ -252,13 +252,13 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <?php foreach ($recent_tugas as $tugas): ?>
                     <?php $meta = isset($status_labels[$tugas->status]) ? $status_labels[$tugas->status] : ['label' => $tugas->status, 'icon' => 'fa-circle']; ?>
                     <tr>
-                        <td><?php echo html_escape($tugas->auditee_nama); ?></td>
-                        <td><?php echo html_escape($tugas->auditor_nama); ?></td>
-                        <td><?php echo html_escape($tugas->nama_standar); ?></td>
+                        <td><?php echo ami_e($tugas->auditee_nama); ?></td>
+                        <td><?php echo ami_e($tugas->auditor_nama); ?></td>
+                        <td><?php echo ami_e($tugas->nama_standar); ?></td>
                         <td>
-                            <span class="ami-status status-<?php echo html_escape($tugas->status); ?>">
-                                <i class="fas <?php echo html_escape($meta['icon']); ?>" aria-hidden="true"></i>
-                                <?php echo html_escape($meta['label']); ?>
+                            <span class="ami-status status-<?php echo ami_e($tugas->status); ?>">
+                                <i class="fas <?php echo ami_e($meta['icon']); ?>" aria-hidden="true"></i>
+                                <?php echo ami_e($meta['label']); ?>
                             </span>
                         </td>
                     </tr>
@@ -277,14 +277,14 @@ include APPPATH . 'views/layouts/sidebar.php';
 </div>
 
 <?php if ($active_periode && $active_task_count > 0 && $task_status_chart !== ''): ?>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+    <script nonce="<?php echo ami_csp_nonce(); ?>" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script nonce="<?php echo ami_csp_nonce(); ?>">
     (function () {
         if (typeof Chart === 'undefined') return;
         var canvas = document.getElementById('dashboardTaskStatusChart');
         if (!canvas) return;
 
-        var chartData = <?php echo $task_status_chart; ?>;
+        var chartData = <?php echo ami_json($task_status_chart); ?>;
         var styles = getComputedStyle(document.documentElement);
         var colors = [
             styles.getPropertyValue('--ami-amber').trim(),

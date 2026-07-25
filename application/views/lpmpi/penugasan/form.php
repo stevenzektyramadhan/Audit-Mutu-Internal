@@ -28,7 +28,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih periode...</option>
                     <?php foreach ($periode as $item): ?>
                         <option value="<?php echo (int) $item->id; ?>" <?php echo set_select('periode_id', $item->id); ?>>
-                            <?php echo html_escape($item->nama_periode); ?>
+                            <?php echo ami_e($item->nama_periode); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -40,7 +40,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih standar...</option>
                     <?php foreach ($standar as $item): ?>
                         <option value="<?php echo (int) $item->id; ?>" <?php echo set_select('standar_id', $item->id); ?>>
-                            <?php echo html_escape($item->nama_standar); ?>
+                            <?php echo ami_e($item->nama_standar); ?>
                             <?php if (isset($item->total_pertanyaan)): ?>
                                 (<?php echo (int) $item->total_pertanyaan; ?> pertanyaan)
                             <?php endif; ?>
@@ -55,7 +55,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih auditor...</option>
                     <?php foreach ($auditor as $item): ?>
                         <option value="<?php echo (int) $item->id; ?>" <?php echo set_select('auditor_id', $item->id); ?>>
-                            <?php echo html_escape($item->nama); ?> - <?php echo html_escape($item->email); ?>
+                            <?php echo ami_e($item->nama); ?> - <?php echo ami_e($item->email); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -67,9 +67,9 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih auditee...</option>
                     <?php foreach ($auditee as $item): ?>
                         <option value="<?php echo (int) $item->id; ?>" <?php echo set_select('auditee_id', $item->id); ?>>
-                            <?php echo html_escape($item->nama); ?>
+                            <?php echo ami_e($item->nama); ?>
                             <?php if (!empty($item->nama_unit)): ?>
-                                - <?php echo html_escape($item->nama_unit); ?>
+                                - <?php echo ami_e($item->nama_unit); ?>
                             <?php endif; ?>
                         </option>
                     <?php endforeach; ?>

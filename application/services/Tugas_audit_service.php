@@ -10,6 +10,7 @@ class Tugas_audit_service
     protected $standar_model;
     protected $pertanyaan_model;
     protected $periode_model;
+    protected $audit_logger;
 
     public function __construct()
     {
@@ -20,12 +21,14 @@ class Tugas_audit_service
         $this->ci->load->model('Standar_model');
         $this->ci->load->model('Pertanyaan_model');
         $this->ci->load->model('Periode_model');
+        $this->ci->load->library('audit_logger');
         $this->tugas_audit_model = $this->ci->Tugas_audit_model;
         $this->jawaban_audit_model = $this->ci->Jawaban_audit_model;
         $this->user_model = $this->ci->User_model;
         $this->standar_model = $this->ci->Standar_model;
         $this->pertanyaan_model = $this->ci->Pertanyaan_model;
         $this->periode_model = $this->ci->Periode_model;
+        $this->audit_logger = $this->ci->audit_logger;
     }
 
     public function get_all_tugas($filters = [])
@@ -41,8 +44,8 @@ class Tugas_audit_service
     public function get_form_options()
     {
         return [
-            'auditor' => $this->user_model->get_by_role('auditor'),
-            'auditee' => $this->user_model->get_by_role('auditee'),
+            'auditor' => $this->user_model->get_active_by_role('auditor'),
+            'auditee' => $this->user_model->get_active_by_role('auditee'),
             'standar' => $this->standar_model->get_all_with_count(),
             'periode' => $this->periode_model->get_all(),
         ];
@@ -86,11 +89,11 @@ class Tugas_audit_service
             return ['success' => FALSE, 'message' => 'Periode audit yang dipilih tidak valid.'];
         }
 
-        if (!$auditor || $auditor->role !== 'auditor') {
+        if (!$auditor || $auditor->role !== 'auditor' || (int) $auditor->is_active !== 1) {
             return ['success' => FALSE, 'message' => 'Auditor yang dipilih tidak valid.'];
         }
 
-        if (!$auditee || $auditee->role !== 'auditee') {
+        if (!$auditee || $auditee->role !== 'auditee' || (int) $auditee->is_active !== 1) {
             return ['success' => FALSE, 'message' => 'Auditee yang dipilih tidak valid.'];
         }
 
@@ -135,16 +138,45 @@ class Tugas_audit_service
             return ['success' => false, 'message' => 'Gagal membuat tugas audit.'];
         }
 
+        $this->audit_logger->record(
+            'assignment_created',
+            'audit_assignment',
+            (int) $tugas_id,
+            'create',
+            NULL,
+            $data,
+            [
+                'status_to' => STATUS_BELUM_DIISI,
+                'row_count' => count($jawaban_data),
+            ]
+        );
+
         return ['success' => true, 'message' => 'Tugas audit berhasil dibuat.'];
     }
 
     public function delete_tugas($id)
     {
-        if (!$this->tugas_audit_model->find_with_relations($id)) {
+        $existing = $this->tugas_audit_model->find_with_relations($id);
+        if (!$existing) {
             return ['success' => FALSE, 'message' => 'Tugas audit tidak ditemukan.'];
         }
 
         if ($this->tugas_audit_model->delete($id)) {
+            $this->audit_logger->record(
+                'assignment_deleted',
+                'audit_assignment',
+                (int) $id,
+                'delete',
+                [
+                    'status' => $existing->status,
+                    'auditor_id' => (int) $existing->auditor_id,
+                    'auditee_id' => (int) $existing->auditee_id,
+                    'standar_id' => (int) $existing->standar_id,
+                    'periode_id' => (int) $existing->periode_id,
+                ],
+                NULL,
+                ['status_from' => $existing->status]
+            );
             return ['success' => TRUE, 'message' => 'Tugas audit dan seluruh jawabannya berhasil dihapus.'];
         }
 

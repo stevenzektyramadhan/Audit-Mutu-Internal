@@ -25,8 +25,7 @@ class Standar extends CI_Controller {
         $this->load->helper('url');
         $this->load->library('auth_guard');
         
-        $this->auth_guard->check();
-        $this->auth_guard->only(['super_admin', 'admin_lpmpi']);
+        $this->auth_guard->require_capability(Authorization_policy::CAP_SPMI_MANAGE);
         
         require_once APPPATH . 'services/Standar_service.php';
         $this->standar_service = new Standar_service();

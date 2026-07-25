@@ -15,11 +15,11 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php echo form_open('users/update/' . (int) $user->id); ?>
             <div class="form-group">
                 <label for="nama">Nama Lengkap</label>
-                <input type="text" class="form-control" id="nama" name="nama" value="<?php echo html_escape(set_value('nama', $user->nama)); ?>" required>
+            <input type="text" class="form-control" id="nama" name="nama" value="<?php echo ami_e(set_value('nama', $user->nama, FALSE)); ?>" required>
             </div>
             <div class="form-group">
                 <label for="email">Alamat Email</label>
-                <input type="email" class="form-control" id="email" name="email" value="<?php echo html_escape(set_value('email', $user->email)); ?>" required>
+            <input type="email" class="form-control" id="email" name="email" value="<?php echo ami_e(set_value('email', $user->email, FALSE)); ?>" required>
             </div>
             <div class="form-group">
                 <label for="password">Password Baru</label>
@@ -39,6 +39,21 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="auditor" <?php echo set_select('role', 'auditor', $user->role === 'auditor'); ?>>Auditor</option>
                     <option value="auditee" <?php echo set_select('role', 'auditee', $user->role === 'auditee'); ?>>Auditee</option>
                 </select>
+            </div>
+            <div class="form-group mb-4">
+                <input type="hidden" name="is_active" value="0">
+                <div class="custom-control custom-switch">
+                    <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="is_active"
+                        name="is_active"
+                        value="1"
+                        <?php echo set_checkbox('is_active', '1', (int) $user->is_active === 1); ?>
+                    >
+                    <label class="custom-control-label" for="is_active">Akun aktif dan boleh login</label>
+                </div>
+                <small class="text-muted">Menonaktifkan akun akan mencabut seluruh sesi aktif akun tersebut.</small>
             </div>
             <div class="ami-actions justify-content-end">
                 <a href="<?php echo site_url('users'); ?>" class="btn btn-outline-ami btn-ami">Batal</a>

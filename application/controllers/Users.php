@@ -25,9 +25,7 @@ class Users extends CI_Controller {
         $this->load->helper('url');
         $this->load->library('auth_guard');
         
-        // Memastikan hanya super_admin yang bisa mengakses halaman ini
-        $this->auth_guard->check();
-        $this->auth_guard->only(['super_admin']);
+        $this->auth_guard->require_capability(Authorization_policy::CAP_USERS_MANAGE);
         
         require_once APPPATH . 'services/User_service.php';
         $this->user_service = new User_service();
@@ -116,6 +114,7 @@ class Users extends CI_Controller {
         $this->form_validation->set_rules('nama', 'Nama', 'required');
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
         $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,admin_lpmpi,auditor,auditee]');
+        $this->form_validation->set_rules('is_active', 'Status Akun', 'required|in_list[0,1]');
 
         if ($this->form_validation->run() === FALSE) {
             $this->edit($id);
@@ -127,7 +126,8 @@ class Users extends CI_Controller {
             'email' => $this->input->post('email', TRUE),
             'password' => $this->input->post('password', TRUE),
             'role' => $this->input->post('role', TRUE),
-        ]);
+            'is_active' => $this->input->post('is_active', TRUE),
+        ], (int) $this->session->userdata('user_id'));
 
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect($result['success'] ? 'users' : 'users/edit/' . (int) $id);

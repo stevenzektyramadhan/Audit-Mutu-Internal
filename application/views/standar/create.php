@@ -19,12 +19,12 @@ include APPPATH . 'views/layouts/sidebar.php';
             
             <div class="mb-3">
                 <label for="nama_standar" class="form-label text-light">Nama Standar</label>
-                <input type="text" class="form-control bg-dark text-light border-secondary" id="nama_standar" name="nama_standar" value="<?php echo set_value('nama_standar'); ?>" required style="border-radius: 7px;">
+                <input type="text" class="form-control bg-dark text-light border-secondary" id="nama_standar" name="nama_standar" value="<?php echo ami_e(set_value('nama_standar', '', FALSE)); ?>" required style="border-radius: 7px;">
             </div>
 
             <div class="mb-4">
                 <label for="deskripsi" class="form-label text-light">Deskripsi (Opsional)</label>
-                <textarea class="form-control bg-dark text-light border-secondary" id="deskripsi" name="deskripsi" rows="4" style="border-radius: 7px;"><?php echo set_value('deskripsi'); ?></textarea>
+                <textarea class="form-control bg-dark text-light border-secondary" id="deskripsi" name="deskripsi" rows="4" style="border-radius: 7px;"><?php echo ami_e(set_value('deskripsi', '', FALSE)); ?></textarea>
             </div>
 
             <div class="d-flex justify-content-end gap-2">

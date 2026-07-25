@@ -20,6 +20,7 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
         parent::__construct();
         $this->load->helper(['form', 'url']);
         $this->load->library(['form_validation', 'session']);
+        $this->load->library('file_security');
         
         require_once APPPATH . 'services/Pertanyaan_service.php';
         $this->pertanyaan_service = new Pertanyaan_service();
@@ -61,8 +62,10 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-        header('Pragma: public');
+        header('X-Content-Type-Options: nosniff');
+        header("Content-Security-Policy: sandbox; default-src 'none'");
+        header('Cache-Control: private, no-store, max-age=0');
+        header('Pragma: no-cache');
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
@@ -85,42 +88,19 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
             return;
         }
 
-        $extension = strtolower(pathinfo($_FILES['file_excel']['name'], PATHINFO_EXTENSION));
-        if (!in_array($extension, ['xlsx', 'xls'], TRUE)) {
-            $this->redirect_import_error($standar_id, 'Format file tidak didukung. Gunakan file .xlsx atau .xls.');
+        $upload = $this->file_security->upload(
+            'file_excel',
+            'tmp',
+            'standar',
+            $standar_id,
+            $this->_user_id()
+        );
+        if (!$upload['success']) {
+            $this->redirect_import_error($standar_id, $upload['message']);
             return;
         }
 
-        if ((int) $_FILES['file_excel']['size'] > 2 * 1024 * 1024) {
-            $this->redirect_import_error($standar_id, 'Ukuran file maksimal 2MB.');
-            return;
-        }
-
-        $upload_dir = $this->temporary_upload_dir();
-        if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, TRUE)) {
-            $this->redirect_import_error($standar_id, 'Folder temporary upload tidak dapat dibuat.');
-            return;
-        }
-
-        $config = [
-            'upload_path' => $upload_dir,
-            'allowed_types' => 'xlsx|xls',
-            'max_size' => 2048,
-            'file_name' => 'pertanyaan_' . $this->_user_id() . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)),
-            'overwrite' => FALSE,
-            'remove_spaces' => TRUE,
-        ];
-        $this->load->library('upload');
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('file_excel')) {
-            $message = strip_tags($this->upload->display_errors('', ''));
-            $this->redirect_import_error($standar_id, $message !== '' ? $message : 'File gagal diunggah.');
-            return;
-        }
-
-        $upload_data = $this->upload->data();
-        $file_path = $upload_data['full_path'];
+        $file_path = $upload['path'];
 
         $parse_error = NULL;
         try {
@@ -128,8 +108,13 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
         } catch (\Throwable $exception) {
             $parse_error = $exception->getMessage();
         } finally {
-            if (is_file($file_path)) {
-                unlink($file_path);
+            if (!$this->file_security->discard_temporary(
+                $upload['file_name'],
+                'standar',
+                $standar_id,
+                $this->_user_id()
+            )) {
+                log_message('error', 'Temporary question import could not be destroyed.');
             }
         }
 
@@ -319,11 +304,6 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
     {
         $this->session->set_flashdata('error', $message);
         redirect('pertanyaan?standar_id=' . (int) $standar_id);
-    }
-
-    private function temporary_upload_dir()
-    {
-        return private_storage_dir('tmp');
     }
 
     private function active_imports()

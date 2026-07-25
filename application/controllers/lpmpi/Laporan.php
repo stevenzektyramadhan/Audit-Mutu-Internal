@@ -13,10 +13,12 @@ class Laporan extends Admin_Lpmpi_Controller
     public function __construct()
     {
         parent::__construct();
+        $this->_require_capability(Authorization_policy::CAP_REPORTS_VIEW);
         $this->load->helper(['url', 'form']);
         $this->load->model('Laporan_model');
         $this->load->model('Periode_model');
         $this->load->model('User_model');
+        $this->load->library('audit_logger');
     }
 
     public function index()
@@ -32,12 +34,12 @@ class Laporan extends Admin_Lpmpi_Controller
         $data['periode_list'] = $this->Periode_model->get_all();
         $data['auditee_list'] = $this->User_model->get_by_role('auditee');
         $data['rekap']        = $rekap;
-        $data['chart_labels'] = json_encode(array_map(function ($row) {
+        $data['chart_labels'] = array_map(function ($row) {
             return $row->nama_standar;
-        }, $rekap), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-        $data['chart_values'] = json_encode(array_map(function ($row) {
+        }, $rekap);
+        $data['chart_values'] = array_map(function ($row) {
             return round((float) $row->rata_rata_skor, 2);
-        }, $rekap), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        }, $rekap);
 
         $this->load->view('lpmpi/laporan/index', $data);
     }
@@ -96,14 +98,36 @@ class Laporan extends Admin_Lpmpi_Controller
         $spreadsheet->setActiveSheetIndex(0);
 
         $filename = 'laporan_ami_' . date('Ymd_His') . '.xlsx';
+        $this->audit_logger->record(
+            'sensitive_report_exported',
+            'audit_report',
+            $filters['periode_id'] > 0 ? 'period:' . $filters['periode_id'] : 'all',
+            'export',
+            NULL,
+            [
+                'periode_id' => $filters['periode_id'],
+                'auditee_id' => $filters['auditee_id'],
+                'standard_count' => count($standar_list),
+            ],
+            [
+                'format' => 'xlsx',
+                'row_count' => count($standar_list),
+                'scope' => $filters['periode_id'] > 0 || $filters['auditee_id'] > 0
+                    ? 'filtered'
+                    : 'all',
+            ],
+            $this->_user_id()
+        );
         while (ob_get_level() > 0) {
             @ob_end_clean();
         }
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-        header('Pragma: public');
+        header('X-Content-Type-Options: nosniff');
+        header("Content-Security-Policy: sandbox; default-src 'none'");
+        header('Cache-Control: private, no-store, max-age=0');
+        header('Pragma: no-cache');
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
@@ -224,10 +248,10 @@ class Laporan extends Admin_Lpmpi_Controller
 
     private function set_link_cell($sheet, $cell, $value)
     {
-        $value = trim((string) $value);
+        $value = ami_safe_http_url($value);
         $this->set_cell_text($sheet, $cell, $value);
 
-        if ($value !== '' && filter_var($value, FILTER_VALIDATE_URL) !== FALSE) {
+        if ($value !== '') {
             $sheet->getCell($cell)->getHyperlink()->setUrl($value);
             $sheet->getStyle($cell)->getFont()
                 ->getColor()->setARGB('FF0563C1');

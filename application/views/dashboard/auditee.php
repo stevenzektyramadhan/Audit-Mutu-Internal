@@ -25,7 +25,7 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
-<style>
+<style nonce="<?php echo ami_csp_nonce(); ?>">
     .ami-dashboard-logo-banner {
         display: flex;
         align-items: center;
@@ -67,12 +67,12 @@ include APPPATH . 'views/layouts/sidebar.php';
 <div class="ami-stat-grid">
     <?php foreach ($stat_cards as $card): ?>
         <div class="ami-stat-card">
-            <div class="ami-stat-icon <?php echo html_escape($card['tone']); ?>">
-                <i class="fas <?php echo html_escape($card['icon']); ?>" aria-hidden="true"></i>
+            <div class="ami-stat-icon <?php echo ami_e($card['tone']); ?>">
+                <i class="fas <?php echo ami_e($card['icon']); ?>" aria-hidden="true"></i>
             </div>
             <div>
-                <div class="ami-stat-label"><?php echo html_escape($card['label']); ?></div>
-                <div class="ami-stat-value"><?php echo html_escape((string) $card['value']); ?></div>
+                <div class="ami-stat-label"><?php echo ami_e($card['label']); ?></div>
+                <div class="ami-stat-value"><?php echo ami_e((string) $card['value']); ?></div>
             </div>
         </div>
     <?php endforeach; ?>
@@ -90,19 +90,19 @@ include APPPATH . 'views/layouts/sidebar.php';
         $meta = isset($status_labels[$status]) ? $status_labels[$status] : ['label' => $status, 'icon' => 'fa-circle', 'tone' => 'tone-blue'];
         ?>
         <div class="ami-task-card"<?php echo in_array($status, ['belum_diisi', 'draft', 'revisi'], TRUE) ? ' style="border-left:3px solid #dc3545;"' : ''; ?>>
-            <div class="ami-task-icon <?php echo html_escape($meta['tone']); ?>">
-                <i class="fas <?php echo html_escape($meta['icon']); ?>" aria-hidden="true"></i>
+            <div class="ami-task-icon <?php echo ami_e($meta['tone']); ?>">
+                <i class="fas <?php echo ami_e($meta['icon']); ?>" aria-hidden="true"></i>
             </div>
             <div class="ami-task-main">
-                <div class="ami-task-title"><?php echo html_escape($tugas->nama_standar); ?></div>
+                <div class="ami-task-title"><?php echo ami_e($tugas->nama_standar); ?></div>
                 <div class="ami-task-meta">
-                    Auditor: <?php echo html_escape($tugas->auditor_nama); ?> &middot;
+                    Auditor: <?php echo ami_e($tugas->auditor_nama); ?> &middot;
                     <?php if ($status === 'dinilai' || $status === STATUS_DINILAI): ?>
-                        Rata-rata: <?php echo html_escape(number_format((float) $tugas->rata_rata, 1)); ?> / 4
+                        Rata-rata: <?php echo ami_e(number_format((float) $tugas->rata_rata, 1)); ?> / 4
                     <?php elseif ($status === 'submitted' || $status === STATUS_DIISI): ?>
                         Menunggu penilaian
                     <?php else: ?>
-                        <?php echo html_escape($meta['label']); ?>
+                        <?php echo ami_e($meta['label']); ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -114,7 +114,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     </a>
                 <?php else: ?>
                     <a class="btn btn-outline-ami btn-ami" href="<?php echo site_url('auditee/form/' . (int) $tugas->id); ?>">
-                        <i class="fas <?php echo html_escape($meta['icon']); ?>" aria-hidden="true"></i>
+                        <i class="fas <?php echo ami_e($meta['icon']); ?>" aria-hidden="true"></i>
                         <?php echo ($status === 'dinilai' || $status === STATUS_DINILAI) ? 'Lihat hasil' : 'Lihat jawaban'; ?>
                     </a>
                 <?php endif; ?>

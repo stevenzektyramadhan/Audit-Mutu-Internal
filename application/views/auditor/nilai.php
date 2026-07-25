@@ -16,15 +16,15 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="row">
             <div class="col-md-4 mb-2 mb-md-0">
                 <div class="ami-stat-label">Auditee</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->auditee_nama); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->auditee_nama); ?></div>
             </div>
             <div class="col-md-4 mb-2 mb-md-0">
                 <div class="ami-stat-label">Standar</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->nama_standar); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->nama_standar); ?></div>
             </div>
             <div class="col-md-4">
                 <div class="ami-stat-label">Status</div>
-                <span class="ami-status status-<?php echo html_escape($tugas->status); ?>">
+                <span class="ami-status status-<?php echo ami_e($tugas->status); ?>">
                     <?php echo $read_only ? 'Sudah dinilai' : 'Siap dinilai'; ?>
                 </span>
             </div>
@@ -38,21 +38,22 @@ include APPPATH . 'views/layouts/sidebar.php';
         $field_skor = 'skor[' . (int) $item->id . ']';
         $field_catatan = 'catatan[' . (int) $item->id . ']';
         $current_skor = (int) set_value($field_skor, $item->skor);
-        $current_catatan = set_value($field_catatan, $item->temuan);
+        $current_catatan = set_value($field_catatan, $item->temuan, FALSE);
+        $safe_link_bukti = ami_safe_http_url($item->link_bukti);
         ?>
         <div class="ami-panel mb-3">
             <div class="ami-panel-body">
                 <div class="d-flex align-items-start mb-3">
                     <span class="ami-nav-badge mr-2" style="margin-left:0;"><?php echo (int) $index + 1; ?></span>
-                    <div class="font-weight-bold"><?php echo html_escape($item->isi_pertanyaan); ?></div>
+                    <div class="font-weight-bold"><?php echo ami_e($item->isi_pertanyaan); ?></div>
                 </div>
 
                 <div class="row">
                     <div class="col-lg-7 mb-3 mb-lg-0">
                         <div class="ami-stat-label mb-1">Jawaban auditee</div>
-                        <div class="mb-2"><?php echo nl2br(html_escape($item->jawaban ?: '-')); ?></div>
-                        <?php if (!empty($item->link_bukti)): ?>
-                            <a href="<?php echo html_escape($item->link_bukti); ?>" target="_blank" rel="noopener noreferrer">
+                        <div class="mb-2"><?php echo ami_text($item->jawaban ?: '-'); ?></div>
+                        <?php if ($safe_link_bukti !== ''): ?>
+                            <a href="<?php echo ami_e($safe_link_bukti); ?>" target="_blank" rel="noopener noreferrer">
                                 <i class="fas fa-external-link-alt mr-1" aria-hidden="true"></i>Lihat bukti dokumen
                             </a>
                         <?php else: ?>
@@ -65,15 +66,15 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <select id="skor-<?php echo (int) $item->id; ?>" name="skor[<?php echo (int) $item->id; ?>]" class="form-control bg-dark text-light border-secondary" required <?php echo $read_only ? 'disabled' : ''; ?>>
                                 <option value="">Pilih skor</option>
                                 <?php foreach (skor_audit_options() as $skor => $label): ?>
-                                    <option value="<?php echo $skor; ?>" <?php echo $current_skor === $skor ? 'selected' : ''; ?>>
-                                        <?php echo $skor . ' - ' . html_escape($label); ?>
+                                    <option value="<?php echo (int) $skor; ?>" <?php echo $current_skor === $skor ? 'selected' : ''; ?>>
+                                        <?php echo $skor . ' - ' . ami_e($label); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="form-group mb-0">
                             <label for="catatan-<?php echo (int) $item->id; ?>">Catatan atau temuan</label>
-                            <textarea id="catatan-<?php echo (int) $item->id; ?>" name="catatan[<?php echo (int) $item->id; ?>]" rows="3" class="form-control bg-dark text-light border-secondary" <?php echo $read_only ? 'readonly' : ''; ?>><?php echo html_escape($current_catatan); ?></textarea>
+                            <textarea id="catatan-<?php echo (int) $item->id; ?>" name="catatan[<?php echo (int) $item->id; ?>]" rows="3" class="form-control bg-dark text-light border-secondary" <?php echo $read_only ? 'readonly' : ''; ?>><?php echo ami_e($current_catatan); ?></textarea>
                         </div>
                     </div>
                 </div>

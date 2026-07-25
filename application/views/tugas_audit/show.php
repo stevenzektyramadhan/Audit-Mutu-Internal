@@ -12,22 +12,22 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="row">
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Auditee</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->auditee_nama); ?></div>
-                <div class="text-muted small"><?php echo html_escape($tugas->auditee_email); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->auditee_nama); ?></div>
+                <div class="text-muted small"><?php echo ami_e($tugas->auditee_email); ?></div>
             </div>
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Auditor</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->auditor_nama); ?></div>
-                <div class="text-muted small"><?php echo html_escape($tugas->auditor_email); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->auditor_nama); ?></div>
+                <div class="text-muted small"><?php echo ami_e($tugas->auditor_email); ?></div>
             </div>
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Standar</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->nama_standar); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->nama_standar); ?></div>
             </div>
             <div class="col-md-3">
                 <div class="ami-stat-label">Status</div>
-                <span class="ami-status <?php echo html_escape($status_meta['tone']); ?>">
-                    <?php echo html_escape($status_meta['label']); ?>
+                <span class="ami-status <?php echo ami_e($status_meta['tone']); ?>">
+                    <?php echo ami_e($status_meta['label']); ?>
                 </span>
             </div>
         </div>
@@ -35,7 +35,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php if (!empty($tugas->standar_deskripsi)): ?>
             <div class="mt-3 pt-3" style="border-top:1px solid var(--ami-border);">
                 <div class="ami-stat-label">Deskripsi standar</div>
-                <div><?php echo nl2br(html_escape($tugas->standar_deskripsi)); ?></div>
+                <div><?php echo nl2br(ami_e($tugas->standar_deskripsi)); ?></div>
             </div>
         <?php endif; ?>
     </div>
@@ -59,11 +59,11 @@ $timeline_steps = [
                 <?php
                 $step_class = $index < $current_status_index ? 'is-complete' : ($index === $current_status_index ? 'is-current' : '');
                 ?>
-                <div class="ami-timeline-step <?php echo $step_class; ?>"<?php echo $index === $current_status_index ? ' aria-current="step"' : ''; ?>>
+            <div class="ami-timeline-step <?php echo ami_e($step_class); ?>"<?php echo $index === $current_status_index ? ' aria-current="step"' : ''; ?>>
                     <div class="ami-timeline-marker">
-                        <i class="fas <?php echo html_escape($step['icon']); ?>" aria-hidden="true"></i>
+                        <i class="fas <?php echo ami_e($step['icon']); ?>" aria-hidden="true"></i>
                     </div>
-                    <div class="ami-timeline-label"><?php echo html_escape($step['label']); ?></div>
+                    <div class="ami-timeline-label"><?php echo ami_e($step['label']); ?></div>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -75,9 +75,9 @@ $timeline_steps = [
         <div class="ami-panel-body d-flex align-items-center justify-content-between">
             <div>
                 <div class="font-weight-bold">Ringkasan penilaian</div>
-                <div class="text-muted small">Rata-rata dari <?php echo html_escape((string) count($jawaban)); ?> pertanyaan audit.</div>
+                <div class="text-muted small">Rata-rata dari <?php echo ami_e((string) count($jawaban)); ?> pertanyaan audit.</div>
             </div>
-            <div class="ami-stat-value"><?php echo html_escape(number_format((float) $rata_rata, 1)); ?> / 4</div>
+            <div class="ami-stat-value"><?php echo ami_e(number_format((float) $rata_rata, 1)); ?> / 4</div>
         </div>
     </div>
 <?php endif; ?>
@@ -88,19 +88,20 @@ $timeline_steps = [
 
 <?php if (!empty($jawaban)): ?>
     <?php foreach ($jawaban as $index => $item): ?>
+        <?php $safe_link_bukti = ami_safe_http_url($item->link_bukti); ?>
         <div class="ami-panel mb-3">
             <div class="ami-panel-body">
                 <div class="d-flex align-items-start mb-3">
                     <span class="ami-nav-badge mr-2" style="margin-left:0;"><?php echo (int) $index + 1; ?></span>
-                    <div class="font-weight-bold"><?php echo html_escape($item->isi_pertanyaan); ?></div>
+                    <div class="font-weight-bold"><?php echo ami_e($item->isi_pertanyaan); ?></div>
                 </div>
 
                 <div class="row">
                     <div class="col-lg-7 mb-3 mb-lg-0">
                         <div class="ami-stat-label">Jawaban auditee</div>
-                        <div class="mb-2"><?php echo nl2br(html_escape($item->jawaban ?: 'Belum diisi.')); ?></div>
-                        <?php if (!empty($item->link_bukti)): ?>
-                            <a href="<?php echo html_escape($item->link_bukti); ?>" target="_blank" rel="noopener noreferrer">
+                        <div class="mb-2"><?php echo ami_text($item->jawaban ?: 'Belum diisi.'); ?></div>
+                        <?php if ($safe_link_bukti !== ''): ?>
+                            <a href="<?php echo ami_e($safe_link_bukti); ?>" target="_blank" rel="noopener noreferrer">
                                 <i class="fas fa-external-link-alt mr-1" aria-hidden="true"></i>Lihat bukti dokumen
                             </a>
                         <?php else: ?>
@@ -110,10 +111,10 @@ $timeline_steps = [
                     <div class="col-lg-5">
                         <div class="ami-stat-label">Skor auditor</div>
                         <div class="font-weight-bold mb-2">
-                            <?php echo $item->skor !== NULL ? html_escape((string) $item->skor) . ' / 4' : 'Belum dinilai'; ?>
+                            <?php echo $item->skor !== NULL ? ami_e((string) $item->skor) . ' / 4' : 'Belum dinilai'; ?>
                         </div>
                         <div class="ami-stat-label">Catatan atau temuan</div>
-                        <div><?php echo nl2br(html_escape($item->temuan ?: 'Belum ada catatan.')); ?></div>
+                        <div><?php echo nl2br(ami_e($item->temuan ?: 'Belum ada catatan.')); ?></div>
                     </div>
                 </div>
             </div>

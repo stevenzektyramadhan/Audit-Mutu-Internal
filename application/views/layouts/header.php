@@ -10,8 +10,8 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo html_escape($title); ?></title>
-    <script>
+    <title><?php echo ami_e($title); ?></title>
+    <script nonce="<?php echo ami_csp_nonce(); ?>">
         (function () {
             try {
                 var theme = localStorage.getItem('ami-theme');
@@ -23,7 +23,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
+    <style nonce="<?php echo ami_csp_nonce(); ?>">
         :root {
             --ami-bg: #161616;
             --ami-panel: #222222;

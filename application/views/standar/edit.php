@@ -15,11 +15,11 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php echo form_open('standar/update/' . (int) $standar->id); ?>
             <div class="form-group">
                 <label for="nama_standar">Nama Standar</label>
-                <input type="text" class="form-control" id="nama_standar" name="nama_standar" value="<?php echo html_escape(set_value('nama_standar', $standar->nama_standar)); ?>" required>
+                <input type="text" class="form-control" id="nama_standar" name="nama_standar" value="<?php echo ami_e(set_value('nama_standar', $standar->nama_standar, FALSE)); ?>" required>
             </div>
             <div class="form-group mb-4">
                 <label for="deskripsi">Deskripsi</label>
-                <textarea class="form-control" id="deskripsi" name="deskripsi" rows="4"><?php echo html_escape(set_value('deskripsi', $standar->deskripsi)); ?></textarea>
+                <textarea class="form-control" id="deskripsi" name="deskripsi" rows="4"><?php echo ami_e(set_value('deskripsi', $standar->deskripsi, FALSE)); ?></textarea>
             </div>
             <div class="ami-actions justify-content-end">
                 <a href="<?php echo site_url('standar'); ?>" class="btn btn-outline-ami btn-ami">Batal</a>

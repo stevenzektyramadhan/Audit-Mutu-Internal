@@ -22,7 +22,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih periode...</option>
                     <?php if (!empty($periode)): ?>
                         <?php foreach ($periode as $p): ?>
-                            <option value="<?php echo (int) $p->id; ?>" <?php echo set_select('periode_id', $p->id); ?>><?php echo html_escape($p->nama_periode); ?></option>
+                            <option value="<?php echo (int) $p->id; ?>" <?php echo set_select('periode_id', $p->id); ?>><?php echo ami_e($p->nama_periode); ?></option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -34,7 +34,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih auditee...</option>
                     <?php if (!empty($auditee)): ?>
                         <?php foreach ($auditee as $a): ?>
-                            <option value="<?php echo $a->id; ?>" <?php echo set_select('auditee_id', $a->id); ?>><?php echo html_escape($a->nama); ?></option>
+                        <option value="<?php echo (int) $a->id; ?>" <?php echo set_select('auditee_id', $a->id); ?>><?php echo ami_e($a->nama); ?></option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -46,7 +46,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih auditor...</option>
                     <?php if (!empty($auditor)): ?>
                         <?php foreach ($auditor as $a): ?>
-                            <option value="<?php echo $a->id; ?>" <?php echo set_select('auditor_id', $a->id); ?>><?php echo html_escape($a->nama); ?></option>
+                        <option value="<?php echo (int) $a->id; ?>" <?php echo set_select('auditor_id', $a->id); ?>><?php echo ami_e($a->nama); ?></option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -58,7 +58,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih standar...</option>
                     <?php if (!empty($standar)): ?>
                         <?php foreach ($standar as $s): ?>
-                            <option value="<?php echo $s->id; ?>" <?php echo set_select('standar_id', $s->id); ?>><?php echo html_escape($s->nama_standar); ?></option>
+                        <option value="<?php echo (int) $s->id; ?>" <?php echo set_select('standar_id', $s->id); ?>><?php echo ami_e($s->nama_standar); ?></option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>

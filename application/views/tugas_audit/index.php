@@ -19,7 +19,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'status' => ''];
         <form method="get" action="<?php echo site_url('tugas_audit'); ?>" class="ami-filter-bar">
             <div class="ami-filter-grow">
                 <label for="tugas-search" class="ami-stat-label">Cari tugas</label>
-                <input id="tugas-search" type="search" name="q" class="form-control" value="<?php echo html_escape($filters['q']); ?>" placeholder="Auditee, auditor, atau standar">
+                <input id="tugas-search" type="search" name="q" class="form-control" value="<?php echo ami_e($filters['q']); ?>" placeholder="Auditee, auditor, atau standar">
             </div>
             <div class="ami-filter-select">
                 <label for="status-filter" class="ami-stat-label">Status</label>
@@ -55,16 +55,16 @@ $filters = isset($filters) ? $filters : ['q' => '', 'status' => ''];
                         <?php $status_meta = status_audit_meta($row->status); ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo html_escape($row->auditee_nama); ?></td>
-                            <td><?php echo html_escape($row->auditor_nama); ?></td>
-                            <td><?php echo html_escape($row->nama_standar); ?></td>
+                            <td><?php echo ami_e($row->auditee_nama); ?></td>
+                            <td><?php echo ami_e($row->auditor_nama); ?></td>
+                            <td><?php echo ami_e($row->nama_standar); ?></td>
                             <td>
-                                <span class="ami-status <?php echo html_escape($status_meta['tone']); ?>">
-                                    <?php echo html_escape($status_meta['label']); ?>
+                                <span class="ami-status <?php echo ami_e($status_meta['tone']); ?>">
+                                    <?php echo ami_e($status_meta['label']); ?>
                                 </span>
                             </td>
                             <td>
-                                <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
+                                <?php echo ami_e(format_tanggal_indo($row->created_at)); ?>
                             </td>
                             <td>
                                 <div class="ami-row-actions">

@@ -17,6 +17,7 @@ class Penetapan extends Admin_Lpmpi_Controller
         $this->load->helper(['form', 'url', 'download']);
         $this->load->model('Penetapan_model');
         $this->load->model('Standar_model');
+        $this->load->library('file_security');
     }
 
     public function index()
@@ -30,6 +31,13 @@ class Penetapan extends Admin_Lpmpi_Controller
         $data['active_menu']  = 'penetapan';
         $data['kategori_list'] = $this->kategori_list;
         $data['penetapan_by_kategori'] = $this->Penetapan_model->get_grouped_by_kategori($this->kategori_list);
+        $stored_names = [];
+        foreach ($data['penetapan_by_kategori'] as $rows) {
+            foreach ($rows as $row) {
+                $stored_names[] = (string) $row->file_path;
+            }
+        }
+        $data['file_names'] = $this->file_security->original_names('penetapan', $stored_names);
 
         $this->load->view('lpmpi/penetapan/index', $data);
     }
@@ -52,11 +60,13 @@ class Penetapan extends Admin_Lpmpi_Controller
             'deskripsi' => $this->input->post('deskripsi', TRUE),
         ];
 
-        $new_file = $this->handle_upload((int) $id);
-        if ($new_file === FALSE) {
+        $upload = $this->handle_upload((int) $id);
+        if (!$upload['success']) {
+            $this->session->set_flashdata('error', $upload['message']);
             redirect('lpmpi/penetapan');
             return;
         }
+        $new_file = $upload['file_name'];
 
         if ($new_file !== NULL) {
             $data['file_path'] = $new_file;
@@ -64,12 +74,26 @@ class Penetapan extends Admin_Lpmpi_Controller
 
         if ($this->Penetapan_model->update((int) $id, $data)) {
             if ($new_file !== NULL && !empty($penetapan->file_path)) {
-                $this->delete_local_file($penetapan->file_path);
+                $this->file_security->retire(
+                    'penetapan',
+                    $penetapan->file_path,
+                    'penetapan',
+                    (int) $id,
+                    $this->_user_id(),
+                    'replaced'
+                );
             }
             $this->session->set_flashdata('success', 'Data penetapan berhasil diperbarui.');
         } else {
             if ($new_file !== NULL) {
-                $this->delete_local_file($new_file);
+                $this->file_security->retire(
+                    'penetapan',
+                    $new_file,
+                    'penetapan',
+                    (int) $id,
+                    $this->_user_id(),
+                    'database_update_failed'
+                );
             }
             $this->session->set_flashdata('error', 'Gagal memperbarui data penetapan.');
         }
@@ -92,7 +116,14 @@ class Penetapan extends Admin_Lpmpi_Controller
         }
 
         if ($this->Penetapan_model->update((int) $id, ['file_path' => NULL])) {
-            $this->delete_local_file($penetapan->file_path);
+            $this->file_security->retire(
+                'penetapan',
+                $penetapan->file_path,
+                'penetapan',
+                (int) $id,
+                $this->_user_id(),
+                'user_deleted'
+            );
             $this->session->set_flashdata('success', 'File penetapan berhasil dihapus.');
         } else {
             $this->session->set_flashdata('error', 'Gagal menghapus file penetapan.');
@@ -104,57 +135,31 @@ class Penetapan extends Admin_Lpmpi_Controller
     public function download($id)
     {
         $penetapan = $this->Penetapan_model->find((int) $id);
-        $path = $penetapan && !empty($penetapan->file_path)
-            ? private_storage_path('penetapan', $penetapan->file_path)
-            : NULL;
-        if ($path === NULL) {
+        if (!$penetapan || empty($penetapan->file_path)
+            || !$this->file_security->download(
+                'penetapan',
+                $penetapan->file_path,
+                'penetapan',
+                (int) $id,
+                $this->_user_id()
+            )) {
             show_error('File penetapan tidak ditemukan.', 404, 'File tidak ditemukan');
             return;
         }
-
-        force_download($path, NULL);
     }
 
     private function handle_upload($id)
     {
         if (empty($_FILES['file_penetapan']['name'])) {
-            return NULL;
+            return ['success' => TRUE, 'file_name' => NULL, 'message' => ''];
         }
 
-        $upload_dir = $this->upload_dir();
-        if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, TRUE)) {
-            $this->session->set_flashdata('error', 'Folder upload penetapan tidak dapat dibuat.');
-            return FALSE;
-        }
-
-        $config = [
-            'upload_path' => $upload_dir,
-            'allowed_types' => 'pdf|doc|docx|xls|xlsx',
-            'max_size' => 5120,
-            'file_name' => 'penetapan_' . $id . '_' . date('YmdHis'),
-            'overwrite' => FALSE,
-            'remove_spaces' => TRUE,
-        ];
-
-        $this->load->library('upload');
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('file_penetapan')) {
-            $this->session->set_flashdata('error', strip_tags($this->upload->display_errors('', '')));
-            return FALSE;
-        }
-
-        $upload_data = $this->upload->data();
-        return $upload_data['file_name'];
-    }
-
-    private function upload_dir()
-    {
-        return private_storage_dir('penetapan');
-    }
-
-    private function delete_local_file($file_name)
-    {
-        delete_private_file('penetapan', $file_name);
+        return $this->file_security->upload(
+            'file_penetapan',
+            'penetapan',
+            'penetapan',
+            (int) $id,
+            $this->_user_id()
+        );
     }
 }

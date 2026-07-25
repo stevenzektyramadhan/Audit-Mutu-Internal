@@ -20,29 +20,29 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="row">
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Periode</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->nama_periode ?: '-'); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->nama_periode ?: '-'); ?></div>
             </div>
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Auditee</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->auditee_nama ?: '-'); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->auditee_nama ?: '-'); ?></div>
                 <?php if (!empty($tugas->auditee_unit)): ?>
                     <div class="text-muted" style="font-size:12px;">
-                        <?php echo html_escape($tugas->auditee_unit); ?>
+                        <?php echo ami_e($tugas->auditee_unit); ?>
                         <?php if (!empty($tugas->auditee_jenis_unit)): ?>
-                            &middot; <?php echo html_escape(strtoupper($tugas->auditee_jenis_unit)); ?>
+                        &middot; <?php echo ami_e(strtoupper($tugas->auditee_jenis_unit)); ?>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>
             <div class="col-md-3 mb-3 mb-md-0">
                 <div class="ami-stat-label">Standar</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->nama_standar ?: '-'); ?></div>
+                <div class="font-weight-bold"><?php echo ami_e($tugas->nama_standar ?: '-'); ?></div>
             </div>
             <div class="col-md-3">
                 <div class="ami-stat-label">Status penilaian</div>
-                <span class="ami-status <?php echo html_escape($tugas->penilaian_status_class); ?>">
-                    <i class="fas <?php echo html_escape($tugas->penilaian_status_icon); ?>" aria-hidden="true"></i>
-                    <?php echo html_escape($tugas->penilaian_status_label); ?>
+                <span class="ami-status <?php echo ami_e($tugas->penilaian_status_class); ?>">
+                    <i class="fas <?php echo ami_e($tugas->penilaian_status_icon); ?>" aria-hidden="true"></i>
+                    <?php echo ami_e($tugas->penilaian_status_label); ?>
                 </span>
             </div>
         </div>
@@ -58,7 +58,7 @@ include APPPATH . 'views/layouts/sidebar.php';
 <?php if (!empty($tugas->submitted_at)): ?>
     <div class="alert alert-primary d-flex align-items-center" style="background:#e6f1fb;color:#185fa5;border:0;border-radius:8px;">
         <i class="fas fa-paper-plane mr-2" aria-hidden="true"></i>
-        Jawaban auditee submitted pada <?php echo html_escape(format_tanggal_indo($tugas->submitted_at)); ?>.
+        Jawaban auditee submitted pada <?php echo ami_e(format_tanggal_indo($tugas->submitted_at)); ?>.
     </div>
 <?php endif; ?>
 
@@ -78,21 +78,23 @@ include APPPATH . 'views/layouts/sidebar.php';
             $jenis_temuan = strtolower((string) $item->jenis_temuan);
             $jenis_label = isset($jenis_labels[$jenis_temuan]) ? $jenis_labels[$jenis_temuan] : '-';
             $dokumen_bukti = (string) $item->dokumen_bukti;
+            $dokumen_bukti_name = (string) ($item->dokumen_bukti_name ?? $dokumen_bukti);
             $download_url = $dokumen_bukti !== '' ? site_url('auditor/penilaian/download_bukti/' . (int) $item->id) : '';
+            $safe_link_bukti = ami_safe_http_url($item->link_bukti);
             ?>
             <input type="hidden" name="skor[<?php echo (int) $item->id; ?>]" value="<?php echo $has_score ? (int) $skor : ''; ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="skor">
-            <input type="hidden" name="temuan[<?php echo (int) $item->id; ?>]" value="<?php echo html_escape($item->temuan); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="temuan">
-            <input type="hidden" name="jenis_temuan[<?php echo (int) $item->id; ?>]" value="<?php echo html_escape($jenis_temuan); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="jenis_temuan">
-            <input type="hidden" name="saran_perbaikan[<?php echo (int) $item->id; ?>]" value="<?php echo html_escape($item->saran_perbaikan); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="saran_perbaikan">
-            <input type="hidden" name="rencana_perbaikan[<?php echo (int) $item->id; ?>]" value="<?php echo html_escape($item->rencana_perbaikan); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="rencana_perbaikan">
-            <input type="hidden" name="tgl_bukti[<?php echo (int) $item->id; ?>]" value="<?php echo html_escape($item->tgl_bukti); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="tgl_bukti">
+            <input type="hidden" name="temuan[<?php echo (int) $item->id; ?>]" value="<?php echo ami_e($item->temuan); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="temuan">
+            <input type="hidden" name="jenis_temuan[<?php echo (int) $item->id; ?>]" value="<?php echo ami_e($jenis_temuan); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="jenis_temuan">
+            <input type="hidden" name="saran_perbaikan[<?php echo (int) $item->id; ?>]" value="<?php echo ami_e($item->saran_perbaikan); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="saran_perbaikan">
+            <input type="hidden" name="rencana_perbaikan[<?php echo (int) $item->id; ?>]" value="<?php echo ami_e($item->rencana_perbaikan); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="rencana_perbaikan">
+            <input type="hidden" name="tgl_bukti[<?php echo (int) $item->id; ?>]" value="<?php echo ami_e($item->tgl_bukti); ?>" data-hidden-jawaban="<?php echo (int) $item->id; ?>" data-hidden-field="tgl_bukti">
 
             <div class="ami-panel mb-3" data-penilaian-row="<?php echo (int) $item->id; ?>">
                 <div class="ami-panel-body">
                     <div class="d-flex align-items-start justify-content-between flex-wrap mb-3" style="gap:10px;">
                         <div class="d-flex align-items-start" style="min-width:0;">
                             <span class="ami-nav-badge mr-2" style="margin-left:0;"><?php echo (int) $index + 1; ?></span>
-                            <div class="font-weight-bold"><?php echo html_escape($item->isi_pertanyaan); ?></div>
+                            <div class="font-weight-bold"><?php echo ami_e($item->isi_pertanyaan); ?></div>
                         </div>
                         <span class="ami-status <?php echo $has_score ? 'status-dinilai' : 'status-belum_diisi'; ?>" data-status-badge="<?php echo (int) $item->id; ?>">
                             <i class="fas <?php echo $has_score ? 'fa-check-circle' : 'fa-exclamation-circle'; ?>" aria-hidden="true" data-status-icon="<?php echo (int) $item->id; ?>"></i>
@@ -103,11 +105,11 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <div class="row">
                         <div class="col-lg-7 mb-3 mb-lg-0">
                             <div class="ami-stat-label mb-1">Jawaban auditee</div>
-                            <div class="mb-3"><?php echo nl2br(html_escape($item->jawaban ?: '-')); ?></div>
+                            <div class="mb-3"><?php echo ami_text($item->jawaban ?: '-'); ?></div>
 
                             <div class="ami-stat-label mb-1">Link bukti auditee</div>
-                            <?php if (!empty($item->link_bukti)): ?>
-                                <a href="<?php echo html_escape($item->link_bukti); ?>" target="_blank" rel="noopener noreferrer">
+                            <?php if ($safe_link_bukti !== ''): ?>
+                                <a href="<?php echo ami_e($safe_link_bukti); ?>" target="_blank" rel="noopener noreferrer">
                                     <i class="fas fa-external-link-alt mr-1" aria-hidden="true"></i>Buka bukti
                                 </a>
                             <?php else: ?>
@@ -120,35 +122,35 @@ include APPPATH . 'views/layouts/sidebar.php';
                                     <div class="col-sm-6 mb-3">
                                         <div class="ami-stat-label mb-1">Skor</div>
                                         <div class="font-weight-bold" data-score-label="<?php echo (int) $item->id; ?>">
-                                            <?php echo $has_score ? (int) $skor . ' - ' . html_escape($skor_options[$skor] ?? '') : 'Belum ada'; ?>
+                                <?php echo $has_score ? (int) $skor . ' - ' . ami_e($skor_options[$skor] ?? '') : 'Belum ada'; ?>
                                         </div>
                                     </div>
                                     <div class="col-sm-6 mb-3">
                                         <div class="ami-stat-label mb-1">Jenis temuan</div>
-                                        <div class="font-weight-bold" data-jenis-label="<?php echo (int) $item->id; ?>"><?php echo html_escape($jenis_label); ?></div>
+                                <div class="font-weight-bold" data-jenis-label="<?php echo (int) $item->id; ?>"><?php echo ami_e($jenis_label); ?></div>
                                     </div>
                                 </div>
 
                                 <div class="ami-stat-label mb-1">Temuan</div>
-                                <div class="mb-3" data-temuan-summary="<?php echo (int) $item->id; ?>"><?php echo nl2br(html_escape($item->temuan ?: '-')); ?></div>
+                                <div class="mb-3" data-temuan-summary="<?php echo (int) $item->id; ?>"><?php echo ami_text($item->temuan ?: '-'); ?></div>
 
                                 <div class="ami-stat-label mb-1">Saran perbaikan</div>
-                                <div class="mb-3" data-saran-summary="<?php echo (int) $item->id; ?>"><?php echo nl2br(html_escape($item->saran_perbaikan ?: '-')); ?></div>
+                                <div class="mb-3" data-saran-summary="<?php echo (int) $item->id; ?>"><?php echo ami_text($item->saran_perbaikan ?: '-'); ?></div>
 
                                 <div class="ami-stat-label mb-1">Rencana perbaikan</div>
-                                <div class="mb-3" data-rencana-summary="<?php echo (int) $item->id; ?>"><?php echo nl2br(html_escape($item->rencana_perbaikan ?: '-')); ?></div>
+                                <div class="mb-3" data-rencana-summary="<?php echo (int) $item->id; ?>"><?php echo ami_text($item->rencana_perbaikan ?: '-'); ?></div>
 
                                 <div class="row align-items-end">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <div class="ami-stat-label mb-1">Tanggal bukti</div>
                                         <div data-tgl-label="<?php echo (int) $item->id; ?>">
-                                            <?php echo !empty($item->tgl_bukti) ? html_escape(format_tanggal_indo($item->tgl_bukti)) : '-'; ?>
+                                    <?php echo !empty($item->tgl_bukti) ? ami_e(format_tanggal_indo($item->tgl_bukti)) : '-'; ?>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <div class="ami-stat-label mb-1">Dokumen bukti</div>
-                                        <a href="<?php echo html_escape($download_url); ?>" class="<?php echo $download_url === '' ? 'd-none' : ''; ?>" data-dokumen-link="<?php echo (int) $item->id; ?>">
-                                            <i class="fas fa-download mr-1" aria-hidden="true"></i><span data-dokumen-label="<?php echo (int) $item->id; ?>"><?php echo html_escape($dokumen_bukti); ?></span>
+                                    <a href="<?php echo ami_e($download_url); ?>" class="<?php echo $download_url === '' ? 'd-none' : ''; ?>" data-dokumen-link="<?php echo (int) $item->id; ?>">
+                                        <i class="fas fa-download mr-1" aria-hidden="true"></i><span data-dokumen-label="<?php echo (int) $item->id; ?>"><?php echo ami_e($dokumen_bukti_name); ?></span>
                                         </a>
                                         <span class="<?php echo $download_url !== '' ? 'd-none' : 'text-muted'; ?>" data-dokumen-empty="<?php echo (int) $item->id; ?>">-</span>
                                     </div>
@@ -163,13 +165,13 @@ include APPPATH . 'views/layouts/sidebar.php';
                                             data-jawaban-id="<?php echo (int) $item->id; ?>"
                                             data-nomor="<?php echo (int) $index + 1; ?>"
                                             data-skor="<?php echo $has_score ? (int) $skor : ''; ?>"
-                                            data-temuan="<?php echo html_escape($item->temuan); ?>"
-                                            data-jenis-temuan="<?php echo html_escape($jenis_temuan); ?>"
-                                            data-saran-perbaikan="<?php echo html_escape($item->saran_perbaikan); ?>"
-                                            data-rencana-perbaikan="<?php echo html_escape($item->rencana_perbaikan); ?>"
-                                            data-tgl-bukti="<?php echo html_escape($item->tgl_bukti); ?>"
-                                            data-dokumen-bukti="<?php echo html_escape($dokumen_bukti); ?>"
-                                            data-download-url="<?php echo html_escape($download_url); ?>">
+                                    data-temuan="<?php echo ami_e($item->temuan); ?>"
+                                    data-jenis-temuan="<?php echo ami_e($jenis_temuan); ?>"
+                                    data-saran-perbaikan="<?php echo ami_e($item->saran_perbaikan); ?>"
+                                    data-rencana-perbaikan="<?php echo ami_e($item->rencana_perbaikan); ?>"
+                                    data-tgl-bukti="<?php echo ami_e($item->tgl_bukti); ?>"
+                                    data-dokumen-bukti="<?php echo ami_e($dokumen_bukti_name); ?>"
+                                    data-download-url="<?php echo ami_e($download_url); ?>">
                                         <i class="fas <?php echo $read_only ? 'fa-eye' : 'fa-star'; ?>" aria-hidden="true"></i>
                                         <?php echo $read_only ? 'Detail' : 'Nilai'; ?>
                                     </button>
@@ -216,7 +218,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     </div>
 <?php endif; ?>
 
-<style>
+<style nonce="<?php echo ami_csp_nonce(); ?>">
     #penilaian-modal .modal-dialog {
         height: calc(100vh - 3.5rem);
         max-height: calc(100vh - 3.5rem);
@@ -264,7 +266,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content" style="background:var(--ami-panel);color:var(--ami-text);border:1px solid var(--ami-border);border-radius:8px;">
             <form id="penilaian-modal-form" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="<?php echo html_escape($csrf_name); ?>" value="<?php echo html_escape($csrf_hash); ?>">
+            <input type="hidden" name="<?php echo ami_e($csrf_name); ?>" value="<?php echo ami_e($csrf_hash); ?>">
                 <div class="modal-header" style="border-bottom:1px solid var(--ami-border);">
                     <h5 class="modal-title" id="penilaian-modal-title">Penilaian pertanyaan</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Tutup" style="color:var(--ami-text);">
@@ -280,7 +282,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <?php foreach ([4, 3, 2, 1] as $score): ?>
                                 <label class="ami-action-btn mb-0" style="min-height:38px;">
                                     <input type="radio" name="skor" value="<?php echo (int) $score; ?>" class="mr-2" <?php echo $read_only ? 'disabled' : ''; ?>>
-                                    <?php echo (int) $score; ?> - <?php echo html_escape($skor_options[$score]); ?>
+                            <?php echo (int) $score; ?> - <?php echo ami_e($skor_options[$score]); ?>
                                 </label>
                             <?php endforeach; ?>
                         </div>
@@ -319,7 +321,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <div class="col-md-7">
                             <div class="form-group">
                                 <label for="modal-dokumen">Dokumen Bukti</label>
-                                <input id="modal-dokumen" type="file" name="dokumen_bukti" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" <?php echo $read_only ? 'disabled' : ''; ?>>
+                        <input id="modal-dokumen" type="file" name="dokumen_bukti" class="form-control" accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png" <?php echo $read_only ? 'disabled' : ''; ?>>
                                 <div class="mt-2" data-modal-dokumen-wrap>
                                     <a href="#" target="_blank" rel="noopener noreferrer" data-modal-dokumen-link>
                                         <i class="fas fa-download mr-1" aria-hidden="true"></i><span data-modal-dokumen-label></span>
@@ -351,12 +353,12 @@ include APPPATH . 'views/layouts/sidebar.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo ami_csp_nonce(); ?>">
 (function () {
     'use strict';
 
     var readOnly = <?php echo $read_only ? 'true' : 'false'; ?>;
-    var saveBaseUrl = <?php echo json_encode(site_url('auditor/penilaian/save_item/')); ?>;
+var saveBaseUrl = <?php echo ami_json(site_url('auditor/penilaian/save_item/')); ?>;
     var modal = document.getElementById('penilaian-modal');
     var modalForm = document.getElementById('penilaian-modal-form');
     var modalMessage = modal ? modal.querySelector('[data-modal-message]') : null;
@@ -487,7 +489,7 @@ include APPPATH . 'views/layouts/sidebar.php';
             button.dataset.saranPerbaikan = item.saran_perbaikan || '';
             button.dataset.rencanaPerbaikan = item.rencana_perbaikan || '';
             button.dataset.tglBukti = item.tgl_bukti || '';
-            button.dataset.dokumenBukti = item.dokumen_bukti || '';
+            button.dataset.dokumenBukti = item.dokumen_bukti_label || '';
             button.dataset.downloadUrl = item.download_url || '';
         });
     }

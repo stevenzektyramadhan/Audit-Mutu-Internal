@@ -5,7 +5,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <head>
 <meta charset="utf-8">
 <title>Database Error</title>
-<style type="text/css">
+<style type="text/css" nonce="<?php echo ami_csp_nonce(); ?>">
 
 ::selection { background-color: #E13300; color: white; }
 ::-moz-selection { background-color: #E13300; color: white; }

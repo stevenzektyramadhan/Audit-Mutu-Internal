@@ -40,6 +40,9 @@ class Auth extends CI_Controller {
             redirect('dashboard');
         }
 
+        if (!empty($result['retry_after'])) {
+            $this->output->set_header('Retry-After: ' . (int) $result['retry_after']);
+        }
         $this->session->set_flashdata('error', $result['message']);
         redirect('auth');
     }
@@ -51,7 +54,7 @@ class Auth extends CI_Controller {
             return;
         }
 
-        $this->session->sess_destroy();
+        $this->auth_service->logout();
         redirect('auth');
     }
 }

@@ -1,5 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+require_once APPPATH . 'config/security_bootstrap.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -27,9 +28,7 @@ $app_base_url = getenv('APP_BASE_URL');
 if ($app_base_url !== FALSE && trim($app_base_url) !== '') {
 	$config['base_url'] = rtrim(trim($app_base_url), '/') . '/';
 } elseif (ENVIRONMENT === 'production') {
-	header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-	echo 'Production configuration is incomplete.';
-	exit(1);
+	ami_fail_closed();
 } elseif (isset($_SERVER['HTTP_HOST'], $_SERVER['SCRIPT_NAME'])) {
 	$protocol = (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 	$config['base_url'] = $protocol . '://' . $_SERVER['HTTP_HOST'] . str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
@@ -280,7 +279,7 @@ $config['log_file_extension'] = '';
 | IMPORTANT: This MUST be an integer (no quotes) and you MUST use octal
 |            integer notation (i.e. 0700, 0644, etc.)
 */
-$config['log_file_permissions'] = 0644;
+$config['log_file_permissions'] = ENVIRONMENT === 'production' ? 0600 : 0644;
 
 /*
 |--------------------------------------------------------------------------
@@ -405,11 +404,22 @@ $config['encryption_key'] = $app_encryption_key !== FALSE ? (string) $app_encryp
 $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ami_ci_session';
 $config['sess_samesite'] = 'Lax';
-$config['sess_expiration'] = 7200;
-$config['sess_save_path'] = APPPATH . 'cache/sessions';
+$config['sess_expiration'] = 28800;
+$app_session_save_path = getenv('APP_SESSION_SAVE_PATH');
+$config['sess_save_path'] = $app_session_save_path !== FALSE && trim($app_session_save_path) !== ''
+	? rtrim(trim($app_session_save_path), '/\\')
+	: APPPATH . 'cache/sessions';
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
-$config['sess_regenerate_destroy'] = FALSE;
+$config['sess_regenerate_destroy'] = TRUE;
+
+// M1-03 authentication controls. Throttle data is shared through the database
+// so it remains effective across PHP workers and application instances.
+$config['auth_idle_timeout'] = 1800;
+$config['auth_absolute_timeout'] = 28800;
+$config['auth_login_window'] = 900;
+$config['auth_login_email_limit'] = 5;
+$config['auth_login_ip_limit'] = 20;
 
 /*
 |--------------------------------------------------------------------------
@@ -437,26 +447,42 @@ $config['cookie_secure']	= $app_cookie_secure !== FALSE
 $config['cookie_httponly'] 	= TRUE;
 $config['cookie_samesite'] 	= 'Lax';
 
+$app_trusted_proxies = getenv('APP_TRUSTED_PROXIES');
+$config['proxy_ips'] = $app_trusted_proxies !== FALSE ? trim((string) $app_trusted_proxies) : '';
+
 if (ENVIRONMENT === 'production') {
 	$private_storage = getenv('APP_PRIVATE_STORAGE_PATH');
 	$private_storage_path = $private_storage !== FALSE ? realpath(trim($private_storage)) : FALSE;
 	$web_root = realpath(FCPATH);
 	$log_path = $config['log_path'] !== '' ? realpath($config['log_path']) : FALSE;
-	$production_config_valid = strpos($config['base_url'], 'https://') === 0
+	$session_path = realpath($config['sess_save_path']);
+	$parsed_base_url = ami_parse_production_base_url($config['base_url']);
+	$allowed_hosts = $parsed_base_url !== FALSE
+		? ami_allowed_hosts(getenv('APP_ALLOWED_HOSTS'), $parsed_base_url['host'])
+		: FALSE;
+	$request_host = ami_request_host();
+	$config['allowed_hosts'] = $allowed_hosts !== FALSE ? $allowed_hosts : [];
+
+	$production_config_valid = $parsed_base_url !== FALSE
+		&& $allowed_hosts !== FALSE
+		&& ($request_host === NULL || ($request_host !== FALSE && in_array($request_host, $allowed_hosts, TRUE)))
 		&& $config['encryption_key'] !== ''
 		&& $config['cookie_secure'] === TRUE
-		&& $config['log_threshold'] > 0
+		&& $config['log_threshold'] === 1
+		&& ami_display_errors_disabled()
+		&& ami_valid_proxy_list($config['proxy_ips'])
 		&& $log_path !== FALSE
 		&& is_writable($log_path)
 		&& $private_storage_path !== FALSE
 		&& is_writable($private_storage_path)
-		&& strpos($private_storage_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0
-		&& strpos($log_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0;
+		&& $session_path !== FALSE
+		&& is_writable($session_path)
+		&& ami_path_is_outside($private_storage_path, $web_root)
+		&& ami_path_is_outside($log_path, $web_root)
+		&& ami_path_is_outside($session_path, $web_root);
 
 	if (!$production_config_valid) {
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'Production configuration is incomplete.';
-		exit(1);
+		ami_fail_closed();
 	}
 }
 
@@ -574,4 +600,5 @@ $config['rewrite_short_tags'] = FALSE;
 | Comma-separated:	'10.0.1.200,192.168.5.0/24'
 | Array:		array('10.0.1.200', '192.168.5.0/24')
 */
-$config['proxy_ips'] = '';
+// Set from APP_TRUSTED_PROXIES above. Keep empty unless the exact proxy IP/CIDR
+// is controlled by the deployment team.

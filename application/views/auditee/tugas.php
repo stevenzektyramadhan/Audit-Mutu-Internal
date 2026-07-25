@@ -45,11 +45,11 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <?php foreach ($tugas as $index => $item): ?>
                     <tr>
                         <td><?php echo (int) $index + 1; ?></td>
-                        <td class="font-weight-bold"><?php echo html_escape($item->nama_standar); ?></td>
-                        <td><?php echo html_escape($item->auditor_nama); ?></td>
+                        <td class="font-weight-bold"><?php echo ami_e($item->nama_standar); ?></td>
+                        <td><?php echo ami_e($item->auditor_nama); ?></td>
                         <td>
-                            <span class="ami-status status-<?php echo html_escape($item->status); ?>">
-                                <?php echo html_escape(isset($status_labels[$item->status]) ? $status_labels[$item->status] : $item->status); ?>
+                            <span class="ami-status status-<?php echo ami_e($item->status); ?>">
+                                <?php echo ami_e(isset($status_labels[$item->status]) ? $status_labels[$item->status] : $item->status); ?>
                             </span>
                         </td>
                         <td>

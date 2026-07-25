@@ -77,13 +77,13 @@ if ($initial === '') {
         <?php foreach ($current_menus as $menu): ?>
             <?php if (isset($menu['group']) && $menu['group'] !== $current_group): ?>
                 <?php $current_group = $menu['group']; ?>
-                <div class="ami-nav-label"><?php echo html_escape($current_group); ?></div>
+                <div class="ami-nav-label"><?php echo ami_e($current_group); ?></div>
             <?php endif; ?>
             <a class="ami-nav-link <?php echo $active_menu === $menu['key'] ? 'active' : ''; ?>" href="<?php echo site_url($menu['url']); ?>">
-                <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
-                <span><?php echo html_escape($menu['label']); ?></span>
+                <i class="fas <?php echo ami_e($menu['icon']); ?>" aria-hidden="true"></i>
+                <span><?php echo ami_e($menu['label']); ?></span>
                 <?php if (isset($menu_badges[$menu['key']]) && (int) $menu_badges[$menu['key']] > 0): ?>
-                    <span class="ami-nav-badge"><?php echo html_escape((string) $menu_badges[$menu['key']]); ?></span>
+                    <span class="ami-nav-badge"><?php echo ami_e((string) $menu_badges[$menu['key']]); ?></span>
                 <?php endif; ?>
             </a>
         <?php endforeach; ?>
@@ -108,8 +108,8 @@ if ($initial === '') {
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <div>
-                <h1 class="ami-page-title"><?php echo html_escape($page_title ?? 'Dashboard'); ?></h1>
-                <div class="ami-page-subtitle"><?php echo html_escape($page_subtitle ?? ''); ?></div>
+                <h1 class="ami-page-title"><?php echo ami_e($page_title ?? 'Dashboard'); ?></h1>
+                <div class="ami-page-subtitle"><?php echo ami_e($page_subtitle ?? ''); ?></div>
             </div>
         </div>
         <div class="ami-topbar-actions">
@@ -119,14 +119,14 @@ if ($initial === '') {
             </button>
             <div class="dropdown">
                 <button type="button" class="ami-account-toggle" id="account-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Menu akun">
-                    <span class="ami-avatar ami-topbar-avatar avatar-<?php echo html_escape($role); ?>">
+                    <span class="ami-avatar ami-topbar-avatar avatar-<?php echo ami_e($role); ?>">
                         <?php if ($profile_photo_path): ?>
                             <img src="<?php echo site_url('account/photo'); ?>" alt="" class="ami-avatar-image">
                         <?php else: ?>
-                            <?php echo html_escape($initial); ?>
+                            <?php echo ami_e($initial); ?>
                         <?php endif; ?>
                     </span>
-                    <span class="d-none d-md-inline"><?php echo html_escape($nama); ?></span>
+                    <span class="d-none d-md-inline"><?php echo ami_e($nama); ?></span>
                     <i class="fas fa-chevron-down" aria-hidden="true"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right ami-account-menu" aria-labelledby="account-menu">
@@ -143,12 +143,12 @@ if ($initial === '') {
         <?php if ($this->session->flashdata('success')): ?>
             <div class="alert ami-flash ami-flash-success" role="alert">
                 <i class="fas fa-check-circle" aria-hidden="true"></i>
-                <span><?php echo html_escape($this->session->flashdata('success')); ?></span>
+                <span><?php echo ami_e($this->session->flashdata('success')); ?></span>
             </div>
         <?php endif; ?>
         <?php if ($this->session->flashdata('error')): ?>
             <div class="alert ami-flash ami-flash-error" role="alert">
                 <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
-                <span><?php echo html_escape($this->session->flashdata('error')); ?></span>
+                <span><?php echo ami_e($this->session->flashdata('error')); ?></span>
             </div>
         <?php endif; ?>

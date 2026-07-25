@@ -9,8 +9,9 @@ class Profil extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_check_login();
+        $this->_require_capability(Authorization_policy::CAP_PROFILE_VIEW);
         $this->load->helper(['form', 'url']);
+        $this->load->library('file_security');
         $this->load->model('Profil_model');
     }
 
@@ -34,18 +35,18 @@ class Profil extends MY_Controller
             'mahasiswa_stats' => $mahasiswa_stats,
             'mahasiswa_total' => $this->sum_mahasiswa($mahasiswa_stats),
             'akreditasi_summary' => $akreditasi_summary,
-            'akreditasi_chart_labels' => json_encode(array_map(function ($row) {
+            'akreditasi_chart_labels' => array_map(function ($row) {
                 return $row->akreditasi;
-            }, $akreditasi_summary), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
-            'akreditasi_chart_values' => json_encode(array_map(function ($row) {
+            }, $akreditasi_summary),
+            'akreditasi_chart_values' => array_map(function ($row) {
                 return (int) $row->jumlah;
-            }, $akreditasi_summary), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
-            'mahasiswa_chart_labels' => json_encode(array_map(function ($row) {
+            }, $akreditasi_summary),
+            'mahasiswa_chart_labels' => array_map(function ($row) {
                 return $row->jenjang;
-            }, $mahasiswa_stats), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
-            'mahasiswa_chart_values' => json_encode(array_map(function ($row) {
+            }, $mahasiswa_stats),
+            'mahasiswa_chart_values' => array_map(function ($row) {
                 return (int) $row->jumlah;
-            }, $mahasiswa_stats), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+            }, $mahasiswa_stats),
         ];
 
         $this->load->view('lpmpi/profil/index', $data);
@@ -100,7 +101,14 @@ class Profil extends MY_Controller
 
         if ($this->Profil_model->upsert_profil($data)) {
             if (!empty($upload['file_name']) && $existing && !empty($existing->logo_path)) {
-                $this->delete_local_logo($existing->logo_path);
+                $this->file_security->retire(
+                    'profil',
+                    $existing->logo_path,
+                    'profil_lembaga',
+                    (int) $existing->id,
+                    $this->_user_id(),
+                    'replaced'
+                );
             }
 
             $this->session->set_flashdata('success', 'Profil lembaga berhasil disimpan.');
@@ -109,7 +117,14 @@ class Profil extends MY_Controller
         }
 
         if (!empty($upload['file_name'])) {
-            $this->delete_local_logo($upload['file_name']);
+            $this->file_security->retire(
+                'profil',
+                $upload['file_name'],
+                'profil_lembaga',
+                $existing ? (int) $existing->id : 0,
+                $this->_user_id(),
+                'database_update_failed'
+            );
         }
 
         $this->session->set_flashdata('error', 'Profil lembaga gagal disimpan.');
@@ -218,7 +233,14 @@ class Profil extends MY_Controller
 
         if ($this->Profil_model->upsert_profil(['logo_path' => $upload['file_name']])) {
             if ($existing && !empty($existing->logo_path)) {
-                $this->delete_local_logo($existing->logo_path);
+                $this->file_security->retire(
+                    'profil',
+                    $existing->logo_path,
+                    'profil_lembaga',
+                    (int) $existing->id,
+                    $this->_user_id(),
+                    'replaced'
+                );
             }
 
             $this->session->set_flashdata('success', 'Logo lembaga berhasil diupload.');
@@ -226,7 +248,14 @@ class Profil extends MY_Controller
             return;
         }
 
-        $this->delete_local_logo($upload['file_name']);
+        $this->file_security->retire(
+            'profil',
+            $upload['file_name'],
+            'profil_lembaga',
+            $existing ? (int) $existing->id : 0,
+            $this->_user_id(),
+            'database_update_failed'
+        );
         $this->session->set_flashdata('error', 'Logo lembaga gagal disimpan.');
         redirect('profil/edit');
     }
@@ -299,33 +328,14 @@ class Profil extends MY_Controller
                 : ['success' => TRUE, 'file_name' => NULL, 'message' => ''];
         }
 
-        $upload_dir = $this->logo_upload_dir();
-        if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, TRUE)) {
-            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Folder upload logo tidak dapat dibuat.'];
-        }
-
-        $config = [
-            'upload_path' => $upload_dir,
-            'allowed_types' => 'jpg|jpeg|png|gif',
-            'max_size' => 4096,
-            'file_name' => 'logo_lembaga_' . date('YmdHis'),
-            'overwrite' => FALSE,
-            'remove_spaces' => TRUE,
-        ];
-
-        $this->load->library('upload');
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('logo')) {
-            return [
-                'success' => FALSE,
-                'file_name' => NULL,
-                'message' => strip_tags($this->upload->display_errors('', '')),
-            ];
-        }
-
-        $upload_data = $this->upload->data();
-        return ['success' => TRUE, 'file_name' => $upload_data['file_name'], 'message' => ''];
+        $profil = $this->Profil_model->get_profil();
+        return $this->file_security->upload(
+            'logo',
+            'profil',
+            'profil_lembaga',
+            $profil ? (int) $profil->id : 0,
+            $this->_user_id()
+        );
     }
 
     private function sum_mahasiswa($rows)
@@ -339,7 +349,7 @@ class Profil extends MY_Controller
 
     private function require_manage()
     {
-        $this->_check_role(['super_admin', 'admin_lpmpi']);
+        $this->_require_capability(Authorization_policy::CAP_PROFILE_MANAGE);
     }
 
     private function require_schema_ready()
@@ -360,19 +370,7 @@ class Profil extends MY_Controller
 
     private function can_manage()
     {
-        return in_array($this->session->userdata('role'), ['super_admin', 'admin_lpmpi'], TRUE);
+        return $this->_can(Authorization_policy::CAP_PROFILE_MANAGE);
     }
 
-    private function logo_upload_dir()
-    {
-        return FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'profil' . DIRECTORY_SEPARATOR;
-    }
-
-    private function delete_local_logo($file_name)
-    {
-        $path = $this->logo_upload_dir() . basename((string) $file_name);
-        if (is_file($path)) {
-            unlink($path);
-        }
-    }
 }

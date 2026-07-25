@@ -16,6 +16,7 @@ class Tugas extends Auditee_Controller
     {
         parent::__construct();
         $this->load->helper(['form', 'url', 'download']);
+        $this->load->library('file_security');
         $this->load->library('form_validation');
         $this->load->model('Jawaban_model');
         $this->load->model('Periode_model');
@@ -64,7 +65,7 @@ class Tugas extends Auditee_Controller
         $this->require_post();
         $detail = $this->get_detail_or_404((int) $tugas_id);
 
-        if ($detail['tugas']->is_readonly) {
+        if (!$this->authorization_policy->canEditAuditeeSubmission($this->_user_id(), $tugas_id)) {
             $this->session->set_flashdata('error', 'Jawaban sudah disubmit dan tidak dapat diubah.');
             redirect('auditee/form/' . (int) $tugas_id);
             return;
@@ -76,7 +77,12 @@ class Tugas extends Auditee_Controller
             return;
         }
 
-        $result = $this->Jawaban_model->save_answers((int) $tugas_id, $this->input->post(NULL, TRUE), FALSE);
+        $result = $this->Jawaban_model->save_answers(
+            (int) $tugas_id,
+            $this->_user_id(),
+            $this->input->post(NULL, TRUE),
+            FALSE
+        );
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect('auditee/form/' . (int) $tugas_id);
     }
@@ -86,7 +92,7 @@ class Tugas extends Auditee_Controller
         $this->require_post();
         $detail = $this->get_detail_or_404((int) $tugas_id);
 
-        if ($detail['tugas']->is_readonly) {
+        if (!$this->authorization_policy->canEditAuditeeSubmission($this->_user_id(), $tugas_id)) {
             $this->session->set_flashdata('error', 'Jawaban sudah disubmit dan tidak dapat diubah.');
             redirect('auditee/form/' . (int) $tugas_id);
             return;
@@ -98,7 +104,12 @@ class Tugas extends Auditee_Controller
             return;
         }
 
-        $result = $this->Jawaban_model->save_answers((int) $tugas_id, $this->input->post(NULL, TRUE), TRUE);
+        $result = $this->Jawaban_model->save_answers(
+            (int) $tugas_id,
+            $this->_user_id(),
+            $this->input->post(NULL, TRUE),
+            TRUE
+        );
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
 
         if ($result['success']) {
@@ -126,18 +137,24 @@ class Tugas extends Auditee_Controller
             return;
         }
 
-        $path = private_storage_path('instrumen', $file_name);
-        if ($path === NULL) {
+        if (!$this->file_security->download(
+            'instrumen',
+            $file_name,
+            'standar',
+            (int) $detail['tugas']->standar_id,
+            $this->_user_id()
+        )) {
             show_error('File instrumen tidak ditemukan di server.', 404, 'File tidak ditemukan');
             return;
         }
-
-        force_download($path, NULL);
     }
 
     private function get_detail_or_404($tugas_id)
     {
-        $tugas = $this->Jawaban_model->find_tugas_for_auditee((int) $tugas_id, $this->_user_id());
+        $tugas = $this->authorization_policy->getViewableAssignment(
+            $this->_user_id(),
+            (int) $tugas_id
+        );
         if (!$tugas) {
             show_error('Tugas audit tidak ditemukan atau bukan milik Anda.', 404, 'Tugas tidak ditemukan');
             exit;

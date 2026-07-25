@@ -18,9 +18,13 @@ function check($condition, $message)
     }
 }
 
-$json_flags = 'JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT';
-check(substr_count(source($root, 'application/controllers/Profil.php'), $json_flags) === 4, 'Semua JSON chart profil harus memakai JSON_HEX flags.');
-check(substr_count(source($root, 'application/controllers/lpmpi/Laporan.php'), $json_flags) === 2, 'Semua JSON chart laporan harus memakai JSON_HEX flags.');
+$encoding_helper = source($root, 'application/helpers/app_helper.php');
+check(strpos($encoding_helper, 'function ami_json') !== FALSE, 'Helper JSON aman harus tersedia.');
+foreach (['JSON_HEX_TAG', 'JSON_HEX_AMP', 'JSON_HEX_APOS', 'JSON_HEX_QUOT'] as $json_flag) {
+    check(strpos($encoding_helper, $json_flag) !== FALSE, 'Helper JSON aman harus memakai flag ' . $json_flag . '.');
+}
+check(substr_count(source($root, 'application/views/lpmpi/profil/index.php'), 'ami_json(') === 4, 'Semua JSON chart profil harus memakai helper JSON aman.');
+check(substr_count(source($root, 'application/views/lpmpi/laporan/index.php'), 'ami_json(') === 2, 'Semua JSON chart laporan harus memakai helper JSON aman.');
 
 $encoded = json_encode(['</script><script>alert("x")</script>'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 check(strpos($encoded, '<script>') === FALSE && strpos($encoded, '\\u003C') !== FALSE, 'Payload chart masih memuat tag script literal.');
@@ -34,7 +38,8 @@ check(strpos($dashboard_service, 'if ($active_periode)') !== FALSE, 'Dashboard h
 check(strpos($dashboard_service, 'count_by_status_for_period((int) $active_periode->id)') !== FALSE, 'Dashboard harus menghitung status untuk periode aktif.');
 check(strpos($dashboard_model, "->where('periode_id', (int) \$periode_id)") !== FALSE, 'Agregat status harus dibatasi periode aktif.');
 check(strpos($dashboard_model, "->where_in('status', array_keys(\$counts))") !== FALSE, 'Agregat status harus hanya memuat status tugas resmi.');
-check(strpos($dashboard_controller, $json_flags) !== FALSE, 'JSON chart dashboard harus memakai JSON_HEX flags.');
+check(strpos($dashboard_controller, 'task_status_chart') !== FALSE, 'Controller dashboard harus meneruskan data chart.');
+check(strpos($dashboard_view, 'ami_json($task_status_chart)') !== FALSE, 'JSON chart dashboard harus memakai helper JSON aman.');
 check(strpos($dashboard_view, "site_url('lpmpi/laporan')") !== FALSE, 'Dashboard harus menautkan laporan detail.');
 check(strpos($dashboard_view, 'Belum ada periode audit aktif') !== FALSE, 'Dashboard harus memiliki no-data state periode aktif.');
 check(strpos($dashboard_view, '$active_task_count > 0') !== FALSE, 'Dashboard hanya boleh menampilkan chart saat periode aktif memiliki tugas.');
@@ -64,18 +69,21 @@ check(strpos($migration, 'INFORMATION_SCHEMA.COLUMNS') !== FALSE, 'Migration 010
 check(substr_count($migration, "CALL `ami_add_pertanyaan_column`") === 10, 'Migration 010 harus merekonsiliasi sepuluh kolom.');
 
 $helper = source($root, 'application/helpers/app_helper.php');
-check(strpos($helper, "['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos']") !== FALSE, 'Resolver harus membatasi kategori private.');
+foreach (['instrumen', 'penetapan', 'bukti_auditor', 'notulen', 'daftar_hadir', 'tmp', 'user_photos'] as $private_category) {
+    check(strpos($helper, "'" . $private_category . "'") !== FALSE, 'Resolver harus membatasi kategori private: ' . $private_category);
+}
 check(strpos($helper, 'basename($stored_name) !== $stored_name') !== FALSE, 'Resolver harus menolak path traversal.');
 check(strpos($helper, "FCPATH . 'uploads'") !== FALSE, 'Resolver harus mempertahankan fallback file lama.');
 check(strpos(source($root, 'application/views/lpmpi/instrumen/index.php'), "base_url('uploads/instrumen/") === FALSE, 'View instrumen tidak boleh mengekspos URL private.');
 check(strpos(source($root, 'application/views/lpmpi/penetapan/index.php'), "base_url('uploads/penetapan/") === FALSE, 'View penetapan tidak boleh mengekspos URL private.');
 $apache_deny = "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n    Deny from all\n</IfModule>\n";
-check(source($root, 'uploads/bukti_auditor/.htaccess') === $apache_deny, 'Legacy bukti auditor harus ditolak oleh Apache 2.4 dan Apache lama.');
+$legacy_bukti_htaccess = str_replace("\r\n", "\n", source($root, 'uploads/bukti_auditor/.htaccess'));
+check($legacy_bukti_htaccess === $apache_deny, 'Legacy bukti auditor harus ditolak oleh Apache 2.4 dan Apache lama.');
 
 $auditee = source($root, 'application/controllers/Auditee.php');
 $auditor = source($root, 'application/controllers/Auditor.php');
-check(strpos($auditee, 'find_tugas_for_auditee') !== FALSE, 'Download auditee harus memeriksa ownership tugas.');
-check(strpos($auditor, 'find_jawaban_for_auditor') !== FALSE, 'Download auditor harus memeriksa ownership jawaban.');
+check(strpos($auditee, 'authorization_policy->getViewableAssignment') !== FALSE, 'Download auditee harus melewati central object policy.');
+check(strpos($auditor, 'authorization_policy->getViewableEvidence') !== FALSE, 'Download auditor harus melewati central evidence policy.');
 check(strpos(source($root, 'application/controllers/lpmpi/Instrumen.php'), 'extends Admin_Lpmpi_Controller') !== FALSE, 'Download instrumen admin harus role-protected.');
 check(strpos(source($root, 'application/controllers/lpmpi/Penetapan.php'), 'extends Admin_Lpmpi_Controller') !== FALSE, 'Download penetapan admin harus role-protected.');
 

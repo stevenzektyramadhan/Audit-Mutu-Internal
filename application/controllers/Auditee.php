@@ -15,6 +15,9 @@ class Auditee extends CI_Controller
     /** @var CI_Form_validation */
     public $form_validation;
 
+    /** @var Authorization_policy */
+    public $authorization_policy;
+
     /** @var Jawaban_model */
     public $Jawaban_model;
 
@@ -25,7 +28,9 @@ class Auditee extends CI_Controller
     {
         parent::__construct();
         $this->load->library('auth_guard');
-        $this->auth_guard->only(['auditee']);
+        $this->auth_guard->require_capability(Authorization_policy::CAP_AUDITEE_WORK);
+        $this->load->library('authorization_policy');
+        $this->load->library('file_security');
         $this->load->helper(['form', 'url', 'download']);
         $this->load->library('form_validation');
         $this->load->model('Jawaban_model');
@@ -95,7 +100,7 @@ class Auditee extends CI_Controller
         $this->require_post();
         $detail = $this->get_detail_or_404((int) $tugas_id);
 
-        if ($detail['tugas']->is_readonly) {
+        if (!$this->authorization_policy->canEditAuditeeSubmission($this->user_id(), $tugas_id)) {
             $this->session->set_flashdata('error', 'Jawaban sudah disubmit dan tidak dapat diubah.');
             redirect('auditee/form/' . (int) $tugas_id);
             return;
@@ -107,7 +112,12 @@ class Auditee extends CI_Controller
             return;
         }
 
-        $result = $this->Jawaban_model->save_answers((int) $tugas_id, $this->input->post(NULL, TRUE), FALSE);
+        $result = $this->Jawaban_model->save_answers(
+            (int) $tugas_id,
+            $this->user_id(),
+            $this->input->post(NULL, TRUE),
+            FALSE
+        );
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect('auditee/form/' . (int) $tugas_id);
     }
@@ -117,7 +127,7 @@ class Auditee extends CI_Controller
         $this->require_post();
         $detail = $this->get_detail_or_404((int) $tugas_id);
 
-        if ($detail['tugas']->is_readonly) {
+        if (!$this->authorization_policy->canEditAuditeeSubmission($this->user_id(), $tugas_id)) {
             $this->session->set_flashdata('error', 'Jawaban sudah disubmit dan tidak dapat diubah.');
             redirect('auditee/form/' . (int) $tugas_id);
             return;
@@ -129,7 +139,12 @@ class Auditee extends CI_Controller
             return;
         }
 
-        $result = $this->Jawaban_model->save_answers((int) $tugas_id, $this->input->post(NULL, TRUE), TRUE);
+        $result = $this->Jawaban_model->save_answers(
+            (int) $tugas_id,
+            $this->user_id(),
+            $this->input->post(NULL, TRUE),
+            TRUE
+        );
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
 
         if ($result['success']) {
@@ -157,18 +172,24 @@ class Auditee extends CI_Controller
             return;
         }
 
-        $path = private_storage_path('instrumen', $file_name);
-        if ($path === NULL) {
+        if (!$this->file_security->download(
+            'instrumen',
+            $file_name,
+            'standar',
+            (int) $detail['tugas']->standar_id,
+            $this->user_id()
+        )) {
             show_error('File instrumen tidak ditemukan di server.', 404, 'File tidak ditemukan');
             return;
         }
-
-        force_download($path, NULL);
     }
 
     private function get_detail_or_404($tugas_id)
     {
-        $tugas = $this->Jawaban_model->find_tugas_for_auditee((int) $tugas_id, $this->user_id());
+        $tugas = $this->authorization_policy->getViewableAssignment(
+            $this->user_id(),
+            (int) $tugas_id
+        );
         if (!$tugas) {
             show_error('Tugas audit tidak ditemukan atau bukan milik Anda.', 404, 'Tugas tidak ditemukan');
             exit;

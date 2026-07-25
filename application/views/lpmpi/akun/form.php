@@ -3,8 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 $is_edit = isset($is_edit) ? $is_edit : FALSE;
 $account = isset($account) ? $account : NULL;
-$selected_role = set_value('role', $is_edit ? $account->role : '');
-$selected_jenis_unit = set_value('jenis_unit', $is_edit ? $account->jenis_unit : '');
+$selected_role = set_value('role', $is_edit ? $account->role : '', FALSE);
+$selected_jenis_unit = set_value('jenis_unit', $is_edit ? $account->jenis_unit : '', FALSE);
 
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
@@ -23,12 +23,12 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php echo form_open($action); ?>
             <div class="mb-3">
                 <label for="nama" class="form-label text-light">Nama Lengkap</label>
-                <input type="text" class="form-control bg-dark text-light border-secondary" id="nama" name="nama" value="<?php echo html_escape(set_value('nama', $is_edit ? $account->nama : '')); ?>" required style="border-radius: 7px;">
+                <input type="text" class="form-control bg-dark text-light border-secondary" id="nama" name="nama" value="<?php echo ami_e(set_value('nama', $is_edit ? $account->nama : '', FALSE)); ?>" required style="border-radius: 7px;">
             </div>
 
             <div class="mb-3">
                 <label for="email" class="form-label text-light">Email</label>
-                <input type="email" class="form-control bg-dark text-light border-secondary" id="email" name="email" value="<?php echo html_escape(set_value('email', $is_edit ? $account->email : '')); ?>" required style="border-radius: 7px;">
+                <input type="email" class="form-control bg-dark text-light border-secondary" id="email" name="email" value="<?php echo ami_e(set_value('email', $is_edit ? $account->email : '', FALSE)); ?>" required style="border-radius: 7px;">
             </div>
 
             <div class="mb-3">
@@ -56,7 +56,7 @@ include APPPATH . 'views/layouts/sidebar.php';
             <div data-unit-fields>
                 <div class="mb-3">
                     <label for="nama_unit" class="form-label text-light">Nama Unit</label>
-                    <input type="text" class="form-control bg-dark text-light border-secondary" id="nama_unit" name="nama_unit" value="<?php echo html_escape(set_value('nama_unit', $is_edit ? $account->nama_unit : '')); ?>" style="border-radius: 7px;" placeholder="Contoh: Program Studi Informatika">
+                    <input type="text" class="form-control bg-dark text-light border-secondary" id="nama_unit" name="nama_unit" value="<?php echo ami_e(set_value('nama_unit', $is_edit ? $account->nama_unit : '', FALSE)); ?>" style="border-radius: 7px;" placeholder="Contoh: Program Studi Informatika">
                 </div>
 
                 <div class="mb-4">
@@ -70,6 +70,24 @@ include APPPATH . 'views/layouts/sidebar.php';
                 </div>
             </div>
 
+            <?php if ($is_edit): ?>
+                <div class="mb-4">
+                    <input type="hidden" name="is_active" value="0">
+                    <div class="custom-control custom-switch">
+                        <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="is_active"
+                            name="is_active"
+                            value="1"
+                            <?php echo set_checkbox('is_active', '1', (int) $account->is_active === 1); ?>
+                        >
+                        <label class="custom-control-label text-light" for="is_active">Akun aktif dan boleh login</label>
+                    </div>
+                    <small class="text-muted">Menonaktifkan akun akan mencabut seluruh sesi aktif akun tersebut.</small>
+                </div>
+            <?php endif; ?>
+
             <div class="d-flex justify-content-end gap-2">
                 <a href="<?php echo site_url('lpmpi/akun'); ?>" class="btn btn-secondary text-light" style="border-radius: 7px; background: transparent; border: 1px solid var(--ami-border);">Batal</a>
                 <button type="submit" class="btn btn-ami" style="background: var(--ami-blue); color: white; border: none;">
@@ -81,7 +99,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo ami_csp_nonce(); ?>">
 (function () {
     var roleSelect = document.querySelector('[data-role-select]');
     var unitFields = document.querySelector('[data-unit-fields]');

@@ -16,6 +16,7 @@ class Penugasan extends Admin_Lpmpi_Controller
     public function __construct()
     {
         parent::__construct();
+        $this->_require_capability(Authorization_policy::CAP_ASSIGNMENTS_MANAGE);
         $this->load->helper(['form', 'url']);
         $this->load->library('form_validation');
         $this->load->model('Tugas_model');
@@ -42,7 +43,7 @@ class Penugasan extends Admin_Lpmpi_Controller
         $data['filters']      = $filters;
         $data['periode_list'] = $this->Periode_model->get_all();
         $data['standar_list'] = $this->Standar_model->get_all();
-        $data['auditee_list'] = $this->User_model->get_by_role('auditee');
+        $data['auditee_list'] = $this->User_model->get_active_by_role('auditee');
         $data['tugas_list']   = $this->Tugas_model->get_all_tugas($filters);
 
         $this->load->view('lpmpi/penugasan/index', $data);

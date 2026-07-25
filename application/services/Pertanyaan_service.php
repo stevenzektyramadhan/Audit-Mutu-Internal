@@ -20,14 +20,17 @@ class Pertanyaan_service
     protected $ci;
     protected $pertanyaan_model;
     protected $standar_model;
+    protected $audit_logger;
 
     public function __construct()
     {
         $this->ci = &get_instance();
         $this->ci->load->model('Pertanyaan_model');
         $this->ci->load->model('Standar_model');
+        $this->ci->load->library('audit_logger');
         $this->pertanyaan_model = $this->ci->Pertanyaan_model;
         $this->standar_model = $this->ci->Standar_model;
+        $this->audit_logger = $this->ci->audit_logger;
     }
 
     public function get_all_pertanyaan($standar_id = NULL)
@@ -277,7 +280,19 @@ class Pertanyaan_service
             return FALSE;
         }
 
-        return $this->pertanyaan_model->insert_bulk((int) $standar_id, $data_array);
+        $inserted = $this->pertanyaan_model->insert_bulk((int) $standar_id, $data_array);
+        if ((int) $inserted > 0) {
+            $this->audit_logger->record(
+                'indicator_bulk_imported',
+                'standard',
+                (int) $standar_id,
+                'import',
+                NULL,
+                ['row_count' => (int) $inserted],
+                ['row_count' => (int) $inserted, 'format' => 'xlsx']
+            );
+        }
+        return $inserted;
     }
 
     public function create_pertanyaan($data)
@@ -289,6 +304,16 @@ class Pertanyaan_service
 
         $data = $validation['data'];
         if ($this->pertanyaan_model->create($data)) {
+            $pertanyaan_id = (int) $this->ci->db->insert_id();
+            $this->audit_logger->record(
+                'indicator_created',
+                'indicator',
+                $pertanyaan_id,
+                'create',
+                NULL,
+                $data,
+                ['changed_fields' => array_keys($data)]
+            );
             return ['success' => true, 'message' => 'Pertanyaan berhasil ditambahkan.'];
         }
         return ['success' => false, 'message' => 'Gagal menambahkan pertanyaan.'];
@@ -312,6 +337,18 @@ class Pertanyaan_service
         }
 
         if ($this->pertanyaan_model->update($id, $validation['data'])) {
+            $this->audit_logger->record(
+                'indicator_updated',
+                'indicator',
+                (int) $id,
+                'update',
+                [
+                    'standar_id' => (int) $pertanyaan->standar_id,
+                    'isi_pertanyaan' => $pertanyaan->isi_pertanyaan,
+                ],
+                $validation['data'],
+                ['changed_fields' => array_keys($validation['data'])]
+            );
             return ['success' => TRUE, 'message' => 'Pertanyaan berhasil diperbarui.'];
         }
 
@@ -320,11 +357,24 @@ class Pertanyaan_service
 
     public function delete_pertanyaan($id)
     {
-        if (!$this->pertanyaan_model->find($id)) {
+        $pertanyaan = $this->pertanyaan_model->find($id);
+        if (!$pertanyaan) {
             return ['success' => FALSE, 'message' => 'Pertanyaan tidak ditemukan.'];
         }
 
         if ($this->pertanyaan_model->delete($id)) {
+            $this->audit_logger->record(
+                'indicator_deleted',
+                'indicator',
+                (int) $id,
+                'delete',
+                [
+                    'standar_id' => (int) $pertanyaan->standar_id,
+                    'isi_pertanyaan' => $pertanyaan->isi_pertanyaan,
+                ],
+                NULL,
+                ['changed_fields' => ['deleted']]
+            );
             return ['success' => TRUE, 'message' => 'Pertanyaan berhasil dihapus.'];
         }
 

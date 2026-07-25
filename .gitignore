@@ -1,4 +1,10 @@
 .DS_Store
+.env
+.env.*
+!.env.example
+
+# Local Apache environment; production settings belong in the web server.
+/.htaccess
 
 application/cache/*
 !application/cache/index.html
@@ -42,6 +48,20 @@ docs/DATABASE.MD
 docs/TASK.md
 docs/TASKS.md
 docs/*
+
+# Versioned architecture records produced by the M0 foundation tasks.
+!docs/architecture/
+!docs/architecture/current-state.md
+!docs/database/
+!docs/database/current-schema.md
+!docs/adr/
+!docs/adr/*.md
+!docs/product/
+!docs/product/decision-register.md
+!docs/security/
+!docs/security/*.md
+!docs/handoff/
+!docs/handoff/CURRENT_HANDOFF.md
 
 # Local dummy data and feature-testing fixtures
 /test-data/

@@ -32,37 +32,37 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <tr>
                             <td><?php echo (int) $index + 1; ?></td>
                             <td>
-                                <div><?php echo html_escape($item->nama_periode ?: '-'); ?></div>
+                                <div><?php echo ami_e($item->nama_periode ?: '-'); ?></div>
                                 <?php if (!empty($item->tanggal_buka) && !empty($item->tanggal_tutup)): ?>
                                     <div class="text-muted" style="font-size:12px;">
-                                        <?php echo html_escape(format_tanggal_indo($item->tanggal_buka)); ?> - <?php echo html_escape(format_tanggal_indo($item->tanggal_tutup)); ?>
+                                    <?php echo ami_e(format_tanggal_indo($item->tanggal_buka)); ?> - <?php echo ami_e(format_tanggal_indo($item->tanggal_tutup)); ?>
                                     </div>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <div class="font-weight-bold"><?php echo html_escape($item->auditee_nama ?: '-'); ?></div>
+                                <div class="font-weight-bold"><?php echo ami_e($item->auditee_nama ?: '-'); ?></div>
                                 <?php if (!empty($item->auditee_unit)): ?>
                                     <div class="text-muted" style="font-size:12px;">
-                                        <?php echo html_escape($item->auditee_unit); ?>
+                                        <?php echo ami_e($item->auditee_unit); ?>
                                         <?php if (!empty($item->auditee_jenis_unit)): ?>
-                                            &middot; <?php echo html_escape(strtoupper($item->auditee_jenis_unit)); ?>
+                                        &middot; <?php echo ami_e(strtoupper($item->auditee_jenis_unit)); ?>
                                         <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
                             </td>
-                            <td class="font-weight-bold"><?php echo html_escape($item->nama_standar ?: '-'); ?></td>
+                            <td class="font-weight-bold"><?php echo ami_e($item->nama_standar ?: '-'); ?></td>
                             <td>
                                 <?php if (!empty($item->submitted_at)): ?>
-                                    <?php echo html_escape(format_tanggal_indo($item->submitted_at)); ?>
+                                    <?php echo ami_e(format_tanggal_indo($item->submitted_at)); ?>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
                             <td><?php echo (int) $item->jumlah_dinilai; ?> / <?php echo (int) $item->jumlah_pertanyaan; ?></td>
                             <td>
-                                <span class="ami-status <?php echo html_escape($item->penilaian_status_class); ?>">
-                                    <i class="fas <?php echo html_escape($item->penilaian_status_icon); ?>" aria-hidden="true"></i>
-                                    <?php echo html_escape($item->penilaian_status_label); ?>
+                                <span class="ami-status <?php echo ami_e($item->penilaian_status_class); ?>">
+                                    <i class="fas <?php echo ami_e($item->penilaian_status_icon); ?>" aria-hidden="true"></i>
+                                    <?php echo ami_e($item->penilaian_status_label); ?>
                                 </span>
                             </td>
                             <td>

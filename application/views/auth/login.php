@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
+    <style nonce="<?php echo ami_csp_nonce(); ?>">
         /* ===== CSS Variables ===== */
         :root {
             --login-bg: #f3f5f8;
@@ -499,7 +499,7 @@
             <?php if ($this->session->flashdata('error')): ?>
                 <div class="login-alert">
                     <i class="fas fa-exclamation-circle"></i>
-                    <?php echo html_escape($this->session->flashdata('error')); ?>
+                    <?php echo ami_e($this->session->flashdata('error')); ?>
                 </div>
             <?php endif; ?>
 
@@ -512,7 +512,7 @@
                     <div class="login-input-wrap">
                         <input type="email" name="email" id="email" class="form-control"
                                placeholder="nama@universitas.ac.id"
-                               value="<?php echo set_value('email'); ?>" required>
+                                    value="<?php echo ami_e(set_value('email', '', FALSE)); ?>" required>
                         <span class="login-input-icon">
                             <i class="fas fa-envelope"></i>
                         </span>
@@ -559,7 +559,7 @@
 </footer>
 
 <!-- Scripts -->
-<script>
+<script nonce="<?php echo ami_csp_nonce(); ?>">
 (function () {
     'use strict';
 

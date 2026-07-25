@@ -13,7 +13,10 @@ $logo_src = base_url('assets/img/logo-2.png');
 if ($profil && !empty($profil->logo_path)) {
     $logo_src = base_url('uploads/profil/' . rawurlencode($profil->logo_path));
 } elseif ($profil && !empty($profil->logo_url)) {
-    $logo_src = $profil->logo_url;
+    $safe_logo_url = ami_safe_http_url($profil->logo_url);
+    if ($safe_logo_url !== '') {
+        $logo_src = $safe_logo_url;
+    }
 }
 
 $identity_rows = [
@@ -42,7 +45,7 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
-<style>
+<style nonce="<?php echo ami_csp_nonce(); ?>">
     .profil-hero {
         display: grid;
         grid-template-columns: 170px minmax(0, 1fr);
@@ -189,10 +192,10 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <?php if ($nama_sinkron === ''): ?>
                         <input type="text" name="nama_pt_pddikti" class="form-control" required placeholder="Nama PT di PDDikti" style="min-width:260px;">
                     <?php else: ?>
-                        <input type="hidden" name="nama_pt_pddikti" value="<?php echo html_escape($nama_sinkron); ?>">
+                        <input type="hidden" name="nama_pt_pddikti" value="<?php echo ami_e($nama_sinkron); ?>">
                     <?php endif; ?>
                     <?php if ($profil && !empty($profil->id_pt_pddikti)): ?>
-                        <input type="hidden" name="id_pt_pddikti" value="<?php echo html_escape($profil->id_pt_pddikti); ?>">
+                        <input type="hidden" name="id_pt_pddikti" value="<?php echo ami_e($profil->id_pt_pddikti); ?>">
                     <?php endif; ?>
                     <button type="submit" class="btn btn-primary btn-ami" data-confirm-sync data-loading-text="Sinkronisasi...">
                         <i class="fas fa-sync-alt" aria-hidden="true"></i> Sinkronkan dari PDDikti
@@ -231,27 +234,27 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="ami-panel-body">
             <div class="profil-hero">
                 <div>
-                    <img src="<?php echo html_escape($logo_src); ?>" alt="Logo universitas" class="profil-logo">
+            <img src="<?php echo ami_e($logo_src); ?>" alt="Logo universitas" class="profil-logo">
                 </div>
                 <div>
-                    <h2 class="profil-title"><?php echo html_escape($profil->nama_pt ?: 'Nama universitas belum diisi'); ?></h2>
+                    <h2 class="profil-title"><?php echo ami_e($profil->nama_pt ?: 'Nama universitas belum diisi'); ?></h2>
                     <?php if ($akreditasi_text !== ''): ?>
                         <span class="ami-status status-dinilai">
                             <i class="fas fa-award" aria-hidden="true"></i>
-                            <?php echo html_escape($akreditasi_text); ?>
+                            <?php echo ami_e($akreditasi_text); ?>
                         </span>
                     <?php endif; ?>
                     <?php if (!empty($profil->last_sync_at)): ?>
                         <div class="text-muted mt-2" style="font-size:12px;">
-                            Terakhir disinkronkan: <?php echo html_escape(format_tanggal_indo($profil->last_sync_at)); ?>
+                            Terakhir disinkronkan: <?php echo ami_e(format_tanggal_indo($profil->last_sync_at)); ?>
                         </div>
                     <?php endif; ?>
 
                     <div class="profil-grid">
                         <?php foreach ($identity_rows as $label => $value): ?>
                             <div class="profil-field">
-                                <div class="ami-stat-label"><?php echo html_escape($label); ?></div>
-                                <div class="profil-field-value"><?php echo html_escape($value !== '' && $value !== NULL ? $value : '-'); ?></div>
+                                <div class="ami-stat-label"><?php echo ami_e($label); ?></div>
+                                <div class="profil-field-value"><?php echo ami_e($value !== '' && $value !== NULL ? $value : '-'); ?></div>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -282,7 +285,7 @@ include APPPATH . 'views/layouts/sidebar.php';
             <div class="profil-mahasiswa-head">
                 <div class="profil-total-box">
                     <div class="profil-total-icon"><i class="fas fa-user-graduate" aria-hidden="true"></i></div>
-                    <div class="profil-total-number"><?php echo html_escape(number_format((int) $mahasiswa_total, 0, ',', '.')); ?></div>
+                    <div class="profil-total-number"><?php echo ami_e(number_format((int) $mahasiswa_total, 0, ',', '.')); ?></div>
                     <div class="ami-stat-label mt-2">Total Mahasiswa</div>
                 </div>
                 <div>
@@ -290,8 +293,8 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <div class="profil-breakdown">
                             <?php foreach ($mahasiswa_stats as $row): ?>
                                 <div class="profil-field">
-                                    <div class="ami-stat-label"><?php echo html_escape($row->jenjang ?: 'Lainnya'); ?></div>
-                                    <div class="profil-field-value"><?php echo html_escape(number_format((int) $row->jumlah, 0, ',', '.')); ?></div>
+                                    <div class="ami-stat-label"><?php echo ami_e($row->jenjang ?: 'Lainnya'); ?></div>
+                                    <div class="profil-field-value"><?php echo ami_e(number_format((int) $row->jumlah, 0, ',', '.')); ?></div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -334,13 +337,13 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <?php foreach ($prodi as $index => $row): ?>
                             <tr>
                                 <td><?php echo (int) $index + 1; ?></td>
-                                <td><?php echo html_escape($row->kode_prodi ?: '-'); ?></td>
-                                <td><strong><?php echo html_escape($row->nama_prodi ?: '-'); ?></strong></td>
-                                <td><?php echo html_escape($row->status ?: '-'); ?></td>
-                                <td><?php echo html_escape($row->jenjang ?: '-'); ?></td>
-                                <td><?php echo html_escape($row->akreditasi ?: '-'); ?></td>
-                                <td><?php echo !empty($row->tanggal_sk_akreditasi) ? html_escape(format_tanggal_indo($row->tanggal_sk_akreditasi)) : '-'; ?></td>
-                                <td><?php echo html_escape($row->rasio_dosen_mahasiswa ?: '-'); ?></td>
+                                <td><?php echo ami_e($row->kode_prodi ?: '-'); ?></td>
+                                <td><strong><?php echo ami_e($row->nama_prodi ?: '-'); ?></strong></td>
+                                <td><?php echo ami_e($row->status ?: '-'); ?></td>
+                                <td><?php echo ami_e($row->jenjang ?: '-'); ?></td>
+                                <td><?php echo ami_e($row->akreditasi ?: '-'); ?></td>
+                                <td><?php echo !empty($row->tanggal_sk_akreditasi) ? ami_e(format_tanggal_indo($row->tanggal_sk_akreditasi)) : '-'; ?></td>
+                                <td><?php echo ami_e($row->rasio_dosen_mahasiswa ?: '-'); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -360,7 +363,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     </div>
 <?php endif; ?>
 
-<script>
+<script nonce="<?php echo ami_csp_nonce(); ?>">
 (function () {
     'use strict';
     document.querySelectorAll('[data-confirm-sync]').forEach(function (button) {
@@ -375,8 +378,8 @@ include APPPATH . 'views/layouts/sidebar.php';
 </script>
 
 <?php if ($schema_ready && ($profil || !empty($akreditasi_summary) || !empty($mahasiswa_stats))): ?>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+    <script nonce="<?php echo ami_csp_nonce(); ?>" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script nonce="<?php echo ami_csp_nonce(); ?>">
     (function () {
         if (typeof Chart === 'undefined') return;
 
@@ -409,8 +412,8 @@ include APPPATH . 'views/layouts/sidebar.php';
             });
         }
 
-        makeDoughnut('akreditasiChart', <?php echo $akreditasi_chart_labels; ?>, <?php echo $akreditasi_chart_values; ?>);
-        makeDoughnut('mahasiswaChart', <?php echo $mahasiswa_chart_labels; ?>, <?php echo $mahasiswa_chart_values; ?>);
+        makeDoughnut('akreditasiChart', <?php echo ami_json($akreditasi_chart_labels); ?>, <?php echo ami_json($akreditasi_chart_values); ?>);
+        makeDoughnut('mahasiswaChart', <?php echo ami_json($mahasiswa_chart_labels); ?>, <?php echo ami_json($mahasiswa_chart_values); ?>);
     })();
     </script>
 <?php endif; ?>

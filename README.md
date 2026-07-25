@@ -89,9 +89,21 @@ Pilih mode ini bila Apache dan MySQL/MariaDB sudah tersedia di XAMPP atau Larago
 
 ### Docker Penuh
 
-Pilih mode ini bila Docker Desktop dan Compose v2 tersedia dan aplikasi maupun MySQL harus berjalan dalam container. Dari root proyek, jalankan perintah berikut, termasuk `CI_ENV=development`:
+Pilih mode ini bila Docker Desktop dan Compose v2 tersedia dan aplikasi maupun MySQL harus berjalan dalam container. Compose tidak mempunyai password database bawaan. Sebelum menjalankannya, set `AMI_DEV_DB_PASSWORD` dan `AMI_DEV_DB_ROOT_PASSWORD` ke dua nilai lokal yang berbeda dan tidak digunakan di production.
+
+PowerShell:
+
+```powershell
+$env:AMI_DEV_DB_PASSWORD = '<password lokal unik>'
+$env:AMI_DEV_DB_ROOT_PASSWORD = '<password root lokal yang berbeda>'
+docker compose run --build --service-ports -e CI_ENV=development app
+```
+
+Shell Linux:
 
 ```bash
+export AMI_DEV_DB_PASSWORD='<password lokal unik>'
+export AMI_DEV_DB_ROOT_PASSWORD='<password root lokal yang berbeda>'
 docker compose run --build --service-ports -e CI_ENV=development app
 ```
 
@@ -127,10 +139,13 @@ Siapkan direktori private storage dan log terlebih dahulu, beri hak baca/tulis h
 ```text
 CI_ENV=production
 APP_BASE_URL=https://ami.example.ac.id/
+APP_ALLOWED_HOSTS=ami.example.ac.id
+APP_TRUSTED_PROXIES=
 APP_ENCRYPTION_KEY=<secret acak deployment>
 APP_COOKIE_SECURE=true
 APP_LOG_THRESHOLD=1
 APP_LOG_PATH=/srv/ami/logs
+APP_SESSION_SAVE_PATH=/srv/ami/sessions
 APP_PRIVATE_STORAGE_PATH=/srv/ami/private
 DB_HOST=<host database>
 DB_USERNAME=<user aplikasi>
@@ -138,9 +153,25 @@ DB_PASSWORD=<secret database>
 DB_DATABASE=ami
 ```
 
-`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib sudah ada, writable, dan berada di luar document root. Aplikasi produksi gagal tertutup jika setting wajib tersebut hilang atau tidak aman. Jangan menyimpan fallback secret di source. Rotasi `APP_ENCRYPTION_KEY` jika key lama pernah digunakan di luar lingkungan tepercaya.
+Gunakan `.env.example` hanya sebagai daftar referensi; aplikasi tidak memuat file `.env` secara otomatis. Secret harus diinjeksi oleh web server, process manager, container orchestrator, atau secret manager deployment.
 
-File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara disimpan di private storage dan hanya diunduh melalui endpoint dengan pemeriksaan role/ownership. Logo profil tetap publik di `uploads/profil`. Record lama yang hanya berisi nama file tetap dibaca dari `uploads/<kategori>`; jangan hapus file lama sebelum proses pemindahan dan verifikasi selesai.
+`APP_BASE_URL` wajib berupa URL HTTPS valid tanpa user info, query, atau fragment. `APP_ALLOWED_HOSTS` berisi hostname yang diterima, dipisahkan koma. `APP_TRUSTED_PROXIES` dibiarkan kosong untuk deployment langsung; jika memakai reverse proxy, isi hanya IP/CIDR proxy yang dikelola tim. `APP_LOG_PATH`, `APP_SESSION_SAVE_PATH`, dan `APP_PRIVATE_STORAGE_PATH` wajib sudah ada, writable, dan berada di luar document root. Aplikasi produksi gagal tertutup jika setting wajib tersebut hilang atau tidak aman, debug logging aktif, user database memakai akun privileged, atau password database masih berupa nilai default. Jangan menyimpan fallback secret di source. Rotasi `APP_ENCRYPTION_KEY` jika key lama pernah digunakan di luar lingkungan tepercaya.
+
+Runbook lengkap dan hasil audit tersedia di `docs/security/configuration-audit.md`.
+
+Kontrol autentikasi M1-03, batas throttle, timeout session, event yang dicatat, dan prosedur upgrade tersedia di `docs/security/authentication-hardening.md`.
+
+Matriks capability dan object/state authorization M1-04, termasuk aturan ownership, deny-default, serta explicit logged Super Admin override, tersedia di `docs/security/authorization-policy.md`.
+
+Kebijakan output encoding M1-05 untuk HTML, URL, JSON, nama file, error page, dan export XLSX tersedia di `docs/security/output-encoding.md`.
+
+Kebijakan file M1-06, allowlist per kategori, pemeriksaan isi/MIME, checksum, metadata, retention, header download, dan prosedur migrasi legacy tersedia di `docs/security/file-security.md`.
+
+Kebijakan security headers M1-07, CSP nonce, sumber CDN yang diizinkan, cache halaman dinamis, dan kondisi HSTS tersedia di `docs/security/security-headers.md`.
+
+Ledger audit immutable M1-08, event yang dicatat, HMAC redaction, hash-chain verification, trigger append-only, dan runbook migration tersedia di `docs/security/immutable-audit-log.md`.
+
+File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara disimpan di private storage dan hanya diunduh melalui endpoint dengan pemeriksaan role/ownership. Logo profil tetap publik di `uploads/profil`. Production tidak membaca file sensitif dari `uploads/<kategori>`; pindahkan file legacy dengan dry-run `php scripts/migrate_private_storage.php`, lalu `--apply` setelah backup dan review.
 
 ### Database dan Upgrade Manual
 
@@ -150,23 +181,23 @@ CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw S
 
 ```bash
 mysql -u <user> -p <database> < migrations/010_reconcile_pertanyaan_columns.sql
+mysql -u <user> -p <database> < migrations/011_add_users_profile_photo_path.sql
+mysql -u <user> -p <database> < migrations/012_authentication_hardening.sql
+mysql -u <user> -p <database> < migrations/013_file_security_foundation.sql
+mysql -u <user> -p <database> < migrations/014_immutable_security_audit_log.sql
 ```
 
-Migration `010` idempotent dan aman dijalankan ulang. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
+Migration `010`–`014` idempotent dan aman dijalankan ulang. Migration `012` wajib diterapkan sebelum code M1-03: migration ini menambahkan status akun, versi pencabutan session, metadata login/password, dan security event autentikasi tanpa email/IP mentah. Migration `013` wajib diterapkan sebelum code M1-06 agar metadata/checksum, event file, dan retention tersedia. Migration `014` wajib diterapkan sebelum code M1-08 agar ledger, hash-chain state, serta trigger penolak update/delete tersedia. Existing session akan diminta login ulang setelah deployment. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, laporan, dan `php index.php maintenance verify_audit_log` sebelum membuka traffic. Rollback aplikasi harus mempertahankan database, ledger, dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
 
-Konfigurasi web server wajib menerapkan HTTPS dan HSTS, menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, serta private storage, dan menonaktifkan directory listing. Pantau kapasitas disk serta rotasi log. Error detail hanya masuk log private; browser produksi tidak menampilkan error PHP atau debug database.
+Untuk database Laragon lokal yang sudah dikonfigurasi, migration 013 dapat diterapkan dengan `php scripts/database/apply_local_m1_06.php`. Runner ini menolak mode production dan host database non-local; production tetap memakai prosedur DBA/deployment.
 
-## Akun Demo
+Migration 014 lokal dapat diterapkan dan diverifikasi dengan `php scripts/database/apply_local_m1_08.php`. Runner memeriksa kedua tabel dan trigger append-only; production tetap memakai prosedur DBA/deployment.
 
-`database_schema.sql` dan `database_dummy.sql` tidak membuat akun di bawah ini. Gunakan hanya jika akun tersebut telah dibuat secara terkontrol pada database lokal.
+Konfigurasi web server wajib memaksa HTTPS, menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, serta private storage, dan menonaktifkan directory listing. Aplikasi mengirim HSTS hanya saat request production dikenali sebagai HTTPS; reverse proxy wajib menormalisasi koneksi tepercaya menjadi `HTTPS=on` atau port 443 dan tidak boleh meneruskan forwarded header mentah dari client. Pantau kapasitas disk serta rotasi log. Error detail hanya masuk log private; browser produksi tidak menampilkan error PHP atau debug database.
 
-| Role | Email | Password |
-|---|---|---|
-| Super Admin | `admin@ami.test` | `admin123` |
-| Auditor | `auditor@ami.test` | `auditor123` |
-| Auditee | `auditee@ami.test` | `auditee123` |
+## Akun Development
 
-Password tersimpan menggunakan `password_hash()` dan diverifikasi dengan `password_verify()`.
+Repository tidak membuat akun default atau menyertakan kredensial login siap pakai. Buat akun development secara terkontrol dengan password unik melalui workflow yang disetujui. Jangan menggunakan alamat atau password contoh yang mudah ditebak, dan jangan mengimpor akun development ke production.
 
 ## Fitur MVP
 
@@ -210,7 +241,7 @@ Password tersimpan menggunakan `password_hash()` dan diverifikasi dengan `passwo
 - Role-based access melalui `Auth_guard`
 - Ownership check tugas auditor dan auditee
 - CSRF aktif untuk seluruh form POST, termasuk login
-- Output dinamis menggunakan `html_escape()`
+- Output dinamis menggunakan helper context-aware `ami_e()`, `ami_text()`, `ami_safe_http_url()`, dan `ami_json()`
 - Validasi input melalui Form Validation dan service
 - Penghapusan data hanya melalui POST
 - Transaksi database saat membuat tugas, menyimpan jawaban, dan menyimpan penilaian

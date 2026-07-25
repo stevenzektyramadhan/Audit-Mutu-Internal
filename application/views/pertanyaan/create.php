@@ -23,7 +23,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <option value="">Pilih standar...</option>
                     <?php if (!empty($standar)): ?>
                         <?php foreach ($standar as $std): ?>
-                            <option value="<?php echo $std->id; ?>" <?php echo set_select('standar_id', $std->id); ?>><?php echo html_escape($std->nama_standar); ?></option>
+                            <option value="<?php echo (int) $std->id; ?>" <?php echo set_select('standar_id', $std->id); ?>><?php echo ami_e($std->nama_standar); ?></option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -31,7 +31,7 @@ include APPPATH . 'views/layouts/sidebar.php';
 
             <div class="mb-4">
                 <label for="isi_pertanyaan" class="form-label text-light">Isi Pertanyaan</label>
-                <textarea class="form-control bg-dark text-light border-secondary" id="isi_pertanyaan" name="isi_pertanyaan" rows="4" required style="border-radius: 7px;"><?php echo set_value('isi_pertanyaan'); ?></textarea>
+                <textarea class="form-control bg-dark text-light border-secondary" id="isi_pertanyaan" name="isi_pertanyaan" rows="4" required style="border-radius: 7px;"><?php echo ami_e(set_value('isi_pertanyaan', '', FALSE)); ?></textarea>
             </div>
 
             <div class="d-flex justify-content-end gap-2">
