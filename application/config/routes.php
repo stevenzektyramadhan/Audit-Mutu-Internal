@@ -88,6 +88,14 @@ $route['spmi-versions/retire/(:num)'] = 'Spmi_versions/retire/$1';
 $route['spmi-versions/clone/(:num)'] = 'Spmi_versions/clone_form/$1';
 $route['spmi-versions/clone-store/(:num)'] = 'Spmi_versions/clone_store/$1';
 $route['spmi-versions/download/(:num)'] = 'Spmi_versions/download/$1';
+$route['spmi-versions/(:num)/standards'] = 'Spmi_standards/index/$1';
+$route['spmi-versions/(:num)/standards/seed'] = 'Spmi_standards/seed/$1';
+$route['spmi-versions/(:num)/standards/create'] = 'Spmi_standards/create/$1';
+$route['spmi-versions/(:num)/standards/store'] = 'Spmi_standards/store/$1';
+$route['spmi-versions/(:num)/standards/edit/(:num)'] = 'Spmi_standards/edit/$1/$2';
+$route['spmi-versions/(:num)/standards/update/(:num)'] = 'Spmi_standards/update/$1/$2';
+$route['spmi-versions/(:num)/standards/toggle-active/(:num)'] = 'Spmi_standards/toggle_active/$1/$2';
+$route['spmi-versions/(:num)/standards/reorder'] = 'Spmi_standards/reorder/$1';
 
 $route['pertanyaan/download_template/(:num)'] = 'Pertanyaan/download_template/$1';
 $route['pertanyaan/import/(:num)'] = 'Pertanyaan/import/$1';

@@ -325,6 +325,8 @@ m203_check(
 
 $controller_capabilities = [
     'application/controllers/Standar.php' => ['CAP_SPMI_STANDARD_MANAGE'],
+    'application/controllers/Spmi_versions.php' => ['CAP_SPMI_VERSION_MANAGE'],
+    'application/controllers/Spmi_standards.php' => ['CAP_SPMI_STANDARD_MANAGE'],
     'application/controllers/Pertanyaan.php' => [
         'CAP_SPMI_INDICATOR_MANAGE',
         'CAP_SPMI_IMPORT',

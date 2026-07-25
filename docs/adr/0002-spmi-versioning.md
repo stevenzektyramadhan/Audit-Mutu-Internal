@@ -1,6 +1,6 @@
 # ADR 0002: Versioning Dokumen SPMI
 
-- Status: **Accepted — M3-01 foundation dan M3-02 workflow implemented**
+- Status: **Accepted — M3-01 sampai M3-03 implemented**
 - Tanggal: 2026-07-24
 - Jenis: Model domain dan data
 - Menggantikan: Tidak ada
@@ -85,6 +85,10 @@ file ownership, transaction/identity lock saat replacement, dan audit event
 transisi. Versi aktif tetap immutable dan rollback bisnis dilakukan dengan
 clone ke draft baru, bukan delete atau reverse-state.
 
-Struktur standard dan turunannya tetap pending M3-03 dan seterusnya. Tinjau
+M3-03 mengimplementasikan `spmi_standards` sebagai child milik versi: kode unik
+per versi, urutan eksplisit, jenis SN Dikti/internal, draft-only mutation,
+no-delete history guard, seed 21 standar dari config/service, dan clone
+transaksional ke revisi baru. Tabel legacy belum di-cutover. Pernyataan,
+indikator, target, dan turunannya tetap pending M3-04 dan seterusnya. Tinjau
 bila regulasi menetapkan model koeksistensi versi yang berbeda, aturan koreksi
 versi aktif, atau kebutuhan tanda tangan/sertifikasi digital.

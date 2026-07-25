@@ -3,7 +3,8 @@
 This harness protects the current AMI workflow, the security foundations
 added through M1-08, the M2-01 organization hierarchy, M2-02 user
 unit/position assignments, the M2-03 fine-grained capability matrix, the
-M3-01 SPMI version schema foundation, and the M3-02 approval workflow.
+M3-01 SPMI version schema foundation, the M3-02 approval workflow, and the
+M3-03 version-owned 21-standard master.
 
 ## Run with one command
 
@@ -101,6 +102,10 @@ The current suite runs 34 passing cases:
   role without capability, creator self-approval denial, approval provenance,
   active read-only enforcement, verified private download, new clone asset,
   atomic replacement, preserved history, and transition audit events;
+- version-owned seed of 21 standards with the 8/3/3/7 group distribution,
+  code uniqueness within a version, reusable code across versions,
+  draft-only edit/toggle/reorder, read-only/no-delete history guards,
+  transactional clone, source/clone independence, and standard audit events;
 - raw stored-XSS payload encoding across Auditee, Auditor, admin detail,
   LPMPI detail, and chart JSON;
 - unsafe stored evidence URL denial at the rendering boundary;
@@ -152,7 +157,7 @@ whose names match the exact `ami_smoke_%` prefix. Do not delete any database
 based on a broader pattern. A normal completed run leaves no smoke database or
 PHP server process.
 
-## Current M3-02 baseline result
+## Current M3-03 baseline result
 
 Validated locally on 2026-07-25 with PHP 8.3.30 and MySQL 8.4.3:
 

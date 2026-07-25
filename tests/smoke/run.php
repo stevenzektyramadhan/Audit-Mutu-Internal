@@ -1194,7 +1194,7 @@ try {
     );
 
     smoke_case(
-        'SPMI workflow enforces scoped approval, immutable activation, and clone history',
+        'SPMI workflow and versioned standards preserve scoped immutable clone history',
         function () use ($testConnection, $fixture, $tempRoot, $roleClients) {
             $rootUnit = smoke_db_row(
                 $testConnection,
@@ -1296,6 +1296,234 @@ try {
                 'Created SPMI draft did not bind a private source asset.'
             );
 
+            $auditorStandards = $roleClients['auditor']->get(
+                '/spmi-versions/' . $firstId . '/standards'
+            );
+            smoke_assert_status(
+                $auditorStandards,
+                403,
+                'auditor SPMI standards capability'
+            );
+
+            $standardsIndex = $roleClients['super_admin']->get(
+                '/spmi-versions/' . $firstId . '/standards'
+            );
+            smoke_assert_status(
+                $standardsIndex,
+                200,
+                'empty SPMI standards index'
+            );
+            smoke_assert_contains(
+                $standardsIndex->body,
+                'Muat 21 Standar Awal',
+                'empty SPMI standards seed action'
+            );
+
+            $seeded = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/' . $firstId . '/standards',
+                '/spmi-versions/' . $firstId . '/standards/seed',
+                []
+            );
+            smoke_assert_status($seeded, 200, 'seed SPMI standards');
+            smoke_assert_contains(
+                $seeded->body,
+                'Struktur awal 21 standar berhasil dimuat.',
+                'seed SPMI standards result'
+            );
+
+            $standardDistribution = smoke_db_row(
+                $testConnection,
+                "SELECT
+                    COUNT(*) AS total,
+                    SUM(standard_type = 'sn_dikti') AS sn_dikti,
+                    SUM(standard_type = 'internal') AS internal_count,
+                    SUM(group_type = 'education') AS education,
+                    SUM(group_type = 'research') AS research,
+                    SUM(group_type = 'community_service') AS community_service,
+                    SUM(group_type = 'internal') AS internal_group
+                 FROM spmi_standards
+                 WHERE spmi_version_id = " . $firstId
+            );
+            smoke_assert(
+                (int) $standardDistribution['total'] === 21
+                    && (int) $standardDistribution['sn_dikti'] === 14
+                    && (int) $standardDistribution['internal_count'] === 7
+                    && (int) $standardDistribution['education'] === 8
+                    && (int) $standardDistribution['research'] === 3
+                    && (int) $standardDistribution['community_service'] === 3
+                    && (int) $standardDistribution['internal_group'] === 7,
+                'Seed did not persist the required 21-standard distribution.'
+            );
+            smoke_assert_contains(
+                $seeded->body,
+                'Standar Kompetensi Lulusan',
+                'seeded SPMI standards rendering'
+            );
+            smoke_assert_contains(
+                $seeded->body,
+                'Standar Pengelolaan Keuangan',
+                'seeded internal standards rendering'
+            );
+
+            $duplicateStandard = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/' . $firstId . '/standards/create',
+                '/spmi-versions/' . $firstId . '/standards/store',
+                [
+                    'code' => 'STD-PEND-01',
+                    'name' => 'Duplikat Standar',
+                    'group_type' => 'education',
+                    'standard_type' => 'sn_dikti',
+                    'rationale' => '',
+                    'definitions' => '',
+                    'sort_order' => 22,
+                ]
+            );
+            smoke_assert_status(
+                $duplicateStandard,
+                200,
+                'duplicate standard service rejection'
+            );
+            smoke_assert_contains(
+                $duplicateStandard->body,
+                'Kode standar sudah digunakan pada versi ini.',
+                'duplicate standard service rejection'
+            );
+
+            $firstStandard = smoke_db_row(
+                $testConnection,
+                "SELECT id, sort_order
+                 FROM spmi_standards
+                 WHERE spmi_version_id = " . $firstId . "
+                   AND code = 'STD-PEND-01'
+                 LIMIT 1"
+            );
+            smoke_assert(
+                !empty($firstStandard),
+                'First seeded SPMI standard is missing.'
+            );
+            $firstStandardId = (int) $firstStandard['id'];
+
+            smoke_expect_database_rejection(
+                function () use ($testConnection, $firstStandardId) {
+                    $testConnection->query(
+                        "INSERT INTO spmi_standards (
+                            spmi_version_id,
+                            code,
+                            name,
+                            group_type,
+                            standard_type,
+                            rationale,
+                            definitions,
+                            sort_order,
+                            active
+                        )
+                        SELECT
+                            spmi_version_id,
+                            code,
+                            name,
+                            group_type,
+                            standard_type,
+                            rationale,
+                            definitions,
+                            999,
+                            active
+                        FROM spmi_standards
+                        WHERE id = " . $firstStandardId
+                    );
+                },
+                'Duplicate standard code was accepted within one version.'
+            );
+
+            $editedStandard = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/' . $firstId . '/standards/edit/'
+                    . $firstStandardId,
+                '/spmi-versions/' . $firstId . '/standards/update/'
+                    . $firstStandardId,
+                [
+                    'code' => 'STD-PEND-01',
+                    'name' => 'Standar Kompetensi Lulusan Diperbarui',
+                    'group_type' => 'education',
+                    'standard_type' => 'sn_dikti',
+                    'rationale' => 'Rasional uji M3-03',
+                    'definitions' => 'Definisi uji M3-03',
+                    'sort_order' => 1,
+                ]
+            );
+            smoke_assert_status(
+                $editedStandard,
+                200,
+                'edit draft SPMI standard'
+            );
+            $editedStandardRow = smoke_db_row(
+                $testConnection,
+                'SELECT name, rationale, definitions
+                 FROM spmi_standards
+                 WHERE id = ' . $firstStandardId
+            );
+            smoke_assert(
+                $editedStandardRow['name']
+                    === 'Standar Kompetensi Lulusan Diperbarui'
+                    && $editedStandardRow['rationale'] === 'Rasional uji M3-03'
+                    && $editedStandardRow['definitions'] === 'Definisi uji M3-03',
+                'Draft standard edit did not persist.'
+            );
+
+            $toggledOff = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/' . $firstId . '/standards',
+                '/spmi-versions/' . $firstId . '/standards/toggle-active/'
+                    . $firstStandardId,
+                []
+            );
+            smoke_assert_status($toggledOff, 200, 'deactivate SPMI standard');
+            smoke_assert(
+                (int) smoke_db_row(
+                    $testConnection,
+                    'SELECT active FROM spmi_standards WHERE id = '
+                        . $firstStandardId
+                )['active'] === 0,
+                'Standard was not deactivated.'
+            );
+            $toggledOn = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/' . $firstId . '/standards',
+                '/spmi-versions/' . $firstId . '/standards/toggle-active/'
+                    . $firstStandardId,
+                []
+            );
+            smoke_assert_status($toggledOn, 200, 'reactivate SPMI standard');
+
+            $standardRows = smoke_db_rows(
+                $testConnection,
+                'SELECT id
+                 FROM spmi_standards
+                 WHERE spmi_version_id = ' . $firstId . '
+                 ORDER BY sort_order, id'
+            );
+            $orders = [];
+            $standardTotal = count($standardRows);
+            foreach ($standardRows as $index => $standardRow) {
+                $orders[(int) $standardRow['id']] = $standardTotal - $index;
+            }
+            $reordered = smoke_post_form(
+                $roleClients['super_admin'],
+                '/spmi-versions/' . $firstId . '/standards',
+                '/spmi-versions/' . $firstId . '/standards/reorder',
+                ['orders' => $orders]
+            );
+            smoke_assert_status($reordered, 200, 'reorder SPMI standards');
+            smoke_assert(
+                (int) smoke_db_row(
+                    $testConnection,
+                    'SELECT sort_order FROM spmi_standards WHERE id = '
+                        . $firstStandardId
+                )['sort_order'] === 21,
+                'Standard reorder did not persist the submitted order.'
+            );
+
             $edited = smoke_post_form(
                 $roleClients['super_admin'],
                 '/spmi-versions/edit/' . $firstId,
@@ -1331,6 +1559,35 @@ try {
                     'SELECT status FROM spmi_versions WHERE id = ' . $firstId
                 )['status'] === 'review',
                 'Draft did not transition to review.'
+            );
+
+            $reviewStandardEdit = $roleClients['super_admin']->get(
+                '/spmi-versions/' . $firstId . '/standards/edit/'
+                    . $firstStandardId
+            );
+            smoke_assert_status(
+                $reviewStandardEdit,
+                409,
+                'review SPMI standard edit'
+            );
+            smoke_expect_database_rejection(
+                function () use ($testConnection, $firstStandardId) {
+                    $testConnection->query(
+                        "UPDATE spmi_standards
+                         SET name = 'Direct mutation outside draft'
+                         WHERE id = " . $firstStandardId
+                    );
+                },
+                'A standard owned by a review version was directly editable.'
+            );
+            smoke_expect_database_rejection(
+                function () use ($testConnection, $firstStandardId) {
+                    $testConnection->query(
+                        'DELETE FROM spmi_standards WHERE id = '
+                            . $firstStandardId
+                    );
+                },
+                'SPMI standard history could be hard-deleted.'
             );
 
             $selfApproval = smoke_post_form(
@@ -1459,6 +1716,85 @@ try {
                 'Clone did not create a new draft/private asset while preserving source history.'
             );
 
+            $cloneStandards = smoke_db_row(
+                $testConnection,
+                "SELECT
+                    COUNT(*) AS total,
+                    COUNT(DISTINCT code) AS unique_codes,
+                    SUM(active = 1) AS active_count
+                 FROM spmi_standards
+                 WHERE spmi_version_id = " . $cloneId
+            );
+            $sharedCodeCount = smoke_db_row(
+                $testConnection,
+                "SELECT COUNT(*) AS total
+                 FROM spmi_standards
+                 WHERE code = 'STD-PEND-01'
+                   AND spmi_version_id IN (" . $firstId . ', ' . $cloneId . ')'
+            );
+            smoke_assert(
+                (int) $cloneStandards['total'] === 21
+                    && (int) $cloneStandards['unique_codes'] === 21
+                    && (int) $cloneStandards['active_count'] === 21
+                    && (int) $sharedCodeCount['total'] === 2,
+                'Clone did not copy 21 standards or allow the same code across versions.'
+            );
+
+            $cloneStandard = smoke_db_row(
+                $testConnection,
+                "SELECT id, name, group_type, standard_type, rationale,
+                        definitions, sort_order
+                 FROM spmi_standards
+                 WHERE spmi_version_id = " . $cloneId . "
+                   AND code = 'STD-PEND-01'
+                 LIMIT 1"
+            );
+            smoke_assert(
+                !empty($cloneStandard)
+                    && $cloneStandard['name']
+                        === 'Standar Kompetensi Lulusan Diperbarui'
+                    && (int) $cloneStandard['sort_order'] === 21,
+                'Clone did not preserve edited standard content and order.'
+            );
+            $cloneStandardId = (int) $cloneStandard['id'];
+            $editedCloneStandard = smoke_post_form(
+                $roleClients['admin_lpmpi'],
+                '/spmi-versions/' . $cloneId . '/standards/edit/'
+                    . $cloneStandardId,
+                '/spmi-versions/' . $cloneId . '/standards/update/'
+                    . $cloneStandardId,
+                [
+                    'code' => 'STD-PEND-01',
+                    'name' => 'Standar Kompetensi Lulusan Revisi 02',
+                    'group_type' => 'education',
+                    'standard_type' => 'sn_dikti',
+                    'rationale' => 'Rasional versi hasil clone',
+                    'definitions' => 'Definisi versi hasil clone',
+                    'sort_order' => 21,
+                ]
+            );
+            smoke_assert_status(
+                $editedCloneStandard,
+                200,
+                'edit cloned draft standard'
+            );
+            $versionedNames = smoke_db_rows(
+                $testConnection,
+                "SELECT spmi_version_id, name
+                 FROM spmi_standards
+                 WHERE code = 'STD-PEND-01'
+                   AND spmi_version_id IN (" . $firstId . ', ' . $cloneId . ')
+                 ORDER BY spmi_version_id'
+            );
+            smoke_assert(
+                count($versionedNames) === 2
+                    && $versionedNames[0]['name']
+                        === 'Standar Kompetensi Lulusan Diperbarui'
+                    && $versionedNames[1]['name']
+                        === 'Standar Kompetensi Lulusan Revisi 02',
+                'Editing a cloned standard changed its source-version history.'
+            );
+
             smoke_post_form(
                 $roleClients['admin_lpmpi'],
                 '/spmi-versions/show/' . $cloneId,
@@ -1495,6 +1831,37 @@ try {
                     && (int) $history[1]['id'] === $cloneId
                     && $history[1]['status'] === 'active',
                 'Atomic replacement did not preserve retired and active history.'
+            );
+
+            smoke_expect_database_rejection(
+                function () use ($testConnection, $cloneStandardId) {
+                    $testConnection->query(
+                        "UPDATE spmi_standards
+                         SET rationale = 'Changed after activation'
+                         WHERE id = " . $cloneStandardId
+                    );
+                },
+                'A standard owned by an active version was directly editable.'
+            );
+
+            $standardAudit = smoke_db_row(
+                $testConnection,
+                "SELECT
+                    SUM(event_type = 'spmi_standards_seeded') AS seeded,
+                    SUM(event_type = 'spmi_standard_updated') AS updated,
+                    SUM(event_type = 'spmi_standard_deactivated') AS deactivated,
+                    SUM(event_type = 'spmi_standard_activated') AS activated,
+                    SUM(event_type = 'spmi_standards_reordered') AS reordered
+                 FROM security_audit_logs
+                 WHERE object_type IN ('spmi_version', 'spmi_standard')"
+            );
+            smoke_assert(
+                (int) $standardAudit['seeded'] >= 1
+                    && (int) $standardAudit['updated'] >= 2
+                    && (int) $standardAudit['deactivated'] >= 1
+                    && (int) $standardAudit['activated'] >= 1
+                    && (int) $standardAudit['reordered'] >= 1,
+                'SPMI standard seed/edit/status/reorder audit events are incomplete.'
             );
 
             $audit = smoke_db_row(

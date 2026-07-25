@@ -21,7 +21,7 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 | **EXISTING** | Aplikasi monolitik CodeIgniter 3 dengan role `super_admin`, `admin_lpmpi`, `auditor`, dan `auditee`; proses AMI memakai `tugas_audit` dan `jawaban_audit`. | `system/core/CodeIgniter.php`; `application/config/routes.php`; `application/config/database.php`; `application/models/Tugas_audit_model.php`; `application/models/Jawaban_model.php` |
 | **EXISTING** | Status tugas persisten hanya `belum_diisi`, `diisi`, dan `dinilai`; sejumlah status layar dihitung ulang dari flags/baris jawaban. | `application/config/app_constants.php`; `database_schema.sql`; `application/models/Jawaban_model.php::attach_display_status()` dan `::attach_auditor_penilaian_status()` |
 | **EXISTING** | Controller, service, dan model sudah ada, tetapi batas tanggung jawab tidak konsisten. Workflow Auditee/Auditor terbaru memanggil `Jawaban_model` langsung, dan model tersebut juga memuat aturan state transition. | `application/controllers/Auditee.php`; `application/controllers/Auditor.php`; `application/models/Jawaban_model.php` |
-| **EXISTING** | M1/M2 menyediakan security, private file, immutable audit, organization scope, dan capability foundation. M3-01/M3-02 menambahkan schema, read model, dan workflow persetujuan versi dokumen SPMI; master turunannya belum dibuka. | `application/libraries/File_security.php`; `application/libraries/Authorization_policy.php`; `application/services/Spmi_version_workflow_service.php`; `application/controllers/Spmi_versions.php`; `migrations/012`–`017` |
+| **EXISTING** | M1/M2 menyediakan security, private file, immutable audit, organization scope, dan capability foundation. M3-01/M3-02 menambahkan versi/workflow dokumen SPMI; M3-03 menambahkan master 21 standar milik versi. | `application/libraries/File_security.php`; `application/libraries/Authorization_policy.php`; `application/services/Spmi_version_workflow_service.php`; `application/services/Spmi_standard_service.php`; `application/controllers/Spmi_versions.php`; `application/controllers/Spmi_standards.php`; `migrations/012`–`018` |
 | **PROPOSED** | Workflow versioning PPEPP yang lengkap, report read model target, RTM, serta pemisahan controller/service/model/policy/storage/report lanjutan tetap menjadi target milestone berikutnya. | `BUSINESS_REQUIREMENTS_SPMI_AMI_RTM.md`; `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, bagian M3–M11, Definition of Done, dan Security Release Gate |
 | **TO VERIFY** | Schema dan data produksi, reachability route konvensional untuk controller duplikat dalam subfolder, definisi resmi skala skor, aturan finalisasi/revisi, struktur organisasi/ownership, retensi file, serta keputusan bisnis lain dalam decision register belum dibuktikan oleh source code. | `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, bagian assumptions/decision register dan milestone terkait; `application/config/routes.php` |
 
@@ -275,7 +275,17 @@ Sumber diagram: `application/controllers/Standar.php`; `application/services/Sta
   `database_schema.sql`; `application/models/Spmi_version_model.php`;
   `application/services/Spmi_version_workflow_service.php`;
   `application/controllers/Spmi_versions.php`.
-- **PROPOSED M3-03–M6:** versioned standard/statement/indicator/target serta
+- **EXISTING M3-03:** `spmi_standards` menyimpan code/name, kelompok/jenis,
+  rasional/definisi, urutan, dan status aktif per `spmi_version`. Seed 21
+  standar berasal dari config/service. Mutation hanya untuk draft; trigger
+  menolak perubahan non-draft dan hard delete; clone versi menyalin standar
+  secara transaksional. Sumber:
+  `migrations/018_create_spmi_standards.sql`;
+  `application/config/spmi_standard_seed.php`;
+  `application/models/Spmi_standard_model.php`;
+  `application/services/Spmi_standard_service.php`;
+  `application/controllers/Spmi_standards.php`.
+- **PROPOSED M3-04–M6:** versioned statement/indicator/target serta
   cutover legacy masih target.
   `standar` dan `pertanyaan` lama tetap mutable pada checkpoint ini. Sumber:
   `BUSINESS_REQUIREMENTS_SPMI_AMI_RTM.md`;
@@ -567,6 +577,7 @@ Bagian ini sengaja bukan inventaris schema lengkap. Detail kolom/constraint haru
 | `tests/security_audit_regression.php` | Script PHP dengan assertion schema/source/integration | Ledger/chain schema, append-only triggers/model, HMAC/redaction, event integration, CLI verifier, local migration guard, dan no mutation UI | Tidak membuktikan privilege DBA production, external anchor, retention, backup/restore, atau concurrency writer. |
 | `tests/account_settings_regression.php` | Script PHP dengan assertion atas source | Route/account self-scope, upload validation patterns, private photo, dan view/output expectations | Tidak melakukan image upload/download nyata, DB transaction, atau authorization request antar-user. |
 | `tests/spmi_versions_regression.php` | Assertion source/schema/workflow | Foundation constraint, service transition, scope guard, private clone, routes, dan UI state | Runtime HTTP/database berada pada smoke; belum ada concurrent writer stress test. |
+| `tests/spmi_standards_regression.php` | Assertion source/schema/config/service | Schema/trigger, seed 21, draft mutation, per-version uniqueness, clone, scope, routes, dan UI state | Runtime HTTP/database berada pada smoke; belum ada concurrent writer stress test. |
 | `tests/smoke/run.php` | HTTP end-to-end dengan PHP built-in server dan database MySQL sementara | 34 kasus: CSP, auth/session, AMI workflow/ownership, SPMI approval/clone/activation, XSS/XLSX, file security/retention, immutable audit event, full hash-chain verification, HMAC identifiers, dan direct update/delete trigger rejection | Tidak menguji antivirus, seluruh format/kategori, browser visual, concurrency, external audit anchor, CDN, reverse proxy, atau production. Panduan: `tests/smoke/README.md`. |
 
 ### Tooling dan gate
@@ -714,7 +725,13 @@ capability + direct active unit scope tanpa parent/descendant inheritance.
    `application/services/Spmi_version_workflow_service.php`,
    `application/controllers/Spmi_versions.php`, dan
    `application/views/lpmpi/spmi_versions/*`.
-9. Views legacy `application/views/standar/*`, `pertanyaan/*`, dan
+9. Master standar M3-03:
+   `application/models/Spmi_standard_model.php`,
+   `application/services/Spmi_standard_service.php`,
+   `application/controllers/Spmi_standards.php`,
+   `application/views/lpmpi/spmi_standards/*`, dan
+   `migrations/018_create_spmi_standards.sql`.
+10. Views legacy `application/views/standar/*`, `pertanyaan/*`, dan
    `lpmpi/instrumen/*`.
 
 ### M7 — audit cycle, scope snapshot, dan assignment

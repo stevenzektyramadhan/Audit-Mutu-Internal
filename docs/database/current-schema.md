@@ -2,7 +2,7 @@
 
 - **Task:** M0-02
 - **Baseline source:** branch `dev`, commit `3179135`
-- **Runtime snapshot:** initial 2026-07-24; additive verification through M3-01
+- **Runtime snapshot:** initial 2026-07-24; additive verification through M3-03
   on 2026-07-25, local Laragon database only
 - **Safety:** metadata and aggregate counts only; no application row values are reproduced.
 
@@ -11,7 +11,7 @@
 This inventory compares four sources:
 
 1. Fresh-install baseline in `database_schema.sql`.
-2. Incremental SQL in `migrations/001_*.sql` through `migrations/017_*.sql`.
+2. Incremental SQL in `migrations/001_*.sql` through `migrations/018_*.sql`.
 3. Tables, columns, joins, filters, and writes referenced by `application/models/*.php` and their services.
 4. Runtime metadata from `INFORMATION_SCHEMA` plus aggregate consistency checks executed by `scripts/database/audit_readonly.php`.
 
@@ -37,8 +37,15 @@ triggers, and zero-row initial state were verified. The disposable smoke
 database also proved single-active, date, immutable-active, retirement, and
 no-delete behavior.
 
+M3-03 adds `spmi_standards` through migration 018. Migration 018 was applied
+twice to the local development database on 2026-07-25. Its 12 columns, three
+domain indexes, one RESTRICT foreign key, four checks, three draft/history
+triggers, and zero-row initial state were verified. The disposable smoke
+database proved the 21-row seed, 8/3/3/7 distribution, per-version unique
+code, draft-only mutation/reorder, clone, and no-delete behavior.
+
 The counts below now describe that local development schema through migration
-017. They are not a production attestation.
+018. They are not a production attestation.
 
 Classification:
 
@@ -87,7 +94,7 @@ This is not a production database attestation. Production schema, row counts, SQ
 
 | Source | What it establishes | Result against local runtime |
 |---|---|---|
-| `database_schema.sql` | Fresh-install definition for 18 current tables, including changes through migration 017. | **MATCH:** organization, assignment, and version additions are present locally and exercised by disposable smoke testing. |
+| `database_schema.sql` | Fresh-install definition for 19 current tables, including changes through migration 018. | **MATCH:** organization, assignment, version, and standard additions are present locally and exercised by disposable smoke testing. |
 | `migrations/001_add_admin_lpmpi_role.sql` | Adds `admin_lpmpi` to `users.role`. | **PRESENT:** runtime enum contains the four expected roles. |
 | `migrations/002_create_periode_audit.sql` | Creates `periode_audit`. | **PRESENT.** |
 | `migrations/003_create_penetapan.sql` | Creates `penetapan` and its standard FK. | **PRESENT.** |
@@ -106,13 +113,14 @@ This is not a production database attestation. Production schema, row counts, SQ
 | `migrations/015_create_organization_units.sql` | Creates the organization hierarchy, unique code, self FK, active flag, and university root seed. | **PRESENT;** applied locally and covered by M2-01 regression/smoke. Production remains to verify. |
 | `migrations/016_create_user_unit_assignments.sql` | Creates dated user/unit/position membership, primary flag, indexes, checks, and RESTRICT foreign keys. | **PRESENT;** applied locally with zero initial rows and covered by M2-02 regression/smoke. Production remains to verify. |
 | `migrations/017_create_spmi_versions.sql` | Creates organization-scoped SPMI document versions, private source provenance, effective dates, single-active key, and history triggers. | **PRESENT;** applied twice locally with zero initial rows and covered by M3-01 regression/smoke. Production remains to verify. |
-| `application/models/*.php` | Current table/query expectations. | **MATCH:** file/audit, organization, assignment, and SPMI version tables are present in local development. |
+| `migrations/018_create_spmi_standards.sql` | Creates version-owned SPMI standards, per-version code uniqueness, group/type checks, ordering indexes, and draft/history triggers. | **PRESENT;** applied twice locally with zero initial rows and covered by M3-03 regression/smoke. Production remains to verify. |
+| `application/models/*.php` | Current table/query expectations. | **MATCH:** file/audit, organization, assignment, SPMI version, and SPMI standard tables are present in local development. |
 
 ### Important migration limitations
 
 - CodeIgniter migrations are disabled with `$config['migration_enabled'] = FALSE`. The files under `migrations/` are raw manual SQL, not CodeIgniter migration classes. Source: `application/config/migration.php`; `migrations/`.
 - There are two migrations numbered `009`; filename sorting gives an order, but the numeric sequence is ambiguous. Source: `migrations/009_alter_pertanyaan_add_columns.sql`; `migrations/009_alter_profil_pddikti_id_lengths.sql`.
-- Most historical `ALTER TABLE` migrations are not idempotent. Files `010`–`017` are safe to re-run, but earlier alter files generally fail when reapplied. Migrations 014 and 017 recreate their history triggers and should run in a maintenance window.
+- Most historical `ALTER TABLE` migrations are not idempotent. Files `010`–`018` are safe to re-run, but earlier alter files generally fail when reapplied. Migrations 014, 017, and 018 recreate their history triggers and should run in a maintenance window.
 - Migration `005` expects `jawaban_audit.tugas_audit_id` and `catatan` to exist, drops a named FK, and renames those columns. It cannot be applied safely to `database_schema.sql`, which already contains `tugas_id` and `temuan`. Source: `migrations/005_alter_jawaban_audit_new_columns.sql`; `database_schema.sql`.
 - Rollback instructions are comments, not executable/versioned down migrations. DDL also causes implicit commits in MySQL. Source: all files under `migrations/`.
 - There is no runtime migration ledger table. Consequently, “effect is present” does not prove which migration produced it. Source: runtime table list.
@@ -272,9 +280,36 @@ from being edited or moved back to an earlier state; retirement remains
 possible. A second trigger rejects every hard delete.
 
 The local table contains zero rows after migration. No legacy `standar` or
-`pertanyaan` data was backfilled. The model is read-only until M3-02 provides
-the authorized, transactional, audited workflow for draft creation, review,
-approval, activation, retirement, and file ownership.
+`pertanyaan` data was backfilled. M3-02 provides the authorized,
+transactional, audited workflow for draft creation, review, approval,
+activation, retirement, clone, and file ownership.
+
+### 6.1e `spmi_standards`
+
+Status: **ACTUAL / BASELINE / MIGRATION 018** on the inspected local
+development database. Production remains **TO VERIFY**.
+
+Purpose: version-owned master standard structure. Main code:
+`application/models/Spmi_standard_model.php`;
+`application/services/Spmi_standard_service.php`;
+`migrations/018_create_spmi_standards.sql`.
+
+The table has 12 columns: version FK, code/name, group/type,
+rationale/definitions, explicit order, active flag, and timestamps. A unique
+key enforces code uniqueness inside one version while permitting the same code
+across versions. Group/order indexes support the master UI. The RESTRICT
+foreign key prevents loss through parent deletion.
+
+Four checks enforce nonblank identity, positive order, boolean active state,
+and the SN Dikti/internal group pairing. Insert and update triggers require a
+draft parent; the update trigger also prevents moving a row between versions.
+A third trigger rejects all hard deletes. Seed data is not stored in migration
+SQL: config/service loads exactly 21 rows with the required 8/3/3/7
+distribution into an empty draft.
+
+The local table contains zero rows after migration. Disposable smoke testing
+creates a draft, loads 21 rows, edits/toggles/reorders, makes the source
+read-only, and proves transactional clone independence.
 
 ### 6.2 `periode_audit`
 
@@ -730,6 +765,7 @@ These counts provide test-environment scale only and contain no row data:
 | `standar` | 7 |
 | `pertanyaan` | 49 |
 | `spmi_versions` | 0 |
+| `spmi_standards` | 0 |
 | `tugas_audit` | 8 |
 | `jawaban_audit` | 41 |
 | `penetapan` | 21 |

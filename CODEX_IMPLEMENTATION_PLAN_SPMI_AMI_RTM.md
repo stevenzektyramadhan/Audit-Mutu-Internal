@@ -853,6 +853,9 @@ draft → review → approved → active → retired
 
 ## TASK M3-03 — Master 21 Standar
 
+Status implementasi: **selesai dan diverifikasi pada 2026-07-25**. Detail:
+`docs/milestones/M3-03-master-21-standar.md`.
+
 ### Schema
 
 ```text

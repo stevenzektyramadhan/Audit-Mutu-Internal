@@ -18,6 +18,7 @@ class Spmi_versions extends MY_Controller
         $this->load->library('form_validation');
         $this->load->library('file_security');
         $this->load->model('Organization_unit_model');
+        $this->load->model('Spmi_standard_model');
         $this->load->helper(['url', 'form']);
 
         require_once APPPATH . 'services/Spmi_version_workflow_service.php';
@@ -25,7 +26,7 @@ class Spmi_versions extends MY_Controller
 
         if (!$this->workflow->schema_ready()) {
             show_error(
-                'Versi SPMI belum tersedia. Jalankan migration M3-01 terlebih dahulu.',
+                'Versi dan master standar SPMI belum tersedia. Jalankan migration sampai M3-03 terlebih dahulu.',
                 503,
                 'Service Unavailable'
             );
@@ -156,6 +157,15 @@ class Spmi_versions extends MY_Controller
             'version' => $version,
             'status_labels' => $this->workflow->status_labels(),
             'current_user_id' => $this->_user_id(),
+            'standard_count' => $this->Spmi_standard_model->count_for_version(
+                (int) $version->id
+            ),
+            'can_manage_standards' => $this->authorization_policy
+                ->allowsInOrganizationUnit(
+                    $this->_user_id(),
+                    Authorization_policy::CAP_SPMI_STANDARD_MANAGE,
+                    (int) $version->organization_unit_id
+                ),
         ]);
     }
 

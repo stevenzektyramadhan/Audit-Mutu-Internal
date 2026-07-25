@@ -98,10 +98,11 @@ baru, atomic replacement, histori retired/active, dan audit event.
 - Audit append dilakukan setelah business transaction commit sesuai boundary
   ledger aplikasi saat ini; operasi dan ledger belum menjadi distributed
   atomic unit.
-- Master standar dan turunannya masih memakai tabel legacy sampai M3-03 dan
+- Pada checkpoint M3-02 master standar masih legacy. M3-03 kemudian
+  menambahkan `spmi_standards`; pernyataan dan turunan lain tetap menunggu
   task berikutnya.
 
 ## Task berikutnya
 
-M3-03 — Master 21 Standar. Tetap gunakan branch milestone M3 yang sama dan
-buat checkpoint commit baru untuk subtask tersebut.
+M3-03 — Master 21 Standar sudah selesai. Task lanjutan adalah M3-04 —
+Pernyataan Isi Standar pada branch milestone M3 yang sama.

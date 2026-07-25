@@ -88,6 +88,16 @@ include APPPATH . 'views/layouts/sidebar.php';
                 Kembali
             </a>
 
+            <?php if ($can_manage_standards): ?>
+                <a
+                    href="<?php echo site_url('spmi-versions/' . (int) $version->id . '/standards'); ?>"
+                    class="btn btn-outline-primary"
+                >
+                    <i class="fas fa-layer-group" aria-hidden="true"></i>
+                    Kelola Standar (<?php echo (int) $standard_count; ?>)
+                </a>
+            <?php endif; ?>
+
             <?php if ((string) $version->status === 'draft'): ?>
                 <a
                     href="<?php echo site_url('spmi-versions/edit/' . (int) $version->id); ?>"

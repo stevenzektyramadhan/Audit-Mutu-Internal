@@ -1,8 +1,8 @@
-# Current Handoff — M0, M1, M2, M3-01, dan M3-02
+# Current Handoff — M0, M1, M2, dan M3-01 sampai M3-03
 
 - **Tanggal handoff:** 2026-07-25
 - **Workspace asal:** Windows 11, Laragon, PHP 8.3.30, MySQL 8.4.3
-- **Status:** M0, M1, seluruh M2, M3-01, dan M3-02 selesai serta diverifikasi. Task berikutnya M3-03.
+- **Status:** M0, M1, seluruh M2, dan M3-01 sampai M3-03 selesai serta diverifikasi. Task berikutnya M3-04.
 
 Dokumen ini tidak memuat secret, password, API key, isi `.env`, credential
 database, atau data pengguna.
@@ -18,7 +18,7 @@ database, atau data pengguna.
 - Checkpoint M2-02: `2d57026 feat: implement M2-02 user unit assignments`.
 - Checkpoint M2-03: `cc08b81 feat: implement M2-03 role capability matrix`.
 - Branch kerja seluruh milestone M3: `codex/m3-spmi-master-versioning`.
-- M3-02 berada pada checkpoint `HEAD` yang memuat dokumen ini. Gunakan
+- M3-03 berada pada checkpoint `HEAD` yang memuat dokumen ini. Gunakan
   `git rev-parse HEAD` setelah checkout karena commit tidak dapat menyimpan SHA
   dirinya sendiri.
 - Branch M3 belum di-push pada saat dokumen ini diperbarui.
@@ -67,6 +67,7 @@ database, atau data pengguna.
 
 - M3-01 — Tabel Versi Dokumen SPMI.
 - M3-02 — Workflow Persetujuan Versi.
+- M3-03 — Master 21 Standar.
 
 ## 4. Acceptance criteria yang dipenuhi
 
@@ -382,6 +383,7 @@ handoff ini ditambahkan.
 - `docs/milestones/M2-03-role-capability-matrix.md`
 - `docs/milestones/M3-01-spmi-version-foundation.md`
 - `docs/milestones/M3-02-spmi-version-approval-workflow.md`
+- `docs/milestones/M3-03-master-21-standar.md`
 
 ### Migration dan scripts — dibuat
 
@@ -391,9 +393,11 @@ handoff ini ditambahkan.
 - `migrations/015_create_organization_units.sql`
 - `migrations/016_create_user_unit_assignments.sql`
 - `migrations/017_create_spmi_versions.sql`
+- `migrations/018_create_spmi_standards.sql`
 - `scripts/database/apply_local_m1_06.php`
 - `scripts/database/apply_local_m1_08.php`
 - `scripts/database/apply_local_m3_01.php`
+- `scripts/database/apply_local_m3_03.php`
 - `scripts/database/audit_readonly.php`
 - `scripts/migrate_private_storage.php`
 
@@ -415,6 +419,7 @@ handoff ini ditambahkan.
 - `tests/user_unit_assignments_regression.php`
 - `tests/role_capability_matrix_regression.php`
 - `tests/spmi_versions_regression.php`
+- `tests/spmi_standards_regression.php`
 - `tests/smoke/README.md`
 - `tests/smoke/run.php`
 
@@ -428,6 +433,7 @@ handoff ini ditambahkan.
 | `015_create_organization_units.sql` | Hierarki organisasi, code unik, status aktif, self FK, dan seed universitas root. |
 | `016_create_user_unit_assignments.sql` | Assignment user/unit/jabatan, masa berlaku, primary, index overlap, check, dan FK RESTRICT. |
 | `017_create_spmi_versions.sql` | Version identity/effective dates, organization scope, private source provenance, single-active key, dan history guards. |
+| `018_create_spmi_standards.sql` | Master standar milik versi, unique code per versi, group/type checks, urutan, dan draft/history guards. |
 
 Migration `001`–`011` sudah ada sebelum rangkaian kerja ini. Terdapat dua file
 bernomor `009`.
@@ -442,10 +448,12 @@ bernomor `009`.
 | `015_create_organization_units.sql` | Development lokal Windows/Laragon dan database disposable, MySQL 8.4.3 | Schema, index, self FK, dan seed root terverifikasi. |
 | `016_create_user_unit_assignments.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Tabel, tiga index, dua FK RESTRICT, dua check constraint, dan 0 initial rows terverifikasi. |
 | `017_create_spmi_versions.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Dijalankan dua kali; 17 kolom, unique/index, empat FK RESTRICT, lima check, dua trigger, dan 0 initial rows terverifikasi. |
+| `018_create_spmi_standards.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Dijalankan dua kali; 12 kolom, tiga index, satu FK RESTRICT, empat check, tiga trigger, dan 0 initial rows terverifikasi. |
 | `database_schema.sql` | Database disposable milik smoke suite | Import berhasil untuk membuat baseline test terisolasi. |
 
-Metadata runtime lokal setelah migration 017 menunjukkan 18 base tables dan
-206 columns. Tidak ada migration yang dijalankan atau diverifikasi pada
+Metadata runtime lokal setelah migration 018 mencakup 19 base tables,
+termasuk `spmi_versions` dan `spmi_standards`. Tidak ada migration yang
+dijalankan atau diverifikasi pada
 production. Repository tidak memiliki migration ledger, sehingga keberadaan
 efek migration lama tidak membuktikan kapan file `001`–`011` dijalankan.
 
@@ -494,6 +502,8 @@ php tests/account_settings_regression.php
 php tests/organization_units_regression.php
 php tests/user_unit_assignments_regression.php
 php tests/role_capability_matrix_regression.php
+php tests/spmi_versions_regression.php
+php tests/spmi_standards_regression.php
 php tests/smoke/run.php
 ```
 
@@ -508,15 +518,15 @@ git diff --check
 ```
 
 Targeted PHP lint dijalankan terhadap seluruh file PHP baru dan berubah pada
-setiap checkpoint. Pada checkpoint M3-02, full PHP lint juga dijalankan
-terhadap seluruh 166 file PHP di `application`, `tests`, dan `scripts`.
+setiap checkpoint. Pada checkpoint M3-03, full PHP lint juga dijalankan
+terhadap seluruh file PHP di `application`, `tests`, dan `scripts`.
 
 ## 10. Hasil aktual setiap test
 
 | Command | Hasil aktual terakhir |
 |---|---|
 | `php tests/security_audit_regression.php` | PASS — 116 checks. |
-| `php tests/security_headers_regression.php` | PASS — 134 checks. |
+| `php tests/security_headers_regression.php` | PASS — 136 checks. |
 | `php tests/file_security_regression.php` | PASS — 100 checks. |
 | `php tests/output_encoding_regression.php` | PASS — 28 checks. |
 | `php tests/authentication_security_regression.php` | PASS — 29 checks. |
@@ -526,12 +536,13 @@ terhadap seluruh 166 file PHP di `application`, `tests`, dan `scripts`.
 | `php tests/account_settings_regression.php` | PASS — account settings regression checks passed. |
 | `php tests/organization_units_regression.php` | PASS — 42 checks. |
 | `php tests/user_unit_assignments_regression.php` | PASS — 30 checks. |
-| `php tests/role_capability_matrix_regression.php` | PASS — 155 checks. |
+| `php tests/role_capability_matrix_regression.php` | PASS — 157 checks. |
 | `php tests/spmi_versions_regression.php` | PASS — 115 checks. |
+| `php tests/spmi_standards_regression.php` | PASS — 146 checks. |
 | `php tests/smoke/run.php` | PASS — 34 cases; database disposable dibersihkan oleh successful run. |
-| Targeted M2-01 sampai M3-02 `php -l` | PASS. |
-| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 166 files. |
-| `php scripts/database/audit_readonly.php schema` | PASS — local schema terbaca sampai migration 017, termasuk `spmi_versions`. |
+| Targeted M2-01 sampai M3-03 `php -l` | PASS. |
+| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 174 files. |
+| `php scripts/database/audit_readonly.php schema` | PASS — local schema terbaca sampai migration 018, termasuk `spmi_versions` dan `spmi_standards`. |
 | `php scripts/database/audit_readonly.php checks` | Command PASS; satu known data issue: 3 tugas tanpa periode valid. |
 | `php index.php maintenance verify_audit_log` | PASS — `valid=true`, 3 entries checked. |
 | `git diff --check` | PASS/exit 0; hanya warning normalisasi LF ke CRLF pada Windows. |
@@ -628,7 +639,8 @@ kasus lulus dan disposable database dibersihkan oleh runner.
 - Event finalisasi report, finalisasi RTM, perubahan PIC/target, dan verifikasi
   follow-up belum dapat diintegrasikan karena modul tersebut belum ada.
 - Standard version create/review/approve/activate/retire/clone tersedia pada
-  M3-02; struktur standard/indicator di dalam versi masih menunggu M3-03+.
+  M3-02; M3-03 menyediakan master 21 standar milik versi. Pernyataan,
+  indikator, dan target masih menunggu M3-04+.
 - Smoke harness custom dipakai karena repository belum mempunyai test framework
   terintegrasi yang memadai.
 
@@ -675,8 +687,8 @@ kasus lulus dan disposable database dibersihkan oleh runner.
 
 - Milestone terakhir selesai penuh: **M2 — Organisasi, Role, dan Scope**.
 - Milestone aktif: **M3 — Master SPMI dan Versioning**.
-- M3-01 dan M3-02 sudah memenuhi acceptance target.
-- Task berikutnya: **TASK M3-03 — Master 21 Standar**.
+- M3-01, M3-02, dan M3-03 sudah memenuhi acceptance target.
+- Task berikutnya: **TASK M3-04 — Pernyataan Isi Standar**.
 - Seluruh subtask M3 tetap memakai branch
   `codex/m3-spmi-master-versioning` dan menjadi checkpoint commit.
 
@@ -746,6 +758,23 @@ Acceptance M3-02 yang sudah diverifikasi:
 Detail M3-02:
 `docs/milestones/M3-02-spmi-version-approval-workflow.md`.
 
+Acceptance M3-03 yang sudah diverifikasi:
+
+- `spmi_standards` dimiliki satu `spmi_version` tanpa cutover master legacy;
+- seed tepat 21 standar dengan distribusi 8 pendidikan, 3 penelitian,
+  3 pengabdian, dan 7 internal;
+- kode unik di dalam versi dan dapat dipakai ulang pada versi berbeda;
+- create/edit/toggle/reorder hanya dapat dilakukan pada draft;
+- trigger menolak perubahan non-draft, pemindahan versi, dan hard delete;
+- seluruh route memakai `spmi.standard.manage` + direct organization scope;
+- clone versi menyalin 21 standar secara transaksional dan hasilnya independen;
+- mutation menghasilkan immutable audit event;
+- migration 018 dijalankan dua kali dan idempotent;
+- regression 146 checks dan smoke database 34-case lulus.
+
+Detail M3-03:
+`docs/milestones/M3-03-master-21-standar.md`.
+
 ## 18. Langkah pertama agent di Linux
 
 Langkah pertama agent Linux adalah checkout remote branch, memastikan working
@@ -765,11 +794,12 @@ Jika branch lokal dengan nama yang sama sudah ada, gunakan
 `git switch codex/m3-spmi-master-versioning` lalu `git pull --ff-only`.
 
 Agent Linux harus memastikan checkpoint M2-01 `45c6a6d`, M2-02 `2d57026`,
-M2-03 `cc08b81`, checkpoint M3-01 `4ec9242`, dan checkpoint M3-02 (`HEAD`
+M2-03 `cc08b81`, checkpoint M3-01 `4ec9242`, M3-02 `d4c1425`, dan checkpoint
+M3-03 (`HEAD`
 dokumen ini) berada dalam
 history serta working tree bersih. Siapkan environment development sendiri
-tanpa menyalin secret Windows, lalu jalankan seluruh regression sampai M3-02
+tanpa menyalin secret Windows, lalu jalankan seluruh regression sampai M3-03
 serta smoke 34-case. Untuk database existing development, jalankan migration
-015, 016, lalu 017; fresh install memakai `database_schema.sql`. Jangan
+015, 016, 017, lalu 018; fresh install memakai `database_schema.sql`. Jangan
 menjalankan migration terhadap database bersama atau production tanpa
-prosedur DBA/deployment. Lanjutkan M3-03 pada branch milestone M3 yang sama.
+prosedur DBA/deployment. Lanjutkan M3-04 pada branch milestone M3 yang sama.

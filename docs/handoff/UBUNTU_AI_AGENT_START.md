@@ -10,8 +10,8 @@ termasuk bila agent yang digunakan adalah OpenCode atau agent lain.
 - Commit implementasi M0/M1:
   `87b4b165a362311b5d6cbc4035a8960a71e5a6f1`.
 - M0 dan M1 selesai.
-- M2-01, M2-02, M2-03, M3-01, dan M3-02 sudah diimplementasikan dan diverifikasi di Windows.
-- Task berikutnya: **M3-03 — Master 21 Standar**.
+- M2-01, M2-02, M2-03, dan M3-01 sampai M3-03 sudah diimplementasikan dan diverifikasi di Windows.
+- Task berikutnya: **M3-04 — Pernyataan Isi Standar**.
 - Seluruh task M3 memakai branch yang sama; subtask ditandai checkpoint commit.
 
 Commit paling atas dapat berupa commit dokumentasi handoff setelah commit
@@ -96,11 +96,11 @@ mbstring, XML, ZIP, dan spreadsheet tersedia.
 
 - Untuk database development baru dan kosong, gunakan `database_schema.sql`
   sebagai fresh-install schema.
-- Jangan menjalankan seluruh migration `001`–`017` terhadap fresh schema.
+- Jangan menjalankan seluruh migration `001`–`018` terhadap fresh schema.
   Migration historis tidak semuanya idempotent dan terdapat dua nomor `009`.
 - Untuk database existing, backup dan audit schema secara read-only sebelum
-  menentukan migration. Migration `010`–`017` dirancang idempotent; migration
-  015, 016, dan 017 telah diterapkan pada database development MySQL 8.4.3
+  menentukan migration. Migration `010`–`018` dirancang idempotent; migration
+  015, 016, 017, dan 018 telah diterapkan pada database development MySQL 8.4.3
   dan diuji lewat database disposable.
 - Migration Windows tidak otomatis berarti database Ubuntu sudah ter-upgrade.
 - Jangan memakai database production atau database bersama untuk smoke test.
@@ -123,29 +123,31 @@ php tests/organization_units_regression.php
 php tests/user_unit_assignments_regression.php
 php tests/role_capability_matrix_regression.php
 php tests/spmi_versions_regression.php
+php tests/spmi_standards_regression.php
 php tests/smoke/run.php
 ```
 
 Expected result dari Windows:
 
 - audit regression: 116 checks;
-- security headers: 134 checks;
+- security headers: 136 checks;
 - file security: 100 checks;
 - output encoding: 28 checks;
 - authentication: 29 checks;
 - authorization: 54 checks;
 - organization units: 42 checks;
 - user unit assignments: 30 checks;
-- role capability matrix: 155 checks;
+- role capability matrix: 157 checks;
 - SPMI version foundation/workflow: 115 checks;
+- SPMI versioned standard master: 146 checks;
 - tiga regression legacy/configuration lainnya lulus;
 - smoke suite: 34 cases.
 
-Full PHP lint Windows juga lulus untuk 166 file. Ulangi lint di Linux agar
+Full PHP lint Windows juga lulus untuk 174 file. Ulangi lint di Linux agar
 case sensitivity, path separator, permission, dan dependency Linux ikut
 terverifikasi.
 
-## Guardrail sebelum melanjutkan M3-03
+## Guardrail sebelum melanjutkan M3-04
 
 - Jangan reset, rewrite, atau squash history tanpa persetujuan maintainer.
 - Jangan mengubah migration historis yang sudah digunakan.
@@ -159,5 +161,7 @@ terverifikasi.
 - Jangan mengubah activation/retirement M3-02 tanpa mempertahankan combined
   `spmi.version.manage` + organization-unit guard, transaksi state transition,
   private file ownership, audit event, dan negative test.
-- Master standar M3-03 harus berelasi ke `spmi_versions`, tidak menimpa tabel
-  legacy atau mengubah versi aktif secara langsung.
+- Pernyataan M3-04 harus berelasi ke `spmi_standards`/`spmi_versions`, tidak
+  menimpa tabel legacy atau mengubah versi non-draft secara langsung.
+- Pertahankan unique code per versi, draft-only/no-delete trigger, clone
+  standar transaksional, organization scope, dan audit event M3-03.

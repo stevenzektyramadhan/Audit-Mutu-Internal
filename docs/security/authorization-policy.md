@@ -113,6 +113,11 @@ There is no current UI endpoint that invokes an override. Adding one requires a 
   requires `spmi.version.manage` through the combined organization-unit guard.
   List/create unit choices are filtered through the same policy. Super Admin
   has global organization scope; Admin LPMPI needs a direct active assignment.
+- M3-03 exposes version-owned standard list/seed/create/edit/toggle/reorder
+  routes. The controller resolves the parent version first, applies
+  `spmi.standard.manage` in that organization unit, verifies that every child
+  ID belongs to the URL version, and permits mutation only while the parent is
+  `draft`.
 - Sidebar entries are capability-filtered, but controller policy remains the
   enforcement boundary.
 - Auditee route aliases and the duplicate `auditee/Tugas` controller use the same object policy.
@@ -128,6 +133,7 @@ Run:
 php tests/authorization_policy_regression.php
 php tests/role_capability_matrix_regression.php
 php tests/spmi_versions_regression.php
+php tests/spmi_standards_regression.php
 php tests/authentication_security_regression.php
 php tests/security_configuration_regression.php
 php tests/hardening_regression.php
@@ -146,5 +152,8 @@ The isolated HTTP/database matrix covers:
 - an Auditor cannot open or approve an SPMI version;
 - a version creator cannot approve their own version;
 - an Admin LPMPI outside the unit scope cannot manage its version.
+- an Auditor cannot open the version-owned standard master;
+- a standard ID cannot be mutated through another version URL;
+- review/active standard mutation is rejected by controller and database.
 
 PIC-to-PIC and RTM-finalizer HTTP tests are not applicable until those entities exist. Their callable policy methods are regression-tested to return `FALSE`, so adding a route before the model/policy is completed fails closed.

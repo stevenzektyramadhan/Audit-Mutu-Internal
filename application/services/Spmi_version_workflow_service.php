@@ -10,6 +10,7 @@ class Spmi_version_workflow_service
     protected $version_model;
     protected $file_asset_model;
     protected $organization_unit_model;
+    protected $standard_model;
     protected $user_model;
     protected $audit_logger;
 
@@ -27,12 +28,14 @@ class Spmi_version_workflow_service
         $this->ci->load->model('Spmi_version_model');
         $this->ci->load->model('File_asset_model');
         $this->ci->load->model('Organization_unit_model');
+        $this->ci->load->model('Spmi_standard_model');
         $this->ci->load->model('User_model');
         $this->ci->load->library('audit_logger');
 
         $this->version_model = $this->ci->Spmi_version_model;
         $this->file_asset_model = $this->ci->File_asset_model;
         $this->organization_unit_model = $this->ci->Organization_unit_model;
+        $this->standard_model = $this->ci->Spmi_standard_model;
         $this->user_model = $this->ci->User_model;
         $this->audit_logger = $this->ci->audit_logger;
     }
@@ -41,7 +44,8 @@ class Spmi_version_workflow_service
     {
         return $this->version_model->schema_ready()
             && $this->file_asset_model->schema_ready()
-            && $this->organization_unit_model->schema_ready();
+            && $this->organization_unit_model->schema_ready()
+            && $this->standard_model->schema_ready();
     }
 
     public function status_labels()
@@ -74,9 +78,10 @@ class Spmi_version_workflow_service
             return $validation;
         }
 
+        $copied_standard_count = 0;
         $this->ci->db->trans_begin();
         try {
-            $this->version_model->lock_identity(
+            $identity_versions = $this->version_model->lock_identity(
                 $normalized['organization_unit_id'],
                 $normalized['document_code']
             );
@@ -86,6 +91,26 @@ class Spmi_version_workflow_service
                 $normalized['revision_number']
             )) {
                 return $this->rollback_failure('Nomor revisi sudah digunakan untuk dokumen dan unit ini.');
+            }
+
+            $source_version = NULL;
+            if ($source_version_id !== NULL) {
+                foreach ($identity_versions as $identity_version) {
+                    if ((int) $identity_version->id === (int) $source_version_id) {
+                        $source_version = $identity_version;
+                        break;
+                    }
+                }
+                if (!$source_version
+                    || !in_array(
+                        (string) $source_version->status,
+                        ['approved', 'active', 'retired'],
+                        TRUE
+                    )) {
+                    return $this->rollback_failure(
+                        'Versi sumber clone tidak valid atau tidak lagi stabil.'
+                    );
+                }
             }
 
             $asset = $this->file_asset_model->find_for_update(
@@ -115,6 +140,28 @@ class Spmi_version_workflow_service
                 return $this->rollback_failure('Draft versi SPMI gagal disimpan.');
             }
 
+            if ($source_version !== NULL) {
+                $source_standard_count = $this->standard_model->count_for_version(
+                    (int) $source_version->id
+                );
+                if (!$this->standard_model->copy_for_version(
+                    (int) $source_version->id,
+                    (int) $id
+                )) {
+                    return $this->rollback_failure(
+                        'Master standar versi sumber gagal disalin.'
+                    );
+                }
+                $copied_standard_count = $this->standard_model->count_for_version(
+                    (int) $id
+                );
+                if ($copied_standard_count !== $source_standard_count) {
+                    return $this->rollback_failure(
+                        'Jumlah standar hasil clone tidak sesuai versi sumber.'
+                    );
+                }
+            }
+
             if ($this->ci->db->trans_status() === FALSE) {
                 return $this->rollback_failure('Draft versi SPMI gagal disimpan.');
             }
@@ -127,6 +174,18 @@ class Spmi_version_workflow_service
         $event_type = $source_version_id === NULL
             ? 'spmi_version_created'
             : 'spmi_version_cloned';
+        $changed_fields = [
+            'document_code',
+            'title',
+            'revision_number',
+            'effective_date',
+            'expires_at',
+            'source_file_asset_id',
+            'status',
+        ];
+        if ($source_version_id !== NULL) {
+            $changed_fields[] = 'standards';
+        }
         $this->audit_logger->record(
             $event_type,
             'spmi_version',
@@ -140,16 +199,9 @@ class Spmi_version_workflow_service
                 'source' => $source_version_id === NULL
                     ? 'upload'
                     : 'spmi_version_' . (int) $source_version_id,
+                'row_count' => $copied_standard_count,
                 'scope' => 'organization_unit_' . $normalized['organization_unit_id'],
-                'changed_fields' => [
-                    'document_code',
-                    'title',
-                    'revision_number',
-                    'effective_date',
-                    'expires_at',
-                    'source_file_asset_id',
-                    'status',
-                ],
+                'changed_fields' => $changed_fields,
             ],
             $actor_user_id
         );

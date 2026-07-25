@@ -34,7 +34,7 @@ Ketika sebuah pertanyaan dijawab, catat jawaban yang terukur, pemilik/otoritas y
 | ID | Keputusan | Status | Catatan |
 |---|---|---|---|
 | ADR-0001 | [Batas service layer](../adr/0001-service-layer-boundary.md) | Accepted — implementation pending | Controller, service, policy, model, storage, dan report mempunyai tanggung jawab berbeda. |
-| ADR-0002 | [Versioning SPMI](../adr/0002-spmi-versioning.md) | Accepted — implementation pending | Versi aktif immutable; revisi baru tidak menimpa histori. |
+| ADR-0002 | [Versioning SPMI](../adr/0002-spmi-versioning.md) | Accepted — M3-01 sampai M3-03 implemented | Versi aktif immutable; revisi baru tidak menimpa histori. |
 | ADR-0003 | [Snapshot audit](../adr/0003-audit-snapshot.md) | Accepted — implementation pending | Penugasan membaca snapshot yang stabil, bukan master terbaru. |
 | ADR-0004 | [Private file storage](../adr/0004-private-file-storage.md) | Accepted — implementation pending | Dokumen privat disimpan di luar document root dan diakses melalui policy. |
 | ADR-0005 | [Role and scope authorization](../adr/0005-role-and-scope-authorization.md) | Accepted — implementation pending | Capability, scope, ownership, dan state objek menentukan izin. |
