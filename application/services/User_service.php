@@ -291,6 +291,13 @@ class User_service
             return ['success' => FALSE, 'message' => 'Super Admin aktif terakhir tidak dapat dihapus.'];
         }
 
+        if ($this->user_model->has_unit_assignment_history($id)) {
+            return [
+                'success' => FALSE,
+                'message' => 'Pengguna tidak dapat dihapus karena memiliki riwayat assignment unit dan jabatan.',
+            ];
+        }
+
         if ($this->user_model->delete($id)) {
             $this->record_user_event(
                 'user_deleted',
@@ -319,6 +326,13 @@ class User_service
 
         if ($this->user_model->has_audit_assignments($id)) {
             return ['success' => FALSE, 'message' => 'Akun tidak dapat dihapus karena masih terikat pada tugas audit.'];
+        }
+
+        if ($this->user_model->has_unit_assignment_history($id)) {
+            return [
+                'success' => FALSE,
+                'message' => 'Akun tidak dapat dihapus karena memiliki riwayat assignment unit dan jabatan.',
+            ];
         }
 
         if ($this->user_model->delete($id)) {

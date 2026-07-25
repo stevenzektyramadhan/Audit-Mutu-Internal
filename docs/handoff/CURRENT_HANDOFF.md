@@ -1,8 +1,8 @@
-# Current Handoff — M0, M1, dan M2-01
+# Current Handoff — M0, M1, M2-01, dan M2-02
 
 - **Tanggal handoff:** 2026-07-25
 - **Workspace asal:** Windows 11, Laragon, PHP 8.3.30, MySQL 8.4.3
-- **Status:** M0 dan M1 selesai; M2-01 sudah diimplementasikan dan diverifikasi. M2-02 belum dimulai.
+- **Status:** M0 dan M1 selesai; M2-01 dan M2-02 sudah diimplementasikan dan diverifikasi. Task berikutnya M2-03.
 
 Dokumen ini tidak memuat secret, password, API key, isi `.env`, credential
 database, atau data pengguna.
@@ -11,9 +11,11 @@ database, atau data pengguna.
 
 - Branch integrasi asal: `dev`.
 - Branch M1: `codex/m1-security-foundation-handoff`.
-- Branch kerja saat ini: `codex/m2-01-master-unit-organisasi`.
-- Branch M2-01 dibuat dari HEAD branch M1 setelah handoff selesai.
-- Remote M2-01 belum dibuat pada saat dokumen ini diperbarui.
+- Branch kerja seluruh milestone M2: `codex/m2-organization-role-scope`.
+- Satu branch dipakai untuk seluruh task M2; tiap subtask menjadi checkpoint
+  commit, bukan branch baru.
+- Checkpoint M2-01: `45c6a6d feat: implement M2-01 organization unit master`.
+- Branch M2 belum di-push pada saat dokumen ini diperbarui.
 - Dokumen ringkas untuk agent Ubuntu/OpenCode:
   `docs/handoff/UBUNTU_AI_AGENT_START.md`.
 
@@ -52,6 +54,7 @@ database, atau data pengguna.
 ### M2 — Organisasi, Role, dan Scope
 
 - M2-01 — Master Unit Organisasi.
+- M2-02 — Keanggotaan User dan Jabatan.
 
 ## 4. Acceptance criteria yang dipenuhi
 
@@ -234,6 +237,8 @@ handoff ini ditambahkan.
 ### Controllers — dibuat
 
 - `application/controllers/Maintenance.php`
+- `application/controllers/Organization_units.php`
+- `application/controllers/User_unit_assignments.php`
 
 ### Libraries — diubah
 
@@ -255,7 +260,9 @@ handoff ini ditambahkan.
 
 - `application/models/Auth_security_event_model.php`
 - `application/models/File_asset_model.php`
+- `application/models/Organization_unit_model.php`
 - `application/models/Security_audit_log_model.php`
+- `application/models/User_unit_assignment_model.php`
 
 ### Services — diubah
 
@@ -265,6 +272,11 @@ handoff ini ditambahkan.
 - `application/services/Standar_service.php`
 - `application/services/Tugas_audit_service.php`
 - `application/services/User_service.php`
+
+### Services — dibuat
+
+- `application/services/Organization_unit_service.php`
+- `application/services/User_unit_assignment_service.php`
 
 ### Views — diubah
 
@@ -305,6 +317,10 @@ handoff ini ditambahkan.
 - `application/views/lpmpi/periode/index.php`
 - `application/views/lpmpi/profil/form_edit.php`
 - `application/views/lpmpi/profil/index.php`
+- `application/views/lpmpi/organization_units/form.php`
+- `application/views/lpmpi/organization_units/index.php`
+- `application/views/lpmpi/user_unit_assignments/form.php`
+- `application/views/lpmpi/user_unit_assignments/index.php`
 - `application/views/pertanyaan/create.php`
 - `application/views/pertanyaan/edit.php`
 - `application/views/pertanyaan/import_preview.php`
@@ -342,6 +358,8 @@ handoff ini ditambahkan.
 - `docs/security/security-headers.md`
 - `docs/security/threat-model.md`
 - `docs/handoff/CURRENT_HANDOFF.md`
+- `docs/milestones/M2-01-master-unit-organisasi.md`
+- `docs/milestones/M2-02-user-unit-assignments.md`
 
 ### Migration dan scripts — dibuat
 
@@ -349,6 +367,7 @@ handoff ini ditambahkan.
 - `migrations/013_file_security_foundation.sql`
 - `migrations/014_immutable_security_audit_log.sql`
 - `migrations/015_create_organization_units.sql`
+- `migrations/016_create_user_unit_assignments.sql`
 - `scripts/database/apply_local_m1_06.php`
 - `scripts/database/apply_local_m1_08.php`
 - `scripts/database/audit_readonly.php`
@@ -369,6 +388,7 @@ handoff ini ditambahkan.
 - `tests/security_configuration_regression.php`
 - `tests/security_headers_regression.php`
 - `tests/organization_units_regression.php`
+- `tests/user_unit_assignments_regression.php`
 - `tests/smoke/README.md`
 - `tests/smoke/run.php`
 
@@ -380,6 +400,7 @@ handoff ini ditambahkan.
 | `013_file_security_foundation.sql` | Registry `file_assets`, `file_security_events`, checksum, lifecycle, dan retention. |
 | `014_immutable_security_audit_log.sql` | Immutable ledger, chain state, index, dan trigger penolak update/delete. |
 | `015_create_organization_units.sql` | Hierarki organisasi, code unik, status aktif, self FK, dan seed universitas root. |
+| `016_create_user_unit_assignments.sql` | Assignment user/unit/jabatan, masa berlaku, primary, index overlap, check, dan FK RESTRICT. |
 
 Migration `001`–`011` sudah ada sebelum rangkaian kerja ini. Terdapat dua file
 bernomor `009`.
@@ -391,7 +412,8 @@ bernomor `009`.
 | `012_authentication_hardening.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Dijalankan dua kali; berhasil dan hasil idempotent. |
 | `013_file_security_foundation.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Dijalankan dua kali; berhasil dan hasil idempotent. |
 | `014_immutable_security_audit_log.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Dijalankan dua kali; kedua tabel dan dua trigger terverifikasi. |
-| `015_create_organization_units.sql` | Database disposable Windows/Laragon, MySQL 8.4.3 | Dijalankan dua kali; schema, index, self FK, dan satu seed root terverifikasi. |
+| `015_create_organization_units.sql` | Development lokal Windows/Laragon dan database disposable, MySQL 8.4.3 | Schema, index, self FK, dan seed root terverifikasi. |
+| `016_create_user_unit_assignments.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Tabel, tiga index, dua FK RESTRICT, dua check constraint, dan 0 initial rows terverifikasi. |
 | `database_schema.sql` | Database disposable milik smoke suite | Import berhasil untuk membuat baseline test terisolasi. |
 
 Audit read-only terakhir menemukan 15 base tables dan 171 columns melalui
@@ -442,6 +464,7 @@ php tests/security_configuration_regression.php
 php tests/hardening_regression.php
 php tests/account_settings_regression.php
 php tests/organization_units_regression.php
+php tests/user_unit_assignments_regression.php
 php tests/smoke/run.php
 ```
 
@@ -464,26 +487,26 @@ Sebelum commit implementasi, full PHP lint juga dijalankan terhadap seluruh
 | Command | Hasil aktual terakhir |
 |---|---|
 | `php tests/security_audit_regression.php` | PASS — 116 checks. |
-| `php tests/security_headers_regression.php` | PASS — 127 checks. |
+| `php tests/security_headers_regression.php` | PASS — 130 checks. |
 | `php tests/file_security_regression.php` | PASS — 100 checks. |
 | `php tests/output_encoding_regression.php` | PASS — 28 checks. |
 | `php tests/authentication_security_regression.php` | PASS — 29 checks. |
-| `php tests/authorization_policy_regression.php` | PASS — 38 checks. |
+| `php tests/authorization_policy_regression.php` | PASS — 44 checks. |
 | `php tests/security_configuration_regression.php` | PASS — security configuration regression checks passed. |
 | `php tests/hardening_regression.php` | PASS — hardening regression checks passed. |
 | `php tests/account_settings_regression.php` | PASS — account settings regression checks passed. |
 | `php tests/organization_units_regression.php` | PASS — 42 checks. |
-| `php tests/smoke/run.php` | PASS — 31 cases; database disposable dibersihkan oleh successful run. |
-| Targeted M2-01 `php -l` | PASS. |
-| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 150 files. |
+| `php tests/user_unit_assignments_regression.php` | PASS — 30 checks. |
+| `php tests/smoke/run.php` | PASS — 32 cases; database disposable dibersihkan oleh successful run. |
+| Targeted M2-01/M2-02 `php -l` | PASS. |
+| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 156 files. |
 | `php scripts/database/audit_readonly.php schema` | PASS — local schema terbaca sampai migration 014. |
 | `php scripts/database/audit_readonly.php checks` | Command PASS; satu known data issue: 3 tugas tanpa periode valid. |
 | `php index.php maintenance verify_audit_log` | PASS — `valid=true`, 0 entries checked, genesis head valid. |
 | `git diff --check` | PASS/exit 0; hanya warning normalisasi LF ke CRLF pada Windows. |
 
-Smoke 31-case dijalankan ulang pada branch M2-01 tanggal 2026-07-25 setelah dokumen
-ini dibuat; seluruh kasus lulus dan disposable database dijadwalkan untuk
-cleanup oleh runner.
+Smoke 32-case dijalankan pada branch milestone M2 tanggal 2026-07-25; seluruh
+kasus lulus dan disposable database dibersihkan oleh runner.
 
 ## 11. Test yang belum dijalankan
 
@@ -620,9 +643,9 @@ cleanup oleh runner.
 ## 17. Exact milestone dan task berikutnya
 
 - Milestone aktif: **M2 — Organisasi, Role, dan Scope**.
-- M2-01 sudah diimplementasikan dan memenuhi acceptance target.
-- Task berikutnya setelah penerimaan M2-01: **TASK M2-02 — Keanggotaan User dan Jabatan**.
-- M2-02 dan M2-03 belum dimulai.
+- M2-01 dan M2-02 sudah diimplementasikan dan memenuhi acceptance target.
+- Task berikutnya: **TASK M2-03 — Matriks Role-Capability**.
+- M2-03 belum dimulai.
 
 Acceptance M2-01 yang sudah diverifikasi:
 
@@ -636,6 +659,17 @@ Acceptance M2-01 yang sudah diverifikasi:
 Detail implementasi, aturan hierarki, migration, risiko legacy, dan hasil test:
 `docs/milestones/M2-01-master-unit-organisasi.md`.
 
+Acceptance M2-02 yang sudah diverifikasi:
+
+- satu user dapat mempunyai beberapa assignment unit/jabatan;
+- masa berlaku dan primary assignment tervalidasi tanpa periode overlap;
+- assignment lama diakhiri dengan tanggal dan tidak dihapus;
+- assignment aktif menjadi sumber policy membership langsung;
+- kolom unit legacy tidak di-backfill otomatis.
+
+Detail M2-02:
+`docs/milestones/M2-02-user-unit-assignments.md`.
+
 ## 18. Langkah pertama agent di Linux
 
 Langkah pertama agent Linux adalah checkout remote branch, memastikan working
@@ -644,7 +678,7 @@ migration:
 
 ```bash
 git fetch origin
-git switch --track origin/codex/m2-01-master-unit-organisasi
+git switch --track origin/codex/m2-organization-role-scope
 git status --short
 git rev-parse HEAD
 cat docs/handoff/UBUNTU_AI_AGENT_START.md
@@ -652,12 +686,13 @@ cat docs/handoff/CURRENT_HANDOFF.md
 ```
 
 Jika branch lokal dengan nama yang sama sudah ada, gunakan
-`git switch codex/m2-01-master-unit-organisasi` lalu `git pull --ff-only`.
+`git switch codex/m2-organization-role-scope` lalu `git pull --ff-only`.
 
-Agent Linux harus memastikan commit implementasi `87b4b16` berada dalam
-history dan working tree bersih, menyiapkan environment development sendiri
-tanpa menyalin secret Windows, lalu menjalankan seluruh regression, regression
-M2-01, dan smoke 31-case. Jalankan migration 015 terlebih dahulu hanya pada
-database disposable. Jangan menjalankan migration terhadap database bersama
-atau production tanpa prosedur DBA/deployment, dan jangan memulai M2-02
-sebelum hasil M2-01 diterima.
+Agent Linux harus memastikan checkpoint M2-01 `45c6a6d` berada dalam history
+dan working tree bersih, menyiapkan environment development sendiri tanpa
+menyalin secret Windows, lalu menjalankan seluruh regression termasuk M2-01
+dan M2-02 serta smoke 32-case. Untuk database existing development, jalankan
+migration 015 lalu 016; fresh install memakai `database_schema.sql`. Jangan
+menjalankan migration terhadap database bersama atau production tanpa
+prosedur DBA/deployment. Lanjutkan M2-03 pada branch milestone yang sama dan
+buat checkpoint commit, bukan branch task baru.

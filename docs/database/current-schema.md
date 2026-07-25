@@ -10,7 +10,7 @@
 This inventory compares four sources:
 
 1. Fresh-install baseline in `database_schema.sql`.
-2. Incremental SQL in `migrations/001_*.sql` through `migrations/015_*.sql`.
+2. Incremental SQL in `migrations/001_*.sql` through `migrations/016_*.sql`.
 3. Tables, columns, joins, filters, and writes referenced by `application/models/*.php` and their services.
 4. Runtime metadata from `INFORMATION_SCHEMA` plus aggregate consistency checks executed by `scripts/database/audit_readonly.php`.
 
@@ -23,10 +23,14 @@ M1-06 adds `file_assets` and `file_security_events` to the fresh-install schema 
 M1-08 adds `security_audit_logs`, `security_audit_chain_state`, and two append-only triggers through migration 014. Migration 014 was applied twice locally, the chain verifier passed, and disposable smoke testing proved direct update/delete rejection plus end-to-end hash verification.
 
 M2-01 later adds `organization_units` through migration 015. Migration 015
-was executed twice against a disposable MySQL 8.4.3 database; the unique code,
-self foreign key, root seed, and idempotent rerun were verified. The runtime
-counts in this M0 inventory remain the earlier inspected local database through
-migration 014; they are not silently rewritten as a production attestation.
+was executed against the local development database and exercised by the
+disposable smoke database.
+
+M2-02 adds `user_unit_assignments` through migration 016. Migration 016 was
+applied to the local development database on 2026-07-25; its indexes, two
+foreign keys, two check constraints, and zero-row initial state were verified.
+The counts below now describe that local development schema through migration
+016. They are not a production attestation.
 
 Classification:
 
@@ -45,16 +49,16 @@ This is not a production database attestation. Production schema, row counts, SQ
 | Item | Local runtime result | Evidence |
 |---|---:|---|
 | Database server | MySQL 8.4.3 | Read-only runtime metadata from `scripts/database/audit_readonly.php schema` |
-| Base tables | 15 | `INFORMATION_SCHEMA.TABLES` after M1-08 migration 014 |
-| Columns | 171 | `INFORMATION_SCHEMA.COLUMNS` after M1-08 migration 014 |
-| Storage engine | 15/15 InnoDB | `INFORMATION_SCHEMA.TABLES` |
-| Table collation | 13 `utf8mb3_general_ci`, audit ledger `utf8mb4`, chain state ASCII | `INFORMATION_SCHEMA.TABLES` |
-| Primary keys | 15 | `INFORMATION_SCHEMA.STATISTICS` |
-| Non-primary unique keys | 4 (`users.email`, `file_assets(category, stored_name)`, audit UUID, audit entry hash) | `INFORMATION_SCHEMA.STATISTICS`; `database_schema.sql` |
-| Index rows | 61 | `INFORMATION_SCHEMA.STATISTICS` |
-| Foreign keys | 13 | `INFORMATION_SCHEMA.KEY_COLUMN_USAGE` |
-| Foreign-key delete rule | 8 `CASCADE`, 5 `SET NULL` | `INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS` |
-| Check constraints | 0 | `INFORMATION_SCHEMA.CHECK_CONSTRAINTS` |
+| Base tables | 17 | `INFORMATION_SCHEMA.TABLES` after migration 016 |
+| Columns | 189 | `INFORMATION_SCHEMA.COLUMNS` after migration 016 |
+| Storage engine | 17/17 InnoDB | `INFORMATION_SCHEMA.TABLES` |
+| Table collation | 13 `utf8mb3_general_ci`, 3 `utf8mb4`, chain state ASCII | `INFORMATION_SCHEMA.TABLES` |
+| Primary keys | 17 | `INFORMATION_SCHEMA.STATISTICS` |
+| Non-primary unique keys | 5, including the assignment version key | `INFORMATION_SCHEMA.STATISTICS`; `database_schema.sql` |
+| Index rows | 81 | `INFORMATION_SCHEMA.STATISTICS` |
+| Foreign keys | 16 | `INFORMATION_SCHEMA.KEY_COLUMN_USAGE` |
+| Foreign-key delete rule | 8 `CASCADE`, 5 `SET NULL`, 3 `RESTRICT` | `INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS` |
+| Check constraints | 3 | `INFORMATION_SCHEMA.CHECK_CONSTRAINTS` |
 | Triggers | 2 append-only guards | `INFORMATION_SCHEMA.TRIGGERS` |
 | Migration ledger table | 0 | Runtime table list; `application/config/migration.php` |
 | Runtime FK enforcement | Enabled for the inspection session | `@@SESSION.foreign_key_checks = 1` |
@@ -63,8 +67,8 @@ This is not a production database attestation. Production schema, row counts, SQ
 
 ### Main conclusions
 
-- **ACTUAL = INSPECTED M1 BASELINE:** all 15 tables and 171 columns through migration 014 were found in the inspected local runtime. M2-01 adds a sixteenth fresh-install table through migration 015 and was verified only on disposable databases.
-- **MIGRATION coverage exists but is not a migration ledger:** expected effects of SQL files `001`–`014` are visible locally, but no table proves which raw migration ran, when, or against which predecessor schema.
+- **ACTUAL LOCAL DEVELOPMENT:** 17 tables and 189 columns through migration 016 were found in the inspected local runtime.
+- **MIGRATION coverage exists but is not a migration ledger:** expected effects of SQL files through `016` are visible locally, but no table proves historical execution order.
 - **One current data issue was confirmed:** 3 of 8 local tasks have `periode_id IS NULL` or an unresolved period. No row identities or data values were printed. Evidence: `audit_readonly.php checks`.
 - **Correctness constraints are incomplete:** assignment uniqueness, one answer per task/question, one penetapan row per standard/category, score range, boolean flags, valid period dates, and one active period are application conventions rather than database invariants. Evidence: current indexes/checks and model/service methods listed below.
 - **Cascade deletion is broad:** deleting a user, standard, period, task, or question can delete operational audit records through the eight cascade relationships. Evidence: `database_schema.sql`; runtime foreign-key metadata.
@@ -75,7 +79,7 @@ This is not a production database attestation. Production schema, row counts, SQ
 
 | Source | What it establishes | Result against local runtime |
 |---|---|---|
-| `database_schema.sql` | Fresh-install definition for 16 current tables, including changes through migration 015. | **M1 MATCH + M2 ADDITION:** definitions through migration 014 matched the inspected local runtime; `organization_units` was verified separately on disposable MySQL. |
+| `database_schema.sql` | Fresh-install definition for 17 current tables, including changes through migration 016. | **MATCH:** organization and assignment additions are present locally and exercised by disposable smoke testing. |
 | `migrations/001_add_admin_lpmpi_role.sql` | Adds `admin_lpmpi` to `users.role`. | **PRESENT:** runtime enum contains the four expected roles. |
 | `migrations/002_create_periode_audit.sql` | Creates `periode_audit`. | **PRESENT.** |
 | `migrations/003_create_penetapan.sql` | Creates `penetapan` and its standard FK. | **PRESENT.** |
@@ -91,14 +95,15 @@ This is not a production database attestation. Production schema, row counts, SQ
 | `migrations/012_authentication_hardening.sql` | Idempotently adds account status/session metadata and the authentication security-event table. | **PRESENT;** executed twice locally to verify safe re-execution. |
 | `migrations/013_file_security_foundation.sql` | Idempotently creates file metadata/retention and file security-event tables. | **PRESENT;** executed twice locally and exercised in disposable smoke databases. Production remains a separate deployment migration. |
 | `migrations/014_immutable_security_audit_log.sql` | Creates the central audit ledger, serialized chain head, and update/delete rejection triggers. | **PRESENT;** executed twice locally; chain and tamper rejection exercised in disposable smoke databases. |
-| `migrations/015_create_organization_units.sql` | Creates the organization hierarchy, unique code, self FK, active flag, and university root seed. | **PRESENT;** executed twice on a disposable database and covered by M2-01 regression/smoke. Production remains to verify. |
-| `application/models/*.php` | Current table/query expectations. | **MATCH:** file/audit tables are present on the inspected M1 runtime; organization master requires migration 015 before its routes are opened. |
+| `migrations/015_create_organization_units.sql` | Creates the organization hierarchy, unique code, self FK, active flag, and university root seed. | **PRESENT;** applied locally and covered by M2-01 regression/smoke. Production remains to verify. |
+| `migrations/016_create_user_unit_assignments.sql` | Creates dated user/unit/position membership, primary flag, indexes, checks, and RESTRICT foreign keys. | **PRESENT;** applied locally with zero initial rows and covered by M2-02 regression/smoke. Production remains to verify. |
+| `application/models/*.php` | Current table/query expectations. | **MATCH:** file/audit, organization, and user assignment tables are present in local development. |
 
 ### Important migration limitations
 
 - CodeIgniter migrations are disabled with `$config['migration_enabled'] = FALSE`. The files under `migrations/` are raw manual SQL, not CodeIgniter migration classes. Source: `application/config/migration.php`; `migrations/`.
 - There are two migrations numbered `009`; filename sorting gives an order, but the numeric sequence is ambiguous. Source: `migrations/009_alter_pertanyaan_add_columns.sql`; `migrations/009_alter_profil_pddikti_id_lengths.sql`.
-- Most historical `ALTER TABLE` migrations are not idempotent. Files `010`–`015` are safe to re-run, but earlier alter files generally fail when reapplied. Migration 014 recreates its two triggers and should run in a maintenance window.
+- Most historical `ALTER TABLE` migrations are not idempotent. Files `010`–`016` are safe to re-run, but earlier alter files generally fail when reapplied. Migration 014 recreates its two triggers and should run in a maintenance window.
 - Migration `005` expects `jawaban_audit.tugas_audit_id` and `catatan` to exist, drops a named FK, and renames those columns. It cannot be applied safely to `database_schema.sql`, which already contains `tugas_id` and `temuan`. Source: `migrations/005_alter_jawaban_audit_new_columns.sql`; `database_schema.sql`.
 - Rollback instructions are comments, not executable/versioned down migrations. DDL also causes implicit commits in MySQL. Source: all files under `migrations/`.
 - There is no runtime migration ledger table. Consequently, “effect is present” does not prove which migration produced it. Source: runtime table list.

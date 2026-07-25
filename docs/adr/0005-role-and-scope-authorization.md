@@ -1,6 +1,6 @@
 # ADR 0005: Otorisasi Role, Capability, dan Scope
 
-- Status: **Accepted — M1-04 foundation and M2-01 unit master implemented; membership/scope pending**
+- Status: **Accepted — M1-04 foundation, M2-01 unit master, and M2-02 direct membership implemented**
 - Tanggal: 2026-07-24
 - Jenis: Keamanan aplikasi
 - Menggantikan: Tidak ada
@@ -8,7 +8,12 @@
 
 ## Konteks
 
-Sistem mengenal role `super_admin`, `admin_lpmpi`, `auditor`, dan `auditee`. M1-04 menambahkan matriks capability dan policy objek/state seragam untuk surface saat ini. Model membership/scope organisasi, multi-role, lead Auditor, PIC, verifier, dan finalizer target belum tersedia. Role saja tetap tidak cukup untuk menjawab izin pada objek target tersebut.
+Sistem mengenal role `super_admin`, `admin_lpmpi`, `auditor`, dan `auditee`.
+M1-04 menambahkan matriks capability dan policy objek/state seragam. M2-02
+menambahkan membership langsung user/unit/jabatan yang bertanggal. Model
+multi-role capability, lead Auditor, PIC, verifier, finalizer, dan aturan
+pewarisan scope organisasi belum tersedia. Role saja tetap tidak cukup untuk
+menjawab izin pada objek target tersebut.
 
 ID pada URL/request tidak dapat dipercaya. Menyembunyikan tombol juga bukan kontrol keamanan. Kebutuhan target mencakup beberapa jenis unit, masa berlaku penugasan, kemungkinan satu pengguna memiliki beberapa peran/scope, dan aksi finalisasi yang keputusan bisnisnya belum seluruhnya ditetapkan.
 
@@ -84,4 +89,14 @@ Ditolak karena menyulitkan audit dan membuat satu akun dapat melewati seluruh pe
 
 ## Status dan pemicu peninjauan
 
-Keputusan ini diterapkan sebagai foundation pada `Authorization_policy`, `Auth_guard`, scoped query participant, explicit Super Admin override, dan negative matrix M1-04. M2-01 menambahkan master unit ber-ID stabil serta capability pengelolaannya. Implementasi belum lengkap untuk membership/scope user, RTM, dan follow-up; M2-02 harus menambahkan assignment organisasi yang aktif sebelum unit dipakai sebagai batas kewenangan. Tinjau kembali setelah M2-02 atau bila identity provider eksternal mengubah cara identitas dan claim disediakan.
+Keputusan ini diterapkan sebagai foundation pada `Authorization_policy`,
+`Auth_guard`, scoped query participant, explicit Super Admin override, dan
+negative matrix M1-04. M2-01 menambahkan master unit ber-ID stabil. M2-02
+menambahkan assignment user/unit/jabatan bertanggal, primary assignment, serta
+policy membership langsung yang hanya mengembalikan assignment aktif.
+
+Implementasi masih belum lengkap untuk pemetaan capability per scope pada
+seluruh modul, pewarisan scope parent/descendant, RTM, dan follow-up. M2-03
+harus membuat keputusan tersebut secara eksplisit dan tidak boleh menganggap
+membership parent otomatis mencakup child. Tinjau kembali setelah M2-03 atau
+bila identity provider eksternal mengubah cara identitas dan claim disediakan.

@@ -74,7 +74,7 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 | `application/controllers/auditor/` | Proxy `Penilaian` ke controller `Auditor` root. | **EXISTING**, compatibility proxy; reachability konvensional **TO VERIFY**. |
 | `application/core/MY_Controller.php` | Base controller yang memetakan kelompok controller ke capability. | **EXISTING**; seluruh keputusan capability didelegasikan ke `Auth_guard`/`Authorization_policy`. |
 | `application/libraries/Auth_guard.php` | Validasi session/account dan gerbang capability untuk seluruh controller. | **EXISTING**; role-only `only()` sudah dihapus pada M1-04. |
-| `application/libraries/Authorization_policy.php` | Matriks capability, policy object/state, query scope, deny-default, dan explicit Super Admin override. | **EXISTING** sejak M1-04; M2-01 menambah capability master unit, sedangkan membership/scope user dan RTM/PIC tetap belum mempunyai model. |
+| `application/libraries/Authorization_policy.php` | Matriks capability, policy object/state, query scope, deny-default, dan explicit Super Admin override. | **EXISTING** sejak M1-04; M2-01 menambah capability master unit dan M2-02 menambah management serta active direct membership API. RTM/PIC tetap belum mempunyai model. |
 | `application/services/` | Sebagian orchestration dan validasi bisnis. | **EXISTING**; batasnya belum seragam dan tidak semua workflow aktif melewati service. |
 | `application/models/` | Query/persistence, tetapi `Jawaban_model` juga memuat state transition dan aturan workflow. | **EXISTING**; belum sesuai boundary target. |
 | `application/helpers/app_helper.php` | Helper status/label, output encoding, dan resolver private storage terbatas kategori. | **EXISTING**; production menolak fallback legacy dari document root. |
@@ -82,7 +82,7 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 | `application/views/` | Views per modul dan templates/sidebar per role. | **EXISTING**; menu role adalah indikator UI, bukan enforcement authorization. |
 | `application/cache/sessions/` dan `application/logs/` | Session file dan application log default. | **EXISTING**; konfigurasi produksi memeriksa lokasi/permission. Sumber: `application/config/config.php`. |
 | `uploads/` | Legacy files di bawah document root dan logo profil publik. | **EXISTING**; direktori legacy tertentu dilindungi `.htaccess`, sedangkan `uploads/profil` memang dilayani sebagai URL publik. |
-| `migrations/` | SQL manual incremental `001`–`015`. | **EXISTING**; tidak dijalankan otomatis karena `application/config/migration.php`. |
+| `migrations/` | SQL manual incremental `001`–`016`. | **EXISTING**; tidak dijalankan otomatis karena `application/config/migration.php`. |
 | `database_schema.sql` | Baseline schema gabungan untuk instalasi saat ini. | **EXISTING** sebagai artefak repository; kesesuaian dengan production **TO VERIFY**. |
 | `database_dummy.sql` | Seed/demo data. | **EXISTING**; mengandung credential/demo record dan tidak boleh dipakai sebagai sumber credential produksi. |
 | `tests/` | Regression source/runtime dan harness HTTP/database smoke terisolasi. | **EXISTING**; policy, authentication, encoding, file security, ownership, evidence IDOR, final-state mutation, dan workflow utama tercakup; concurrency/visual/antivirus/production belum diuji. |
@@ -208,6 +208,7 @@ Sumber diagram: `application/libraries/Auth_guard.php`; `application/libraries/A
 | Laporan/export current | `super_admin` dan `admin_lpmpi`. | Capability `reports.view`. |
 | Profil lihat/kelola | Semua role dapat lihat; dua admin dapat kelola. | `profile.view` dan `profile.manage`. |
 | Account settings/photo | Self; target dari session dan URL tidak menerima user ID. | Capability `account.self` + session user ID. |
+| Unit/jabatan user | Super Admin untuk semua target; Admin LPMPI untuk Auditor/Auditee. | Capability `user_unit_assignments.manage` + object target check. |
 | Auditee task/answer | Hanya assignment dengan `auditee_id` current user; submitted/final tidak editable. | `canViewAuditAssignment()` dan `canEditAuditeeSubmission()` + scoped model recheck. |
 | Auditor task/answer/file | Hanya assignment/evidence dengan `auditor_id` current user; final assessment tidak editable. | `canAssessAssignment()`, `canViewEvidence()`, dan scoped model recheck. |
 | RTM/PIC/follow-up | Tidak ada model/capability efektif. | Policy method tersedia tetapi selalu `FALSE` (deny default). |
@@ -217,7 +218,13 @@ Sumber diagram: `application/libraries/Auth_guard.php`; `application/libraries/A
 - **EXISTING:** capability dan object/state authorization dipusatkan pada `Authorization_policy`; jalur controller utama dan legacy memakai policy yang sama.
 - **EXISTING:** list/count participant sudah ter-scope user; detail, mutasi, instrumen, dan bukti memakai ID + owner pada query, lalu model mengulang guard mutasi.
 - **EXISTING:** sensitive Super Admin override mempunyai API terpisah, alasan wajib, event database, dan technical security log; belum ada endpoint UI yang menggunakannya.
-- **KNOWN LIMIT:** admin/LPMPI masih institution-wide. Organization membership, unit ID stabil, masa berlaku scope, lead Auditor, observer, dan multi-role assignment belum ada dalam schema sehingga tidak boleh diinferensikan dari `nama_unit`.
+- **EXISTING M2-02:** direct organization membership mempunyai unit ID stabil,
+  kode jabatan, masa berlaku, primary flag, dan policy active-assignment; nilai
+  legacy `nama_unit` tidak menjadi sumber kewenangan.
+- **KNOWN LIMIT:** admin/LPMPI pada modul lama masih institution-wide karena
+  capability per scope dan aturan parent/descendant baru diputuskan pada
+  M2-03. Lead Auditor, observer, dan multi-role capability assignment belum
+  dimodelkan.
 - **DENY DEFAULT:** RTM/finalizer/PIC/verifier belum ada; policy selalu menolak sampai keputusan bisnis dan model scope tersedia.
 
 ---
@@ -649,19 +656,25 @@ Tujuan baca: schema drift, FK/cascade, duplicate/invariant, mixed state flags, d
 
 M2-01 sudah menambahkan `organization_units`, service validasi hierarki,
 capability `organization_units.manage`, UI administrasi, seed root, serta
-regression/smoke. Membership user dan organization scope tetap menunggu M2-02.
+regression/smoke. M2-02 menambahkan `user_unit_assignments`, periode berlaku,
+primary assignment, UI histori, capability management, dan API policy untuk
+membership langsung yang aktif. Pemetaan capability per scope serta
+parent/descendant scope menunggu M2-03.
 
 1. `application/controllers/Users.php`, `lpmpi/Akun.php`, dan `Account.php`.
 2. `application/controllers/Organization_units.php`,
    `application/services/Organization_unit_service.php`, dan
    `application/models/Organization_unit_model.php`.
-3. `application/services/User_service.php` dan `Account_service.php`.
-4. `application/models/User_model.php`.
+3. `application/controllers/User_unit_assignments.php`,
+   `application/services/User_unit_assignment_service.php`, dan
+   `application/models/User_unit_assignment_model.php`.
+4. `application/services/User_service.php`, `Account_service.php`, dan
+   `application/models/User_model.php`.
 5. `application/libraries/Auth_guard.php`; `application/core/MY_Controller.php`.
 6. `application/views/layouts/sidebar.php` dan
    `application/views/lpmpi/organization_units/*`.
 7. Assignment references pada `Tugas_audit_service.php` dan `Tugas_audit_model.php`.
-8. `migrations/001_add_admin_lpmpi_role.sql`, `007_alter_users_add_unit_columns.sql`, `011_add_users_profile_photo_path.sql`, `012_authentication_hardening.sql`, `013_file_security_foundation.sql`, `014_immutable_security_audit_log.sql`, dan `015_create_organization_units.sql`.
+8. `migrations/001_add_admin_lpmpi_role.sql`, `007_alter_users_add_unit_columns.sql`, `011_add_users_profile_photo_path.sql`, `012_authentication_hardening.sql`, `013_file_security_foundation.sql`, `014_immutable_security_audit_log.sql`, `015_create_organization_units.sql`, dan `016_create_user_unit_assignments.sql`.
 
 ### M3 — foundation dokumen/standar/indikator target
 

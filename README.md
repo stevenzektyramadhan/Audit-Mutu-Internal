@@ -173,6 +173,8 @@ Ledger audit immutable M1-08, event yang dicatat, HMAC redaction, hash-chain ver
 
 Master unit organisasi M2-01, aturan hierarki, deaktivasi tanpa delete, seed root, dan hasil verifikasinya tersedia di `docs/milestones/M2-01-master-unit-organisasi.md`.
 
+Keanggotaan user/unit/jabatan M2-02, masa berlaku, primary assignment, histori tanpa hard delete, dan policy scope aktif tersedia di `docs/milestones/M2-02-user-unit-assignments.md`.
+
 File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara disimpan di private storage dan hanya diunduh melalui endpoint dengan pemeriksaan role/ownership. Logo profil tetap publik di `uploads/profil`. Production tidak membaca file sensitif dari `uploads/<kategori>`; pindahkan file legacy dengan dry-run `php scripts/migrate_private_storage.php`, lalu `--apply` setelah backup dan review.
 
 ### Database dan Upgrade Manual
@@ -188,9 +190,10 @@ mysql -u <user> -p <database> < migrations/012_authentication_hardening.sql
 mysql -u <user> -p <database> < migrations/013_file_security_foundation.sql
 mysql -u <user> -p <database> < migrations/014_immutable_security_audit_log.sql
 mysql -u <user> -p <database> < migrations/015_create_organization_units.sql
+mysql -u <user> -p <database> < migrations/016_create_user_unit_assignments.sql
 ```
 
-Migration `010`–`015` idempotent dan aman dijalankan ulang. Migration `012` wajib diterapkan sebelum code M1-03: migration ini menambahkan status akun, versi pencabutan session, metadata login/password, dan security event autentikasi tanpa email/IP mentah. Migration `013` wajib diterapkan sebelum code M1-06 agar metadata/checksum, event file, dan retention tersedia. Migration `014` wajib diterapkan sebelum code M1-08 agar ledger, hash-chain state, serta trigger penolak update/delete tersedia. Migration `015` wajib diterapkan sebelum membuka UI M2-01 agar master hierarki dan seed universitas root tersedia. Existing session akan diminta login ulang setelah deployment. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, unit organisasi, upload/download sesuai role, import pertanyaan, laporan, dan `php index.php maintenance verify_audit_log` sebelum membuka traffic. Rollback aplikasi harus mempertahankan database, ledger, master organisasi, dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
+Migration `010`–`016` idempotent dan aman dijalankan ulang. Migration `012` wajib diterapkan sebelum code M1-03: migration ini menambahkan status akun, versi pencabutan session, metadata login/password, dan security event autentikasi tanpa email/IP mentah. Migration `013` wajib diterapkan sebelum code M1-06 agar metadata/checksum, event file, dan retention tersedia. Migration `014` wajib diterapkan sebelum code M1-08 agar ledger, hash-chain state, serta trigger penolak update/delete tersedia. Migration `015` wajib diterapkan sebelum membuka UI M2-01 agar master hierarki dan seed universitas root tersedia. Migration `016` wajib diterapkan sebelum membuka UI M2-02 agar assignment unit/jabatan dan histori periodenya tersedia. Existing session akan diminta login ulang setelah deployment. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, unit organisasi, assignment user, upload/download sesuai role, import pertanyaan, laporan, dan `php index.php maintenance verify_audit_log` sebelum membuka traffic. Rollback aplikasi harus mempertahankan database, ledger, master organisasi, assignment historis, dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
 
 Untuk database Laragon lokal yang sudah dikonfigurasi, migration 013 dapat diterapkan dengan `php scripts/database/apply_local_m1_06.php`. Runner ini menolak mode production dan host database non-local; production tetap memakai prosedur DBA/deployment.
 

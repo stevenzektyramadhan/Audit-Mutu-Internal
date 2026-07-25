@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * M0-03 end-to-end baseline plus security checks through M2-01.
+ * M0-03 end-to-end baseline plus security checks through M2-02.
  *
  * One-command usage:
  *   php tests/smoke/run.php
@@ -1134,6 +1134,128 @@ try {
     );
 
     smoke_case(
+        'user unit assignments preserve history and enforce primary periods',
+        function () use ($roleClients, $fixture, $testConnection) {
+            $user_id = (int) $fixture['users']['auditee_a']['id'];
+            $index = $roleClients['super_admin']->get('/user-unit-assignments/' . $user_id);
+            smoke_assert_status($index, 200, 'user unit assignment index');
+            smoke_assert_contains($index->body, 'Belum ada assignment', 'empty assignment state');
+
+            $root = smoke_db_row(
+                $testConnection,
+                "SELECT id FROM organization_units WHERE code = 'UNIVERSITY' LIMIT 1"
+            );
+            smoke_assert(!empty($root), 'University unit is unavailable for membership.');
+            $today = date('Y-m-d');
+
+            $primary = smoke_post_form(
+                $roleClients['super_admin'],
+                '/user-unit-assignments/' . $user_id . '/create',
+                '/user-unit-assignments/' . $user_id . '/store',
+                [
+                    'organization_unit_id' => (int) $root['id'],
+                    'position_code' => 'KAPRODI',
+                    'valid_from' => $today,
+                    'valid_until' => '',
+                    'is_primary' => 1,
+                ]
+            );
+            smoke_assert_status($primary, 200, 'primary organization assignment');
+            smoke_assert_contains(
+                $primary->body,
+                'Assignment unit dan jabatan berhasil ditambahkan.',
+                'primary organization assignment'
+            );
+
+            $secondary = smoke_post_form(
+                $roleClients['super_admin'],
+                '/user-unit-assignments/' . $user_id . '/create',
+                '/user-unit-assignments/' . $user_id . '/store',
+                [
+                    'organization_unit_id' => (int) $root['id'],
+                    'position_code' => 'AUDITOR_INTERNAL',
+                    'valid_from' => $today,
+                    'valid_until' => '',
+                    'is_primary' => 0,
+                ]
+            );
+            smoke_assert_status($secondary, 200, 'secondary organization assignment');
+
+            $overlap = smoke_post_form(
+                $roleClients['super_admin'],
+                '/user-unit-assignments/' . $user_id . '/create',
+                '/user-unit-assignments/' . $user_id . '/store',
+                [
+                    'organization_unit_id' => (int) $root['id'],
+                    'position_code' => 'DEKAN',
+                    'valid_from' => $today,
+                    'valid_until' => '',
+                    'is_primary' => 1,
+                ]
+            );
+            smoke_assert_status($overlap, 200, 'overlapping primary assignment');
+            smoke_assert_contains(
+                $overlap->body,
+                'Pengguna sudah memiliki assignment primary pada periode tersebut.',
+                'overlapping primary assignment'
+            );
+
+            smoke_assert_status(
+                $roleClients['auditor']->get('/user-unit-assignments/' . $user_id),
+                403,
+                'auditor organization assignment capability'
+            );
+
+            $primary_row = smoke_db_row(
+                $testConnection,
+                "SELECT id
+                 FROM user_unit_assignments
+                 WHERE user_id = $user_id AND is_primary = 1
+                 LIMIT 1"
+            );
+            smoke_assert(!empty($primary_row), 'Primary assignment was not persisted.');
+            $ended = smoke_post_form(
+                $roleClients['super_admin'],
+                '/user-unit-assignments/' . $user_id,
+                '/user-unit-assignments/end/' . (int) $primary_row['id'],
+                ['valid_until' => $today]
+            );
+            smoke_assert_status($ended, 200, 'end organization assignment');
+            smoke_assert_contains(
+                $ended->body,
+                'Masa berlaku assignment berhasil diakhiri.',
+                'end organization assignment'
+            );
+
+            $preserved = smoke_db_row(
+                $testConnection,
+                "SELECT
+                    COUNT(*) AS total,
+                    SUM(CASE WHEN id = " . (int) $primary_row['id']
+                    . " AND valid_until = '$today' THEN 1 ELSE 0 END) AS ended
+                 FROM user_unit_assignments
+                 WHERE user_id = $user_id"
+            );
+            smoke_assert(
+                (int) $preserved['total'] === 2 && (int) $preserved['ended'] === 1,
+                'Ending membership must preserve assignment history.'
+            );
+
+            $events = smoke_db_row(
+                $testConnection,
+                "SELECT COUNT(*) AS total
+                 FROM security_audit_logs
+                 WHERE event_type IN (
+                    'user_unit_assignment_created',
+                    'user_unit_assignment_ended'
+                 )"
+            );
+            smoke_assert((int) $events['total'] >= 3, 'Membership mutations were not audited.');
+        },
+        $results
+    );
+
+    smoke_case(
         'create assignment and answer rows',
         function () use ($roleClients, $fixture, $testConnection, &$taskId, &$answerRows) {
             $response = smoke_post_form(
@@ -1900,6 +2022,8 @@ try {
             'upload_succeeded',
             'file_retired',
             'sensitive_report_exported',
+            'user_unit_assignment_created',
+            'user_unit_assignment_ended',
         ] as $event_type) {
             smoke_assert(
                 isset($event_counts[$event_type]) && $event_counts[$event_type] > 0,
@@ -2019,6 +2143,22 @@ try {
             if (is_array($serverLog) && !empty($serverLog)) {
                 $serverLog = array_slice($serverLog, -12);
                 fwrite(STDERR, "[SERVER LOG]\n" . implode(PHP_EOL, $serverLog) . PHP_EOL);
+            }
+        }
+        if ($failed) {
+            $applicationLogs = glob(
+                $tempRoot . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'log-*.php'
+            );
+            if (is_array($applicationLogs) && !empty($applicationLogs)) {
+                sort($applicationLogs, SORT_STRING);
+                $applicationLog = file(end($applicationLogs), FILE_IGNORE_NEW_LINES);
+                if (is_array($applicationLog) && !empty($applicationLog)) {
+                    $applicationLog = array_slice($applicationLog, -16);
+                    fwrite(
+                        STDERR,
+                        "[APPLICATION LOG]\n" . implode(PHP_EOL, $applicationLog) . PHP_EOL
+                    );
+                }
             }
         }
 

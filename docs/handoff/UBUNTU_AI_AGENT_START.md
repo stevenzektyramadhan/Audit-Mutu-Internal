@@ -6,13 +6,13 @@ termasuk bila agent yang digunakan adalah OpenCode atau agent lain.
 ## Snapshot yang harus digunakan
 
 - Repository: `stevenzektyramadhan/Audit-Mutu-Internal`.
-- Branch: `codex/m2-01-master-unit-organisasi`.
+- Branch milestone: `codex/m2-organization-role-scope`.
 - Commit implementasi M0/M1:
   `87b4b165a362311b5d6cbc4035a8960a71e5a6f1`.
 - M0 dan M1 selesai.
-- M2-01 sudah diimplementasikan dan diverifikasi di Windows.
-- Task berikutnya setelah M2-01 diterima:
-  **M2-02 — Keanggotaan User dan Jabatan**.
+- M2-01 dan M2-02 sudah diimplementasikan dan diverifikasi di Windows.
+- Task berikutnya: **M2-03 — Matriks Role-Capability**.
+- Seluruh task M2 memakai branch yang sama; subtask ditandai checkpoint commit.
 
 Commit paling atas dapat berupa commit dokumentasi handoff setelah commit
 implementasi tersebut.
@@ -25,7 +25,7 @@ Untuk clone baru:
 git clone https://github.com/stevenzektyramadhan/Audit-Mutu-Internal.git
 cd Audit-Mutu-Internal
 git fetch origin
-git switch --track origin/codex/m2-01-master-unit-organisasi
+git switch --track origin/codex/m2-organization-role-scope
 git status --short
 git log --oneline -3
 ```
@@ -34,7 +34,7 @@ Untuk clone yang sudah ada:
 
 ```bash
 git fetch origin
-git switch codex/m2-01-master-unit-organisasi
+git switch codex/m2-organization-role-scope
 git pull --ff-only
 git status --short
 git log --oneline -3
@@ -62,8 +62,8 @@ Prompt awal yang dapat diberikan kepada AI agent:
 Baca docs/handoff/UBUNTU_AI_AGENT_START.md dan seluruh
 docs/handoff/CURRENT_HANDOFF.md. Verifikasi branch, HEAD, working tree,
 dependency, dan seluruh baseline test terlebih dahulu. Jangan mengubah M0/M1,
-jangan menjalankan migration pada database bersama/production, dan jangan
-memulai M2-02 sebelum M2-01 diterima. Pertahankan keputusan
+jangan menjalankan migration pada database bersama/production. Lanjutkan M2-03
+pada branch milestone yang sama setelah baseline lulus. Pertahankan keputusan
 ADR, central authorization, private file boundary, security headers, dan
 immutable audit ledger.
 ```
@@ -96,11 +96,12 @@ mbstring, XML, ZIP, dan spreadsheet tersedia.
 
 - Untuk database development baru dan kosong, gunakan `database_schema.sql`
   sebagai fresh-install schema.
-- Jangan menjalankan seluruh migration `001`–`015` terhadap fresh schema.
+- Jangan menjalankan seluruh migration `001`–`016` terhadap fresh schema.
   Migration historis tidak semuanya idempotent dan terdapat dua nomor `009`.
 - Untuk database existing, backup dan audit schema secara read-only sebelum
-  menentukan migration. Migration `010`–`015` dirancang idempotent; migration
-  015 telah dijalankan dua kali pada database disposable MySQL 8.4.3.
+  menentukan migration. Migration `010`–`016` dirancang idempotent; migration
+  015 dan 016 telah diterapkan pada database development MySQL 8.4.3 dan
+  diuji lewat database disposable.
 - Migration Windows tidak otomatis berarti database Ubuntu sudah ter-upgrade.
 - Jangan memakai database production atau database bersama untuk smoke test.
 
@@ -119,26 +120,28 @@ php tests/security_configuration_regression.php
 php tests/hardening_regression.php
 php tests/account_settings_regression.php
 php tests/organization_units_regression.php
+php tests/user_unit_assignments_regression.php
 php tests/smoke/run.php
 ```
 
 Expected result dari Windows:
 
 - audit regression: 116 checks;
-- security headers: 127 checks;
+- security headers: 130 checks;
 - file security: 100 checks;
 - output encoding: 28 checks;
 - authentication: 29 checks;
-- authorization: 38 checks;
+- authorization: 44 checks;
 - organization units: 42 checks;
+- user unit assignments: 30 checks;
 - tiga regression legacy/configuration lainnya lulus;
-- smoke suite: 31 cases.
+- smoke suite: 32 cases.
 
 Full PHP lint Windows juga lulus untuk 150 file. Ulangi lint di Linux agar
 case sensitivity, path separator, permission, dan dependency Linux ikut
 terverifikasi.
 
-## Guardrail sebelum melanjutkan M2-02
+## Guardrail sebelum melanjutkan M2-03
 
 - Jangan reset, rewrite, atau squash history tanpa persetujuan maintainer.
 - Jangan mengubah migration historis yang sudah digunakan.
@@ -147,5 +150,5 @@ terverifikasi.
   file validation, atau append-only audit ledger.
 - Catat perbedaan hasil Linux terhadap baseline Windows di
   `docs/handoff/CURRENT_HANDOFF.md` atau handoff baru sebelum implementasi.
-- Mulai M2-02 hanya setelah hasil M2-01 diterima serta baseline Linux lulus,
-  atau penyebab perbedaannya sudah didokumentasikan dan disetujui.
+- Lanjutkan M2-03 pada branch milestone M2 yang sama setelah baseline Linux
+  lulus, atau penyebab perbedaannya sudah didokumentasikan dan disetujui.

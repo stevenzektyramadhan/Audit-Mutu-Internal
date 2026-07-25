@@ -70,6 +70,11 @@ $route['organization-units/edit/(:num)'] = 'Organization_units/edit/$1';
 $route['organization-units/update/(:num)'] = 'Organization_units/update/$1';
 $route['organization-units/toggle-active/(:num)'] = 'Organization_units/toggle_active/$1';
 
+$route['user-unit-assignments/(:num)'] = 'User_unit_assignments/index/$1';
+$route['user-unit-assignments/(:num)/create'] = 'User_unit_assignments/create/$1';
+$route['user-unit-assignments/(:num)/store'] = 'User_unit_assignments/store/$1';
+$route['user-unit-assignments/end/(:num)'] = 'User_unit_assignments/end/$1';
+
 $route['pertanyaan/download_template/(:num)'] = 'Pertanyaan/download_template/$1';
 $route['pertanyaan/import/(:num)'] = 'Pertanyaan/import/$1';
 $route['pertanyaan/import_confirm/(:num)'] = 'Pertanyaan/import_confirm/$1';

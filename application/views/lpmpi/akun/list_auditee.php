@@ -30,6 +30,9 @@
                     </td>
                     <td>
                         <div class="ami-row-actions">
+                            <a href="<?php echo site_url('user-unit-assignments/' . (int) $row->id); ?>" class="ami-action-btn" title="Kelola unit dan jabatan">
+                                <i class="fas fa-id-badge" aria-hidden="true"></i><span>Unit &amp; Jabatan</span>
+                            </a>
                             <a href="<?php echo site_url('lpmpi/akun/edit/' . (int) $row->id); ?>" class="ami-action-btn" title="Edit akun">
                                 <i class="fas fa-edit" aria-hidden="true"></i><span>Edit</span>
                             </a>

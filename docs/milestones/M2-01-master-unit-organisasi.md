@@ -2,7 +2,7 @@
 
 - Status: **Implemented and verified**
 - Tanggal: 2026-07-25
-- Branch: `codex/m2-01-master-unit-organisasi`
+- Branch milestone: `codex/m2-organization-role-scope`
 - Dependensi: M0 dan M1
 
 ## Hasil
@@ -102,6 +102,5 @@ end-to-end oleh smoke suite.
 
 ## Langkah berikutnya
 
-M2-02 belum dimulai. Setelah M2-01 diterima, task berikutnya adalah
-`user_unit_assignments` beserta jabatan, masa berlaku, primary assignment,
-strategi mapping legacy, dan regression scope lintas unit.
+M2-02 sudah dilanjutkan sebagai checkpoint berikutnya pada branch milestone
+yang sama. Lihat `docs/milestones/M2-02-user-unit-assignments.md`.

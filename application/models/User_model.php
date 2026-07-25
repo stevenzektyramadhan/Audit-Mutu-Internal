@@ -89,6 +89,17 @@ class User_model extends CI_Model
             ->count_all_results('tugas_audit') > 0;
     }
 
+    public function has_unit_assignment_history($id)
+    {
+        if (!$this->db->table_exists('user_unit_assignments')) {
+            return FALSE;
+        }
+
+        return $this->db
+            ->where('user_id', (int) $id)
+            ->count_all_results('user_unit_assignments') > 0;
+    }
+
     public function get_all($filters = [])
     {
         $this->db->from($this->table);

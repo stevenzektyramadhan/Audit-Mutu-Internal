@@ -39,6 +39,10 @@ foreach ([
     'canAssessAssignment',
     'canViewEvidence',
     'canManageOrganizationUnits',
+    'canManageUserUnitAssignments',
+    'activeOrganizationAssignments',
+    'activeOrganizationUnitIds',
+    'canAccessOrganizationUnit',
     'canManageSpmiVersion',
     'canManageRtm',
     'canSubmitFollowUp',
@@ -50,6 +54,8 @@ foreach ([
 policy_check(strpos($policy, "self::CAP_USERS_MANAGE => ['super_admin']") !== FALSE, 'Kelola user global harus khusus Super Admin.');
 policy_check(strpos($policy, "self::CAP_PARTICIPANT_ACCOUNTS_MANAGE => ['super_admin', 'admin_lpmpi']") !== FALSE, 'Capability akun partisipan tidak sesuai.');
 policy_check(strpos($policy, "self::CAP_ORGANIZATION_UNITS_MANAGE => ['super_admin', 'admin_lpmpi']") !== FALSE, 'Capability master unit organisasi tidak sesuai.');
+policy_check(strpos($policy, "self::CAP_USER_UNIT_ASSIGNMENTS_MANAGE => ['super_admin', 'admin_lpmpi']") !== FALSE, 'Capability assignment unit dan jabatan tidak sesuai.');
+policy_check(strpos($policy, 'user_unit_assignment_model->get_active_for_user') !== FALSE, 'Scope organisasi belum bersumber dari assignment aktif.');
 policy_check(strpos($policy, "self::CAP_AUDITEE_WORK => ['auditee']") !== FALSE, 'Capability kerja Auditee harus deny role lain.');
 policy_check(strpos($policy, "self::CAP_AUDITOR_WORK => ['auditor']") !== FALSE, 'Capability kerja Auditor harus deny role lain.');
 policy_check(strpos($guard, 'authorization_policy->allows') !== FALSE, 'Auth guard harus mendelegasikan capability ke central policy.');

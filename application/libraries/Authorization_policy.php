@@ -16,6 +16,7 @@ class Authorization_policy
     const CAP_USERS_MANAGE = 'users.manage';
     const CAP_PARTICIPANT_ACCOUNTS_MANAGE = 'participant_accounts.manage';
     const CAP_ORGANIZATION_UNITS_MANAGE = 'organization_units.manage';
+    const CAP_USER_UNIT_ASSIGNMENTS_MANAGE = 'user_unit_assignments.manage';
     const CAP_SPMI_MANAGE = 'spmi.manage';
     const CAP_ASSIGNMENTS_MANAGE = 'assignments.manage';
     const CAP_REPORTS_VIEW = 'reports.view';
@@ -29,6 +30,7 @@ class Authorization_policy
     protected $user_model;
     protected $jawaban_model;
     protected $tugas_audit_model;
+    protected $user_unit_assignment_model;
     protected $auth_security;
     protected $user_cache = [];
     protected $object_cache = [];
@@ -41,6 +43,7 @@ class Authorization_policy
         self::CAP_USERS_MANAGE => ['super_admin'],
         self::CAP_PARTICIPANT_ACCOUNTS_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_ORGANIZATION_UNITS_MANAGE => ['super_admin', 'admin_lpmpi'],
+        self::CAP_USER_UNIT_ASSIGNMENTS_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_SPMI_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_ASSIGNMENTS_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_REPORTS_VIEW => ['super_admin', 'admin_lpmpi'],
@@ -54,11 +57,13 @@ class Authorization_policy
         $this->ci->load->model('User_model');
         $this->ci->load->model('Jawaban_model');
         $this->ci->load->model('Tugas_audit_model');
+        $this->ci->load->model('User_unit_assignment_model');
         $this->ci->load->library('auth_security');
 
         $this->user_model = $this->ci->User_model;
         $this->jawaban_model = $this->ci->Jawaban_model;
         $this->tugas_audit_model = $this->ci->Tugas_audit_model;
+        $this->user_unit_assignment_model = $this->ci->User_unit_assignment_model;
         $this->auth_security = $this->ci->auth_security;
     }
 
@@ -213,6 +218,60 @@ class Authorization_policy
         return $this->allows($user_id, self::CAP_ORGANIZATION_UNITS_MANAGE);
     }
 
+    public function canManageUserUnitAssignments($actor_user_id, $target_user_id)
+    {
+        $actor = $this->active_user($actor_user_id);
+        $target = $this->user_model->find((int) $target_user_id);
+        if (!$actor || !$target
+            || !$this->allows($actor_user_id, self::CAP_USER_UNIT_ASSIGNMENTS_MANAGE)) {
+            return FALSE;
+        }
+
+        if ((string) $actor->role === 'super_admin') {
+            return TRUE;
+        }
+
+        return (string) $actor->role === 'admin_lpmpi'
+            && in_array((string) $target->role, ['auditor', 'auditee'], TRUE);
+    }
+
+    public function activeOrganizationAssignments($user_id, $on_date = NULL)
+    {
+        $user = $this->active_user($user_id);
+        if (!$user || !$this->user_unit_assignment_model->schema_ready()) {
+            return [];
+        }
+
+        $on_date = $on_date === NULL ? date('Y-m-d') : (string) $on_date;
+        if (!$this->valid_date($on_date)) {
+            return [];
+        }
+
+        return $this->user_unit_assignment_model->get_active_for_user(
+            (int) $user_id,
+            $on_date
+        );
+    }
+
+    public function activeOrganizationUnitIds($user_id, $on_date = NULL)
+    {
+        $ids = [];
+        foreach ($this->activeOrganizationAssignments($user_id, $on_date) as $assignment) {
+            $ids[(int) $assignment->organization_unit_id] = TRUE;
+        }
+
+        return array_keys($ids);
+    }
+
+    public function canAccessOrganizationUnit($user_id, $organization_unit_id, $on_date = NULL)
+    {
+        return in_array(
+            (int) $organization_unit_id,
+            $this->activeOrganizationUnitIds($user_id, $on_date),
+            TRUE
+        );
+    }
+
     public function canManageRtm($user_id, $rtm_id)
     {
         // RTM has no current schema, organization scope, or finalizer policy.
@@ -334,5 +393,11 @@ class Authorization_policy
         }
 
         return $this->user_cache[$user_id];
+    }
+
+    private function valid_date($value)
+    {
+        $date = DateTime::createFromFormat('!Y-m-d', (string) $value);
+        return $date && $date->format('Y-m-d') === (string) $value;
     }
 }

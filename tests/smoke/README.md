@@ -1,7 +1,8 @@
 # AMI Isolated Smoke Test
 
 This harness protects the current AMI workflow, the security foundations
-added through M1-08, and the M2-01 organization hierarchy.
+added through M1-08, the M2-01 organization hierarchy, and M2-02 user
+unit/position assignments.
 
 ## Run with one command
 
@@ -72,7 +73,7 @@ the test.
 
 ## Covered behavior
 
-The current suite runs 31 passing cases:
+The current suite runs 32 passing cases:
 
 - real HTTP security headers, per-request CSP nonce matching the rendered HTML,
   no-store dynamic cache policy, and development HTTP HSTS exclusion;
@@ -80,6 +81,8 @@ The current suite runs 31 passing cases:
 - correct role dashboard rendering and login session-ID rotation;
 - organization root seed, faculty/study-program hierarchy, invalid-parent
   rejection, history-preserving deactivation, and organization audit events;
+- multi-assignment unit/position membership, primary-period overlap rejection,
+  history-preserving end dates, authorization denial, and assignment audit events;
 - complete logout invalidation, inactive-account denial, shared login
   throttling, and database-driven session revocation;
 - assignment creation and one answer row per question;
@@ -139,12 +142,12 @@ whose names match the exact `ami_smoke_%` prefix. Do not delete any database
 based on a broader pattern. A normal completed run leaves no smoke database or
 PHP server process.
 
-## Current M0-03 baseline result
+## Current M2-02 baseline result
 
 Validated locally on 2026-07-24 with PHP 8.3.30 and MySQL 8.4.3:
 
 ```text
-Smoke tests passed: 30
+Smoke tests passed: 32
 Database isolation: temporary database only; cleanup scheduled.
 ```
 
