@@ -28,7 +28,9 @@ class Auditee extends CI_Controller
     {
         parent::__construct();
         $this->load->library('auth_guard');
-        $this->auth_guard->require_capability(Authorization_policy::CAP_AUDITEE_WORK);
+        $this->auth_guard->require_capability(
+            Authorization_policy::CAP_AUDIT_SUBMISSION_FILL
+        );
         $this->load->library('authorization_policy');
         $this->load->library('file_security');
         $this->load->helper(['form', 'url', 'download']);
@@ -124,6 +126,9 @@ class Auditee extends CI_Controller
 
     public function submit($tugas_id)
     {
+        $this->auth_guard->require_capability(
+            Authorization_policy::CAP_AUDIT_SUBMISSION_SUBMIT
+        );
         $this->require_post();
         $detail = $this->get_detail_or_404((int) $tugas_id);
 

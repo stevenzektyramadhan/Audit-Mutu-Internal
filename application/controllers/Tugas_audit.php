@@ -25,7 +25,9 @@ class Tugas_audit extends CI_Controller {
         $this->load->helper('url');
         $this->load->library('auth_guard');
         
-        $this->auth_guard->require_capability(Authorization_policy::CAP_ASSIGNMENTS_MANAGE);
+        $this->auth_guard->require_capability(
+            Authorization_policy::CAP_AUDIT_ASSIGNMENT_MANAGE
+        );
         
         require_once APPPATH . 'services/Tugas_audit_service.php';
         $this->tugas_audit_service = new Tugas_audit_service();

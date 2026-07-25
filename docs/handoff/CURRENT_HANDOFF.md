@@ -1,8 +1,8 @@
-# Current Handoff — M0, M1, M2-01, dan M2-02
+# Current Handoff — M0, M1, dan M2
 
 - **Tanggal handoff:** 2026-07-25
 - **Workspace asal:** Windows 11, Laragon, PHP 8.3.30, MySQL 8.4.3
-- **Status:** M0 dan M1 selesai; M2-01 dan M2-02 sudah diimplementasikan dan diverifikasi. Task berikutnya M2-03.
+- **Status:** M0, M1, dan seluruh M2 selesai serta diverifikasi. Task berikutnya M3-01.
 
 Dokumen ini tidak memuat secret, password, API key, isi `.env`, credential
 database, atau data pengguna.
@@ -15,6 +15,7 @@ database, atau data pengguna.
 - Satu branch dipakai untuk seluruh task M2; tiap subtask menjadi checkpoint
   commit, bukan branch baru.
 - Checkpoint M2-01: `45c6a6d feat: implement M2-01 organization unit master`.
+- Checkpoint M2-02: `2d57026 feat: implement M2-02 user unit assignments`.
 - Branch M2 belum di-push pada saat dokumen ini diperbarui.
 - Dokumen ringkas untuk agent Ubuntu/OpenCode:
   `docs/handoff/UBUNTU_AI_AGENT_START.md`.
@@ -55,6 +56,7 @@ database, atau data pengguna.
 
 - M2-01 — Master Unit Organisasi.
 - M2-02 — Keanggotaan User dan Jabatan.
+- M2-03 — Role Capability Matrix.
 
 ## 4. Acceptance criteria yang dipenuhi
 
@@ -360,6 +362,7 @@ handoff ini ditambahkan.
 - `docs/handoff/CURRENT_HANDOFF.md`
 - `docs/milestones/M2-01-master-unit-organisasi.md`
 - `docs/milestones/M2-02-user-unit-assignments.md`
+- `docs/milestones/M2-03-role-capability-matrix.md`
 
 ### Migration dan scripts — dibuat
 
@@ -389,6 +392,7 @@ handoff ini ditambahkan.
 - `tests/security_headers_regression.php`
 - `tests/organization_units_regression.php`
 - `tests/user_unit_assignments_regression.php`
+- `tests/role_capability_matrix_regression.php`
 - `tests/smoke/README.md`
 - `tests/smoke/run.php`
 
@@ -465,6 +469,7 @@ php tests/hardening_regression.php
 php tests/account_settings_regression.php
 php tests/organization_units_regression.php
 php tests/user_unit_assignments_regression.php
+php tests/role_capability_matrix_regression.php
 php tests/smoke/run.php
 ```
 
@@ -478,9 +483,9 @@ php index.php maintenance verify_audit_log
 git diff --check
 ```
 
-Targeted PHP lint M2-01 dijalankan terhadap seluruh file PHP baru dan berubah.
-Sebelum commit implementasi, full PHP lint juga dijalankan terhadap seluruh
-150 file PHP di `application`, `tests`, dan `scripts`.
+Targeted PHP lint dijalankan terhadap seluruh file PHP baru dan berubah pada
+setiap checkpoint M2. Sebelum checkpoint M2-03, full PHP lint juga dijalankan
+terhadap seluruh 157 file PHP di `application`, `tests`, dan `scripts`.
 
 ## 10. Hasil aktual setiap test
 
@@ -491,15 +496,16 @@ Sebelum commit implementasi, full PHP lint juga dijalankan terhadap seluruh
 | `php tests/file_security_regression.php` | PASS — 100 checks. |
 | `php tests/output_encoding_regression.php` | PASS — 28 checks. |
 | `php tests/authentication_security_regression.php` | PASS — 29 checks. |
-| `php tests/authorization_policy_regression.php` | PASS — 44 checks. |
+| `php tests/authorization_policy_regression.php` | PASS — 54 checks. |
 | `php tests/security_configuration_regression.php` | PASS — security configuration regression checks passed. |
 | `php tests/hardening_regression.php` | PASS — hardening regression checks passed. |
 | `php tests/account_settings_regression.php` | PASS — account settings regression checks passed. |
 | `php tests/organization_units_regression.php` | PASS — 42 checks. |
 | `php tests/user_unit_assignments_regression.php` | PASS — 30 checks. |
+| `php tests/role_capability_matrix_regression.php` | PASS — 155 checks. |
 | `php tests/smoke/run.php` | PASS — 32 cases; database disposable dibersihkan oleh successful run. |
-| Targeted M2-01/M2-02 `php -l` | PASS. |
-| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 156 files. |
+| Targeted M2-01/M2-02/M2-03 `php -l` | PASS. |
+| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 157 files. |
 | `php scripts/database/audit_readonly.php schema` | PASS — local schema terbaca sampai migration 014. |
 | `php scripts/database/audit_readonly.php checks` | Command PASS; satu known data issue: 3 tugas tanpa periode valid. |
 | `php index.php maintenance verify_audit_log` | PASS — `valid=true`, 0 entries checked, genesis head valid. |
@@ -642,10 +648,11 @@ kasus lulus dan disposable database dibersihkan oleh runner.
 
 ## 17. Exact milestone dan task berikutnya
 
-- Milestone aktif: **M2 — Organisasi, Role, dan Scope**.
-- M2-01 dan M2-02 sudah diimplementasikan dan memenuhi acceptance target.
-- Task berikutnya: **TASK M2-03 — Matriks Role-Capability**.
-- M2-03 belum dimulai.
+- Milestone terakhir selesai: **M2 — Organisasi, Role, dan Scope**.
+- M2-01, M2-02, dan M2-03 sudah memenuhi acceptance target.
+- Task berikutnya: **TASK M3-01 — Tabel Versi Dokumen SPMI**.
+- Sesuai strategi branch, M3 harus memakai satu branch milestone M3 baru;
+  subtask M3 menjadi checkpoint commit pada branch tersebut.
 
 Acceptance M2-01 yang sudah diverifikasi:
 
@@ -670,6 +677,20 @@ Acceptance M2-02 yang sudah diverifikasi:
 Detail M2-02:
 `docs/milestones/M2-02-user-unit-assignments.md`.
 
+Acceptance M2-03 yang sudah diverifikasi:
+
+- 18 capability minimum mempunyai role matrix dan scope mode;
+- seluruh controller web bisnis memakai capability spesifik;
+- action import, submit, revision/finalization, dan export mempunyai guard
+  tambahan;
+- capability dapat digabung dengan direct active organization assignment;
+- Super Admin mempunyai organization scope global eksplisit;
+- RTM/follow-up tetap deny-default;
+- regression mencakup empat role, unit, dan masa berlaku.
+
+Detail M2-03:
+`docs/milestones/M2-03-role-capability-matrix.md`.
+
 ## 18. Langkah pertama agent di Linux
 
 Langkah pertama agent Linux adalah checkout remote branch, memastikan working
@@ -688,11 +709,12 @@ cat docs/handoff/CURRENT_HANDOFF.md
 Jika branch lokal dengan nama yang sama sudah ada, gunakan
 `git switch codex/m2-organization-role-scope` lalu `git pull --ff-only`.
 
-Agent Linux harus memastikan checkpoint M2-01 `45c6a6d` berada dalam history
+Agent Linux harus memastikan checkpoint M2-01 `45c6a6d` dan M2-02 `2d57026`
+berada dalam history
 dan working tree bersih, menyiapkan environment development sendiri tanpa
 menyalin secret Windows, lalu menjalankan seluruh regression termasuk M2-01
-dan M2-02 serta smoke 32-case. Untuk database existing development, jalankan
+hingga M2-03 serta smoke 32-case. Untuk database existing development, jalankan
 migration 015 lalu 016; fresh install memakai `database_schema.sql`. Jangan
 menjalankan migration terhadap database bersama atau production tanpa
-prosedur DBA/deployment. Lanjutkan M2-03 pada branch milestone yang sama dan
-buat checkpoint commit, bukan branch task baru.
+prosedur DBA/deployment. Mulai M3-01 hanya pada branch milestone M3 baru dan
+gunakan branch tersebut untuk seluruh subtask M3.

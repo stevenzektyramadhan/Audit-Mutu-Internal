@@ -22,6 +22,9 @@ class Periode extends Admin_Lpmpi_Controller {
     public function __construct()
     {
         parent::__construct();
+        $this->_require_capability(
+            Authorization_policy::CAP_AUDIT_PERIOD_MANAGE
+        );
         $this->load->library('session');
         $this->load->helper('url');
         $this->load->helper('form');

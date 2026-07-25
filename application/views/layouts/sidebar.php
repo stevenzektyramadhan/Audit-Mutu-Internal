@@ -2,52 +2,53 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $role = $this->session->userdata('role');
+$user_id = (int) $this->session->userdata('user_id');
 $nama = $this->session->userdata('nama');
 $profile_photo_path = $this->session->userdata('profile_photo_path');
 $active_menu = isset($active_menu) ? $active_menu : 'dashboard';
 $menu_badges = isset($menu_badges) ? $menu_badges : [];
 $menus = [
     'super_admin' => [
-        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
-        ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account'],
-        ['key' => 'periode', 'label' => 'Periode Audit', 'icon' => 'fa-calendar-alt', 'url' => 'periode'],
-        ['key' => 'users', 'label' => 'Data Pengguna', 'icon' => 'fa-users', 'url' => 'users'],
-        ['key' => 'akun', 'label' => 'Akun Auditee/Auditor', 'icon' => 'fa-user-cog', 'url' => 'lpmpi/akun'],
-        ['key' => 'standar', 'label' => 'Data Standar', 'icon' => 'fa-award', 'url' => 'standar'],
-        ['key' => 'pertanyaan', 'label' => 'Data Pertanyaan', 'icon' => 'fa-tasks', 'url' => 'pertanyaan'],
-        ['key' => 'instrumen', 'label' => 'Instrumen Standar', 'icon' => 'fa-file-upload', 'url' => 'lpmpi/instrumen'],
-        ['key' => 'tugas_audit', 'label' => 'Tugas Audit', 'icon' => 'fa-clipboard-list', 'url' => 'tugas_audit'],
-        ['key' => 'penugasan', 'label' => 'Penugasan Auditor', 'icon' => 'fa-clipboard-list', 'url' => 'lpmpi/penugasan'],
-        ['key' => 'penetapan', 'label' => 'Penetapan', 'icon' => 'fa-gavel', 'url' => 'lpmpi/penetapan'],
-        ['key' => 'hasil_audit', 'label' => 'Hasil Audit', 'icon' => 'fa-chart-bar', 'url' => 'tugas_audit/hasil'],
-        ['key' => 'laporan', 'label' => 'Laporan & Statistik', 'icon' => 'fa-chart-pie', 'url' => 'lpmpi/laporan'],
-        ['key' => 'organization_units', 'label' => 'Unit Organisasi', 'icon' => 'fa-sitemap', 'url' => 'organization-units', 'group' => 'Pengaturan'],
-        ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Pengaturan'],
+        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard', 'capability' => Authorization_policy::CAP_DASHBOARD_VIEW],
+        ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'capability' => Authorization_policy::CAP_ACCOUNT_SELF],
+        ['key' => 'periode', 'label' => 'Periode Audit', 'icon' => 'fa-calendar-alt', 'url' => 'periode', 'capability' => Authorization_policy::CAP_AUDIT_PERIOD_MANAGE],
+        ['key' => 'users', 'label' => 'Data Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'capability' => Authorization_policy::CAP_USERS_MANAGE],
+        ['key' => 'akun', 'label' => 'Akun Auditee/Auditor', 'icon' => 'fa-user-cog', 'url' => 'lpmpi/akun', 'capability' => Authorization_policy::CAP_PARTICIPANT_ACCOUNTS_MANAGE],
+        ['key' => 'standar', 'label' => 'Data Standar', 'icon' => 'fa-award', 'url' => 'standar', 'capability' => Authorization_policy::CAP_SPMI_STANDARD_MANAGE],
+        ['key' => 'pertanyaan', 'label' => 'Data Pertanyaan', 'icon' => 'fa-tasks', 'url' => 'pertanyaan', 'capability' => Authorization_policy::CAP_SPMI_INDICATOR_MANAGE],
+        ['key' => 'instrumen', 'label' => 'Instrumen Standar', 'icon' => 'fa-file-upload', 'url' => 'lpmpi/instrumen', 'capability' => Authorization_policy::CAP_AUDIT_PACKAGE_MANAGE],
+        ['key' => 'tugas_audit', 'label' => 'Tugas Audit', 'icon' => 'fa-clipboard-list', 'url' => 'tugas_audit', 'capability' => Authorization_policy::CAP_AUDIT_ASSIGNMENT_MANAGE],
+        ['key' => 'penugasan', 'label' => 'Penugasan Auditor', 'icon' => 'fa-clipboard-list', 'url' => 'lpmpi/penugasan', 'capability' => Authorization_policy::CAP_AUDIT_ASSIGNMENT_MANAGE],
+        ['key' => 'penetapan', 'label' => 'Penetapan', 'icon' => 'fa-gavel', 'url' => 'lpmpi/penetapan', 'capability' => Authorization_policy::CAP_AUDIT_PACKAGE_MANAGE],
+        ['key' => 'hasil_audit', 'label' => 'Hasil Audit', 'icon' => 'fa-chart-bar', 'url' => 'tugas_audit/hasil', 'capability' => Authorization_policy::CAP_AUDIT_ASSIGNMENT_MANAGE],
+        ['key' => 'laporan', 'label' => 'Laporan & Statistik', 'icon' => 'fa-chart-pie', 'url' => 'lpmpi/laporan', 'capability' => Authorization_policy::CAP_AUDIT_REPORT_VIEW],
+        ['key' => 'organization_units', 'label' => 'Unit Organisasi', 'icon' => 'fa-sitemap', 'url' => 'organization-units', 'group' => 'Pengaturan', 'capability' => Authorization_policy::CAP_ORGANIZATION_UNITS_MANAGE],
+        ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Pengaturan', 'capability' => Authorization_policy::CAP_PROFILE_VIEW],
     ],
     'admin_lpmpi' => [
-        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
-        ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account'],
-        ['key' => 'periode', 'label' => 'Periode Audit', 'icon' => 'fa-calendar-alt', 'url' => 'periode'],
-        ['key' => 'akun', 'label' => 'Akun Auditee/Auditor', 'icon' => 'fa-user-cog', 'url' => 'lpmpi/akun'],
-        ['key' => 'instrumen', 'label' => 'Instrumen Standar', 'icon' => 'fa-file-upload', 'url' => 'lpmpi/instrumen'],
-        ['key' => 'penugasan', 'label' => 'Penugasan Auditor', 'icon' => 'fa-clipboard-list', 'url' => 'lpmpi/penugasan'],
-        ['key' => 'penetapan', 'label' => 'Penetapan', 'icon' => 'fa-gavel', 'url' => 'lpmpi/penetapan'],
-        ['key' => 'laporan', 'label' => 'Laporan & Statistik', 'icon' => 'fa-chart-pie', 'url' => 'lpmpi/laporan'],
-        ['key' => 'organization_units', 'label' => 'Unit Organisasi', 'icon' => 'fa-sitemap', 'url' => 'organization-units', 'group' => 'Pengaturan'],
-        ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Pengaturan'],
+        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard', 'capability' => Authorization_policy::CAP_DASHBOARD_VIEW],
+        ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'capability' => Authorization_policy::CAP_ACCOUNT_SELF],
+        ['key' => 'periode', 'label' => 'Periode Audit', 'icon' => 'fa-calendar-alt', 'url' => 'periode', 'capability' => Authorization_policy::CAP_AUDIT_PERIOD_MANAGE],
+        ['key' => 'akun', 'label' => 'Akun Auditee/Auditor', 'icon' => 'fa-user-cog', 'url' => 'lpmpi/akun', 'capability' => Authorization_policy::CAP_PARTICIPANT_ACCOUNTS_MANAGE],
+        ['key' => 'instrumen', 'label' => 'Instrumen Standar', 'icon' => 'fa-file-upload', 'url' => 'lpmpi/instrumen', 'capability' => Authorization_policy::CAP_AUDIT_PACKAGE_MANAGE],
+        ['key' => 'penugasan', 'label' => 'Penugasan Auditor', 'icon' => 'fa-clipboard-list', 'url' => 'lpmpi/penugasan', 'capability' => Authorization_policy::CAP_AUDIT_ASSIGNMENT_MANAGE],
+        ['key' => 'penetapan', 'label' => 'Penetapan', 'icon' => 'fa-gavel', 'url' => 'lpmpi/penetapan', 'capability' => Authorization_policy::CAP_AUDIT_PACKAGE_MANAGE],
+        ['key' => 'laporan', 'label' => 'Laporan & Statistik', 'icon' => 'fa-chart-pie', 'url' => 'lpmpi/laporan', 'capability' => Authorization_policy::CAP_AUDIT_REPORT_VIEW],
+        ['key' => 'organization_units', 'label' => 'Unit Organisasi', 'icon' => 'fa-sitemap', 'url' => 'organization-units', 'group' => 'Pengaturan', 'capability' => Authorization_policy::CAP_ORGANIZATION_UNITS_MANAGE],
+        ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Pengaturan', 'capability' => Authorization_policy::CAP_PROFILE_VIEW],
     ],
     'auditor' => [
-        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
-        ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account'],
-        ['key' => 'tugas_audit', 'label' => 'Tugas Audit', 'icon' => 'fa-clipboard-list', 'url' => 'auditor/tugas'],
-        ['key' => 'penilaian', 'label' => 'Penilaian Auditee', 'icon' => 'fa-star', 'url' => 'auditor/penilaian'],
+        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard', 'capability' => Authorization_policy::CAP_DASHBOARD_VIEW],
+        ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'capability' => Authorization_policy::CAP_ACCOUNT_SELF],
+        ['key' => 'tugas_audit', 'label' => 'Tugas Audit', 'icon' => 'fa-clipboard-list', 'url' => 'auditor/tugas', 'capability' => Authorization_policy::CAP_AUDIT_ASSESSMENT_FILL],
+        ['key' => 'penilaian', 'label' => 'Penilaian Auditee', 'icon' => 'fa-star', 'url' => 'auditor/penilaian', 'capability' => Authorization_policy::CAP_AUDIT_ASSESSMENT_FILL],
     ],
     'auditee' => [
-        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
-        ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account'],
-        ['key' => 'tugas_saya', 'label' => 'Tugas Saya', 'icon' => 'fa-clipboard-list', 'url' => 'auditee/tugas'],
-        ['key' => 'pengisian', 'label' => 'Pengisian Audit', 'icon' => 'fa-pen', 'url' => 'auditee/tugas?status=belum_diisi'],
-        ['key' => 'hasil_penilaian', 'label' => 'Hasil Penilaian', 'icon' => 'fa-eye', 'url' => 'auditee/tugas?status=dinilai'],
+        ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard', 'capability' => Authorization_policy::CAP_DASHBOARD_VIEW],
+        ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'capability' => Authorization_policy::CAP_ACCOUNT_SELF],
+        ['key' => 'tugas_saya', 'label' => 'Tugas Saya', 'icon' => 'fa-clipboard-list', 'url' => 'auditee/tugas', 'capability' => Authorization_policy::CAP_AUDIT_SUBMISSION_FILL],
+        ['key' => 'pengisian', 'label' => 'Pengisian Audit', 'icon' => 'fa-pen', 'url' => 'auditee/tugas?status=belum_diisi', 'capability' => Authorization_policy::CAP_AUDIT_SUBMISSION_FILL],
+        ['key' => 'hasil_penilaian', 'label' => 'Hasil Penilaian', 'icon' => 'fa-eye', 'url' => 'auditee/tugas?status=dinilai', 'capability' => Authorization_policy::CAP_AUDIT_SUBMISSION_FILL],
     ],
 ];
 $page_title = isset($page_title) ? $page_title : 'Dashboard';
@@ -77,6 +78,7 @@ if ($initial === '') {
         <div class="ami-nav-label">Menu</div>
         <?php $current_group = ''; ?>
         <?php foreach ($current_menus as $menu): ?>
+            <?php if (!$this->authorization_policy->allows($user_id, $menu['capability'])) { continue; } ?>
             <?php if (isset($menu['group']) && $menu['group'] !== $current_group): ?>
                 <?php $current_group = $menu['group']; ?>
                 <div class="ami-nav-label"><?php echo ami_e($current_group); ?></div>

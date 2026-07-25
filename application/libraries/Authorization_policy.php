@@ -17,11 +17,28 @@ class Authorization_policy
     const CAP_PARTICIPANT_ACCOUNTS_MANAGE = 'participant_accounts.manage';
     const CAP_ORGANIZATION_UNITS_MANAGE = 'organization_units.manage';
     const CAP_USER_UNIT_ASSIGNMENTS_MANAGE = 'user_unit_assignments.manage';
-    const CAP_SPMI_MANAGE = 'spmi.manage';
-    const CAP_ASSIGNMENTS_MANAGE = 'assignments.manage';
-    const CAP_REPORTS_VIEW = 'reports.view';
-    const CAP_AUDITEE_WORK = 'auditee_assignment.work';
-    const CAP_AUDITOR_WORK = 'auditor_assignment.work';
+
+    const CAP_SPMI_VERSION_MANAGE = 'spmi.version.manage';
+    const CAP_SPMI_STANDARD_MANAGE = 'spmi.standard.manage';
+    const CAP_SPMI_INDICATOR_MANAGE = 'spmi.indicator.manage';
+    const CAP_SPMI_IMPORT = 'spmi.import';
+    const CAP_AUDIT_PERIOD_MANAGE = 'audit.period.manage';
+    const CAP_AUDIT_PACKAGE_MANAGE = 'audit.package.manage';
+    const CAP_AUDIT_ASSIGNMENT_MANAGE = 'audit.assignment.manage';
+    const CAP_AUDIT_SUBMISSION_FILL = 'audit.submission.fill';
+    const CAP_AUDIT_SUBMISSION_SUBMIT = 'audit.submission.submit';
+    const CAP_AUDIT_ASSESSMENT_FILL = 'audit.assessment.fill';
+    const CAP_AUDIT_ASSESSMENT_SUBMIT = 'audit.assessment.submit';
+    const CAP_AUDIT_REPORT_VIEW = 'audit.report.view';
+    const CAP_AUDIT_REPORT_EXPORT = 'audit.report.export';
+    const CAP_RTM_MANAGE = 'rtm.manage';
+    const CAP_RTM_FINALIZE = 'rtm.finalize';
+    const CAP_FOLLOWUP_FILL = 'followup.fill';
+    const CAP_FOLLOWUP_VERIFY = 'followup.verify';
+    const CAP_SECURITY_AUDITLOG_VIEW = 'security.auditlog.view';
+
+    const SCOPE_GLOBAL = 'global';
+    const SCOPE_ORGANIZATION = 'organization';
 
     const OVERRIDE_ASSIGNMENT_VIEW = 'override.assignment.view';
     const OVERRIDE_EVIDENCE_VIEW = 'override.evidence.view';
@@ -31,6 +48,7 @@ class Authorization_policy
     protected $jawaban_model;
     protected $tugas_audit_model;
     protected $user_unit_assignment_model;
+    protected $organization_unit_model;
     protected $auth_security;
     protected $user_cache = [];
     protected $object_cache = [];
@@ -44,11 +62,53 @@ class Authorization_policy
         self::CAP_PARTICIPANT_ACCOUNTS_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_ORGANIZATION_UNITS_MANAGE => ['super_admin', 'admin_lpmpi'],
         self::CAP_USER_UNIT_ASSIGNMENTS_MANAGE => ['super_admin', 'admin_lpmpi'],
-        self::CAP_SPMI_MANAGE => ['super_admin', 'admin_lpmpi'],
-        self::CAP_ASSIGNMENTS_MANAGE => ['super_admin', 'admin_lpmpi'],
-        self::CAP_REPORTS_VIEW => ['super_admin', 'admin_lpmpi'],
-        self::CAP_AUDITEE_WORK => ['auditee'],
-        self::CAP_AUDITOR_WORK => ['auditor'],
+        self::CAP_SPMI_VERSION_MANAGE => ['super_admin', 'admin_lpmpi'],
+        self::CAP_SPMI_STANDARD_MANAGE => ['super_admin', 'admin_lpmpi'],
+        self::CAP_SPMI_INDICATOR_MANAGE => ['super_admin', 'admin_lpmpi'],
+        self::CAP_SPMI_IMPORT => ['super_admin', 'admin_lpmpi'],
+        self::CAP_AUDIT_PERIOD_MANAGE => ['super_admin', 'admin_lpmpi'],
+        self::CAP_AUDIT_PACKAGE_MANAGE => ['super_admin', 'admin_lpmpi'],
+        self::CAP_AUDIT_ASSIGNMENT_MANAGE => ['super_admin', 'admin_lpmpi'],
+        self::CAP_AUDIT_SUBMISSION_FILL => ['auditee'],
+        self::CAP_AUDIT_SUBMISSION_SUBMIT => ['auditee'],
+        self::CAP_AUDIT_ASSESSMENT_FILL => ['auditor'],
+        self::CAP_AUDIT_ASSESSMENT_SUBMIT => ['auditor'],
+        self::CAP_AUDIT_REPORT_VIEW => ['super_admin', 'admin_lpmpi'],
+        self::CAP_AUDIT_REPORT_EXPORT => ['super_admin', 'admin_lpmpi'],
+        self::CAP_RTM_MANAGE => [],
+        self::CAP_RTM_FINALIZE => [],
+        self::CAP_FOLLOWUP_FILL => [],
+        self::CAP_FOLLOWUP_VERIFY => [],
+        self::CAP_SECURITY_AUDITLOG_VIEW => ['super_admin'],
+    ];
+
+    protected $capability_scope_modes = [
+        self::CAP_DASHBOARD_VIEW => self::SCOPE_GLOBAL,
+        self::CAP_ACCOUNT_SELF => self::SCOPE_GLOBAL,
+        self::CAP_PROFILE_VIEW => self::SCOPE_GLOBAL,
+        self::CAP_PROFILE_MANAGE => self::SCOPE_GLOBAL,
+        self::CAP_USERS_MANAGE => self::SCOPE_GLOBAL,
+        self::CAP_PARTICIPANT_ACCOUNTS_MANAGE => self::SCOPE_GLOBAL,
+        self::CAP_ORGANIZATION_UNITS_MANAGE => self::SCOPE_GLOBAL,
+        self::CAP_USER_UNIT_ASSIGNMENTS_MANAGE => self::SCOPE_GLOBAL,
+        self::CAP_SECURITY_AUDITLOG_VIEW => self::SCOPE_GLOBAL,
+        self::CAP_SPMI_VERSION_MANAGE => self::SCOPE_ORGANIZATION,
+        self::CAP_SPMI_STANDARD_MANAGE => self::SCOPE_ORGANIZATION,
+        self::CAP_SPMI_INDICATOR_MANAGE => self::SCOPE_ORGANIZATION,
+        self::CAP_SPMI_IMPORT => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_PERIOD_MANAGE => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_PACKAGE_MANAGE => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_ASSIGNMENT_MANAGE => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_SUBMISSION_FILL => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_SUBMISSION_SUBMIT => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_ASSESSMENT_FILL => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_ASSESSMENT_SUBMIT => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_REPORT_VIEW => self::SCOPE_ORGANIZATION,
+        self::CAP_AUDIT_REPORT_EXPORT => self::SCOPE_ORGANIZATION,
+        self::CAP_RTM_MANAGE => self::SCOPE_ORGANIZATION,
+        self::CAP_RTM_FINALIZE => self::SCOPE_ORGANIZATION,
+        self::CAP_FOLLOWUP_FILL => self::SCOPE_ORGANIZATION,
+        self::CAP_FOLLOWUP_VERIFY => self::SCOPE_ORGANIZATION,
     ];
 
     public function __construct()
@@ -58,12 +118,14 @@ class Authorization_policy
         $this->ci->load->model('Jawaban_model');
         $this->ci->load->model('Tugas_audit_model');
         $this->ci->load->model('User_unit_assignment_model');
+        $this->ci->load->model('Organization_unit_model');
         $this->ci->load->library('auth_security');
 
         $this->user_model = $this->ci->User_model;
         $this->jawaban_model = $this->ci->Jawaban_model;
         $this->tugas_audit_model = $this->ci->Tugas_audit_model;
         $this->user_unit_assignment_model = $this->ci->User_unit_assignment_model;
+        $this->organization_unit_model = $this->ci->Organization_unit_model;
         $this->auth_security = $this->ci->auth_security;
     }
 
@@ -75,6 +137,71 @@ class Authorization_policy
             : [];
 
         return $user && in_array((string) $user->role, $roles, TRUE);
+    }
+
+    public function capabilityMatrix()
+    {
+        return $this->capability_roles;
+    }
+
+    public function capabilityScope($capability)
+    {
+        return isset($this->capability_scope_modes[$capability])
+            ? $this->capability_scope_modes[$capability]
+            : NULL;
+    }
+
+    public function allowsInOrganizationUnit(
+        $user_id,
+        $capability,
+        $organization_unit_id,
+        $on_date = NULL
+    ) {
+        if (!$this->allows($user_id, $capability)) {
+            return FALSE;
+        }
+
+        if ($this->capabilityScope($capability) === self::SCOPE_GLOBAL) {
+            return TRUE;
+        }
+        if ($this->capabilityScope($capability) !== self::SCOPE_ORGANIZATION) {
+            return FALSE;
+        }
+
+        $organization_unit = $this->organization_unit_model->find(
+            (int) $organization_unit_id
+        );
+        if (!$organization_unit || (int) $organization_unit->active !== 1) {
+            return FALSE;
+        }
+
+        $user = $this->active_user($user_id);
+        if ($user && (string) $user->role === 'super_admin') {
+            return TRUE;
+        }
+
+        return $this->canAccessOrganizationUnit(
+            (int) $user_id,
+            (int) $organization_unit_id,
+            $on_date
+        );
+    }
+
+    public function allowsInAnyOrganizationUnit($user_id, $capability, $on_date = NULL)
+    {
+        if (!$this->allows($user_id, $capability)) {
+            return FALSE;
+        }
+        if ($this->capabilityScope($capability) === self::SCOPE_GLOBAL) {
+            return TRUE;
+        }
+
+        $user = $this->active_user($user_id);
+        if ($user && (string) $user->role === 'super_admin') {
+            return TRUE;
+        }
+
+        return !empty($this->activeOrganizationUnitIds($user_id, $on_date));
     }
 
     public function getViewableAssignment($user_id, $assignment_id)
@@ -89,14 +216,14 @@ class Authorization_policy
             return $this->object_cache[$cache_key];
         }
 
-        if ($this->allows($user_id, self::CAP_ASSIGNMENTS_MANAGE)) {
+        if ($this->allows($user_id, self::CAP_AUDIT_ASSIGNMENT_MANAGE)) {
             $assignment = $this->tugas_audit_model->find_with_relations((int) $assignment_id);
-        } elseif ($this->allows($user_id, self::CAP_AUDITEE_WORK)) {
+        } elseif ($this->allows($user_id, self::CAP_AUDIT_SUBMISSION_FILL)) {
             $assignment = $this->jawaban_model->find_tugas_for_auditee(
                 (int) $assignment_id,
                 (int) $user_id
             );
-        } elseif ($this->allows($user_id, self::CAP_AUDITOR_WORK)) {
+        } elseif ($this->allows($user_id, self::CAP_AUDIT_ASSESSMENT_FILL)) {
             $assignment = $this->jawaban_model->find_tugas_for_auditor(
                 (int) $assignment_id,
                 (int) $user_id
@@ -116,7 +243,7 @@ class Authorization_policy
 
     public function getEditableAuditeeAssignment($user_id, $assignment_id)
     {
-        if (!$this->allows($user_id, self::CAP_AUDITEE_WORK)) {
+        if (!$this->allows($user_id, self::CAP_AUDIT_SUBMISSION_FILL)) {
             return NULL;
         }
 
@@ -135,7 +262,7 @@ class Authorization_policy
 
     public function getAssessableAssignment($user_id, $assignment_id)
     {
-        if (!$this->allows($user_id, self::CAP_AUDITOR_WORK)) {
+        if (!$this->allows($user_id, self::CAP_AUDIT_ASSESSMENT_FILL)) {
             return NULL;
         }
 
@@ -167,14 +294,14 @@ class Authorization_policy
             return NULL;
         }
 
-        if ($this->allows($user_id, self::CAP_AUDITOR_WORK)) {
+        if ($this->allows($user_id, self::CAP_AUDIT_ASSESSMENT_FILL)) {
             return $this->jawaban_model->find_jawaban_for_auditor(
                 (int) $evidence_id,
                 (int) $user_id
             );
         }
 
-        if ($this->allows($user_id, self::CAP_AUDITEE_WORK)) {
+        if ($this->allows($user_id, self::CAP_AUDIT_SUBMISSION_FILL)) {
             return $this->jawaban_model->find_jawaban_for_auditee(
                 (int) $evidence_id,
                 (int) $user_id
@@ -191,7 +318,7 @@ class Authorization_policy
 
     public function getAssessableEvidence($user_id, $evidence_id)
     {
-        if (!$this->allows($user_id, self::CAP_AUDITOR_WORK)) {
+        if (!$this->allows($user_id, self::CAP_AUDIT_ASSESSMENT_FILL)) {
             return NULL;
         }
 
@@ -210,7 +337,7 @@ class Authorization_policy
 
     public function canManageSpmiVersion($user_id)
     {
-        return $this->allows($user_id, self::CAP_SPMI_MANAGE);
+        return $this->allows($user_id, self::CAP_SPMI_VERSION_MANAGE);
     }
 
     public function canManageOrganizationUnits($user_id)

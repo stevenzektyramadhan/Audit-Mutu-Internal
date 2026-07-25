@@ -43,6 +43,10 @@ foreach ([
     'activeOrganizationAssignments',
     'activeOrganizationUnitIds',
     'canAccessOrganizationUnit',
+    'capabilityMatrix',
+    'capabilityScope',
+    'allowsInOrganizationUnit',
+    'allowsInAnyOrganizationUnit',
     'canManageSpmiVersion',
     'canManageRtm',
     'canSubmitFollowUp',
@@ -56,9 +60,15 @@ policy_check(strpos($policy, "self::CAP_PARTICIPANT_ACCOUNTS_MANAGE => ['super_a
 policy_check(strpos($policy, "self::CAP_ORGANIZATION_UNITS_MANAGE => ['super_admin', 'admin_lpmpi']") !== FALSE, 'Capability master unit organisasi tidak sesuai.');
 policy_check(strpos($policy, "self::CAP_USER_UNIT_ASSIGNMENTS_MANAGE => ['super_admin', 'admin_lpmpi']") !== FALSE, 'Capability assignment unit dan jabatan tidak sesuai.');
 policy_check(strpos($policy, 'user_unit_assignment_model->get_active_for_user') !== FALSE, 'Scope organisasi belum bersumber dari assignment aktif.');
-policy_check(strpos($policy, "self::CAP_AUDITEE_WORK => ['auditee']") !== FALSE, 'Capability kerja Auditee harus deny role lain.');
-policy_check(strpos($policy, "self::CAP_AUDITOR_WORK => ['auditor']") !== FALSE, 'Capability kerja Auditor harus deny role lain.');
+policy_check(strpos($policy, "self::CAP_AUDIT_SUBMISSION_FILL => ['auditee']") !== FALSE, 'Capability pengisian Auditee harus deny role lain.');
+policy_check(strpos($policy, "self::CAP_AUDIT_SUBMISSION_SUBMIT => ['auditee']") !== FALSE, 'Capability submit Auditee harus eksplisit.');
+policy_check(strpos($policy, "self::CAP_AUDIT_ASSESSMENT_FILL => ['auditor']") !== FALSE, 'Capability penilaian Auditor harus deny role lain.');
+policy_check(strpos($policy, "self::CAP_AUDIT_ASSESSMENT_SUBMIT => ['auditor']") !== FALSE, 'Capability submit penilaian harus eksplisit.');
+policy_check(strpos($policy, "self::CAP_RTM_FINALIZE => []") !== FALSE, 'Finalisasi RTM tanpa keputusan bisnis harus deny-default.');
+policy_check(strpos($policy, "self::CAP_FOLLOWUP_VERIFY => []") !== FALSE, 'Verifikasi follow-up tanpa keputusan bisnis harus deny-default.');
 policy_check(strpos($guard, 'authorization_policy->allows') !== FALSE, 'Auth guard harus mendelegasikan capability ke central policy.');
+policy_check(strpos($guard, 'function require_capability_in_organization_unit(') !== FALSE, 'Guard capability + organization scope belum tersedia.');
+policy_check(strpos($guard, 'authorization_policy->allowsInOrganizationUnit') !== FALSE, 'Guard scope organisasi belum mendelegasikan ke central policy.');
 policy_check(strpos($guard, 'function only(') === FALSE, 'Role-only guard lama harus dihapus.');
 policy_check(strpos($core, '_check_role(') === FALSE, 'Role-only helper lama harus dihapus.');
 

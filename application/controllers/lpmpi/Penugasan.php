@@ -16,7 +16,9 @@ class Penugasan extends Admin_Lpmpi_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_require_capability(Authorization_policy::CAP_ASSIGNMENTS_MANAGE);
+        $this->_require_capability(
+            Authorization_policy::CAP_AUDIT_ASSIGNMENT_MANAGE
+        );
         $this->load->helper(['form', 'url']);
         $this->load->library('form_validation');
         $this->load->model('Tugas_model');

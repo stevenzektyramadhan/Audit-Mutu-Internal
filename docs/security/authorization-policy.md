@@ -1,6 +1,6 @@
 # M1-04 — Central Authorization Policy
 
-Status: implemented for the current AMI surface and verified on 2026-07-24.
+Status: implemented through M2-03 and verified on 2026-07-25.
 
 ## Decision path
 
@@ -25,19 +25,32 @@ IDs from URLs and form fields are identifiers only. They never establish permiss
 | Manage Auditor/Auditee accounts | Yes | Yes | No | No |
 | Manage organization unit master | Yes | Yes | No | No |
 | Manage user unit/position assignments | Yes, all users | Auditor/Auditee targets | No | No |
-| Manage current SPMI master data | Yes | Yes | No | No |
-| Manage audit assignments | Yes | Yes | No | No |
-| View current LPMPI reports/export | Yes | Yes | No | No |
-| Work on assigned Auditee submission | No | No | No | Assigned owner only |
-| Assess assigned audit | No | No | Assigned owner only | No |
+| `spmi.version.manage` | Yes | Yes | No | No |
+| `spmi.standard.manage` | Yes | Yes | No | No |
+| `spmi.indicator.manage` | Yes | Yes | No | No |
+| `spmi.import` | Yes | Yes | No | No |
+| `audit.period.manage` | Yes | Yes | No | No |
+| `audit.package.manage` | Yes | Yes | No | No |
+| `audit.assignment.manage` | Yes | Yes | No | No |
+| `audit.submission.fill` | No | No | No | Assigned owner only |
+| `audit.submission.submit` | No | No | No | Assigned owner/state only |
+| `audit.assessment.fill` | No | No | Assigned owner only | No |
+| `audit.assessment.submit` | No | No | Assigned owner/state only | No |
+| `audit.report.view` | Yes | Yes | No | No |
+| `audit.report.export` | Yes | Yes | No | No |
+| `rtm.manage`, `rtm.finalize` | No | No | No | No |
+| `followup.fill`, `followup.verify` | No | No | No | No |
+| `security.auditlog.view` | Yes | No | No | No |
 | View Auditor evidence file | Explicit override only | No | Assigned owner only | No current download route |
 
-The admin capabilities above are direct, declared administrative
-capabilities—not silent ownership overrides. M2-02 provides dated
-`user_unit_assignments` and policy helpers for active direct membership.
-Existing admin screens remain institution-wide until M2-03 maps each action to
-an explicit organization scope. No permission is inferred from legacy
-free-text `nama_unit`.
+All SPMI/audit/RTM/follow-up capabilities above are classified as organization
+scoped; `security.auditlog.view` and identity administration are global.
+`allowsInOrganizationUnit()` combines the role grant with an active target
+unit. Super Admin has explicit institution-wide organization responsibility;
+other roles require a direct active `user_unit_assignment`. Parent membership
+does not imply descendant access. Legacy objects without an
+`organization_unit_id` retain their existing ownership/state checks and are
+not mapped from free-text `nama_unit`.
 
 ## Object policy API
 
@@ -52,6 +65,10 @@ The central API provides:
 - `activeOrganizationAssignments()`;
 - `activeOrganizationUnitIds()`;
 - `canAccessOrganizationUnit()`;
+- `capabilityMatrix()`;
+- `capabilityScope()`;
+- `allowsInOrganizationUnit()`;
+- `allowsInAnyOrganizationUnit()`;
 - `canManageSpmiVersion()`;
 - `canManageRtm()`;
 - `canSubmitFollowUp()`;
@@ -87,6 +104,12 @@ There is no current UI endpoint that invokes an override. Adding one requires a 
 - M2-01 organization master routes require `organization_units.manage`; Auditor and Auditee requests are denied.
 - M2-02 assignment routes require `user_unit_assignments.manage`, plus
   object-level target checks; Admin LPMPI is limited to Auditor/Auditee.
+- M2-03 maps SPMI, period, package, assignment, submission, assessment,
+  report, and export controllers to fine-grained capabilities. Import,
+  submission, assessment finalization/revision, and export receive an
+  additional action-specific guard.
+- Sidebar entries are capability-filtered, but controller policy remains the
+  enforcement boundary.
 - Auditee route aliases and the duplicate `auditee/Tugas` controller use the same object policy.
 - Auditor route aliases and the `auditor/Penilaian` bridge inherit the same object policy.
 - The legacy `Auditor::simpan_nilai()` mutation now requires POST and the assessable-assignment policy.
@@ -98,6 +121,7 @@ Run:
 
 ```powershell
 php tests/authorization_policy_regression.php
+php tests/role_capability_matrix_regression.php
 php tests/authentication_security_regression.php
 php tests/security_configuration_regression.php
 php tests/hardening_regression.php

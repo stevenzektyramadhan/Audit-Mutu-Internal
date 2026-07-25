@@ -1,6 +1,6 @@
 # ADR 0005: Otorisasi Role, Capability, dan Scope
 
-- Status: **Accepted — M1-04 foundation, M2-01 unit master, and M2-02 direct membership implemented**
+- Status: **Accepted — implemented through M2-03 role-capability and direct scope matrix**
 - Tanggal: 2026-07-24
 - Jenis: Keamanan aplikasi
 - Menggantikan: Tidak ada
@@ -36,7 +36,13 @@ ID pada URL/request tidak dapat dipercaya. Menyembunyikan tombol juga bukan kont
 10. Perubahan role, capability, scope, assignment auditor, dan override dicatat.
 11. Negative authorization test wajib meliputi ID objek milik unit lain, role lain, assignment lain, state terlarang, dan download privat.
 
-Matriks capability untuk surface lama sudah dibekukan dalam regression test. Pemfinal laporan/RTM, Auditor sebagai verifier, struktur scope organisasi, multi-role, dan conflict-of-interest tetap harus diselaraskan dengan keputusan stakeholder. Policy method target yang belum memiliki model selalu deny.
+M2-03 menetapkan capability minimum per aksi. Capability domain SPMI/audit
+diklasifikasikan organization-scoped. Super Admin memiliki tanggung jawab
+organisasi global yang eksplisit; role lain memerlukan direct active
+membership. Tidak ada inheritance parent ke descendant. Finalizer
+laporan/RTM, Auditor sebagai verifier, multi-role, dan conflict-of-interest
+tetap menunggu keputusan stakeholder; capability yang belum mempunyai model
+atau keputusan role selalu deny.
 
 ## Alternatif yang dipertimbangkan
 
@@ -95,8 +101,10 @@ negative matrix M1-04. M2-01 menambahkan master unit ber-ID stabil. M2-02
 menambahkan assignment user/unit/jabatan bertanggal, primary assignment, serta
 policy membership langsung yang hanya mengembalikan assignment aktif.
 
-Implementasi masih belum lengkap untuk pemetaan capability per scope pada
-seluruh modul, pewarisan scope parent/descendant, RTM, dan follow-up. M2-03
-harus membuat keputusan tersebut secara eksplisit dan tidak boleh menganggap
-membership parent otomatis mencakup child. Tinjau kembali setelah M2-03 atau
-bila identity provider eksternal mengubah cara identitas dan claim disediakan.
+M2-03 mengganti capability coarse dengan matriks per domain/aksi, memetakan
+controller, menambahkan scope mode serta guard capability + unit, dan
+menetapkan direct membership tanpa parent/descendant inheritance. RTM,
+follow-up, finalizer, dan entity legacy tanpa unit ID tetap deny atau
+institution-wide sesuai boundary terdokumentasi. Tinjau kembali ketika entity
+M3 mulai menyimpan organization unit, setelah keputusan BIZ-008–BIZ-010, atau
+bila identity provider eksternal mengubah identitas dan claim.

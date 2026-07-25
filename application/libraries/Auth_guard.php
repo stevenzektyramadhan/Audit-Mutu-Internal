@@ -87,6 +87,25 @@ class Auth_guard
         }
     }
 
+    public function require_capability_in_organization_unit(
+        $capability,
+        $organization_unit_id,
+        $on_date = NULL
+    ) {
+        $this->check();
+
+        $user_id = (int) $this->ci->session->userdata('user_id');
+        if (!$this->authorization_policy->allowsInOrganizationUnit(
+            $user_id,
+            $capability,
+            (int) $organization_unit_id,
+            $on_date
+        )) {
+            show_error('Akses ditolak.', 403, 'Forbidden');
+            exit;
+        }
+    }
+
     private function invalidate_and_redirect($event_type, $reason, $email = '', $user_id = NULL)
     {
         if ($event_type !== NULL) {

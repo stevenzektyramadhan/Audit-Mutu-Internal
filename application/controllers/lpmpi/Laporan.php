@@ -13,7 +13,7 @@ class Laporan extends Admin_Lpmpi_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_require_capability(Authorization_policy::CAP_REPORTS_VIEW);
+        $this->_require_capability(Authorization_policy::CAP_AUDIT_REPORT_VIEW);
         $this->load->helper(['url', 'form']);
         $this->load->model('Laporan_model');
         $this->load->model('Periode_model');
@@ -67,6 +67,9 @@ class Laporan extends Admin_Lpmpi_Controller
 
     public function export()
     {
+        $this->_require_capability(
+            Authorization_policy::CAP_AUDIT_REPORT_EXPORT
+        );
         $this->load_phpspreadsheet();
 
         $filters = $this->filters();

@@ -89,6 +89,9 @@ class Tugas extends Auditee_Controller
 
     public function submit($tugas_id)
     {
+        $this->_require_capability(
+            Authorization_policy::CAP_AUDIT_SUBMISSION_SUBMIT
+        );
         $this->require_post();
         $detail = $this->get_detail_or_404((int) $tugas_id);
 

@@ -175,6 +175,10 @@ Master unit organisasi M2-01, aturan hierarki, deaktivasi tanpa delete, seed roo
 
 Keanggotaan user/unit/jabatan M2-02, masa berlaku, primary assignment, histori tanpa hard delete, dan policy scope aktif tersedia di `docs/milestones/M2-02-user-unit-assignments.md`.
 
+Matriks role-capability M2-03, pemetaan controller, direct organization scope,
+dan deny-default RTM/follow-up tersedia di
+`docs/milestones/M2-03-role-capability-matrix.md`.
+
 File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara disimpan di private storage dan hanya diunduh melalui endpoint dengan pemeriksaan role/ownership. Logo profil tetap publik di `uploads/profil`. Production tidak membaca file sensitif dari `uploads/<kategori>`; pindahkan file legacy dengan dry-run `php scripts/migrate_private_storage.php`, lalu `--apply` setelah backup dan review.
 
 ### Database dan Upgrade Manual

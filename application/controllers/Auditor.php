@@ -28,7 +28,9 @@ class Auditor extends CI_Controller
     {
         parent::__construct();
         $this->load->library('auth_guard');
-        $this->auth_guard->require_capability(Authorization_policy::CAP_AUDITOR_WORK);
+        $this->auth_guard->require_capability(
+            Authorization_policy::CAP_AUDIT_ASSESSMENT_FILL
+        );
         $this->load->library('authorization_policy');
         $this->load->library('file_security');
         $this->load->helper('download');
@@ -160,6 +162,9 @@ class Auditor extends CI_Controller
 
     public function submit_penilaian($tugas_id)
     {
+        $this->auth_guard->require_capability(
+            Authorization_policy::CAP_AUDIT_ASSESSMENT_SUBMIT
+        );
         if (!$this->require_post()) {
             return;
         }
@@ -189,6 +194,9 @@ class Auditor extends CI_Controller
 
     public function revisi_penilaian($tugas_id)
     {
+        $this->auth_guard->require_capability(
+            Authorization_policy::CAP_AUDIT_ASSESSMENT_SUBMIT
+        );
         if (!$this->require_post()) {
             return;
         }
@@ -246,6 +254,9 @@ class Auditor extends CI_Controller
 
     public function simpan_nilai($tugas_id)
     {
+        $this->auth_guard->require_capability(
+            Authorization_policy::CAP_AUDIT_ASSESSMENT_SUBMIT
+        );
         if (!$this->require_post()) {
             return;
         }

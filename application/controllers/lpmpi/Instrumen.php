@@ -14,6 +14,9 @@ class Instrumen extends Admin_Lpmpi_Controller
     public function __construct()
     {
         parent::__construct();
+        $this->_require_capability(
+            Authorization_policy::CAP_AUDIT_PACKAGE_MANAGE
+        );
         $this->load->helper(['form', 'url', 'download']);
         $this->load->model('Standar_model');
         $this->load->library('file_security');

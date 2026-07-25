@@ -203,14 +203,15 @@ Sumber diagram: `application/libraries/Auth_guard.php`; `application/libraries/A
 | Dashboard | Semua role valid; view berdasarkan role. | Capability `dashboard.view`; role hanya memilih view setelah policy lolos. |
 | Users global | Hanya `super_admin`. | Capability `users.manage`. |
 | Akun Auditor/Auditee | `super_admin` dan `admin_lpmpi`; tipe akun dibatasi service. | Capability `participant_accounts.manage`. |
-| Standar/Periode/Pertanyaan/Instrumen/Penetapan | `super_admin` dan `admin_lpmpi`. | Capability `spmi.manage`. |
-| Penugasan/tugas audit umum | `super_admin` dan `admin_lpmpi`. | Capability `assignments.manage`. |
-| Laporan/export current | `super_admin` dan `admin_lpmpi`. | Capability `reports.view`. |
+| Standar/indikator/import | `super_admin` dan `admin_lpmpi`. | `spmi.standard.manage`, `spmi.indicator.manage`, dan `spmi.import`. |
+| Periode/instrumen/penetapan | `super_admin` dan `admin_lpmpi`. | `audit.period.manage` dan `audit.package.manage`. |
+| Penugasan/tugas audit umum | `super_admin` dan `admin_lpmpi`. | `audit.assignment.manage`. |
+| Laporan/export current | `super_admin` dan `admin_lpmpi`. | `audit.report.view` dan action guard `audit.report.export`. |
 | Profil lihat/kelola | Semua role dapat lihat; dua admin dapat kelola. | `profile.view` dan `profile.manage`. |
 | Account settings/photo | Self; target dari session dan URL tidak menerima user ID. | Capability `account.self` + session user ID. |
 | Unit/jabatan user | Super Admin untuk semua target; Admin LPMPI untuk Auditor/Auditee. | Capability `user_unit_assignments.manage` + object target check. |
-| Auditee task/answer | Hanya assignment dengan `auditee_id` current user; submitted/final tidak editable. | `canViewAuditAssignment()` dan `canEditAuditeeSubmission()` + scoped model recheck. |
-| Auditor task/answer/file | Hanya assignment/evidence dengan `auditor_id` current user; final assessment tidak editable. | `canAssessAssignment()`, `canViewEvidence()`, dan scoped model recheck. |
+| Auditee task/answer | Hanya assignment dengan `auditee_id` current user; submitted/final tidak editable. | `audit.submission.fill`/`submit`, `canViewAuditAssignment()`, dan scoped model recheck. |
+| Auditor task/answer/file | Hanya assignment/evidence dengan `auditor_id` current user; final assessment tidak editable. | `audit.assessment.fill`/`submit`, `canAssessAssignment()`, dan scoped model recheck. |
 | RTM/PIC/follow-up | Tidak ada model/capability efektif. | Policy method tersedia tetapi selalu `FALSE` (deny default). |
 
 ### Kesenjangan boundary authorization
@@ -221,9 +222,12 @@ Sumber diagram: `application/libraries/Auth_guard.php`; `application/libraries/A
 - **EXISTING M2-02:** direct organization membership mempunyai unit ID stabil,
   kode jabatan, masa berlaku, primary flag, dan policy active-assignment; nilai
   legacy `nama_unit` tidak menjadi sumber kewenangan.
-- **KNOWN LIMIT:** admin/LPMPI pada modul lama masih institution-wide karena
-  capability per scope dan aturan parent/descendant baru diputuskan pada
-  M2-03. Lead Auditor, observer, dan multi-role capability assignment belum
+- **EXISTING M2-03:** 18 capability minimum mempunyai role matrix dan scope
+  mode eksplisit. Guard dapat menggabungkan capability dengan direct active
+  unit assignment; Super Admin mempunyai organization scope global.
+- **KNOWN LIMIT:** objek legacy yang belum menyimpan `organization_unit_id`
+  masih institution-wide untuk admin. Tidak ada mapping dari `nama_unit`.
+  Lead Auditor, observer, dan multi-role capability assignment belum
   dimodelkan.
 - **DENY DEFAULT:** RTM/finalizer/PIC/verifier belum ada; policy selalu menolak sampai keputusan bisnis dan model scope tersedia.
 
@@ -658,8 +662,9 @@ M2-01 sudah menambahkan `organization_units`, service validasi hierarki,
 capability `organization_units.manage`, UI administrasi, seed root, serta
 regression/smoke. M2-02 menambahkan `user_unit_assignments`, periode berlaku,
 primary assignment, UI histori, capability management, dan API policy untuk
-membership langsung yang aktif. Pemetaan capability per scope serta
-parent/descendant scope menunggu M2-03.
+membership langsung yang aktif. M2-03 menambahkan matriks capability per
+domain/aksi, memetakan controller dan sidebar, serta guard kombinasi
+capability + direct active unit scope tanpa parent/descendant inheritance.
 
 1. `application/controllers/Users.php`, `lpmpi/Akun.php`, dan `Account.php`.
 2. `application/controllers/Organization_units.php`,

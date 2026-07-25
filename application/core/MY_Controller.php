@@ -33,6 +33,18 @@ class MY_Controller extends CI_Controller
         $this->auth_guard->require_capability($capability);
     }
 
+    protected function _require_capability_in_organization_unit(
+        $capability,
+        $organization_unit_id,
+        $on_date = NULL
+    ) {
+        $this->auth_guard->require_capability_in_organization_unit(
+            $capability,
+            (int) $organization_unit_id,
+            $on_date
+        );
+    }
+
     protected function _can($capability)
     {
         $this->_check_login();
@@ -62,7 +74,7 @@ class Admin_Controller extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_require_capability(Authorization_policy::CAP_SPMI_MANAGE);
+        $this->_check_login();
     }
 }
 
@@ -80,7 +92,7 @@ class Admin_Lpmpi_Controller extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_require_capability(Authorization_policy::CAP_SPMI_MANAGE);
+        $this->_check_login();
     }
 }
 
@@ -94,7 +106,9 @@ class Auditor_Controller extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_require_capability(Authorization_policy::CAP_AUDITOR_WORK);
+        $this->_require_capability(
+            Authorization_policy::CAP_AUDIT_ASSESSMENT_FILL
+        );
     }
 }
 
@@ -108,6 +122,8 @@ class Auditee_Controller extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->_require_capability(Authorization_policy::CAP_AUDITEE_WORK);
+        $this->_require_capability(
+            Authorization_policy::CAP_AUDIT_SUBMISSION_FILL
+        );
     }
 }

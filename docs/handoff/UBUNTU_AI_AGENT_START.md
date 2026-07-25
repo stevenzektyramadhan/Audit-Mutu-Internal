@@ -10,8 +10,8 @@ termasuk bila agent yang digunakan adalah OpenCode atau agent lain.
 - Commit implementasi M0/M1:
   `87b4b165a362311b5d6cbc4035a8960a71e5a6f1`.
 - M0 dan M1 selesai.
-- M2-01 dan M2-02 sudah diimplementasikan dan diverifikasi di Windows.
-- Task berikutnya: **M2-03 — Matriks Role-Capability**.
+- M2-01, M2-02, dan M2-03 sudah diimplementasikan dan diverifikasi di Windows.
+- Task berikutnya: **M3-01 — Tabel Versi Dokumen SPMI**.
 - Seluruh task M2 memakai branch yang sama; subtask ditandai checkpoint commit.
 
 Commit paling atas dapat berupa commit dokumentasi handoff setelah commit
@@ -62,8 +62,9 @@ Prompt awal yang dapat diberikan kepada AI agent:
 Baca docs/handoff/UBUNTU_AI_AGENT_START.md dan seluruh
 docs/handoff/CURRENT_HANDOFF.md. Verifikasi branch, HEAD, working tree,
 dependency, dan seluruh baseline test terlebih dahulu. Jangan mengubah M0/M1,
-jangan menjalankan migration pada database bersama/production. Lanjutkan M2-03
-pada branch milestone yang sama setelah baseline lulus. Pertahankan keputusan
+jangan menjalankan migration pada database bersama/production. Setelah
+baseline lulus, buat satu branch milestone M3 dan gunakan untuk seluruh task
+M3. Pertahankan keputusan
 ADR, central authorization, private file boundary, security headers, dan
 immutable audit ledger.
 ```
@@ -121,6 +122,7 @@ php tests/hardening_regression.php
 php tests/account_settings_regression.php
 php tests/organization_units_regression.php
 php tests/user_unit_assignments_regression.php
+php tests/role_capability_matrix_regression.php
 php tests/smoke/run.php
 ```
 
@@ -131,17 +133,18 @@ Expected result dari Windows:
 - file security: 100 checks;
 - output encoding: 28 checks;
 - authentication: 29 checks;
-- authorization: 44 checks;
+- authorization: 54 checks;
 - organization units: 42 checks;
 - user unit assignments: 30 checks;
+- role capability matrix: 155 checks;
 - tiga regression legacy/configuration lainnya lulus;
 - smoke suite: 32 cases.
 
-Full PHP lint Windows juga lulus untuk 150 file. Ulangi lint di Linux agar
+Full PHP lint Windows juga lulus untuk 157 file. Ulangi lint di Linux agar
 case sensitivity, path separator, permission, dan dependency Linux ikut
 terverifikasi.
 
-## Guardrail sebelum melanjutkan M2-03
+## Guardrail sebelum melanjutkan M3-01
 
 - Jangan reset, rewrite, atau squash history tanpa persetujuan maintainer.
 - Jangan mengubah migration historis yang sudah digunakan.
@@ -150,5 +153,6 @@ terverifikasi.
   file validation, atau append-only audit ledger.
 - Catat perbedaan hasil Linux terhadap baseline Windows di
   `docs/handoff/CURRENT_HANDOFF.md` atau handoff baru sebelum implementasi.
-- Lanjutkan M2-03 pada branch milestone M2 yang sama setelah baseline Linux
-  lulus, atau penyebab perbedaannya sudah didokumentasikan dan disetujui.
+- Buat satu branch milestone M3 setelah baseline Linux lulus, atau penyebab
+  perbedaannya sudah didokumentasikan dan disetujui. Jangan membuat branch
+  baru untuk tiap subtask M3.

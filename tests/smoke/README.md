@@ -1,8 +1,8 @@
 # AMI Isolated Smoke Test
 
 This harness protects the current AMI workflow, the security foundations
-added through M1-08, the M2-01 organization hierarchy, and M2-02 user
-unit/position assignments.
+added through M1-08, the M2-01 organization hierarchy, M2-02 user
+unit/position assignments, and the M2-03 fine-grained capability matrix.
 
 ## Run with one command
 
@@ -91,6 +91,8 @@ The current suite runs 32 passing cases:
 - Auditor assessment/finalization and post-final mutation denial;
 - assigned evidence download and cross-Auditor evidence denial;
 - wrong-role capability denial and valid LPMPI report access;
+- fine-grained submission, assessment, report, and administration capability
+  mapping without changing the established positive workflows;
 - raw stored-XSS payload encoding across Auditee, Auditor, admin detail,
   LPMPI detail, and chart JSON;
 - unsafe stored evidence URL denial at the rendering boundary;

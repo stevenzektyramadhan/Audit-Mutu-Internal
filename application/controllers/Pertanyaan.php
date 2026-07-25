@@ -18,6 +18,9 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
     public function __construct()
     {
         parent::__construct();
+        $this->_require_capability(
+            Authorization_policy::CAP_SPMI_INDICATOR_MANAGE
+        );
         $this->load->helper(['form', 'url']);
         $this->load->library(['form_validation', 'session']);
         $this->load->library('file_security');
@@ -45,6 +48,7 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
 
     public function download_template($standar_id)
     {
+        $this->_require_capability(Authorization_policy::CAP_SPMI_IMPORT);
         $standar = $this->pertanyaan_service->get_standar((int) $standar_id);
         if (!$standar) {
             show_error('Standar tidak ditemukan.', 404, 'Not Found');
@@ -75,6 +79,7 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
 
     public function import($standar_id)
     {
+        $this->_require_capability(Authorization_policy::CAP_SPMI_IMPORT);
         $this->require_post();
         $standar_id = (int) $standar_id;
         $standar = $this->pertanyaan_service->get_standar($standar_id);
@@ -158,6 +163,7 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
 
     public function import_confirm($standar_id)
     {
+        $this->_require_capability(Authorization_policy::CAP_SPMI_IMPORT);
         $this->require_post();
         $standar_id = (int) $standar_id;
 
