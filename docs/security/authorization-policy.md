@@ -108,6 +108,10 @@ There is no current UI endpoint that invokes an override. Adding one requires a 
   report, and export controllers to fine-grained capabilities. Import,
   submission, assessment finalization/revision, and export receive an
   additional action-specific guard.
+- M3-01 adds `spmi_versions.organization_unit_id` as a stable target scope but
+  intentionally exposes no mutation route. M3-02 endpoints must require
+  `spmi.version.manage` through the combined organization-unit guard, not only
+  the role-level `allows()` result.
 - Sidebar entries are capability-filtered, but controller policy remains the
   enforcement boundary.
 - Auditee route aliases and the duplicate `auditee/Tugas` controller use the same object policy.
@@ -122,6 +126,7 @@ Run:
 ```powershell
 php tests/authorization_policy_regression.php
 php tests/role_capability_matrix_regression.php
+php tests/spmi_versions_regression.php
 php tests/authentication_security_regression.php
 php tests/security_configuration_regression.php
 php tests/hardening_regression.php

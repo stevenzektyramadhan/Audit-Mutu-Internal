@@ -2,7 +2,8 @@
 
 This harness protects the current AMI workflow, the security foundations
 added through M1-08, the M2-01 organization hierarchy, M2-02 user
-unit/position assignments, and the M2-03 fine-grained capability matrix.
+unit/position assignments, the M2-03 fine-grained capability matrix, and the
+M3-01 SPMI version schema foundation.
 
 ## Run with one command
 
@@ -73,7 +74,7 @@ the test.
 
 ## Covered behavior
 
-The current suite runs 32 passing cases:
+The current suite runs 33 passing cases:
 
 - real HTTP security headers, per-request CSP nonce matching the rendered HTML,
   no-store dynamic cache policy, and development HTTP HSTS exclusion;
@@ -93,6 +94,9 @@ The current suite runs 32 passing cases:
 - wrong-role capability denial and valid LPMPI report access;
 - fine-grained submission, assessment, report, and administration capability
   mapping without changing the established positive workflows;
+- private SPMI source provenance, effective-date validation, one active
+  revision per document/unit, active-content immutability, retirement, and
+  hard-delete denial;
 - raw stored-XSS payload encoding across Auditee, Auditor, admin detail,
   LPMPI detail, and chart JSON;
 - unsafe stored evidence URL denial at the rendering boundary;

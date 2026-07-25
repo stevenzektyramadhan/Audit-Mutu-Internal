@@ -1,8 +1,8 @@
-# Current Handoff — M0, M1, dan M2
+# Current Handoff — M0, M1, M2, dan M3-01
 
 - **Tanggal handoff:** 2026-07-25
 - **Workspace asal:** Windows 11, Laragon, PHP 8.3.30, MySQL 8.4.3
-- **Status:** M0, M1, dan seluruh M2 selesai serta diverifikasi. Task berikutnya M3-01.
+- **Status:** M0, M1, seluruh M2, dan M3-01 selesai serta diverifikasi. Task berikutnya M3-02.
 
 Dokumen ini tidak memuat secret, password, API key, isi `.env`, credential
 database, atau data pengguna.
@@ -16,7 +16,12 @@ database, atau data pengguna.
   commit, bukan branch baru.
 - Checkpoint M2-01: `45c6a6d feat: implement M2-01 organization unit master`.
 - Checkpoint M2-02: `2d57026 feat: implement M2-02 user unit assignments`.
-- Branch M2 belum di-push pada saat dokumen ini diperbarui.
+- Checkpoint M2-03: `cc08b81 feat: implement M2-03 role capability matrix`.
+- Branch kerja seluruh milestone M3: `codex/m3-spmi-master-versioning`.
+- M3-01 berada pada checkpoint `HEAD` yang memuat dokumen ini. Gunakan
+  `git rev-parse HEAD` setelah checkout karena commit tidak dapat menyimpan SHA
+  dirinya sendiri.
+- Branch M3 belum di-push pada saat dokumen ini diperbarui.
 - Dokumen ringkas untuk agent Ubuntu/OpenCode:
   `docs/handoff/UBUNTU_AI_AGENT_START.md`.
 
@@ -57,6 +62,10 @@ database, atau data pengguna.
 - M2-01 — Master Unit Organisasi.
 - M2-02 — Keanggotaan User dan Jabatan.
 - M2-03 — Role Capability Matrix.
+
+### M3 — Master SPMI dan Versioning
+
+- M3-01 — Tabel Versi Dokumen SPMI.
 
 ## 4. Acceptance criteria yang dipenuhi
 
@@ -264,6 +273,7 @@ handoff ini ditambahkan.
 - `application/models/File_asset_model.php`
 - `application/models/Organization_unit_model.php`
 - `application/models/Security_audit_log_model.php`
+- `application/models/Spmi_version_model.php`
 - `application/models/User_unit_assignment_model.php`
 
 ### Services — diubah
@@ -363,6 +373,7 @@ handoff ini ditambahkan.
 - `docs/milestones/M2-01-master-unit-organisasi.md`
 - `docs/milestones/M2-02-user-unit-assignments.md`
 - `docs/milestones/M2-03-role-capability-matrix.md`
+- `docs/milestones/M3-01-spmi-version-foundation.md`
 
 ### Migration dan scripts — dibuat
 
@@ -371,8 +382,10 @@ handoff ini ditambahkan.
 - `migrations/014_immutable_security_audit_log.sql`
 - `migrations/015_create_organization_units.sql`
 - `migrations/016_create_user_unit_assignments.sql`
+- `migrations/017_create_spmi_versions.sql`
 - `scripts/database/apply_local_m1_06.php`
 - `scripts/database/apply_local_m1_08.php`
+- `scripts/database/apply_local_m3_01.php`
 - `scripts/database/audit_readonly.php`
 - `scripts/migrate_private_storage.php`
 
@@ -393,6 +406,7 @@ handoff ini ditambahkan.
 - `tests/organization_units_regression.php`
 - `tests/user_unit_assignments_regression.php`
 - `tests/role_capability_matrix_regression.php`
+- `tests/spmi_versions_regression.php`
 - `tests/smoke/README.md`
 - `tests/smoke/run.php`
 
@@ -405,6 +419,7 @@ handoff ini ditambahkan.
 | `014_immutable_security_audit_log.sql` | Immutable ledger, chain state, index, dan trigger penolak update/delete. |
 | `015_create_organization_units.sql` | Hierarki organisasi, code unik, status aktif, self FK, dan seed universitas root. |
 | `016_create_user_unit_assignments.sql` | Assignment user/unit/jabatan, masa berlaku, primary, index overlap, check, dan FK RESTRICT. |
+| `017_create_spmi_versions.sql` | Version identity/effective dates, organization scope, private source provenance, single-active key, dan history guards. |
 
 Migration `001`–`011` sudah ada sebelum rangkaian kerja ini. Terdapat dua file
 bernomor `009`.
@@ -418,10 +433,11 @@ bernomor `009`.
 | `014_immutable_security_audit_log.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Dijalankan dua kali; kedua tabel dan dua trigger terverifikasi. |
 | `015_create_organization_units.sql` | Development lokal Windows/Laragon dan database disposable, MySQL 8.4.3 | Schema, index, self FK, dan seed root terverifikasi. |
 | `016_create_user_unit_assignments.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Tabel, tiga index, dua FK RESTRICT, dua check constraint, dan 0 initial rows terverifikasi. |
+| `017_create_spmi_versions.sql` | Development lokal Windows/Laragon, MySQL 8.4.3 | Dijalankan dua kali; 17 kolom, unique/index, empat FK RESTRICT, lima check, dua trigger, dan 0 initial rows terverifikasi. |
 | `database_schema.sql` | Database disposable milik smoke suite | Import berhasil untuk membuat baseline test terisolasi. |
 
-Audit read-only terakhir menemukan 15 base tables dan 171 columns melalui
-migration 014. Tidak ada migration yang dijalankan atau diverifikasi pada
+Metadata runtime lokal setelah migration 017 menunjukkan 18 base tables dan
+206 columns. Tidak ada migration yang dijalankan atau diverifikasi pada
 production. Repository tidak memiliki migration ledger, sehingga keberadaan
 efek migration lama tidak membuktikan kapan file `001`–`011` dijalankan.
 
@@ -484,8 +500,8 @@ git diff --check
 ```
 
 Targeted PHP lint dijalankan terhadap seluruh file PHP baru dan berubah pada
-setiap checkpoint M2. Sebelum checkpoint M2-03, full PHP lint juga dijalankan
-terhadap seluruh 157 file PHP di `application`, `tests`, dan `scripts`.
+setiap checkpoint. Sebelum checkpoint M3-01, full PHP lint juga dijalankan
+terhadap seluruh 160 file PHP di `application`, `tests`, dan `scripts`.
 
 ## 10. Hasil aktual setiap test
 
@@ -503,15 +519,16 @@ terhadap seluruh 157 file PHP di `application`, `tests`, dan `scripts`.
 | `php tests/organization_units_regression.php` | PASS — 42 checks. |
 | `php tests/user_unit_assignments_regression.php` | PASS — 30 checks. |
 | `php tests/role_capability_matrix_regression.php` | PASS — 155 checks. |
-| `php tests/smoke/run.php` | PASS — 32 cases; database disposable dibersihkan oleh successful run. |
-| Targeted M2-01/M2-02/M2-03 `php -l` | PASS. |
-| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 157 files. |
+| `php tests/spmi_versions_regression.php` | PASS — 83 checks. |
+| `php tests/smoke/run.php` | PASS — 33 cases; database disposable dibersihkan oleh successful run. |
+| Targeted M2-01 sampai M3-01 `php -l` | PASS. |
+| Full PHP lint `application`, `tests`, dan `scripts` | PASS — 160 files. |
 | `php scripts/database/audit_readonly.php schema` | PASS — local schema terbaca sampai migration 014. |
 | `php scripts/database/audit_readonly.php checks` | Command PASS; satu known data issue: 3 tugas tanpa periode valid. |
 | `php index.php maintenance verify_audit_log` | PASS — `valid=true`, 0 entries checked, genesis head valid. |
 | `git diff --check` | PASS/exit 0; hanya warning normalisasi LF ke CRLF pada Windows. |
 
-Smoke 32-case dijalankan pada branch milestone M2 tanggal 2026-07-25; seluruh
+Smoke 33-case dijalankan pada branch milestone M3 tanggal 2026-07-25; seluruh
 kasus lulus dan disposable database dibersihkan oleh runner.
 
 ## 11. Test yang belum dijalankan
@@ -648,11 +665,12 @@ kasus lulus dan disposable database dibersihkan oleh runner.
 
 ## 17. Exact milestone dan task berikutnya
 
-- Milestone terakhir selesai: **M2 — Organisasi, Role, dan Scope**.
-- M2-01, M2-02, dan M2-03 sudah memenuhi acceptance target.
-- Task berikutnya: **TASK M3-01 — Tabel Versi Dokumen SPMI**.
-- Sesuai strategi branch, M3 harus memakai satu branch milestone M3 baru;
-  subtask M3 menjadi checkpoint commit pada branch tersebut.
+- Milestone terakhir selesai penuh: **M2 — Organisasi, Role, dan Scope**.
+- Milestone aktif: **M3 — Master SPMI dan Versioning**.
+- M3-01 sudah memenuhi acceptance target.
+- Task berikutnya: **TASK M3-02 — Workflow Persetujuan Versi**.
+- Seluruh subtask M3 tetap memakai branch
+  `codex/m3-spmi-master-versioning` dan menjadi checkpoint commit.
 
 Acceptance M2-01 yang sudah diverifikasi:
 
@@ -691,6 +709,19 @@ Acceptance M2-03 yang sudah diverifikasi:
 Detail M2-03:
 `docs/milestones/M2-03-role-capability-matrix.md`.
 
+Acceptance M3-01 yang sudah diverifikasi:
+
+- schema minimum versi, organization scope, dan actor provenance tersedia;
+- revisi unik per unit/identity;
+- maksimal satu row active per unit/identity;
+- source PDF berelasi ke private file registry dan checksum snapshot;
+- active content immutable dan history tidak dapat di-hard-delete;
+- migration 017 idempotent serta tidak memigrasikan master legacy;
+- regression 83 checks dan smoke database 33-case lulus.
+
+Detail M3-01:
+`docs/milestones/M3-01-spmi-version-foundation.md`.
+
 ## 18. Langkah pertama agent di Linux
 
 Langkah pertama agent Linux adalah checkout remote branch, memastikan working
@@ -699,7 +730,7 @@ migration:
 
 ```bash
 git fetch origin
-git switch --track origin/codex/m2-organization-role-scope
+git switch --track origin/codex/m3-spmi-master-versioning
 git status --short
 git rev-parse HEAD
 cat docs/handoff/UBUNTU_AI_AGENT_START.md
@@ -707,14 +738,13 @@ cat docs/handoff/CURRENT_HANDOFF.md
 ```
 
 Jika branch lokal dengan nama yang sama sudah ada, gunakan
-`git switch codex/m2-organization-role-scope` lalu `git pull --ff-only`.
+`git switch codex/m3-spmi-master-versioning` lalu `git pull --ff-only`.
 
-Agent Linux harus memastikan checkpoint M2-01 `45c6a6d` dan M2-02 `2d57026`
-berada dalam history
-dan working tree bersih, menyiapkan environment development sendiri tanpa
-menyalin secret Windows, lalu menjalankan seluruh regression termasuk M2-01
-hingga M2-03 serta smoke 32-case. Untuk database existing development, jalankan
-migration 015 lalu 016; fresh install memakai `database_schema.sql`. Jangan
+Agent Linux harus memastikan checkpoint M2-01 `45c6a6d`, M2-02 `2d57026`,
+M2-03 `cc08b81`, dan checkpoint M3-01 (`HEAD` dokumen ini) berada dalam
+history serta working tree bersih. Siapkan environment development sendiri
+tanpa menyalin secret Windows, lalu jalankan seluruh regression sampai M3-01
+serta smoke 33-case. Untuk database existing development, jalankan migration
+015, 016, lalu 017; fresh install memakai `database_schema.sql`. Jangan
 menjalankan migration terhadap database bersama atau production tanpa
-prosedur DBA/deployment. Mulai M3-01 hanya pada branch milestone M3 baru dan
-gunakan branch tersebut untuk seluruh subtask M3.
+prosedur DBA/deployment. Lanjutkan M3-02 pada branch milestone M3 yang sama.

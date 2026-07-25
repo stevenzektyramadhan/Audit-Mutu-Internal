@@ -1,6 +1,7 @@
 # M1-06 — File Security Foundation
 
-Status: implemented for every upload route currently present in AMI and verified on 2026-07-24.
+Status: implemented for every upload route currently present in AMI; M3-01
+adds the private PDF-only `spmi_source` policy for the M3-02 workflow.
 
 ## Security boundary
 
@@ -17,12 +18,17 @@ Status: implemented for every upload route currently present in AMI and verified
 - forced attachment downloads with `nosniff`, CSP sandbox, and private no-store caching;
 - soft-delete with a 90-day retention deadline before physical purge.
 
-The registry is stored in `file_assets`; security events are stored in `file_security_events`. Apply `migrations/013_file_security_foundation.sql` before deploying this code.
+The registry is stored in `file_assets`; security events are stored in
+`file_security_events`. Apply `migrations/013_file_security_foundation.sql`
+before deploying this code. M3-01 additionally references a registered source
+through `spmi_versions.source_file_asset_id`; apply migration 017 before the
+version workflow is exposed.
 
 ## Category policy
 
 | Category | New-upload types | Limit | Scope |
 |---|---|---:|---|
+| SPMI source document | PDF | 20 MiB | Private |
 | Instrument | PDF, DOCX, XLSX, PNG, JPEG | 5 MiB | Private |
 | Penetapan attachment | PDF, DOCX, XLSX, PNG, JPEG | 5 MiB | Private |
 | Auditor evidence | PDF, DOCX, XLSX, PNG, JPEG | 5 MiB | Private |
@@ -83,6 +89,7 @@ The script verifies every copied SHA-256 checksum before removing its legacy sou
 ```text
 php tests/file_security_regression.php
 php tests/authorization_policy_regression.php
+php tests/spmi_versions_regression.php
 php tests/smoke/run.php
 ```
 

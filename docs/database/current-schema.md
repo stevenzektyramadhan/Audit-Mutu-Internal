@@ -2,7 +2,8 @@
 
 - **Task:** M0-02
 - **Baseline source:** branch `dev`, commit `3179135`
-- **Runtime snapshot:** 2026-07-24, local Laragon database only
+- **Runtime snapshot:** initial 2026-07-24; additive verification through M3-01
+  on 2026-07-25, local Laragon database only
 - **Safety:** metadata and aggregate counts only; no application row values are reproduced.
 
 ## 1. Scope and evidence
@@ -10,7 +11,7 @@
 This inventory compares four sources:
 
 1. Fresh-install baseline in `database_schema.sql`.
-2. Incremental SQL in `migrations/001_*.sql` through `migrations/016_*.sql`.
+2. Incremental SQL in `migrations/001_*.sql` through `migrations/017_*.sql`.
 3. Tables, columns, joins, filters, and writes referenced by `application/models/*.php` and their services.
 4. Runtime metadata from `INFORMATION_SCHEMA` plus aggregate consistency checks executed by `scripts/database/audit_readonly.php`.
 
@@ -29,8 +30,15 @@ disposable smoke database.
 M2-02 adds `user_unit_assignments` through migration 016. Migration 016 was
 applied to the local development database on 2026-07-25; its indexes, two
 foreign keys, two check constraints, and zero-row initial state were verified.
+M3-01 adds `spmi_versions` through migration 017. Migration 017 was applied
+twice to the local development database on 2026-07-25. Its 17 columns, three
+domain unique keys, four RESTRICT foreign keys, five checks, two history
+triggers, and zero-row initial state were verified. The disposable smoke
+database also proved single-active, date, immutable-active, retirement, and
+no-delete behavior.
+
 The counts below now describe that local development schema through migration
-016. They are not a production attestation.
+017. They are not a production attestation.
 
 Classification:
 
@@ -49,17 +57,17 @@ This is not a production database attestation. Production schema, row counts, SQ
 | Item | Local runtime result | Evidence |
 |---|---:|---|
 | Database server | MySQL 8.4.3 | Read-only runtime metadata from `scripts/database/audit_readonly.php schema` |
-| Base tables | 17 | `INFORMATION_SCHEMA.TABLES` after migration 016 |
-| Columns | 189 | `INFORMATION_SCHEMA.COLUMNS` after migration 016 |
-| Storage engine | 17/17 InnoDB | `INFORMATION_SCHEMA.TABLES` |
-| Table collation | 13 `utf8mb3_general_ci`, 3 `utf8mb4`, chain state ASCII | `INFORMATION_SCHEMA.TABLES` |
-| Primary keys | 17 | `INFORMATION_SCHEMA.STATISTICS` |
-| Non-primary unique keys | 5, including the assignment version key | `INFORMATION_SCHEMA.STATISTICS`; `database_schema.sql` |
-| Index rows | 81 | `INFORMATION_SCHEMA.STATISTICS` |
-| Foreign keys | 16 | `INFORMATION_SCHEMA.KEY_COLUMN_USAGE` |
-| Foreign-key delete rule | 8 `CASCADE`, 5 `SET NULL`, 3 `RESTRICT` | `INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS` |
-| Check constraints | 3 | `INFORMATION_SCHEMA.CHECK_CONSTRAINTS` |
-| Triggers | 2 append-only guards | `INFORMATION_SCHEMA.TRIGGERS` |
+| Base tables | 18 | `INFORMATION_SCHEMA.TABLES` after migration 017 |
+| Columns | 206 | `INFORMATION_SCHEMA.COLUMNS` after migration 017 |
+| Storage engine | 18/18 InnoDB | `INFORMATION_SCHEMA.TABLES` |
+| Table collation | 13 `utf8mb3_general_ci`, 4 `utf8mb4`, chain state ASCII | `INFORMATION_SCHEMA.TABLES` |
+| Primary keys | 18 | `INFORMATION_SCHEMA.STATISTICS` |
+| Non-primary unique keys | 9, including three version keys | `INFORMATION_SCHEMA.STATISTICS`; `database_schema.sql` |
+| Index rows | 96 | `INFORMATION_SCHEMA.STATISTICS` |
+| Foreign keys | 20 | `INFORMATION_SCHEMA.KEY_COLUMN_USAGE` |
+| Foreign-key delete rule | 8 `CASCADE`, 5 `SET NULL`, 7 `RESTRICT` | `INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS` |
+| Check constraints | 8 | `INFORMATION_SCHEMA.TABLE_CONSTRAINTS` |
+| Triggers | 4 history/append-only guards | `INFORMATION_SCHEMA.TRIGGERS` |
 | Migration ledger table | 0 | Runtime table list; `application/config/migration.php` |
 | Runtime FK enforcement | Enabled for the inspection session | `@@SESSION.foreign_key_checks = 1` |
 | Required consistency checks with findings | 1 | Three `tugas_audit` rows have no period |
@@ -67,8 +75,8 @@ This is not a production database attestation. Production schema, row counts, SQ
 
 ### Main conclusions
 
-- **ACTUAL LOCAL DEVELOPMENT:** 17 tables and 189 columns through migration 016 were found in the inspected local runtime.
-- **MIGRATION coverage exists but is not a migration ledger:** expected effects of SQL files through `016` are visible locally, but no table proves historical execution order.
+- **ACTUAL LOCAL DEVELOPMENT:** 18 tables and 206 columns through migration 017 were found in the inspected local runtime.
+- **MIGRATION coverage exists but is not a migration ledger:** expected effects of SQL files through `017` are visible locally, but no table proves historical execution order.
 - **One current data issue was confirmed:** 3 of 8 local tasks have `periode_id IS NULL` or an unresolved period. No row identities or data values were printed. Evidence: `audit_readonly.php checks`.
 - **Correctness constraints are incomplete:** assignment uniqueness, one answer per task/question, one penetapan row per standard/category, score range, boolean flags, valid period dates, and one active period are application conventions rather than database invariants. Evidence: current indexes/checks and model/service methods listed below.
 - **Cascade deletion is broad:** deleting a user, standard, period, task, or question can delete operational audit records through the eight cascade relationships. Evidence: `database_schema.sql`; runtime foreign-key metadata.
@@ -79,7 +87,7 @@ This is not a production database attestation. Production schema, row counts, SQ
 
 | Source | What it establishes | Result against local runtime |
 |---|---|---|
-| `database_schema.sql` | Fresh-install definition for 17 current tables, including changes through migration 016. | **MATCH:** organization and assignment additions are present locally and exercised by disposable smoke testing. |
+| `database_schema.sql` | Fresh-install definition for 18 current tables, including changes through migration 017. | **MATCH:** organization, assignment, and version additions are present locally and exercised by disposable smoke testing. |
 | `migrations/001_add_admin_lpmpi_role.sql` | Adds `admin_lpmpi` to `users.role`. | **PRESENT:** runtime enum contains the four expected roles. |
 | `migrations/002_create_periode_audit.sql` | Creates `periode_audit`. | **PRESENT.** |
 | `migrations/003_create_penetapan.sql` | Creates `penetapan` and its standard FK. | **PRESENT.** |
@@ -97,13 +105,14 @@ This is not a production database attestation. Production schema, row counts, SQ
 | `migrations/014_immutable_security_audit_log.sql` | Creates the central audit ledger, serialized chain head, and update/delete rejection triggers. | **PRESENT;** executed twice locally; chain and tamper rejection exercised in disposable smoke databases. |
 | `migrations/015_create_organization_units.sql` | Creates the organization hierarchy, unique code, self FK, active flag, and university root seed. | **PRESENT;** applied locally and covered by M2-01 regression/smoke. Production remains to verify. |
 | `migrations/016_create_user_unit_assignments.sql` | Creates dated user/unit/position membership, primary flag, indexes, checks, and RESTRICT foreign keys. | **PRESENT;** applied locally with zero initial rows and covered by M2-02 regression/smoke. Production remains to verify. |
-| `application/models/*.php` | Current table/query expectations. | **MATCH:** file/audit, organization, and user assignment tables are present in local development. |
+| `migrations/017_create_spmi_versions.sql` | Creates organization-scoped SPMI document versions, private source provenance, effective dates, single-active key, and history triggers. | **PRESENT;** applied twice locally with zero initial rows and covered by M3-01 regression/smoke. Production remains to verify. |
+| `application/models/*.php` | Current table/query expectations. | **MATCH:** file/audit, organization, assignment, and SPMI version tables are present in local development. |
 
 ### Important migration limitations
 
 - CodeIgniter migrations are disabled with `$config['migration_enabled'] = FALSE`. The files under `migrations/` are raw manual SQL, not CodeIgniter migration classes. Source: `application/config/migration.php`; `migrations/`.
 - There are two migrations numbered `009`; filename sorting gives an order, but the numeric sequence is ambiguous. Source: `migrations/009_alter_pertanyaan_add_columns.sql`; `migrations/009_alter_profil_pddikti_id_lengths.sql`.
-- Most historical `ALTER TABLE` migrations are not idempotent. Files `010`–`016` are safe to re-run, but earlier alter files generally fail when reapplied. Migration 014 recreates its two triggers and should run in a maintenance window.
+- Most historical `ALTER TABLE` migrations are not idempotent. Files `010`–`017` are safe to re-run, but earlier alter files generally fail when reapplied. Migrations 014 and 017 recreate their history triggers and should run in a maintenance window.
 - Migration `005` expects `jawaban_audit.tugas_audit_id` and `catatan` to exist, drops a named FK, and renames those columns. It cannot be applied safely to `database_schema.sql`, which already contains `tugas_id` and `temuan`. Source: `migrations/005_alter_jawaban_audit_new_columns.sql`; `database_schema.sql`.
 - Rollback instructions are comments, not executable/versioned down migrations. DDL also causes implicit commits in MySQL. Source: all files under `migrations/`.
 - There is no runtime migration ledger table. Consequently, “effect is present” does not prove which migration produced it. Source: runtime table list.
@@ -134,6 +143,9 @@ erDiagram
     USERS ||--o{ FILE_ASSETS : "uploaded/deleted_by SET NULL"
     USERS ||--o{ FILE_SECURITY_EVENTS : "actor_user_id SET NULL"
     FILE_ASSETS ||--o{ FILE_SECURITY_EVENTS : "file_asset_id SET NULL"
+    ORGANIZATION_UNITS ||--o{ SPMI_VERSIONS : "organization_unit_id RESTRICT"
+    FILE_ASSETS ||--o| SPMI_VERSIONS : "source_file_asset_id RESTRICT"
+    USERS ||--o{ SPMI_VERSIONS : "created/approved_by RESTRICT"
     USERS ||--o{ TUGAS_AUDIT : "auditor_id CASCADE"
     USERS ||--o{ TUGAS_AUDIT : "auditee_id CASCADE"
     PERIODE_AUDIT ||--o{ TUGAS_AUDIT : "periode_id CASCADE"
@@ -218,7 +230,13 @@ Status: **ACTUAL / BASELINE / MIGRATION 013** on the inspected local database. P
 
 `file_security_events` records asset/actor, event/outcome/reason, category/owner, request ID, and timestamp for upload, blocked upload/download, download, retirement, temporary destruction, legacy registration, and purge. Optional user and asset foreign keys use `ON DELETE SET NULL`.
 
-Domain tables retain their current storage-name columns for compatibility. M1-06 resolves those opaque names through this registry in application code; there is no polymorphic database foreign key from `standar`, `penetapan`, `jawaban_audit`, `users`, or `profil_lembaga` to `file_assets`.
+Legacy domain tables retain their current storage-name columns for
+compatibility. M1-06 resolves those opaque names through this registry in
+application code; there is no polymorphic database foreign key from
+`standar`, `penetapan`, `jawaban_audit`, `users`, or `profil_lembaga` to
+`file_assets`. M3-01 is the first target entity with an explicit
+`spmi_versions.source_file_asset_id` RESTRICT foreign key plus an immutable
+path/checksum snapshot.
 
 ### 6.1c `security_audit_logs` and `security_audit_chain_state`
 
@@ -229,6 +247,34 @@ Status: **ACTUAL / BASELINE / MIGRATION 014** on the inspected local database. P
 `security_audit_chain_state` contains one row with the current head and last log ID. Writers lock this row before appending, which serializes concurrent chain updates. The two database triggers reject every update or delete against the log table. There is no normal purge or web mutation route.
 
 The local runtime currently has an empty ledger immediately after migration and a genesis chain-state row. Disposable HTTP smoke testing populates the ledger, verifies every link, and proves both trigger rejections without retaining fixture data.
+
+### 6.1d `spmi_versions`
+
+Status: **ACTUAL / BASELINE / MIGRATION 017** on the inspected local
+development database. Production remains **TO VERIFY**.
+
+Purpose: organization-scoped identity and immutable provenance for versioned
+SPMI source documents. Main code:
+`application/models/Spmi_version_model.php`;
+`application/libraries/File_security.php`;
+`migrations/017_create_spmi_versions.sql`.
+
+The table has 17 columns covering document identity/title/revision, effective
+range, private file asset/path/SHA-256, lifecycle status, creator/approver,
+timestamps, and a generated active slot. Unique keys enforce revision
+identity, one active row per organization/document, and one source asset per
+version. Four foreign keys use `RESTRICT`.
+
+Five check constraints reject blank identity fields, reversed date ranges,
+non-opaque/non-PDF source paths, malformed lowercase SHA-256 values, and
+approval provenance inconsistent with lifecycle. One trigger prevents active content
+from being edited or moved back to an earlier state; retirement remains
+possible. A second trigger rejects every hard delete.
+
+The local table contains zero rows after migration. No legacy `standar` or
+`pertanyaan` data was backfilled. The model is read-only until M3-02 provides
+the authorized, transactional, audited workflow for draft creation, review,
+approval, activation, retirement, and file ownership.
 
 ### 6.2 `periode_audit`
 
@@ -683,6 +729,7 @@ These counts provide test-environment scale only and contain no row data:
 | `periode_audit` | 2 |
 | `standar` | 7 |
 | `pertanyaan` | 49 |
+| `spmi_versions` | 0 |
 | `tugas_audit` | 8 |
 | `jawaban_audit` | 41 |
 | `penetapan` | 21 |

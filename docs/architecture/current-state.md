@@ -21,7 +21,8 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 | **EXISTING** | Aplikasi monolitik CodeIgniter 3 dengan role `super_admin`, `admin_lpmpi`, `auditor`, dan `auditee`; proses AMI memakai `tugas_audit` dan `jawaban_audit`. | `system/core/CodeIgniter.php`; `application/config/routes.php`; `application/config/database.php`; `application/models/Tugas_audit_model.php`; `application/models/Jawaban_model.php` |
 | **EXISTING** | Status tugas persisten hanya `belum_diisi`, `diisi`, dan `dinilai`; sejumlah status layar dihitung ulang dari flags/baris jawaban. | `application/config/app_constants.php`; `database_schema.sql`; `application/models/Jawaban_model.php::attach_display_status()` dan `::attach_auditor_penilaian_status()` |
 | **EXISTING** | Controller, service, dan model sudah ada, tetapi batas tanggung jawab tidak konsisten. Workflow Auditee/Auditor terbaru memanggil `Jawaban_model` langsung, dan model tersebut juga memuat aturan state transition. | `application/controllers/Auditee.php`; `application/controllers/Auditor.php`; `application/models/Jawaban_model.php` |
-| **PROPOSED** | Versioning dokumen PPEPP, policy/capability layer, storage service, report read model, RTM, audit trail yang lebih lengkap, dan pemisahan controller/service/model/policy/storage/report adalah target implementasi, bukan current state. | `BUSINESS_REQUIREMENTS_SPMI_AMI_RTM.md`; `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, bagian execution rules, boundaries, M1–M11, Definition of Done, dan Security Release Gate |
+| **EXISTING** | M1/M2 menyediakan security, private file, immutable audit, organization scope, dan capability foundation. M3-01 menambahkan schema/read model versi dokumen SPMI; workflow persetujuan dan master turunannya belum dibuka. | `application/libraries/File_security.php`; `application/libraries/Authorization_policy.php`; `application/models/Spmi_version_model.php`; `migrations/012`–`017` |
+| **PROPOSED** | Workflow versioning PPEPP yang lengkap, report read model target, RTM, serta pemisahan controller/service/model/policy/storage/report lanjutan tetap menjadi target milestone berikutnya. | `BUSINESS_REQUIREMENTS_SPMI_AMI_RTM.md`; `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, bagian M3–M11, Definition of Done, dan Security Release Gate |
 | **TO VERIFY** | Schema dan data produksi, reachability route konvensional untuk controller duplikat dalam subfolder, definisi resmi skala skor, aturan finalisasi/revisi, struktur organisasi/ownership, retensi file, serta keputusan bisnis lain dalam decision register belum dibuktikan oleh source code. | `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, bagian assumptions/decision register dan milestone terkait; `application/config/routes.php` |
 
 ---
@@ -42,7 +43,7 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 - **EXISTING:** aplikasi memakai driver CodeIgniter `mysqli` dan Query Builder. README menyebut MySQL/MariaDB; Docker Compose memakai MySQL `8.0`. Sumber: `application/config/database.php`; `README.md`; `compose.yaml`.
 - **EXISTING:** binary database Laragon yang tersedia saat inspeksi adalah MySQL `8.4.3`; ini tidak membuktikan versi server/schema yang sedang dipakai aplikasi. Sumber observasi: `C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysql.exe --version`.
 - **EXISTING:** konfigurasi produksi dibuat fail-closed bila environment database wajib tidak tersedia, sedangkan lingkungan lokal mempunyai fallback development. Nilai credential tidak didokumentasikan di sini. Sumber: `application/config/database.php`.
-- **EXISTING:** migrasi CodeIgniter dinonaktifkan (`migration_enabled = FALSE`); repository menyediakan SQL manual bernomor `001`–`015`, termasuk dua file bernomor `009`. Sumber: `application/config/migration.php`; `migrations/`.
+- **EXISTING:** migrasi CodeIgniter dinonaktifkan (`migration_enabled = FALSE`); repository menyediakan SQL manual bernomor `001`–`017`, termasuk dua file bernomor `009`. Sumber: `application/config/migration.php`; `migrations/`.
 - **TO VERIFY:** versi migration yang benar-benar sudah diterapkan dan perbedaan schema produksi harus diperiksa read-only pada M0-02; keberadaan file SQL tidak membuktikan penerapan pada database tertentu. Sumber: `application/config/migration.php`; `migrations/`; `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, M0-02.
 
 ### Frontend dan asset
@@ -82,7 +83,7 @@ Dokumen ini disusun dari kode pada `application/`, schema dan SQL pada `database
 | `application/views/` | Views per modul dan templates/sidebar per role. | **EXISTING**; menu role adalah indikator UI, bukan enforcement authorization. |
 | `application/cache/sessions/` dan `application/logs/` | Session file dan application log default. | **EXISTING**; konfigurasi produksi memeriksa lokasi/permission. Sumber: `application/config/config.php`. |
 | `uploads/` | Legacy files di bawah document root dan logo profil publik. | **EXISTING**; direktori legacy tertentu dilindungi `.htaccess`, sedangkan `uploads/profil` memang dilayani sebagai URL publik. |
-| `migrations/` | SQL manual incremental `001`–`016`. | **EXISTING**; tidak dijalankan otomatis karena `application/config/migration.php`. |
+| `migrations/` | SQL manual incremental `001`–`017`. | **EXISTING**; tidak dijalankan otomatis karena `application/config/migration.php`. |
 | `database_schema.sql` | Baseline schema gabungan untuk instalasi saat ini. | **EXISTING** sebagai artefak repository; kesesuaian dengan production **TO VERIFY**. |
 | `database_dummy.sql` | Seed/demo data. | **EXISTING**; mengandung credential/demo record dan tidak boleh dipakai sebagai sumber credential produksi. |
 | `tests/` | Regression source/runtime dan harness HTTP/database smoke terisolasi. | **EXISTING**; policy, authentication, encoding, file security, ownership, evidence IDOR, final-state mutation, dan workflow utama tercakup; concurrency/visual/antivirus/production belum diuji. |
@@ -264,7 +265,17 @@ Sumber diagram: `application/controllers/Standar.php`; `application/services/Sta
 - **EXISTING:** standar dan pertanyaan adalah master mutable; delete bersifat hard delete. Foreign key schema dapat meneruskan penghapusan ke data turunannya. Sumber: `application/services/Standar_service.php::delete_standar()`; `application/services/Pertanyaan_service.php::delete_pertanyaan()`; `database_schema.sql`.
 - **EXISTING:** import pertanyaan menggunakan preview + token satu kali di session sebelum bulk insert dalam transaction. Sumber: `application/controllers/Pertanyaan.php::import()`, `::import_confirm()`, `::active_imports()`; `application/services/Pertanyaan_service.php::import_excel()` dan `::insert_bulk()`.
 - **EXISTING:** kolom target pertanyaan masih berupa field tahunan pada record pertanyaan saat ini, bukan versioned target entity. Sumber: `database_schema.sql` tabel `pertanyaan`; `application/models/Pertanyaan_model.php`.
-- **PROPOSED:** versioned SPMI document/standard/statement/indicator/target dan effective dating adalah model target. Sumber: `BUSINESS_REQUIREMENTS_SPMI_AMI_RTM.md`; `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, M3–M6.
+- **EXISTING M3-01:** `spmi_versions` sekarang menyimpan identity/revision,
+  organization unit, effective range, private source asset/path/SHA-256,
+  lifecycle actor provenance, single-active key, dan history guards.
+  `Spmi_version_model` hanya membuka read query per unit dan tanggal; mutation
+  sengaja belum tersedia. Sumber: `migrations/017_create_spmi_versions.sql`;
+  `database_schema.sql`; `application/models/Spmi_version_model.php`.
+- **PROPOSED M3-02–M6:** service/UI approval dan activation, versioned
+  standard/statement/indicator/target, serta cutover legacy masih target.
+  `standar` dan `pertanyaan` lama tetap mutable pada checkpoint ini. Sumber:
+  `BUSINESS_REQUIREMENTS_SPMI_AMI_RTM.md`;
+  `CODEX_IMPLEMENTATION_PLAN_SPMI_AMI_RTM.md`, M3–M6.
 
 ### 6.2 Periode, penugasan, dan pembentukan jawaban
 
@@ -689,7 +700,11 @@ capability + direct active unit scope tanpa parent/descendant inheritance.
 4. `application/services/Standar_service.php` dan `Pertanyaan_service.php`.
 5. `application/models/Standar_model.php` dan `Pertanyaan_model.php`.
 6. `database_schema.sql` tabel `standar`/`pertanyaan`; migrations `006`, kedua `009`, dan `010`.
-7. Views `application/views/standar/*`, `pertanyaan/*`, dan `lpmpi/instrumen/*`.
+7. Foundation M3-01:
+   `application/models/Spmi_version_model.php`,
+   `migrations/017_create_spmi_versions.sql`, dan policy `spmi_source` pada
+   `application/libraries/File_security.php`.
+8. Views `application/views/standar/*`, `pertanyaan/*`, dan `lpmpi/instrumen/*`.
 
 ### M7 — audit cycle, scope snapshot, dan assignment
 

@@ -338,6 +338,44 @@ function smoke_remove_tree($path, $expectedParent)
     @rmdir($resolvedPath);
 }
 
+function smoke_execute_sql_script(mysqli $connection, $sql)
+{
+    $delimiter = ';';
+    $buffer = '';
+    foreach (preg_split('/\R/', (string) $sql) as $line) {
+        if (preg_match('/^\s*--/', $line) === 1) {
+            continue;
+        }
+        if (preg_match('/^\s*DELIMITER\s+(\S+)\s*$/i', $line, $match) === 1) {
+            if (trim($buffer) !== '') {
+                throw new SmokeFailure(
+                    'Unexpected DELIMITER change inside an SQL statement.'
+                );
+            }
+            $delimiter = $match[1];
+            continue;
+        }
+
+        $buffer .= $line . "\n";
+        $trimmed = rtrim($buffer);
+        $delimiterLength = strlen($delimiter);
+        if ($delimiterLength < 1
+            || substr($trimmed, -$delimiterLength) !== $delimiter) {
+            continue;
+        }
+
+        $statement = trim(substr($trimmed, 0, -$delimiterLength));
+        $buffer = '';
+        if ($statement !== '') {
+            $connection->query($statement);
+        }
+    }
+
+    if (trim($buffer) !== '') {
+        throw new SmokeFailure('The SQL script ends with an incomplete statement.');
+    }
+}
+
 function smoke_load_schema(mysqli $connection, $schemaPath)
 {
     $schema = file_get_contents($schemaPath);
@@ -362,20 +400,7 @@ function smoke_load_schema(mysqli $connection, $schemaPath)
         'Schema isolation guard failed to remove database-selection statements.'
     );
 
-    if (!$connection->multi_query($schema)) {
-        throw new SmokeFailure('Unable to import the isolated smoke-test schema.');
-    }
-
-    do {
-        $result = $connection->store_result();
-        if ($result instanceof mysqli_result) {
-            $result->free();
-        }
-    } while ($connection->more_results() && $connection->next_result());
-
-    if ($connection->errno) {
-        throw new SmokeFailure('The isolated schema import did not complete.');
-    }
+    smoke_execute_sql_script($connection, $schema);
 }
 
 function smoke_insert_fixture_user(mysqli $connection, $name, $email, $password, $role, $unit = null)
@@ -725,6 +750,18 @@ function smoke_case($name, callable $test, array &$results)
     echo '[PASS] ' . $name . PHP_EOL;
 }
 
+function smoke_expect_database_rejection(callable $operation, $message)
+{
+    $rejected = FALSE;
+    try {
+        $operation();
+    } catch (mysqli_sql_exception $exception) {
+        $rejected = TRUE;
+    }
+
+    smoke_assert($rejected, $message);
+}
+
 $databaseConfig = $db['default'];
 $allowedHosts = ['localhost', '127.0.0.1', '::1'];
 $allowRemote = getenv('SMOKE_ALLOW_REMOTE_DB') === '1';
@@ -888,6 +925,273 @@ try {
             smoke_assert_contains($response->body, $user['name'], 'dashboard session identity');
         }, $results);
     }
+
+    smoke_case(
+        'SPMI versions enforce private source, one active revision, and immutable history',
+        function () use ($testConnection, $fixture, $tempRoot) {
+            $sourceDirectory = $tempRoot
+                . DIRECTORY_SEPARATOR
+                . 'private'
+                . DIRECTORY_SEPARATOR
+                . 'spmi_source';
+            if (!is_dir($sourceDirectory)
+                && !mkdir($sourceDirectory, 0700, TRUE)
+                && !is_dir($sourceDirectory)) {
+                throw new SmokeFailure('Unable to create private SPMI source directory.');
+            }
+
+            $storedNames = [
+                str_repeat('a', 48) . '.pdf',
+                str_repeat('b', 48) . '.pdf',
+            ];
+            $assetIds = [];
+            $hashes = [];
+            foreach ($storedNames as $index => $storedName) {
+                $body = "%PDF-1.4\n% M3-01 source " . ($index + 1)
+                    . "\n1 0 obj\n<<>>\nendobj\n%%EOF\n";
+                $path = $sourceDirectory . DIRECTORY_SEPARATOR . $storedName;
+                if (file_put_contents($path, $body) === FALSE) {
+                    throw new SmokeFailure('Unable to create private SPMI source fixture.');
+                }
+
+                $hashes[$index] = hash_file('sha256', $path);
+                $size = filesize($path);
+                smoke_assert(
+                    $hashes[$index] !== FALSE && $size !== FALSE,
+                    'SPMI source fixture checksum failed.'
+                );
+
+                $assetStatement = $testConnection->prepare(
+                    "INSERT INTO file_assets (
+                        category,
+                        owner_type,
+                        owner_id,
+                        storage_scope,
+                        stored_name,
+                        original_name,
+                        extension,
+                        mime_type,
+                        size_bytes,
+                        sha256,
+                        status,
+                        is_legacy,
+                        uploaded_by
+                    ) VALUES (
+                        'spmi_source',
+                        'spmi_version',
+                        NULL,
+                        'private',
+                        ?,
+                        'standar-spmi.pdf',
+                        'pdf',
+                        'application/pdf',
+                        ?,
+                        ?,
+                        'active',
+                        0,
+                        ?
+                    )"
+                );
+                $uploaderId = (int) $fixture['users']['super_admin']['id'];
+                $sourceHash = $hashes[$index];
+                $assetStatement->bind_param(
+                    'sisi',
+                    $storedName,
+                    $size,
+                    $sourceHash,
+                    $uploaderId
+                );
+                $assetStatement->execute();
+                $assetIds[$index] = (int) $testConnection->insert_id;
+                $assetStatement->close();
+            }
+
+            $rootUnit = smoke_db_row(
+                $testConnection,
+                "SELECT id FROM organization_units
+                 WHERE code = 'UNIVERSITY'
+                 LIMIT 1"
+            );
+            smoke_assert(!empty($rootUnit), 'University scope for SPMI version is missing.');
+
+            $insertVersion = function (
+                $revision,
+                $effectiveDate,
+                $expiresAt,
+                $assetIndex,
+                $status,
+                $includeApproval = TRUE
+            ) use (
+                $testConnection,
+                $fixture,
+                $rootUnit,
+                $storedNames,
+                $assetIds,
+                $hashes
+            ) {
+                $statement = $testConnection->prepare(
+                    'INSERT INTO spmi_versions (
+                        organization_unit_id,
+                        document_code,
+                        title,
+                        revision_number,
+                        effective_date,
+                        expires_at,
+                        source_file_asset_id,
+                        source_file_path,
+                        source_file_sha256,
+                        status,
+                        created_by,
+                        approved_by,
+                        approved_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                );
+
+                $unitId = (int) $rootUnit['id'];
+                $documentCode = 'SPMI-AMI';
+                $title = 'Dokumen SPMI AMI';
+                $assetId = (int) $assetIds[$assetIndex];
+                $sourcePath = 'spmi_source/' . $storedNames[$assetIndex];
+                $sourceHash = $hashes[$assetIndex];
+                $creatorId = (int) $fixture['users']['super_admin']['id'];
+                $hasApproval = $includeApproval
+                    && in_array(
+                        $status,
+                        ['approved', 'active', 'retired'],
+                        TRUE
+                    );
+                $approverId = $hasApproval ? $creatorId : NULL;
+                $approvedAt = $hasApproval
+                    ? '2026-07-25 10:00:00.000000'
+                    : NULL;
+
+                try {
+                    $statement->bind_param(
+                        'isssssisssiis',
+                        $unitId,
+                        $documentCode,
+                        $title,
+                        $revision,
+                        $effectiveDate,
+                        $expiresAt,
+                        $assetId,
+                        $sourcePath,
+                        $sourceHash,
+                        $status,
+                        $creatorId,
+                        $approverId,
+                        $approvedAt
+                    );
+                    $statement->execute();
+                    return (int) $testConnection->insert_id;
+                } finally {
+                    $statement->close();
+                }
+            };
+
+            smoke_expect_database_rejection(
+                function () use ($insertVersion) {
+                    $insertVersion(
+                        '0',
+                        '2026-07-25',
+                        NULL,
+                        0,
+                        'active',
+                        FALSE
+                    );
+                },
+                'An active SPMI version without approval provenance was accepted.'
+            );
+
+            $activeId = $insertVersion(
+                '1',
+                '2026-07-25',
+                NULL,
+                0,
+                'active'
+            );
+            smoke_assert($activeId > 0, 'Initial active SPMI version was not stored.');
+
+            $stored = smoke_db_row(
+                $testConnection,
+                'SELECT v.source_file_path, v.source_file_sha256,
+                        f.storage_scope, f.stored_name
+                 FROM spmi_versions v
+                 JOIN file_assets f ON f.id = v.source_file_asset_id
+                 WHERE v.id = ' . $activeId
+            );
+            smoke_assert(
+                $stored['storage_scope'] === 'private'
+                    && $stored['source_file_path']
+                        === 'spmi_source/' . $storedNames[0]
+                    && hash_equals($hashes[0], $stored['source_file_sha256']),
+                'SPMI version did not preserve private source provenance.'
+            );
+
+            smoke_expect_database_rejection(
+                function () use ($insertVersion) {
+                    $insertVersion('2', '2026-07-25', NULL, 1, 'active');
+                },
+                'Two active SPMI revisions were accepted for one unit/document.'
+            );
+            smoke_expect_database_rejection(
+                function () use ($insertVersion) {
+                    $insertVersion(
+                        '2',
+                        '2026-07-25',
+                        '2026-07-24',
+                        1,
+                        'draft'
+                    );
+                },
+                'An SPMI version with an invalid effective range was accepted.'
+            );
+            smoke_expect_database_rejection(
+                function () use ($testConnection, $activeId) {
+                    $testConnection->query(
+                        "UPDATE spmi_versions
+                         SET title = 'Changed active content'
+                         WHERE id = " . $activeId
+                    );
+                },
+                'Active SPMI content was directly editable.'
+            );
+            smoke_expect_database_rejection(
+                function () use ($testConnection, $activeId) {
+                    $testConnection->query(
+                        'DELETE FROM spmi_versions WHERE id = ' . $activeId
+                    );
+                },
+                'SPMI version history could be hard-deleted.'
+            );
+
+            $testConnection->query(
+                "UPDATE spmi_versions
+                 SET status = 'retired', expires_at = '2026-07-25'
+                 WHERE id = " . $activeId
+            );
+            $replacementId = $insertVersion(
+                '2',
+                '2026-07-26',
+                NULL,
+                1,
+                'active'
+            );
+            $activeCount = smoke_db_row(
+                $testConnection,
+                "SELECT COUNT(*) AS total
+                 FROM spmi_versions
+                 WHERE organization_unit_id = " . (int) $rootUnit['id']
+                    . " AND document_code = 'SPMI-AMI'
+                       AND status = 'active'"
+            );
+            smoke_assert(
+                $replacementId > 0 && (int) $activeCount['total'] === 1,
+                'Retirement did not free exactly one active version slot.'
+            );
+        },
+        $results
+    );
 
     $sessionClient = new SmokeHttpClient($baseUrl);
     $clients[] = $sessionClient;

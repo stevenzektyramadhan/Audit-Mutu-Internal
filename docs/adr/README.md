@@ -18,7 +18,7 @@ Keterangan `implementation pending` berarti keputusan telah diterima, tetapi kon
 | ADR | Keputusan | Status |
 |---|---|---|
 | [0001](0001-service-layer-boundary.md) | Batas controller, service, policy, model, storage, dan report | Accepted — implementation pending |
-| [0002](0002-spmi-versioning.md) | Versioning dan masa berlaku dokumen SPMI | Accepted — implementation pending |
+| [0002](0002-spmi-versioning.md) | Versioning dan masa berlaku dokumen SPMI | Accepted — M3-01 foundation implemented; workflow pending |
 | [0003](0003-audit-snapshot.md) | Snapshot data acuan ketika penugasan audit dibuat | Accepted — implementation pending |
 | [0004](0004-private-file-storage.md) | Penyimpanan file privat dan akses terotorisasi | Accepted — implementation pending |
 | [0005](0005-role-and-scope-authorization.md) | Otorisasi berdasarkan capability, role, dan scope objek | Accepted — implementation pending |

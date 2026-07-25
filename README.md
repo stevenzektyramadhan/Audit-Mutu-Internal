@@ -179,6 +179,10 @@ Matriks role-capability M2-03, pemetaan controller, direct organization scope,
 dan deny-default RTM/follow-up tersedia di
 `docs/milestones/M2-03-role-capability-matrix.md`.
 
+Fondasi versi dokumen SPMI M3-01, private source PDF, checksum, single-active
+constraint, immutability, dan prosedur migration tersedia di
+`docs/milestones/M3-01-spmi-version-foundation.md`.
+
 File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara disimpan di private storage dan hanya diunduh melalui endpoint dengan pemeriksaan role/ownership. Logo profil tetap publik di `uploads/profil`. Production tidak membaca file sensitif dari `uploads/<kategori>`; pindahkan file legacy dengan dry-run `php scripts/migrate_private_storage.php`, lalu `--apply` setelah backup dan review.
 
 ### Database dan Upgrade Manual
@@ -195,13 +199,16 @@ mysql -u <user> -p <database> < migrations/013_file_security_foundation.sql
 mysql -u <user> -p <database> < migrations/014_immutable_security_audit_log.sql
 mysql -u <user> -p <database> < migrations/015_create_organization_units.sql
 mysql -u <user> -p <database> < migrations/016_create_user_unit_assignments.sql
+mysql -u <user> -p <database> < migrations/017_create_spmi_versions.sql
 ```
 
-Migration `010`–`016` idempotent dan aman dijalankan ulang. Migration `012` wajib diterapkan sebelum code M1-03: migration ini menambahkan status akun, versi pencabutan session, metadata login/password, dan security event autentikasi tanpa email/IP mentah. Migration `013` wajib diterapkan sebelum code M1-06 agar metadata/checksum, event file, dan retention tersedia. Migration `014` wajib diterapkan sebelum code M1-08 agar ledger, hash-chain state, serta trigger penolak update/delete tersedia. Migration `015` wajib diterapkan sebelum membuka UI M2-01 agar master hierarki dan seed universitas root tersedia. Migration `016` wajib diterapkan sebelum membuka UI M2-02 agar assignment unit/jabatan dan histori periodenya tersedia. Existing session akan diminta login ulang setelah deployment. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, unit organisasi, assignment user, upload/download sesuai role, import pertanyaan, laporan, dan `php index.php maintenance verify_audit_log` sebelum membuka traffic. Rollback aplikasi harus mempertahankan database, ledger, master organisasi, assignment historis, dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
+Migration `010`–`017` idempotent dan aman dijalankan ulang. Migration `012` wajib diterapkan sebelum code M1-03: migration ini menambahkan status akun, versi pencabutan session, metadata login/password, dan security event autentikasi tanpa email/IP mentah. Migration `013` wajib diterapkan sebelum code M1-06 agar metadata/checksum, event file, dan retention tersedia. Migration `014` wajib diterapkan sebelum code M1-08 agar ledger, hash-chain state, serta trigger penolak update/delete tersedia. Migration `015` wajib diterapkan sebelum membuka UI M2-01 agar master hierarki dan seed universitas root tersedia. Migration `016` wajib diterapkan sebelum membuka UI M2-02 agar assignment unit/jabatan dan histori periodenya tersedia. Migration `017` wajib tersedia sebelum workflow M3-02 dibuka; migration ini menambahkan identitas/revisi versi SPMI, organization scope, private source provenance, single-active constraint, serta history guards tanpa memigrasikan master legacy. Existing session akan diminta login ulang setelah deployment. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, unit organisasi, assignment user, version constraint, upload/download sesuai role, import pertanyaan, laporan, dan `php index.php maintenance verify_audit_log` sebelum membuka traffic. Rollback aplikasi harus mempertahankan database, ledger, master organisasi, assignment historis, versi SPMI, dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
 
 Untuk database Laragon lokal yang sudah dikonfigurasi, migration 013 dapat diterapkan dengan `php scripts/database/apply_local_m1_06.php`. Runner ini menolak mode production dan host database non-local; production tetap memakai prosedur DBA/deployment.
 
 Migration 014 lokal dapat diterapkan dan diverifikasi dengan `php scripts/database/apply_local_m1_08.php`. Runner memeriksa kedua tabel dan trigger append-only; production tetap memakai prosedur DBA/deployment.
+
+Migration 017 lokal dapat diterapkan dan diverifikasi dengan `php scripts/database/apply_local_m3_01.php`. Runner menolak production/non-local host dan memeriksa kolom, index, foreign key, serta trigger histori; production tetap memakai prosedur DBA/deployment.
 
 Konfigurasi web server wajib memaksa HTTPS, menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, serta private storage, dan menonaktifkan directory listing. Aplikasi mengirim HSTS hanya saat request production dikenali sebagai HTTPS; reverse proxy wajib menormalisasi koneksi tepercaya menjadi `HTTPS=on` atau port 443 dan tidak boleh meneruskan forwarded header mentah dari client. Pantau kapasitas disk serta rotasi log. Error detail hanya masuk log private; browser produksi tidak menampilkan error PHP atau debug database.
 

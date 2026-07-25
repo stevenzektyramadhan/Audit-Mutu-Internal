@@ -12,6 +12,11 @@ class File_security
     private $CI;
 
     private $policies = [
+        'spmi_source' => [
+            'extensions' => ['pdf'],
+            'max_bytes' => 20971520,
+            'scope' => 'private',
+        ],
         'instrumen' => [
             'extensions' => ['pdf', 'docx', 'xlsx', 'png', 'jpg', 'jpeg'],
             'max_bytes' => 5242880,

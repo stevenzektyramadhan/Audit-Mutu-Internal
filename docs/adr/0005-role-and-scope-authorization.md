@@ -105,6 +105,9 @@ M2-03 mengganti capability coarse dengan matriks per domain/aksi, memetakan
 controller, menambahkan scope mode serta guard capability + unit, dan
 menetapkan direct membership tanpa parent/descendant inheritance. RTM,
 follow-up, finalizer, dan entity legacy tanpa unit ID tetap deny atau
-institution-wide sesuai boundary terdokumentasi. Tinjau kembali ketika entity
-M3 mulai menyimpan organization unit, setelah keputusan BIZ-008–BIZ-010, atau
-bila identity provider eksternal mengubah identitas dan claim.
+institution-wide sesuai boundary terdokumentasi. M3-01 kemudian menjadikan
+`spmi_versions.organization_unit_id` sebagai scope stabil pertama pada target
+domain; endpoint M3-02 wajib menggabungkan `spmi.version.manage` dengan guard
+unit tersebut. Tinjau kembali setelah keputusan BIZ-008–BIZ-010, ketika
+hierarchical scope disetujui, atau bila identity provider eksternal mengubah
+identitas dan claim.
