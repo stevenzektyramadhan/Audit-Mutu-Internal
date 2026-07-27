@@ -147,7 +147,7 @@ class Profil extends MY_Controller
             $result = $service->fetch_all($nama_pt, $id_pt);
         } catch (Exception $exception) {
             log_message('error', 'Sinkronisasi PDDikti gagal untuk user ' . $this->_user_id() . ': ' . $exception->getMessage());
-            $this->session->set_flashdata('error', 'Sinkronisasi PDDikti gagal. Coba lagi nanti.');
+            $this->session->set_flashdata('error', $this->pddikti_sync_error_message($exception));
             redirect('profil');
             return;
         }
@@ -361,6 +361,29 @@ class Profil extends MY_Controller
     private function can_manage()
     {
         return in_array($this->session->userdata('role'), ['super_admin', 'admin_lpmpi'], TRUE);
+    }
+
+    private function pddikti_sync_error_message(Exception $exception)
+    {
+        require_once APPPATH . 'services/Pddikti_service.php';
+
+        if (in_array($exception->getCode(), [
+            Pddikti_service::ERROR_SOURCE_UNAVAILABLE,
+            Pddikti_service::ERROR_RATE_LIMITED,
+            Pddikti_service::ERROR_TRANSPORT,
+        ], TRUE)) {
+            return 'Layanan PDDikti sedang sibuk atau tidak tersedia. Data profil lokal tetap dipertahankan. Coba lagi beberapa saat.';
+        }
+
+        if ($exception->getCode() === Pddikti_service::ERROR_NOT_FOUND) {
+            return 'Data perguruan tinggi tidak ditemukan di PDDikti. Periksa nama PT atau ID PT.';
+        }
+
+        if ($exception->getCode() === Pddikti_service::ERROR_INVALID_RESPONSE) {
+            return 'Respons PDDikti tidak valid. Coba lagi nanti.';
+        }
+
+        return 'Sinkronisasi PDDikti gagal. Coba lagi nanti.';
     }
 
     private function logo_upload_dir()

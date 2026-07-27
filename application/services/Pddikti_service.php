@@ -3,11 +3,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Pddikti_service
 {
+    const ERROR_SOURCE_UNAVAILABLE = 1001;
+    const ERROR_NOT_FOUND = 1002;
+    const ERROR_RATE_LIMITED = 1003;
+    const ERROR_CLIENT_ERROR = 1004;
+    const ERROR_SERVER_ERROR = 1005;
+    const ERROR_TRANSPORT = 1006;
+    const ERROR_INVALID_RESPONSE = 1007;
+
     private $base_urls = [
         'https://pddikti.rone.dev/api',
         'https://pddikti.fastapicloud.dev/api',
     ];
     private $active_base_url = 'https://pddikti.rone.dev/api';
+
+    public function __construct()
+    {
+        $this->base_urls = $this->configured_base_urls();
+        $this->active_base_url = $this->base_urls[0];
+    }
 
     public function fetch_all($nama_pt, $id_pt = NULL)
     {
@@ -17,7 +31,7 @@ class Pddikti_service
         $warnings = [];
 
         if ($nama_pt === '') {
-            throw new Exception('Nama PT untuk sinkronisasi PDDikti wajib diisi.');
+            throw $this->failure('Nama PT untuk sinkronisasi PDDikti wajib diisi.', 'client_error');
         }
 
         if ($id_pt === '') {
@@ -102,7 +116,7 @@ class Pddikti_service
         $records = $this->as_records($this->unwrap_payload($payload));
 
         if (empty($records)) {
-            throw new Exception('Data perguruan tinggi tidak ditemukan di PDDikti.');
+            throw $this->failure('Data perguruan tinggi tidak ditemukan di PDDikti.', 'not_found');
         }
 
         $fallback = NULL;
@@ -126,7 +140,7 @@ class Pddikti_service
             return $fallback;
         }
 
-        throw new Exception('ID perguruan tinggi tidak ditemukan pada response PDDikti.');
+        throw $this->failure('ID perguruan tinggi tidak ditemukan pada response PDDikti.', 'invalid_response');
     }
 
     public function get_detail_pt($id_pt)
@@ -161,6 +175,7 @@ class Pddikti_service
     {
         $attempts = 3;
         $last_message = '';
+        $last_code = self::ERROR_SOURCE_UNAVAILABLE;
 
         foreach ($this->base_urls_for_request() as $base_url) {
             $url = $base_url . $endpoint;
@@ -170,6 +185,7 @@ class Pddikti_service
                     $response = $this->request($url);
                 } catch (Exception $exception) {
                     $last_message = $exception->getMessage();
+                    $last_code = $exception->getCode() ?: self::ERROR_TRANSPORT;
                     if ($attempt < $attempts) {
                         sleep($attempt);
                         continue;
@@ -181,23 +197,24 @@ class Pddikti_service
                 $body = $response['body'];
                 $status = (int) $response['status'];
 
-                if (($status >= 500 || $status === 429) && $attempt < $attempts) {
+                if (($status >= 500 || $status === 429 || $status === 408) && $attempt < $attempts) {
                     sleep($attempt);
                     continue;
                 }
 
-                if ($status >= 500 || $status === 429) {
+                if ($status >= 500 || $status === 429 || $status === 408) {
                     $last_message = $this->http_error_message($status, $endpoint, $base_url);
+                    $last_code = $this->code_for_http_status($status);
                     break;
                 }
 
                 if ($status >= 400) {
-                    throw new Exception($this->http_error_message($status, $endpoint, $base_url));
+                    throw $this->failure($this->http_error_message($status, $endpoint, $base_url), $this->classification_for_http_status($status));
                 }
 
                 $decoded = json_decode($body, TRUE);
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    throw new Exception('Response PDDikti tidak valid JSON.');
+                    throw $this->failure('Response PDDikti tidak valid JSON.', 'invalid_response');
                 }
 
                 $this->active_base_url = $base_url;
@@ -205,7 +222,7 @@ class Pddikti_service
             }
         }
 
-        throw new Exception($last_message !== '' ? $last_message : 'Gagal mengambil data dari PDDikti.');
+        throw new Exception($last_message !== '' ? $last_message : 'Gagal mengambil data dari PDDikti.', $last_code);
     }
 
     private function request($url)
@@ -228,7 +245,7 @@ class Pddikti_service
             curl_close($ch);
 
             if ($body === FALSE) {
-                throw new Exception('Gagal menghubungi PDDikti: ' . ($error ?: 'koneksi gagal.'));
+                throw $this->failure('Gagal menghubungi PDDikti: ' . ($error ?: 'koneksi gagal.'), 'transport');
             }
         } else {
             $context = stream_context_create([
@@ -243,7 +260,7 @@ class Pddikti_service
             }
 
             if ($body === FALSE) {
-                throw new Exception('Gagal menghubungi PDDikti. Ekstensi cURL tidak tersedia.');
+                throw $this->failure('Gagal menghubungi PDDikti. Ekstensi cURL tidak tersedia.', 'transport');
             }
         }
 
@@ -274,6 +291,71 @@ class Pddikti_service
         }
 
         return $urls;
+    }
+
+    private function configured_base_urls()
+    {
+        $urls = [];
+        $env = getenv('PDDIKTI_BASE_URLS');
+        if ($env !== FALSE && trim((string) $env) !== '') {
+            foreach (explode(',', (string) $env) as $base_url) {
+                $base_url = rtrim(trim($base_url), '/');
+                if ($base_url !== '' && !in_array($base_url, $urls, TRUE)) {
+                    $urls[] = $base_url;
+                }
+            }
+        }
+
+        return !empty($urls) ? $urls : [
+            'https://pddikti.rone.dev/api',
+            'https://pddikti.fastapicloud.dev/api',
+        ];
+    }
+
+    private function classification_for_http_status($status)
+    {
+        $status = (int) $status;
+        if ($status === 503 || $status === 408) {
+            return 'source_unavailable';
+        }
+        if ($status === 404) {
+            return 'not_found';
+        }
+        if ($status === 429) {
+            return 'rate_limited';
+        }
+        if ($status >= 400 && $status < 500) {
+            return 'client_error';
+        }
+        if ($status >= 500) {
+            return 'server_error';
+        }
+        return 'transport';
+    }
+
+    private function code_for_http_status($status)
+    {
+        return $this->code_for_classification($this->classification_for_http_status($status));
+    }
+
+    private function failure($message, $classification)
+    {
+        return new Exception($message, $this->code_for_classification($classification));
+    }
+
+    private function code_for_classification($classification)
+    {
+        $map = [
+            'source_unavailable' => self::ERROR_SOURCE_UNAVAILABLE,
+            'not_found' => self::ERROR_NOT_FOUND,
+            'rate_limited' => self::ERROR_RATE_LIMITED,
+            'client_error' => self::ERROR_CLIENT_ERROR,
+            'server_error' => self::ERROR_SERVER_ERROR,
+            'transport' => self::ERROR_TRANSPORT,
+            'invalid_response' => self::ERROR_INVALID_RESPONSE,
+        ];
+
+        return isset($map[$classification]) ? $map[$classification] : self::ERROR_SOURCE_UNAVAILABLE;
     }
 
     private function map_detail_pt($detail, $id_pt, $nama_pt, $rasio_payload, $search_record = [])
@@ -515,7 +597,7 @@ class Pddikti_service
             return $id;
         }
 
-        throw new Exception('ID perguruan tinggi tidak ditemukan pada response PDDikti.');
+        throw $this->failure('ID perguruan tinggi tidak ditemukan pada response PDDikti.', 'invalid_response');
     }
 
     private function parse_date($value)
