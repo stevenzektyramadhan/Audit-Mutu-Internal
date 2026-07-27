@@ -194,7 +194,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
         }
 
         .ami-nav {
-            padding: 12px 0;
+            padding: var(--ami-space-sm) 0 var(--ami-space-md);
             flex: 1;
         }
 
@@ -204,29 +204,41 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             font-weight: 700;
             letter-spacing: .08em;
             text-transform: uppercase;
-            padding: 8px 18px 6px;
+            padding: var(--ami-space-md) 18px 6px;
+        }
+
+        .ami-nav-label:first-child {
+            padding-top: var(--ami-space-sm);
         }
 
         .ami-nav-link {
-            min-height: 40px;
+            min-height: 44px;
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 9px 18px;
             color: rgba(255, 255, 255, 0.68);
             border-left: 3px solid transparent;
-            transition: background .12s ease, color .12s ease, border-color .12s ease;
+            transition: background .12s ease, color .12s ease, border-color .12s ease, box-shadow .12s ease;
         }
 
-        .ami-nav-link:hover {
-            background: rgba(255, 255, 255, 0.055);
+        .ami-nav-link:hover,
+        .ami-nav-link:focus {
+            background: var(--ami-sidebar-soft);
             color: #ffffff;
+            outline: 0;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
         }
 
         .ami-nav-link.active {
-            background: rgba(24, 95, 165, 0.33);
+            background: var(--ami-link-soft);
             color: #ffffff;
-            border-left-color: #4da3ff;
+            border-left-color: var(--ami-link);
+            box-shadow: inset 0 0 18px rgba(77, 163, 255, 0.08);
+        }
+
+        .ami-nav-link.active:focus {
+            box-shadow: inset 0 0 0 1px var(--ami-link), inset 0 0 18px rgba(77, 163, 255, 0.08);
         }
 
         .ami-nav-link i {
@@ -238,9 +250,9 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
         .ami-nav-badge {
             margin-left: auto;
             min-width: 22px;
-            height: 20px;
+            height: 22px;
             border-radius: 999px;
-            background: var(--ami-blue);
+            background: var(--ami-link);
             color: #ffffff;
             display: inline-flex;
             align-items: center;
@@ -251,8 +263,13 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
         }
 
         .ami-logout {
-            padding: 12px 18px;
+            padding: var(--ami-space-md) 18px var(--ami-space-lg);
             border-top: 1px solid var(--ami-sidebar-soft);
+        }
+
+        .ami-logout .ami-nav-link {
+            padding-left: 0;
+            padding-right: 0;
         }
 
         .ami-main {
@@ -1093,6 +1110,22 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
                 transform: translateX(-100%);
                 transition: transform .22s ease;
                 box-shadow: 14px 0 32px rgba(0, 0, 0, 0.35);
+            }
+
+            .ami-sidebar .ami-nav {
+                padding-top: var(--ami-space-md);
+            }
+
+            .ami-sidebar .ami-nav-label {
+                padding-top: var(--ami-space-lg);
+            }
+
+            .ami-sidebar .ami-nav-label:first-child {
+                padding-top: var(--ami-space-sm);
+            }
+
+            .ami-sidebar .ami-logout {
+                padding-bottom: calc(var(--ami-space-lg) + env(safe-area-inset-bottom));
             }
 
             .ami-app.sidebar-open .ami-sidebar {
