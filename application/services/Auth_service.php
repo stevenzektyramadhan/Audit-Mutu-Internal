@@ -28,7 +28,7 @@ class Auth_service
         $session_data = [
             'user_id' => $user->id,
             'nama' => $user->nama,
-            'profile_photo_path' => $user->profile_photo_path,
+            'profile_photo_path' => $user->profile_photo_path ?? NULL,
             'email' => $user->email,
             'role' => $user->role,
             'logged_in' => TRUE,
