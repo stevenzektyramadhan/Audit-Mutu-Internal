@@ -58,7 +58,7 @@ check(strpos($service, "'previous_profile_photo_path' => \$account->profile_phot
 check(strpos($routes, "\$route['account'] = 'Account/index';") !== FALSE && strpos($routes, "\$route['account/photo'] = 'Account/photo';") !== FALSE, 'Semua route akun eksplisit wajib ada.');
 check(strpos($sidebar, "'key' => 'account'") !== FALSE, 'Navigasi semua role harus memuat Akun Saya.');
 check(substr_count($sidebar, "'key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Settings'") === 2, 'Profil Lembaga hanya boleh berada pada Settings dua role manajemen.');
-check(strpos($helper, "'user_photos'") !== FALSE && strpos($helper, "if (\$category === 'user_photos')") !== FALSE, 'Foto akun tidak boleh punya fallback publik legacy.');
+check(strpos($helper, "'user_photos'") !== FALSE && strpos($helper, "if (in_array(\$category, ['user_photos', 'spmi_source']") !== FALSE, 'Foto akun dan SPMI source tidak boleh punya fallback publik legacy.');
 check(strpos($schema, '`profile_photo_path` VARCHAR(255) NULL') !== FALSE, 'Baseline schema harus memiliki kolom foto profil.');
 check(strpos($migration, 'INFORMATION_SCHEMA.COLUMNS') !== FALSE && strpos($migration, 'profile_photo_path') !== FALSE, 'Migration 011 harus idempotent.');
 

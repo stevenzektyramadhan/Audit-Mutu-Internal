@@ -1,0 +1,74 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Spmi_reports_model extends CI_Model
+{
+    public function reports()
+    {
+        return $this->db->order_by('generated_at', 'DESC')->order_by('id', 'DESC')->get('spmi_reports')->result();
+    }
+
+    public function finalized_assessments()
+    {
+        return $this->db->select('aa.id, c.cycle_code, c.title AS cycle_title, a.auditee_name, aa.finalized_at')
+            ->from('spmi_auditor_assessments aa')->join('spmi_audit_assignments a', 'a.id = aa.assignment_id')
+            ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')->join('spmi_reports r', 'r.assessment_id = aa.id', 'left')
+            ->where('aa.status', 'finalized')->where('r.id IS NULL', NULL, FALSE)
+            ->where_in('c.state', ['configured', 'closed'])->order_by('aa.finalized_at', 'DESC')->get()->result();
+    }
+
+    public function report_by_id($id)
+    {
+        return $this->db->where('id', (int) $id)->get('spmi_reports')->row();
+    }
+
+    public function report_items($report_id)
+    {
+        return $this->db->where('report_id', (int) $report_id)->order_by('display_order', 'ASC')->get('spmi_report_items')->result();
+    }
+
+    public function report_for_assessment_for_update($assessment_id)
+    {
+        return $this->db->query('SELECT * FROM spmi_reports WHERE assessment_id = ? FOR UPDATE', [(int) $assessment_id])->row();
+    }
+
+    public function assessment_for_update($assessment_id)
+    {
+        return $this->db->query('SELECT aa.*, a.cycle_id, a.source_version_code, a.source_version_title, a.source_standard_code, a.source_standard_title, a.source_package_code, a.source_package_title, a.auditor_name, a.auditee_name, c.cycle_code, c.title AS cycle_title, c.start_date AS cycle_start_date, c.end_date AS cycle_end_date FROM spmi_auditor_assessments aa JOIN spmi_audit_assignments a ON a.id = aa.assignment_id JOIN spmi_audit_cycles c ON c.id = a.cycle_id WHERE aa.id = ? FOR UPDATE', [(int) $assessment_id])->row();
+    }
+
+    public function cycle_for_update($cycle_id)
+    {
+        return $this->db->query('SELECT * FROM spmi_audit_cycles WHERE id = ? FOR UPDATE', [(int) $cycle_id])->row();
+    }
+
+    public function submission_for_update($assignment_id)
+    {
+        return $this->db->query('SELECT * FROM spmi_auditee_submissions WHERE assignment_id = ? AND status = ? FOR UPDATE', [(int) $assignment_id, 'submitted'])->row();
+    }
+
+    public function assessment_items_for_update($assessment_id)
+    {
+        return $this->db->query('SELECT ai.*, i.display_order, i.question_code, i.question_text, i.indicator_code, i.indicator_title FROM spmi_auditor_assessment_items ai JOIN spmi_audit_assignment_items i ON i.id = ai.assignment_item_id WHERE ai.assessment_id = ? ORDER BY i.display_order ASC FOR UPDATE', [(int) $assessment_id])->result();
+    }
+
+    public function assignment_items_count($assignment_id)
+    {
+        return (int) $this->db->where('assignment_id', (int) $assignment_id)->count_all_results('spmi_audit_assignment_items');
+    }
+
+    public function rubric($assignment_item_id, $score)
+    {
+        return $this->db->where(['assignment_item_id' => (int) $assignment_item_id, 'score' => (int) $score])->get('spmi_audit_assignment_item_rubrics')->row();
+    }
+
+    public function insert_report($data)
+    {
+        return $this->db->insert('spmi_reports', $data) ? (int) $this->db->insert_id() : 0;
+    }
+
+    public function insert_item($data)
+    {
+        return $this->db->insert('spmi_report_items', $data);
+    }
+}

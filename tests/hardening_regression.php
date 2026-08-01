@@ -64,7 +64,7 @@ check(strpos($migration, 'INFORMATION_SCHEMA.COLUMNS') !== FALSE, 'Migration 010
 check(substr_count($migration, "CALL `ami_add_pertanyaan_column`") === 10, 'Migration 010 harus merekonsiliasi sepuluh kolom.');
 
 $helper = source($root, 'application/helpers/app_helper.php');
-check(strpos($helper, "['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos']") !== FALSE, 'Resolver harus membatasi kategori private.');
+check(strpos($helper, "['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos', 'spmi_source']") !== FALSE, 'Resolver harus membatasi kategori private.');
 check(strpos($helper, 'basename($stored_name) !== $stored_name') !== FALSE, 'Resolver harus menolak path traversal.');
 check(strpos($helper, "FCPATH . 'uploads'") !== FALSE, 'Resolver harus mempertahankan fallback file lama.');
 check(strpos(source($root, 'application/views/lpmpi/instrumen/index.php'), "base_url('uploads/instrumen/") === FALSE, 'View instrumen tidak boleh mengekspos URL private.');

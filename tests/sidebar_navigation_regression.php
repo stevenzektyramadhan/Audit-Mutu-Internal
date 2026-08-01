@@ -24,6 +24,7 @@ $header = source($root, 'application/views/layouts/header.php');
 $menus = [
     'super_admin' => [
         ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-tachometer-alt', 'url' => 'dashboard'],
+        ['key' => 'spmi_workspace', 'label' => 'Workspace SPMI', 'icon' => 'fa-laptop-house', 'url' => 'auditee/spmi'],
         ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account'],
         ['key' => 'periode', 'label' => 'Periode Audit', 'icon' => 'fa-calendar-alt', 'url' => 'periode'],
         ['key' => 'users', 'label' => 'Data Pengguna', 'icon' => 'fa-users', 'url' => 'users'],
@@ -80,8 +81,19 @@ foreach ($menus as $role => $entries) {
 }
 
 check(substr_count($sidebar, "'group' => 'Settings'") === 6, 'Settings group must cover all account and management profile entries.');
-check(substr_count($sidebar, "'group' => 'Management'") === 9, 'Management group count changed.');
-check(substr_count($sidebar, "'group' => 'Insights'") === 4, 'Insights group count changed.');
+check(substr_count($sidebar, "'key' => 'spmi_workspace', 'label' => 'Workspace SPMI', 'icon' => 'fa-laptop-house', 'url' => 'auditee/spmi', 'group' => 'Work'") === 1, 'SPMI workspace menu must be auditee-only.');
+check(substr_count($sidebar, "'group' => 'Management'") === 21, 'Management group count changed.');
+check(substr_count($sidebar, "'key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization'") === 2, 'Organization menu must be shared by management roles.');
+check(substr_count($sidebar, "'key' => 'spmi_indicators', 'label' => 'Indikator SPMI', 'icon' => 'fa-chart-line', 'url' => 'lpmpi/spmi-indicators', 'group' => 'Management'") === 2, 'SPMI indicator menu must be shared by two management roles.');
+check(substr_count($sidebar, "'key' => 'spmi_master', 'label' => 'Import/Export Master SPMI', 'icon' => 'fa-file-excel', 'url' => 'lpmpi/spmi-master', 'group' => 'Management'") === 2, 'SPMI master menu must be shared by two management roles.');
+check(substr_count($sidebar, "'key' => 'spmi_instruments', 'label' => 'Instrumen Audit SPMI', 'icon' => 'fa-clipboard-check', 'url' => 'lpmpi/spmi-instruments', 'group' => 'Management'") === 2, 'SPMI instrument menu must be shared by two management roles.');
+check(substr_count($sidebar, "'group' => 'Insights'") === 16, 'Insights group count changed.');
+check(substr_count($sidebar, "'key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Insights'") === 2, 'Management SPMI dashboard menu must appear twice.');
+check(substr_count($sidebar, "'key' => 'spmi_auditor_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'auditor/spmi-dashboard', 'group' => 'Overview'") === 1, 'Auditor SPMI dashboard menu must appear once.');
+check(substr_count($sidebar, "'key' => 'spmi_auditee_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'auditee/spmi-dashboard', 'group' => 'Overview'") === 1, 'Auditee SPMI dashboard menu must appear once.');
+check(substr_count($sidebar, "'key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'") === 2, 'RTM SPMI menu must be shared by management roles.');
+check(substr_count($sidebar, "'key' => 'spmi_ppepp_recap', 'label' => 'Rekap PPEPP SPMI', 'icon' => 'fa-project-diagram', 'url' => 'lpmpi/spmi-recap', 'group' => 'Insights'") === 2, 'PPEPP recap menu must be shared by management roles.');
+check(substr_count($sidebar, "'key' => 'legacy_ami_archive', 'label' => 'Arsip AMI Legacy', 'icon' => 'fa-archive', 'url' => 'lpmpi/legacy-ami-archive', 'group' => 'Insights'") === 2, 'Legacy AMI archive menu must be management-only.');
 check(strpos($sidebar, "'group' => 'Pengaturan'") === FALSE && strpos($sidebar, "'Pengaturan'") === FALSE, 'Pengaturan group literal must be removed.');
 check(strpos($sidebar, '$active_menu === $menu[\'key\']') !== FALSE, 'Active menu comparison must remain exact.');
 check(strpos($sidebar, "isset(" . '$menu_badges[$menu[\'key\']]' . ") && (int) " . '$menu_badges[$menu[\'key\']]' . " > 0") !== FALSE, 'Badges must remain positive-only.');

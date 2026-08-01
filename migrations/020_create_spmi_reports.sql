@@ -1,0 +1,42 @@
+CREATE TABLE IF NOT EXISTS `spmi_reports` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `assessment_id` INT NOT NULL,
+    `report_number` VARCHAR(128) NOT NULL,
+    `cycle_code_snapshot` VARCHAR(64) NOT NULL,
+    `cycle_title_snapshot` VARCHAR(200) NOT NULL,
+    `cycle_start_date_snapshot` DATE NOT NULL,
+    `cycle_end_date_snapshot` DATE NOT NULL,
+    `source_version_code_snapshot` VARCHAR(64) NOT NULL,
+    `source_version_title_snapshot` VARCHAR(200) NOT NULL,
+    `source_standard_code_snapshot` VARCHAR(64) NOT NULL,
+    `source_standard_title_snapshot` VARCHAR(200) NOT NULL,
+    `source_package_code_snapshot` VARCHAR(64) NOT NULL,
+    `source_package_title_snapshot` VARCHAR(200) NOT NULL,
+    `auditor_name_snapshot` VARCHAR(200) NOT NULL,
+    `auditee_name_snapshot` VARCHAR(200) NOT NULL,
+    `assessment_finalized_at_snapshot` DATETIME NOT NULL,
+    `generated_by` INT NOT NULL,
+    `generated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_spmi_reports_assessment` (`assessment_id`),
+    UNIQUE KEY `uq_spmi_reports_report_number` (`report_number`),
+    CONSTRAINT `fk_spmi_reports_assessment` FOREIGN KEY (`assessment_id`) REFERENCES `spmi_auditor_assessments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `fk_spmi_reports_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `spmi_report_items` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `report_id` INT NOT NULL,
+    `display_order` INT NOT NULL,
+    `question_code_snapshot` VARCHAR(64) NOT NULL,
+    `question_text_snapshot` TEXT NOT NULL,
+    `indicator_code_snapshot` VARCHAR(64) NOT NULL,
+    `indicator_title_snapshot` VARCHAR(200) NOT NULL,
+    `realization_snapshot` TEXT NOT NULL,
+    `score` TINYINT UNSIGNED NOT NULL,
+    `descriptor_snapshot` TEXT NOT NULL,
+    `finding_snapshot` TEXT NULL,
+    `recommendation_snapshot` TEXT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_spmi_report_items_order` (`report_id`, `display_order`),
+    CONSTRAINT `fk_spmi_report_items_report` FOREIGN KEY (`report_id`) REFERENCES `spmi_reports` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
