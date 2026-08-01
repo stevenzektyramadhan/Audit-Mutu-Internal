@@ -152,7 +152,7 @@ CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw S
 mysql -u <user> -p <database> < migrations/010_reconcile_pertanyaan_columns.sql
 ```
 
-Migration `010` idempotent dan aman dijalankan ulang. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
+Migration `010` idempotent dan aman dijalankan ulang. Untuk release M16, jalankan `migrations/024_create_audit_logs.sql` setelah backup agar audit log append-only tersedia. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
 
 Konfigurasi web server wajib menerapkan HTTPS dan HSTS, menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, serta private storage, dan menonaktifkan directory listing. Pantau kapasitas disk serta rotasi log. Error detail hanya masuk log private; browser produksi tidak menampilkan error PHP atau debug database.
 
@@ -214,6 +214,7 @@ Password tersimpan menggunakan `password_hash()` dan diverifikasi dengan `passwo
 - Validasi input melalui Form Validation dan service
 - Penghapusan data hanya melalui POST
 - Transaksi database saat membuat tugas, menyimpan jawaban, dan menyimpan penilaian
+- Header respons global no-store/security dan audit log append-only untuk login, logout, dan percobaan mutasi POST
 
 ## Batasan MVP
 
