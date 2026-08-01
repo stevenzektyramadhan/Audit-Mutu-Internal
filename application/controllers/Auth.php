@@ -10,6 +10,7 @@ class Auth extends CI_Controller {
         $this->load->helper(array('url', 'form'));
         require_once APPPATH . 'services/Auth_service.php';
         $this->auth_service = new Auth_service();
+        $this->load->library('Audit_logger');
     }
 
     public function index()
@@ -27,6 +28,7 @@ class Auth extends CI_Controller {
         $this->form_validation->set_rules('password', 'Password', 'required');
 
         if ($this->form_validation->run() === FALSE) {
+            $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'validation']);
             $this->load->view('auth/login');
             return;
         }
@@ -37,9 +39,11 @@ class Auth extends CI_Controller {
         $result = $this->auth_service->login($email, $password);
 
         if ($result['success']) {
+            $this->audit_logger->log('auth.login', 'success', 'auth', 'login');
             redirect('dashboard');
         }
 
+        $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'credentials']);
         $this->session->set_flashdata('error', $result['message']);
         redirect('auth');
     }
@@ -51,6 +55,7 @@ class Auth extends CI_Controller {
             return;
         }
 
+        $this->audit_logger->log('auth.logout', 'success', 'auth', 'logout');
         $this->session->sess_destroy();
         redirect('auth');
     }

@@ -48,7 +48,8 @@ if (!function_exists('format_tanggal_indo')) {
 if (!function_exists('private_storage_dir')) {
     function private_storage_dir($category)
     {
-        $categories = ['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos'];
+        $categories = ['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos', 'spmi_source'];
+        $categories[] = 'audit_evidence';
         if (!in_array($category, $categories, TRUE)) {
             throw new InvalidArgumentException('Kategori penyimpanan tidak valid.');
         }
@@ -75,7 +76,7 @@ if (!function_exists('private_storage_path')) {
             return $private_path;
         }
 
-        if ($category === 'user_photos') {
+        if (in_array($category, ['user_photos', 'spmi_source'], TRUE) || $category === 'audit_evidence') {
             return NULL;
         }
 
