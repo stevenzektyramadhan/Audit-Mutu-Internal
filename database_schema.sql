@@ -7,6 +7,7 @@
 -- current parity migration 001-022
 -- current parity migration 001-023
 -- current parity migration 001-024
+-- current parity migration 001-025
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -301,6 +302,7 @@ CREATE TABLE IF NOT EXISTS `spmi_instrument_questions` (
     `display_order` INT NOT NULL,
     `question_text` TEXT NOT NULL,
     `evidence_instruction` TEXT NOT NULL,
+    `evidence_policy` ENUM('none','file','url','either','both') NOT NULL DEFAULT 'none',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_instrument_questions_package_code` (`package_id`, `question_code`),
@@ -413,11 +415,27 @@ CREATE TABLE IF NOT EXISTS `spmi_auditee_submissions` (
     CONSTRAINT `fk_spmi_auditee_submissions_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `spmi_audit_assignments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `spmi_auditee_submission_revision_events` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `submission_id` INT NOT NULL,
+    `assignment_id` INT NOT NULL,
+    `actor_user_id` INT NOT NULL,
+    `reason` TEXT NOT NULL,
+    `submission_version` INT UNSIGNED NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY `idx_spmi_submission_revision_events_submission` (`submission_id`, `created_at`),
+    KEY `idx_spmi_submission_revision_events_assignment` (`assignment_id`, `created_at`),
+    CONSTRAINT `fk_spmi_submission_revision_events_submission` FOREIGN KEY (`submission_id`) REFERENCES `spmi_auditee_submissions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `fk_spmi_submission_revision_events_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `spmi_audit_assignments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `fk_spmi_submission_revision_events_actor` FOREIGN KEY (`actor_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `spmi_auditee_submission_items` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `submission_id` INT NOT NULL,
     `assignment_item_id` INT NOT NULL,
     `realization` TEXT NOT NULL,
+    `evidence_url` VARCHAR(500) NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_auditee_submission_items_item` (`submission_id`, `assignment_item_id`),
@@ -459,6 +477,7 @@ CREATE TABLE IF NOT EXISTS `spmi_auditor_assessment_items` (
     `realization_snapshot` TEXT NOT NULL,
     `score` TINYINT UNSIGNED NULL,
     `finding` TEXT NULL,
+    `finding_type` ENUM('ob','kts') NULL,
     `recommendation` TEXT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -502,9 +521,15 @@ CREATE TABLE IF NOT EXISTS `spmi_report_items` (
     `indicator_code_snapshot` VARCHAR(64) NOT NULL,
     `indicator_title_snapshot` VARCHAR(200) NOT NULL,
     `realization_snapshot` TEXT NOT NULL,
+    `evidence_url_snapshot` VARCHAR(500) NULL,
+    `evidence_file_original_name_snapshot` VARCHAR(255) NULL,
+    `evidence_file_mime_type_snapshot` VARCHAR(100) NULL,
+    `evidence_file_size_bytes_snapshot` INT UNSIGNED NULL,
+    `evidence_file_sha256_snapshot` CHAR(64) NULL,
     `score` TINYINT UNSIGNED NOT NULL,
     `descriptor_snapshot` TEXT NOT NULL,
     `finding_snapshot` TEXT NULL,
+    `finding_type_snapshot` ENUM('ob','kts') NULL,
     `recommendation_snapshot` TEXT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_report_items_order` (`report_id`, `display_order`),
