@@ -1647,7 +1647,7 @@ M17-02 Evidence Policy
 
 PASS
 
-PENDING_COMMIT_SHA
+099a6db
 
 php -l application/controllers/lpmpi/Spmi_instruments.php; php -l application/services/Spmi_instruments_service.php; php -l application/views/lpmpi/spmi_instruments/question_form.php; php -l application/views/lpmpi/spmi_instruments/question_detail.php; php -l tests/spmi_instruments_regression.php; php tests/spmi_instruments_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; GIT_MASTER=1 git diff --check; runtime NOT_RUN_ENVIRONMENT (deferred to M17-07)
 
