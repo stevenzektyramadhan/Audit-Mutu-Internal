@@ -1631,7 +1631,7 @@ PASS
 
 STATIC SOURCE REVIEW only, no runtime; markdown autofix and lint commands unavailable in repo root
 
-Bootstrap commit `1c2b5ba` is excluded from M17-00 output, `7473bc4` and `318029a` are part of the documented M17-00 documentation history, `1c56a01` is the repair commit that finalizes the gate record, `8c2a1c8` is the final gate-record commit now recorded here, `a25f188` is the latest committed plan baseline recovered from Git history, status/log-only updates are exempt from the one focused commit rule, one focused implementation commit applies to M17-01 through M17-07, M17-00 allows one contract commit plus one metadata/gate update commit, and existing history is preserved without rewrite or squash
+Bootstrap commit `1c2b5ba` is excluded from M17-00 output, `7473bc4` and `318029a` are part of the documented M17-00 documentation history, `1c56a01` is the repair commit that finalizes the gate record, `8c2a1c8` is the final gate-record commit now recorded here, `a25f188` is the latest committed plan baseline recovered from Git history, `c97114f` is the current documentation adoption commit recorded in the execution log, status/log-only updates are exempt from the one focused commit rule, one focused implementation commit applies to M17-01 through M17-07, M17-00 allows one contract commit plus one metadata/gate update commit, and existing history is preserved without rewrite or squash
 
 M17-01 Schema Foundation
 
@@ -1837,12 +1837,60 @@ DO NOT START ANY POST-M17 MILESTONE.
 DO NOT HIDE LEGACY.
 DO NOT MAKE CUTOVER CHANGES.
 
+### 2026-08-04 00:00 — M17-00
+- Status: PASS
+- Branch: dev
+- Start SHA: 9652f9f
+- End SHA: 1c2b5ba
+- Commit: 1c2b5ba
+- Files: docs/product/spmi-workspace-parity-contract.md, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE-CONTRACT TEST only, markdown lint command unavailable at repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal
+- Runtime verification: not run, contract task only
+- Notes: Contract approved by plan, no product approval decisions remain, no production or schema files changed
+- Next gate: M17-01 blocked until commit SHA is finalized and M17-00 hard gate remains APPROVED_BY_PLAN
+
+### 2026-08-04 00:00 — M17-00
+- Status: BLOCKED
+- Branch: dev
+- Start SHA: 9652f9f
+- End SHA: 7473bc4
+- Commit: 1c2b5ba, 7473bc4
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only, no runtime; markdown lint unavailable in repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal
+- Runtime verification: not run
+- Notes: Contract lines 29-31 overstate stale draft/version enforcement in auditor service, which currently only permits submitted; contract line 41 incorrectly cites Jawaban_audit_model for OB/KTS validation; M17-00 history is two commits (1c2b5ba and 7473bc4) despite the one focused commit rule; the initial commit added the entire plan beyond the status/log allowlist, and that historical scope and commit-rule violation cannot be made compliant without prohibited amend/rewrite
+- Next gate: STOP: M17-01 not authorized
+
+### 2026-08-04 00:00 — M17-00
+- Status: PASS
+- Branch: dev
+- Start SHA: 9652f9f
+- End SHA: 1c56a01
+- Commit: 1c56a01
+- Files: docs/product/spmi-workspace-parity-contract.md, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only, no runtime; markdown autofix and lint commands unavailable in repo root, markdown LSP diagnostics unavailable because no markdown server is configured
+- Runtime verification: not run, documentation-only gate repair
+- Notes: bootstrap commit `1c2b5ba` is excluded from M17-00 output; `7473bc4`, `318029a`, and `1c56a01` are the relevant M17-00 documentation commits recorded here; status/log-only updates are exempt from the one focused commit rule; M17-00 permits one contract commit plus one metadata/gate update commit; current contract now distinguishes target future behavior from current HEAD for stale draft/version handling and uses exact OB/KTS proof citations from the Auditor controller, service, and view; existing history remains untouched
+- Next gate: M17-01 is eligible only after this gate stays PASS, but it must not be started by this task
+
+### 2026-08-04 00:00 — M17-00
+- Status: PASS
+- Branch: dev
+- Start SHA: 1c56a01
+- End SHA: 8c2a1c8
+- Commit: 8c2a1c8
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only, no runtime
+- Runtime verification: not run, documentation-only reconciliation
+- Notes: M17-00 remains PASS; this entry reconciles the ledger to record `8c2a1c8` as the final gate-record commit without changing prior historical assertions; only the plan file changed
+- Next gate: STOP: M17-01 not started by this task.
+
 ### 2026-08-04 00:01 — M17-00
 - Status: PASS
 - Branch: dev
-- Start SHA: a25f188
-- End SHA: a25f188
-- Commit: a25f188
+- Start SHA: c97114f
+- End SHA: c97114f
+- Commit: c97114f
 - Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
 - Tests: STATIC SOURCE REVIEW only, no runtime; markdown lint scripts remain unavailable in repo root
 - Runtime verification: not run, documentation-only adoption record
