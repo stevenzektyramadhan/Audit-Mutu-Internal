@@ -1122,7 +1122,7 @@ Agent hanya boleh memperbarui kolom Status, Commit, Tests, dan Notes.
 
 | Task | Status | Commit | Tests | Notes |
 |---|---|---|---|---|
-| M17-00 Design Contract | PASS | 1c2b5ba | STATIC SOURCE-CONTRACT TEST only, markdown lint pending | Contract drafted and approved by plan |
+| M17-00 Design Contract | BLOCKED | 1c2b5ba, 7473bc4 | STATIC SOURCE REVIEW only, no runtime; markdown lint unavailable in repo root | Two-commit history violates the single focused commit gate, contract lines 29-31 overstate stale draft/version enforcement, contract line 41 incorrectly cites Jawaban_audit_model for OB/KTS validation, and the initial commit added the full plan beyond the status/log allowlist |
 | M17-01 Schema Foundation | NOT_STARTED | — | — | — |
 | M17-02 Evidence Policy | NOT_STARTED | — | — | — |
 | M17-03 Auditee Evidence Parity | NOT_STARTED | — | — | — |
@@ -1199,6 +1199,18 @@ Format:
 - Runtime verification: not run, contract task only
 - Notes: Contract approved by plan, no product approval decisions remain, no production or schema files changed
 - Next gate: M17-01 blocked until commit SHA is finalized and M17-00 hard gate remains APPROVED_BY_PLAN
+
+### 2026-08-04 00:00 — M17-00
+- Status: BLOCKED
+- Branch: dev
+- Start SHA: 9652f9f
+- End SHA: 7473bc4
+- Commit: 1c2b5ba, 7473bc4
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only, no runtime; markdown lint unavailable in repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal
+- Runtime verification: not run
+- Notes: Contract lines 29-31 overstate stale draft/version enforcement in auditor service, which currently only permits submitted; contract line 41 incorrectly cites Jawaban_audit_model for OB/KTS validation; M17-00 history is two commits (1c2b5ba and 7473bc4) despite the one focused commit rule; the initial commit added the entire plan beyond the status/log allowlist, and that historical scope and commit-rule violation cannot be made compliant without prohibited amend/rewrite
+- Next gate: STOP: M17-01 not authorized
 
 ---
 
