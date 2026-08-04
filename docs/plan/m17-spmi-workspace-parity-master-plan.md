@@ -783,6 +783,8 @@ M17-02 Instrument Evidence Policy
 ↓
 M17-03 Auditee Evidence Parity
 ↓
+M17-01A Revision Lifecycle Schema Correction
+↓
 M17-04 Submission Revision Lifecycle
 ↓
 M17-05 Auditor Assessment Parity
@@ -1149,6 +1151,68 @@ legacy tidak berubah.
 Commit
 
 feat(m17): add SPMI auditee evidence parity
+
+M17-01A — Revision Lifecycle Schema Correction
+
+Objective
+
+Menambahkan koreksi schema additive yang dibutuhkan untuk lifecycle revisi submission, tanpa menyentuh endpoints, controllers, services, models, views, UI, auth behavior, atau behavior transisi.
+
+Ownership and Boundaries
+
+M17-01A memiliki schema additive dan satu migration forward-safe.
+
+M17-01A hanya boleh menambahkan schema compatibility untuk mendukung lifecycle revisi.
+
+M17-01A tidak boleh mengubah endpoint, controller, service, model, view, UI, runtime transition, auth behavior, report behavior, atau legacy behavior.
+
+M17-01A tidak boleh menghapus data, membuat perubahan destruktif, atau mengandalkan backfill wajib yang diasumsikan.
+
+M17-04 tetap memiliki ownership atas return/resubmit behavior, authorization, version increments, stale rejection, dan runtime lifecycle tests.
+
+Required Schema Capabilities
+
+Minimal harus tersedia:
+
+submission states: draft, submitted, returned_for_revision, resubmitted, under_assessment, completed;
+
+positive non-null submission version dengan default 1, tanpa behavioral increment di task ini;
+
+revision history fields: references, old status, new status, old version, new version, reason, actor, timestamp;
+
+nullable assessment source-submission-version provenance;
+
+no historical guessing;
+
+safe compatibility untuk row existing;
+
+no destructive change;
+
+no deletion;
+
+no mandatory assumed backfill.
+
+Implementation Shape
+
+Satu migration additive.
+
+Schema regression tests terfokus.
+
+Jika repository memakai schema snapshot atau constraint mirror, update hanya yang diperlukan untuk compatibility.
+
+Acceptance Criteria
+
+Schema additive tersedia dan backward-compatible.
+
+Required lifecycle fields and provenance tersedia sesuai contract.
+
+Tidak ada endpoint, controller, service, model, view, UI, atau auth behavior yang berubah.
+
+Tidak ada runtime DB action yang diasumsikan dari task ini.
+
+Commit
+
+feat(m17): add revision lifecycle schema correction
 
 M17-04 — Submission Revision Lifecycle
 
@@ -1663,15 +1727,25 @@ php -l application/controllers/Spmi_auditee_workspace.php; php -l application/mo
 
 Static assignment-item evidence_policy snapshot and server-side auditee submit enforcement verification PASS; tested diff excludes M17-04 revision lifecycle, M17-05 auditor assessment, M17-06 reporting/result, legacy, config, route/auth, and .multibrain changes; runtime, DB, migration, and browser verification NOT_RUN_ENVIRONMENT; M17-04 eligible after PASS but NOT_STARTED and not started by this task; exact implementation SHA is represented by Git history because a commit cannot record its own final SHA in the preimage
 
+M17-01A Revision Lifecycle Schema Correction
+
+PASS
+
+see Git history (self SHA unavailable in preimage)
+
+php -l tests/m17_schema_regression.php; php tests/m17_schema_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; php tests/spmi_audits_regression.php; php tests/legacy_ami_archive_regression.php; php tests/m16_security_regression.php; php tests/hardening_regression.php; GIT_MASTER=1 git diff --check; runtime/DB/migration/browser NOT_RUN_ENVIRONMENT
+
+Static schema correction acceptance PASS; additive lifecycle schema compatibility is present in migration/schema/test artifacts only; runtime, DB, migration execution, and browser verification NOT_RUN_ENVIRONMENT; exact implementation commit SHA is represented by Git history because a commit cannot prewrite its own final SHA
+
 M17-04 Revision Lifecycle
 
-BLOCKED
+NOT_STARTED
 
-c823650
+see Git history (schema blocker resolved by M17-01A)
 
-Read-only source/Oracle gate review only; runtime not run.
+No behavior work started; static source gate only; runtime/DB/migration/browser NOT_RUN_ENVIRONMENT.
 
-Exact blocker: M17-04 locked lifecycle requires persisted `returned_for_revision`/`resubmitted` submission states and assessment-to-source-submission-version provenance to retain stale drafts while rejecting finalization after a source revision. Current schema permits only `draft|submitted` and assessments lack that provenance. V2 assigned required additive lifecycle schema capacity to M17-01; M17-04 does not carry a schema-correction allowance.
+Schema blocker RESOLVED by M17-01A revision lifecycle schema correction; M17-04 behavior, authorization, version increments, stale rejection, and runtime lifecycle work remain unstarted in this task.
 
 M17-05 Auditor Assessment Parity
 
@@ -1789,6 +1863,18 @@ Format:
 - Runtime verification: not run
 - Notes: c823650 is the blocker decision commit, and this reconciliation preserves the stop condition. Exact blocker recorded in the task status table. M17-04 locked lifecycle requires persisted `returned_for_revision`/`resubmitted` submission states and assessment-to-source-submission-version provenance to retain stale drafts while rejecting finalization after a source revision. Current schema permits only `draft|submitted` and assessments lack that provenance. V2 assigned the required additive lifecycle schema capacity to M17-01, so M17-04 does not carry a schema-correction allowance. Minimum follow-up decision needed: authorize a corrective M17-01 schema task or an explicit V2 scope decision for one additive forward-safe migration adding only returned/resubmitted state capacity and nullable assessment source-submission-version provenance.
 - Next gate: STOP: M17-05 and later tasks must not start until corrective schema scope is authorized and complete.
+
+### 2026-08-05 00:00 — M17-01A
+- Status: IN_PROGRESS
+- Branch: dev
+- Start SHA: see Git history
+- End SHA: —
+- Commit: —
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: Not run; documentation-only authorization update
+- Runtime verification: not run
+- Notes: User-authorized corrective schema task to resolve the M17-04 blocker. No schema implementation completed yet, and no runtime or DB action performed.
+- Next gate: execute the additive lifecycle schema correction before any M17-04 behavior work.
 
 16. Final Milestone Acceptance
 
@@ -1956,3 +2042,27 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: NOT_RUN_ENVIRONMENT; no migrations, DB actions, runtime/browser/live HTTP checks, or runtime checks were run because V2 defers runtime verification to M17-07
 - Notes: Static acceptance PASS for assignment-item evidence_policy snapshot and server-side auditee submit enforcement only; tested diff contains no M17-04 revision lifecycle, M17-05 auditor assessment, M17-06 reporting/result, legacy, config, route/auth, or .multibrain changes; exact implementation SHA cannot be written into the preimage of the same commit and is therefore represented by Git history without guesswork or rewrite; M17-04 is eligible after this PASS but was not started by this task
 - Next gate: M17-04 eligible but NOT_STARTED; M17-04 not started by this task
+
+### 2026-08-05 00:01 — M17-01A
+- Status: PASS
+- Branch: dev
+- Start SHA: 99a1be2
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: see Git history (self SHA unavailable in preimage)
+- Files: migrations/027_add_revision_lifecycle_schema_correction.sql, database_schema.sql, tests/m17_schema_regression.php, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l tests/m17_schema_regression.php PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; GIT_MASTER=1 git diff --check PASS
+- Runtime verification: NOT_RUN_ENVIRONMENT; migrations, DB actions, runtime/browser/live HTTP checks, and runtime checks were not run in this environment
+- Notes: Static source acceptance PASS for the additive revision lifecycle schema correction only; the implementation commit is intentionally referenced via Git history because the final SHA cannot be prewritten into the same commit; no controllers, services, models, views, routes, auth, UI, reports, sidebar, legacy, or M17-04 behavior changes are included; M17-04 is eligible after this PASS but was not started by this task
+- Next gate: M17-04 eligible but NOT_STARTED; M17-04 behavior not started by this task; M17-05+ and M18 remain NOT_STARTED
+
+### 2026-08-05 00:01 — M17-04
+- Status: NOT_STARTED
+- Branch: dev
+- Start SHA: see Git history
+- End SHA: —
+- Commit: —
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: Static source gate update only; behavior/runtime tests not run
+- Runtime verification: NOT_RUN_ENVIRONMENT; behavior, migrations, DB actions, and browser/runtime checks were not run in this environment
+- Notes: All historical BLOCKED entries remain preserved exactly. The M17-04 schema blocker is RESOLVED by M17-01A, so this task is now eligible, but return/resubmit behavior, authorization, version increments, stale-finalization rejection, and runtime lifecycle verification have not begun in this task.
+- Next gate: M17-04 may start in a future task; M17-05+ and M18 remain NOT_STARTED

@@ -8,7 +8,7 @@
 -- current parity migration 001-023
 -- current parity migration 001-024
 -- current parity migration 001-025
--- current parity migration 001-026
+-- current parity migration 001-027
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -407,7 +407,7 @@ CREATE TABLE IF NOT EXISTS `spmi_audit_assignment_item_rubrics` (
 CREATE TABLE IF NOT EXISTS `spmi_auditee_submissions` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `assignment_id` INT NOT NULL,
-    `status` ENUM('draft','submitted') NOT NULL DEFAULT 'draft',
+    `status` ENUM('draft','submitted','returned_for_revision','resubmitted','under_assessment','completed') NOT NULL DEFAULT 'draft',
     `submitted_at` DATETIME NULL DEFAULT NULL,
     `version` INT UNSIGNED NOT NULL DEFAULT 1,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -424,6 +424,10 @@ CREATE TABLE IF NOT EXISTS `spmi_auditee_submission_revision_events` (
     `actor_user_id` INT NOT NULL,
     `reason` TEXT NOT NULL,
     `submission_version` INT UNSIGNED NOT NULL,
+    `previous_status` ENUM('draft','submitted','returned_for_revision','resubmitted','under_assessment','completed') NOT NULL DEFAULT 'draft',
+    `new_status` ENUM('draft','submitted','returned_for_revision','resubmitted','under_assessment','completed') NOT NULL DEFAULT 'draft',
+    `previous_version` INT UNSIGNED NOT NULL DEFAULT 1,
+    `resulting_version` INT UNSIGNED NOT NULL DEFAULT 1,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY `idx_spmi_submission_revision_events_submission` (`submission_id`, `created_at`),
     KEY `idx_spmi_submission_revision_events_assignment` (`assignment_id`, `created_at`),
@@ -465,6 +469,7 @@ CREATE TABLE IF NOT EXISTS `spmi_auditor_assessments` (
     `status` ENUM('draft','finalized') NOT NULL DEFAULT 'draft',
     `finalized_at` DATETIME NULL DEFAULT NULL,
     `version` INT UNSIGNED NOT NULL DEFAULT 1,
+    `source_submission_version` INT UNSIGNED NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_auditor_assessments_assignment` (`assignment_id`),
