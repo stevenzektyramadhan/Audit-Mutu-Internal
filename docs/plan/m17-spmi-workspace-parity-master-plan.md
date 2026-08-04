@@ -1913,10 +1913,22 @@ DO NOT MAKE CUTOVER CHANGES.
 - Status: PASS
 - Branch: dev
 - Start SHA: 31e5b55
-- End SHA: PENDING_COMMIT_SHA
-- Commit: PENDING_COMMIT_SHA
+- End SHA: 099a6db
+- Commit: 099a6db
 - Files: application/controllers/lpmpi/Spmi_instruments.php, application/services/Spmi_instruments_service.php, application/views/lpmpi/spmi_instruments/question_form.php, application/views/lpmpi/spmi_instruments/question_detail.php, tests/spmi_instruments_regression.php, docs/plan/m17-spmi-workspace-parity-master-plan.md
 - Tests: php -l application/controllers/lpmpi/Spmi_instruments.php PASS; php -l application/services/Spmi_instruments_service.php PASS; php -l application/views/lpmpi/spmi_instruments/question_form.php PASS; php -l application/views/lpmpi/spmi_instruments/question_detail.php PASS; php -l tests/spmi_instruments_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; GIT_MASTER=1 git diff --check PASS
 - Runtime verification: NOT_RUN_ENVIRONMENT; no runtime/browser/live POST/migration/DB action was run because V2 defers runtime verification to M17-07
 - Notes: Static acceptance PASS for Admin LPMPI question evidence_policy CRUD/display only; tested diff contains no schema/migration, route, model, legacy, auditee evidence enforcement, assignment policy snapshot, revision lifecycle, report/RTM/export, auth/config/sidebar, or M17-03+ changes; M17-03 is eligible but M17-03 not started by this task
 - Next gate: M17-03 eligible but NOT_STARTED; M17-03 not started by this task
+
+### 2026-08-04 16:47 — M17-02
+- Status: PASS
+- Branch: dev
+- Start SHA: 099a6db
+- End SHA: 099a6db
+- Commit: 099a6db
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only; GIT_MASTER=1 git diff --check PASS
+- Runtime verification: NOT_RUN_ENVIRONMENT; no runtime/browser/live POST/migration/DB action was run because V2 defers runtime verification to M17-07
+- Notes: This entry reconciles the M17-02 ledger to the implementation SHA `099a6db`; the status/log-only documentation reconciliation commit is represented by Git history and does not introduce a separate self-SHA field, placeholder, or invented value; only the plan file changed; M17-03 remains eligible but was not started by this task
+- Next gate: M17-03 eligible but not started by this task
