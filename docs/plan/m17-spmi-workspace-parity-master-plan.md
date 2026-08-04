@@ -1769,13 +1769,13 @@ Static final-report snapshot and auditee final-result acceptance PASS for finali
 
 M17-07 Runtime Hardening
 
-NOT_STARTED
+BLOCKED
 
-—
+docs(m17): mark M17-07 runtime fixture blocker
 
-—
+STATIC SOURCE REVIEW only; GIT_MASTER=1 git diff --check PASS; markdown lint scripts unavailable in repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal; no Docker/DB/migration/HTTP/browser mutation was run
 
-—
+Static preflight evidence found Docker/Compose isolation available, database_dummy.sql:1-3 says it does not create demo users, database_dummy.sql:7-8 selects pre-existing auditor/auditee users, application/services/Auth_service.php:16-25 requires a stored password hash for login, and application/services/User_service.php:47-68 shows user creation exists as application behavior; however no repository-controlled isolated fixture/bootstrap CLI or entrypoint exists to provision synthetic roles and the minimal SPMI runtime graph in a uniquely named fresh Compose project with teardown, so the required M17-07 multi-role runtime graph cannot be provisioned safely without ad hoc test data or shared-state changes; minimum resolution is a repository-controlled disposable fixture bootstrap that creates the synthetic roles and minimal SPMI graph in a fresh Compose project with teardown, then rerun all required runtime lanes; M17-08 remains NOT_STARTED and was not made eligible
 
 M17-08 Cutover Readiness Audit
 
@@ -2090,3 +2090,15 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: NOT_RUN_ENVIRONMENT; runtime, DB, migration execution, and browser checks were not run in this environment
 - Notes: Static final-report snapshot and auditee final-result acceptance PASS for finalized assessment snapshot population, immutable report reads, auditee-owned final result authorization, and report export snapshot rendering only; no migrations/schema, RTM models/services, legacy, M17-04/05, config/sidebar, or post-M17 behavior changes are included; exact implementation SHA is represented by Git history because a commit cannot prewrite its own final SHA.
 - Next gate: M17-07 is eligible after this PASS but must not be started by this task; M17-07+ and M18 remain NOT_STARTED
+
+### 2026-08-05 00:02 — M17-07
+- Status: BLOCKED
+- Branch: dev
+- Start SHA: see Git history
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: docs(m17): mark M17-07 runtime fixture blocker
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only; GIT_MASTER=1 git diff --check PASS; markdown lint scripts unavailable in repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal; no Docker/DB/migration/HTTP/browser mutation was run
+- Runtime verification: not run
+- Notes: Static preflight evidence found Docker/Compose isolation available, database_dummy.sql:1-3 says it does not create demo users, database_dummy.sql:7-8 selects pre-existing auditor/auditee users, application/services/Auth_service.php:16-25 requires a stored password hash for login, and application/services/User_service.php:47-68 shows user creation exists as application behavior; however no repository-controlled isolated fixture/bootstrap CLI or entrypoint exists to provision synthetic roles and the minimal SPMI runtime graph in a uniquely named fresh Compose project with teardown, so the required M17-07 multi-role runtime graph cannot be provisioned safely without ad hoc test data or shared-state changes; minimum resolution is a repository-controlled disposable fixture bootstrap that creates the synthetic roles and minimal SPMI graph in a fresh Compose project with teardown, then rerun all required runtime lanes; M17-08 remains NOT_STARTED and was not made eligible
+- Next gate: STOP: M17-08 must not start; no post-M17 milestone may start
