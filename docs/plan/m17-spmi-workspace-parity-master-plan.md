@@ -1759,13 +1759,13 @@ Static auditor assessment parity acceptance PASS for finding_type parsing, persi
 
 M17-06 Report & Auditee Result
 
-NOT_STARTED
+PASS
 
-—
+see Git history (self SHA unavailable in preimage)
 
-—
+php -l application/config/routes.php; php -l application/controllers/Spmi_auditee_workspace.php; php -l application/controllers/lpmpi/Spmi_reports.php; php -l application/models/Spmi_auditee_workspace_model.php; php -l application/models/Spmi_reports_model.php; php -l application/services/Spmi_auditee_workspace_service.php; php -l application/services/Spmi_reports_service.php; php -l application/views/spmi_auditee_workspace/final_result.php; php -l application/views/lpmpi/spmi_reports/detail.php; php -l application/views/lpmpi/spmi_reports/print.php; php -l tests/spmi_auditee_workspace_regression.php; php -l tests/spmi_reports_regression.php; php tests/m17_schema_regression.php; php tests/spmi_instruments_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; php tests/spmi_audits_regression.php; php tests/legacy_ami_archive_regression.php; php tests/m16_security_regression.php; php tests/hardening_regression.php; GIT_MASTER=1 git diff --check; runtime/DB/migration/browser NOT_RUN_ENVIRONMENT
 
-—
+Static final-report snapshot and auditee final-result acceptance PASS for finalized assessment snapshot population, immutable report reads, auditee-owned final result authorization, and report export snapshot rendering only; no migrations/schema, RTM models/services, legacy, M17-04/05, config/sidebar, or post-M17 behavior changes are included; runtime, DB, migration execution, and browser verification NOT_RUN_ENVIRONMENT; exact implementation commit SHA is represented by Git history because a commit cannot prewrite its own final SHA; M17-07 is eligible after this PASS but NOT_STARTED and not started by this task
 
 M17-07 Runtime Hardening
 
@@ -2078,3 +2078,15 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: NOT_RUN_ENVIRONMENT; runtime, DB, migration execution, and browser checks were not run in this environment
 - Notes: Static auditor assessment parity acceptance PASS for finding_type parsing, persistence, display, and finalize validation only; M17-04 stale/version protections remain preserved; no controller, model, routes, schema, migration, report/RTM/export/action-plan/legacy/config/sidebar, or M17-06+ changes are included; exact implementation SHA is represented by Git history because a commit cannot prewrite its own final SHA.
 - Next gate: M17-06 is eligible after this PASS but must not be started by this task; M17-06+ and M18 remain NOT_STARTED
+
+### 2026-08-05 00:01 — M17-06
+- Status: PASS
+- Branch: dev
+- Start SHA: e730d2e
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: see Git history (self SHA unavailable in preimage)
+- Files: application/config/routes.php, application/controllers/Spmi_auditee_workspace.php, application/controllers/lpmpi/Spmi_reports.php, application/models/Spmi_auditee_workspace_model.php, application/models/Spmi_reports_model.php, application/services/Spmi_auditee_workspace_service.php, application/services/Spmi_reports_service.php, application/views/spmi_auditee_workspace/final_result.php, application/views/lpmpi/spmi_reports/detail.php, application/views/lpmpi/spmi_reports/print.php, tests/spmi_auditee_workspace_regression.php, tests/spmi_reports_regression.php, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l application/config/routes.php PASS; php -l application/controllers/Spmi_auditee_workspace.php PASS; php -l application/controllers/lpmpi/Spmi_reports.php PASS; php -l application/models/Spmi_auditee_workspace_model.php PASS; php -l application/models/Spmi_reports_model.php PASS; php -l application/services/Spmi_auditee_workspace_service.php PASS; php -l application/services/Spmi_reports_service.php PASS; php -l application/views/spmi_auditee_workspace/final_result.php PASS; php -l application/views/lpmpi/spmi_reports/detail.php PASS; php -l application/views/lpmpi/spmi_reports/print.php PASS; php -l tests/spmi_auditee_workspace_regression.php PASS; php -l tests/spmi_reports_regression.php PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; GIT_MASTER=1 git diff --check PASS
+- Runtime verification: NOT_RUN_ENVIRONMENT; runtime, DB, migration execution, and browser checks were not run in this environment
+- Notes: Static final-report snapshot and auditee final-result acceptance PASS for finalized assessment snapshot population, immutable report reads, auditee-owned final result authorization, and report export snapshot rendering only; no migrations/schema, RTM models/services, legacy, M17-04/05, config/sidebar, or post-M17 behavior changes are included; exact implementation SHA is represented by Git history because a commit cannot prewrite its own final SHA.
+- Next gate: M17-07 is eligible after this PASS but must not be started by this task; M17-07+ and M18 remain NOT_STARTED

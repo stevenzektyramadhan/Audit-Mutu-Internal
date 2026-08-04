@@ -28,6 +28,14 @@ class Spmi_auditee_workspace extends CI_Controller
         $this->load->view('spmi_auditee_workspace/assignment', $workspace);
     }
 
+    public function final_result($id)
+    {
+        $result = $this->service->final_result((int) $id, $this->user_id());
+        if (!$result) { show_error('Laporan SPMI tidak ditemukan.', 404, 'Not Found'); return; }
+        $result['title'] = 'Hasil Akhir SPMI'; $result['page_title'] = 'Hasil Akhir SPMI'; $result['page_subtitle'] = 'Beranda / Workspace SPMI / Hasil Akhir'; $result['active_menu'] = 'spmi_workspace';
+        $this->load->view('spmi_auditee_workspace/final_result', $result);
+    }
+
     public function save($id) { $this->mutate($id, FALSE); }
     public function submit($id) { $this->mutate($id, TRUE); }
     public function resubmit($id) { $this->mutate($id, TRUE, TRUE); }

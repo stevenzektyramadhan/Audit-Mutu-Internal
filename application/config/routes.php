@@ -187,6 +187,7 @@ $route['auditee/spmi/assignment/(:num)'] = 'spmi_auditee_workspace/assignment/$1
 $route['auditee/spmi/assignment/(:num)/save'] = 'spmi_auditee_workspace/save/$1';
 $route['auditee/spmi/assignment/(:num)/submit'] = 'spmi_auditee_workspace/submit/$1';
 $route['auditee/spmi/assignment/(:num)/resubmit'] = 'spmi_auditee_workspace/resubmit/$1';
+$route['auditee/spmi/assignment/(:num)/final-result'] = 'spmi_auditee_workspace/final_result/$1';
 $route['auditee/spmi/item/(:num)/evidence/upload'] = 'spmi_auditee_workspace/upload_evidence/$1';
 $route['auditee/spmi/evidence/(:num)/delete'] = 'spmi_auditee_workspace/delete_evidence/$1';
 $route['auditee/spmi/evidence/(:num)/download'] = 'spmi_auditee_workspace/download_evidence/$1';

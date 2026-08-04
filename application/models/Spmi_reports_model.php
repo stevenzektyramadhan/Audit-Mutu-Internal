@@ -44,12 +44,12 @@ class Spmi_reports_model extends CI_Model
 
     public function submission_for_update($assignment_id)
     {
-        return $this->db->query('SELECT * FROM spmi_auditee_submissions WHERE assignment_id = ? AND status = ? FOR UPDATE', [(int) $assignment_id, 'submitted'])->row();
+        return $this->db->query('SELECT * FROM spmi_auditee_submissions WHERE assignment_id = ? AND status IN (?, ?) FOR UPDATE', [(int) $assignment_id, 'submitted', 'resubmitted'])->row();
     }
 
-    public function assessment_items_for_update($assessment_id)
+    public function submission_items_for_report($assessment_id, $submission_id)
     {
-        return $this->db->query('SELECT ai.*, i.display_order, i.question_code, i.question_text, i.indicator_code, i.indicator_title FROM spmi_auditor_assessment_items ai JOIN spmi_audit_assignment_items i ON i.id = ai.assignment_item_id WHERE ai.assessment_id = ? ORDER BY i.display_order ASC FOR UPDATE', [(int) $assessment_id])->result();
+        return $this->db->query('SELECT ai.*, i.display_order, i.question_code, i.question_text, i.indicator_code, i.indicator_title, si.realization AS realization_snapshot, si.evidence_url AS evidence_url_snapshot, e.original_name AS evidence_file_original_name_snapshot, e.mime_type AS evidence_file_mime_type_snapshot, e.size_bytes AS evidence_file_size_bytes_snapshot, e.sha256 AS evidence_file_sha256_snapshot FROM spmi_auditor_assessment_items ai JOIN spmi_audit_assignment_items i ON i.id = ai.assignment_item_id JOIN spmi_auditee_submission_items si ON si.assignment_item_id = ai.assignment_item_id AND si.submission_id = ? LEFT JOIN spmi_auditee_evidence e ON e.id = (SELECT MIN(e2.id) FROM spmi_auditee_evidence e2 WHERE e2.submission_item_id = si.id) WHERE ai.assessment_id = ? ORDER BY i.display_order ASC, e.id ASC FOR UPDATE', [(int) $submission_id, (int) $assessment_id])->result();
     }
 
     public function assignment_items_count($assignment_id)

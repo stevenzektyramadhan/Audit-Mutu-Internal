@@ -17,6 +17,8 @@ class Spmi_auditee_workspace_service
 
     public function assignments($user_id) { return $this->model->assignments($user_id); }
 
+    public function final_result($assignment_id, $user_id) { return $this->model->final_result_for_auditee($assignment_id, $user_id); }
+
     public function workspace($assignment_id, $user_id)
     {
         $this->ci->db->trans_begin();
