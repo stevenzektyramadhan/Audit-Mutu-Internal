@@ -1667,7 +1667,7 @@ M17-04 Revision Lifecycle
 
 BLOCKED
 
-pending documentation commit only
+c823650
 
 Read-only source/Oracle gate review only; runtime not run.
 
@@ -1783,11 +1783,11 @@ Format:
 - Branch: dev
 - Start SHA: see Git history
 - End SHA: see Git history
-- Commit: pending documentation commit
+- Commit: c823650
 - Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
 - Tests: Read-only source/Oracle gate review only; runtime not run
 - Runtime verification: not run
-- Notes: Exact blocker recorded in the task status table. M17-04 locked lifecycle requires persisted `returned_for_revision`/`resubmitted` submission states and assessment-to-source-submission-version provenance to retain stale drafts while rejecting finalization after a source revision. Current schema permits only `draft|submitted` and assessments lack that provenance. V2 assigned the required additive lifecycle schema capacity to M17-01, so M17-04 does not carry a schema-correction allowance. Minimum follow-up decision needed: authorize a corrective M17-01 schema task or an explicit V2 scope decision for one additive forward-safe migration adding only returned/resubmitted state capacity and nullable assessment source-submission-version provenance.
+- Notes: c823650 is the blocker decision commit, and this reconciliation preserves the stop condition. Exact blocker recorded in the task status table. M17-04 locked lifecycle requires persisted `returned_for_revision`/`resubmitted` submission states and assessment-to-source-submission-version provenance to retain stale drafts while rejecting finalization after a source revision. Current schema permits only `draft|submitted` and assessments lack that provenance. V2 assigned the required additive lifecycle schema capacity to M17-01, so M17-04 does not carry a schema-correction allowance. Minimum follow-up decision needed: authorize a corrective M17-01 schema task or an explicit V2 scope decision for one additive forward-safe migration adding only returned/resubmitted state capacity and nullable assessment source-submission-version provenance.
 - Next gate: STOP: M17-05 and later tasks must not start until corrective schema scope is authorized and complete.
 
 16. Final Milestone Acceptance
