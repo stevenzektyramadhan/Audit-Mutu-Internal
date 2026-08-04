@@ -1635,13 +1635,13 @@ Bootstrap commit `1c2b5ba` is excluded from M17-00 output, `7473bc4` and `318029
 
 M17-01 Schema Foundation
 
-NOT_STARTED
+PASS
 
-—
+759baad
 
-—
+php -l tests/m17_schema_regression.php; php tests/m17_schema_regression.php; php tests/spmi_instruments_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; runtime NOT_RUN_ENVIRONMENT (deferred to M17-07)
 
-—
+Schema-only Wave 3 verification PASS; no migration, DB, routes, auth, UI, legacy behavior, or M17-02+ changes; M17-02 eligible but NOT started here
 
 M17-02 Evidence Policy
 
@@ -1896,3 +1896,15 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: not run, documentation-only adoption record
 - Notes: V2 remains the primary plan; the former procedural and citation blockers are resolved under V2; this append-only record preserves the historical M17-00 ledger while adopting the current working-tree V2 plan; M17-01 remains NOT_STARTED
 - Next gate: M17-01 remains NOT_STARTED
+
+### 2026-08-04 00:02 — M17-01
+- Status: PASS
+- Branch: dev
+- Start SHA: f439fe1
+- End SHA: 759baad
+- Commit: 759baad
+- Files: migrations/025_create_spmi_m17_schema_foundation.sql, database_schema.sql, tests/m17_schema_regression.php, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l tests/m17_schema_regression.php PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS
+- Runtime verification: NOT_RUN_ENVIRONMENT; no migrations, DB actions, runtime/browser scenarios, or runtime checks because V2 defers runtime to M17-07
+- Notes: Static acceptance PASS for schema-only foundation files; no migration or database execution was performed; no routes, authorization, UI, legacy behavior, or M17-02+ changes were made; dormant report snapshot columns remain schema-only; M17-02 is eligible but NOT started by this task
+- Next gate: M17-02 eligible but NOT started by this task
