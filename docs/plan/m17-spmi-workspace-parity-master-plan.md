@@ -67,6 +67,14 @@ M17-00 menghasilkan design contract. Agent boleh melanjutkan otomatis ke M17-01 
 - seluruh keputusan penting dapat ditetapkan dari requirement di dokumen ini;
 - design contract berstatus `APPROVED_BY_PLAN`.
 
+Clarification untuk gate M17-00:
+
+- commit bootstrap awal `1c2b5ba` adalah bootstrap commit dan dikecualikan dari output M17-00;
+- commit yang hanya mengubah `Task Status Table` atau `Execution Log` dikecualikan dari aturan satu focused commit;
+- satu focused implementation commit berlaku terutama untuk M17-01 sampai M17-07;
+- M17-00 boleh memakai satu commit contract dan satu commit metadata/gate update;
+- history lama tidak boleh diubah ulang, di-rewrite, atau di-squash.
+
 Jika masih ada keputusan produk yang tidak dapat diselesaikan dari dokumen ini, agent harus:
 
 ```text
@@ -1122,7 +1130,7 @@ Agent hanya boleh memperbarui kolom Status, Commit, Tests, dan Notes.
 
 | Task | Status | Commit | Tests | Notes |
 |---|---|---|---|---|
-| M17-00 Design Contract | BLOCKED | 1c2b5ba, 7473bc4 | STATIC SOURCE REVIEW only, no runtime; markdown lint unavailable in repo root | Two-commit history violates the single focused commit gate, contract lines 29-31 overstate stale draft/version enforcement, contract line 41 incorrectly cites Jawaban_audit_model for OB/KTS validation, and the initial commit added the full plan beyond the status/log allowlist |
+| M17-00 Design Contract | PASS | 1c2b5ba, 7473bc4, 318029a | STATIC SOURCE REVIEW only, no runtime; markdown autofix and lint commands unavailable in repo root | Bootstrap commit `1c2b5ba` is excluded from M17-00 output, status/log-only updates are exempt from the one focused commit rule, one focused implementation commit applies to M17-01 through M17-07, M17-00 allows one contract commit plus one metadata/gate update commit, and existing history is preserved without rewrite or squash |
 | M17-01 Schema Foundation | NOT_STARTED | — | — | — |
 | M17-02 Evidence Policy | NOT_STARTED | — | — | — |
 | M17-03 Auditee Evidence Parity | NOT_STARTED | — | — | — |
@@ -1211,6 +1219,18 @@ Format:
 - Runtime verification: not run
 - Notes: Contract lines 29-31 overstate stale draft/version enforcement in auditor service, which currently only permits submitted; contract line 41 incorrectly cites Jawaban_audit_model for OB/KTS validation; M17-00 history is two commits (1c2b5ba and 7473bc4) despite the one focused commit rule; the initial commit added the entire plan beyond the status/log allowlist, and that historical scope and commit-rule violation cannot be made compliant without prohibited amend/rewrite
 - Next gate: STOP: M17-01 not authorized
+
+### 2026-08-04 00:00 — M17-00
+- Status: PASS
+- Branch: dev
+- Start SHA: 9652f9f
+- End SHA: pending
+- Commit: docs(m17): repair M17-00 contract gate
+- Files: docs/product/spmi-workspace-parity-contract.md, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only, no runtime; markdown autofix and lint commands unavailable in repo root, markdown LSP diagnostics unavailable because no markdown server is configured
+- Runtime verification: not run, documentation-only gate repair
+- Notes: bootstrap commit `1c2b5ba` is excluded from M17-00 output; status/log-only updates are exempt from the one focused commit rule; M17-00 permits one contract commit plus one metadata/gate update commit; current contract now distinguishes target future behavior from current HEAD for stale draft/version handling and uses exact OB/KTS proof citations from the Auditor controller, service, and view; existing history remains untouched
+- Next gate: M17-01 remains blocked until the new documentation-only commit is created and the updated contract gate is read as APPROVED_BY_PLAN
 
 ---
 

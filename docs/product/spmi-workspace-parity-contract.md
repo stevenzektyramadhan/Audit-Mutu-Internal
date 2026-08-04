@@ -30,6 +30,8 @@ Return for revision wajib terjadi sebelum assessment final dan harus tercatat se
 
 Draft assessment yang sudah dibuat untuk submission version lama tidak boleh difinalisasi setelah revision diminta. Karena current service sudah memaksa version token cocok sebelum save atau finalize, `application/services/Spmi_auditor_workspace_service.php:47-69`, maka behavior yang konsisten adalah stale draft, bukan cancel hard delete: draft lama tetap ada sebagai history, tetapi service harus menolak finalisasi dan penyimpanan dengan conflict saat submission version berubah. Ini juga konsisten dengan auditee side yang menaikkan version setiap draft save, submit, upload, dan delete di `application/services/Spmi_auditee_workspace_service.php:13-17`.
 
+Target contract untuk M17 menetapkan behavior berikut, dan bukan klaim bahwa current HEAD sudah memilikinya: draft yang terbit untuk submission version lama tetap non-finalizable setelah revision diminta, history tetap tersimpan, lalu service menolak save atau finalize dengan conflict saat submission version berubah. Ini mengunci required future behavior untuk stale draft, bukan current-HEAD capability.
+
 ## 8. Evidence Policy Contract
 
 Evidence policy per question memakai nilai `none`, `file`, `url`, `either`, dan `both`, dengan default untuk existing question `none`, sesuai plan di `docs/plan/m17-spmi-workspace-parity-master-plan.md:207-229` dan task requirement di `docs/plan/m17-spmi-workspace-parity-master-plan.md:593-607,680-703`. Current instrument authoring sudah punya input instruksti bukti yang wajib valid di `application/services/Spmi_instruments_service.php:31-33` dan `application/controllers/lpmpi/Spmi_instruments.php:28-31`, jadi M17-00 menetapkan policy sebagai field baru pada instrument question, bukan mengganti legacy `pertanyaan`.
@@ -38,7 +40,7 @@ Evidence URL disimpan pada submission item sebagai canonical active data, bukan 
 
 ## 9. OB/KTS Contract
 
-Stored value untuk finding type hanya `NULL`, `ob`, atau `kts`, dengan `NULL` berarti tidak ada klasifikasi temuan. Ini mengikuti locked decision di `docs/plan/m17-spmi-workspace-parity-master-plan.md:183-205` dan current legacy validation that already accepts only `ob` and `kts` in `application/models/Jawaban_audit_model.php:29-36` and `application/views/auditor/form_penilaian.php:7-7,298-302`.
+Stored value untuk finding type hanya `NULL`, `ob`, atau `kts`, dengan `NULL` berarti tidak ada klasifikasi temuan. Ini mengikuti locked decision di `docs/plan/m17-spmi-workspace-parity-master-plan.md:183-205` dan current source yang membuktikan pilihan OB/KTS sudah ada di form auditor `application/views/auditor/form_penilaian.php:294-304` serta validasi skor server-side berjalan di `application/controllers/Auditor.php:222-227` dan `application/services/Auditor_service.php:98-113`. Contract di bawah ini tetap target future behavior, bukan klaim bahwa current HEAD sudah menyimpan OB/KTS sebagai behavior final.
 
 Validation rule finalnya adalah: jika OB atau KTS dipilih, finding wajib ada; jika KTS dipilih, recommendation wajib ada; score tetap wajib 1 sampai 4 saat finalization. Current auditor service already enforces score `1..4` and finalization completeness in `application/services/Spmi_auditor_workspace_service.php:61-69`, while report generation also rejects incomplete scores and missing rubric matches in `application/services/Spmi_reports_service.php:22-37`.
 
@@ -153,10 +155,6 @@ If a later schema task uncovers a data compatibility issue, the rollback strateg
 
 ## 21. Decisions Requiring Product Approval
 
-Tidak ada keputusan.
+None.
 
-Status contract:
-
-```text
-APPROVED_BY_PLAN
-```
+contract status: APPROVED_BY_PLAN
