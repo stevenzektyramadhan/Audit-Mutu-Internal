@@ -65,8 +65,16 @@ class Spmi_auditor_workspace_service
             if ($raw_score === '') $score = NULL;
             elseif (!is_string($raw_score) || !in_array($raw_score, ['1', '2', '3', '4'], TRUE)) return $this->rollback('Skor wajib kosong atau bernilai 1 sampai 4.');
             else $score = (int) $raw_score;
+            $raw_finding_type = array_key_exists('finding_type', $value) ? $value['finding_type'] : '';
+            if ($raw_finding_type === '') $finding_type = NULL;
+            elseif (!is_string($raw_finding_type) || !in_array($raw_finding_type, ['ob', 'kts'], TRUE)) return $this->rollback('Jenis temuan wajib kosong, OB, atau KTS.');
+            else $finding_type = $raw_finding_type;
+            $finding = $this->text($value, 'finding');
+            $recommendation = $this->text($value, 'recommendation');
             if ($finalize && $score === NULL) return $this->rollback('Semua item wajib diberi skor 1 sampai 4 sebelum finalisasi.');
-            if (!$this->model->update_item($item->id, ['score' => $score, 'finding' => $this->text($value, 'finding'), 'recommendation' => $this->text($value, 'recommendation')])) return $this->rollback('Penilaian SPMI gagal disimpan.');
+            if ($finalize && in_array($finding_type, ['ob', 'kts'], TRUE) && $finding === NULL) return $this->rollback('Uraian temuan wajib diisi untuk OB atau KTS sebelum finalisasi.');
+            if ($finalize && $finding_type === 'kts' && $recommendation === NULL) return $this->rollback('Rekomendasi wajib diisi untuk KTS sebelum finalisasi.');
+            if (!$this->model->update_item($item->id, ['score' => $score, 'finding_type' => $finding_type, 'finding' => $finding, 'recommendation' => $recommendation])) return $this->rollback('Penilaian SPMI gagal disimpan.');
         }
         if (!$this->model->update_assessment($assessment->id, $version, $finalize ? 'finalized' : 'draft') || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT);
         return $this->finish($finalize ? 'Penilaian SPMI berhasil difinalisasi.' : 'Draft penilaian SPMI berhasil disimpan.');

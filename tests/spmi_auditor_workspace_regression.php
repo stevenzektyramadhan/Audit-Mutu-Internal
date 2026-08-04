@@ -36,4 +36,16 @@ m9_check(strpos($model, 'create_assessment($assignment_id, $source_submission_ve
 m9_check(preg_match('/source_submission_version\s*!==\s*NULL.{0,220}source_submission_version.{0,120}submission->version.{0,120}CONFLICT/s', $service), 'M17-04 stale save/finalize guard must compare source_submission_version to live submission version.');
 m9_check(preg_match('/source_submission_version\s*===\s*NULL\s*&&\s*\$submission->status\s*===\s*\'resubmitted\'.{0,120}CONFLICT/s', $service) && preg_match('/source_submission_version\s*!==\s*NULL\s*&&\s*\(int\)\s*\$assessment->source_submission_version\s*!==\s*\(int\)\s*\$submission->version.{0,120}CONFLICT/s', $service), 'M17-04 stale guard must reject bound mismatches and unbound legacy drafts only after resubmitted.');
 
+foreach (["post('assessment', TRUE)", '$this->service->$method'] as $literal) m9_check(strpos($controller, $literal) !== FALSE, 'M17-05 controller must pass nested assessment payload to service: ' . $literal);
+m9_check(strpos($controller, "post('finding_type'") === FALSE && strpos($controller, 'finding_type_by_item') === FALSE, 'M17-05 controller must not invent a separate finding_type API.');
+foreach (['finding_type', 'raw_finding_type', "in_array($" . "raw_finding_type, ['ob', 'kts'], TRUE)", '$finding_type = NULL', "'finding_type' => $" . "finding_type"] as $literal) m9_check(strpos($service, $literal) !== FALSE, 'M17-05 service finding_type normalization/allowlist contract missing: ' . $literal);
+m9_check(preg_match('/finalize.{0,600}score.{0,300}(finding_type|raw_finding_type).{0,260}(finding|raw_finding).{0,260}(recommendation|raw_recommendation)/s', $service), 'M17-05 finalize must validate score, OB/KTS finding, and KTS recommendation in one server-side branch.');
+m9_check(preg_match('/(finding_type|raw_finding_type).{0,140}(ob|kts).{0,180}(finding|raw_finding).{0,180}(wajib|required|harus|empty\()/is', $service), 'M17-05 OB/KTS finalization must reject missing finding.');
+m9_check(preg_match('/(finding_type|raw_finding_type).{0,80}kts.{0,220}(recommendation|raw_recommendation).{0,180}(wajib|required|harus|empty\()/is', $service), 'M17-05 KTS finalization must reject missing recommendation.');
+m9_check(preg_match('/raw_score.{0,260}NULL.{0,900}finding_type/s', $service), 'M17-05 draft saves must remain partial while accepting finding_type.');
+foreach (['finding_type', "'finding_type'", 'update_item'] as $literal) m9_check(strpos($model . $service, $literal) !== FALSE, 'M17-05 model finding_type persistence contract missing: ' . $literal);
+m9_check(strpos($model, 'spmi_auditor_assessment_items.finding_type') !== FALSE || preg_match('/assessment_items.{0,400}ai\.\*/s', $model), 'M17-05 assessment item reads must include finding_type through ai.*.');
+foreach (['[finding_type]', 'value=""', 'value="ob"', 'value="kts"', 'html_escape', 'readonly', 'disabled'] as $literal) m9_check(strpos($assignment, $literal) !== FALSE, 'M17-05 view controlled/read-only/escaped finding_type contract missing: ' . $literal);
+m9_check(strpos($assignment, 'action_plan') === FALSE && strpos($service, 'action_plan') === FALSE && strpos($model, 'action_plan') === FALSE, 'M17-05 assessment must not add action plan/report behavior.');
+
 fwrite(STDOUT, "SPMI auditor workspace regression checks passed.\n");
