@@ -1665,13 +1665,13 @@ Static assignment-item evidence_policy snapshot and server-side auditee submit e
 
 M17-04 Revision Lifecycle
 
-NOT_STARTED
+BLOCKED
 
-—
+pending documentation commit only
 
-—
+Read-only source/Oracle gate review only; runtime not run.
 
-—
+Exact blocker: M17-04 locked lifecycle requires persisted `returned_for_revision`/`resubmitted` submission states and assessment-to-source-submission-version provenance to retain stale drafts while rejecting finalization after a source revision. Current schema permits only `draft|submitted` and assessments lack that provenance. V2 assigned required additive lifecycle schema capacity to M17-01; M17-04 does not carry a schema-correction allowance.
 
 M17-05 Auditor Assessment Parity
 
@@ -1777,6 +1777,18 @@ Format:
 - Runtime verification:
 - Notes:
 - Next gate:
+
+### 2026-08-05 00:00 — M17-04
+- Status: BLOCKED
+- Branch: dev
+- Start SHA: see Git history
+- End SHA: see Git history
+- Commit: pending documentation commit
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: Read-only source/Oracle gate review only; runtime not run
+- Runtime verification: not run
+- Notes: Exact blocker recorded in the task status table. M17-04 locked lifecycle requires persisted `returned_for_revision`/`resubmitted` submission states and assessment-to-source-submission-version provenance to retain stale drafts while rejecting finalization after a source revision. Current schema permits only `draft|submitted` and assessments lack that provenance. V2 assigned the required additive lifecycle schema capacity to M17-01, so M17-04 does not carry a schema-correction allowance. Minimum follow-up decision needed: authorize a corrective M17-01 schema task or an explicit V2 scope decision for one additive forward-safe migration adding only returned/resubmitted state capacity and nullable assessment source-submission-version provenance.
+- Next gate: STOP: M17-05 and later tasks must not start until corrective schema scope is authorized and complete.
 
 16. Final Milestone Acceptance
 
