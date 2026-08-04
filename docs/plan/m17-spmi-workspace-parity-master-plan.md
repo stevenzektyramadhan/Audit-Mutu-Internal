@@ -1122,7 +1122,7 @@ Agent hanya boleh memperbarui kolom Status, Commit, Tests, dan Notes.
 
 | Task | Status | Commit | Tests | Notes |
 |---|---|---|---|---|
-| M17-00 Design Contract | PASS | TBD | STATIC SOURCE-CONTRACT TEST only, markdown lint pending | Contract drafted and ready for SHA update |
+| M17-00 Design Contract | PASS | 1c2b5ba | STATIC SOURCE-CONTRACT TEST only, markdown lint pending | Contract drafted and approved by plan |
 | M17-01 Schema Foundation | NOT_STARTED | — | — | — |
 | M17-02 Evidence Policy | NOT_STARTED | — | — | — |
 | M17-03 Auditee Evidence Parity | NOT_STARTED | — | — | — |
@@ -1192,8 +1192,8 @@ Format:
 - Status: PASS
 - Branch: dev
 - Start SHA: 9652f9f
-- End SHA: TBD
-- Commit: TBD
+- End SHA: 1c2b5ba
+- Commit: 1c2b5ba
 - Files: docs/product/spmi-workspace-parity-contract.md, docs/plan/m17-spmi-workspace-parity-master-plan.md
 - Tests: STATIC SOURCE-CONTRACT TEST only, markdown lint command unavailable at repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal
 - Runtime verification: not run, contract task only
