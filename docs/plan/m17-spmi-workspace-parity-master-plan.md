@@ -1645,13 +1645,13 @@ Schema-only Wave 3 verification PASS; no migration, DB, routes, auth, UI, legacy
 
 M17-02 Evidence Policy
 
-NOT_STARTED
+PASS
 
-—
+PENDING_COMMIT_SHA
 
-—
+php -l application/controllers/lpmpi/Spmi_instruments.php; php -l application/services/Spmi_instruments_service.php; php -l application/views/lpmpi/spmi_instruments/question_form.php; php -l application/views/lpmpi/spmi_instruments/question_detail.php; php -l tests/spmi_instruments_regression.php; php tests/spmi_instruments_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; GIT_MASTER=1 git diff --check; runtime NOT_RUN_ENVIRONMENT (deferred to M17-07)
 
-—
+Static evidence-policy CRUD/display verification PASS for Admin LPMPI question policy only; no schema/migration, routes, models, legacy, auditee evidence enforcement, assignment policy snapshot, revision lifecycle, report/RTM/export, auth/config/sidebar, or M17-03+ changes; M17-03 eligible but NOT_STARTED and not started by this task
 
 M17-03 Auditee Evidence Parity
 
@@ -1908,3 +1908,15 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: NOT_RUN_ENVIRONMENT; no migrations, DB actions, runtime/browser scenarios, or runtime checks because V2 defers runtime to M17-07
 - Notes: Static acceptance PASS for schema-only foundation files; no migration or database execution was performed; no routes, authorization, UI, legacy behavior, or M17-02+ changes were made; dormant report snapshot columns remain schema-only; M17-02 is eligible but NOT started by this task
 - Next gate: M17-02 eligible but NOT started by this task
+
+### 2026-08-04 00:03 — M17-02
+- Status: PASS
+- Branch: dev
+- Start SHA: 31e5b55
+- End SHA: PENDING_COMMIT_SHA
+- Commit: PENDING_COMMIT_SHA
+- Files: application/controllers/lpmpi/Spmi_instruments.php, application/services/Spmi_instruments_service.php, application/views/lpmpi/spmi_instruments/question_form.php, application/views/lpmpi/spmi_instruments/question_detail.php, tests/spmi_instruments_regression.php, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l application/controllers/lpmpi/Spmi_instruments.php PASS; php -l application/services/Spmi_instruments_service.php PASS; php -l application/views/lpmpi/spmi_instruments/question_form.php PASS; php -l application/views/lpmpi/spmi_instruments/question_detail.php PASS; php -l tests/spmi_instruments_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; GIT_MASTER=1 git diff --check PASS
+- Runtime verification: NOT_RUN_ENVIRONMENT; no runtime/browser/live POST/migration/DB action was run because V2 defers runtime verification to M17-07
+- Notes: Static acceptance PASS for Admin LPMPI question evidence_policy CRUD/display only; tested diff contains no schema/migration, route, model, legacy, auditee evidence enforcement, assignment policy snapshot, revision lifecycle, report/RTM/export, auth/config/sidebar, or M17-03+ changes; M17-03 is eligible but M17-03 not started by this task
+- Next gate: M17-03 eligible but NOT_STARTED; M17-03 not started by this task
