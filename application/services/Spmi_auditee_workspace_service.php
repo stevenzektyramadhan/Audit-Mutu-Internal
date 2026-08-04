@@ -4,18 +4,122 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Spmi_auditee_workspace_service
 {
     const CONFLICT = 'Data telah diperbarui di sesi lain. Muat ulang halaman lalu coba lagi.';
-    protected $ci; protected $model;
-    public function __construct() { $this->ci = &get_instance(); $this->ci->load->model('Spmi_auditee_workspace_model'); $this->model = $this->ci->Spmi_auditee_workspace_model; }
+
+    protected $ci;
+    protected $model;
+
+    public function __construct()
+    {
+        $this->ci = &get_instance();
+        $this->ci->load->model('Spmi_auditee_workspace_model');
+        $this->model = $this->ci->Spmi_auditee_workspace_model;
+    }
+
     public function assignments($user_id) { return $this->model->assignments($user_id); }
-    public function workspace($assignment_id, $user_id) { $this->ci->db->trans_begin(); $assignment = $this->model->assignment($assignment_id, $user_id, TRUE); if (!$assignment || $assignment->state === 'draft') { $this->ci->db->trans_rollback(); return NULL; } if (!$assignment->submission_id && $assignment->state === 'configured') { if (!$this->model->ensure_submission($assignment->id)) { $this->ci->db->trans_rollback(); return NULL; } $assignment = $this->model->assignment($assignment_id, $user_id, TRUE); } $this->ci->db->trans_complete(); if (!$assignment->submission_id) { $items = $this->model->assignment_items($assignment->id); foreach ($items as $item) $item->evidence = []; return ['assignment' => $assignment, 'items' => $items]; } $items = $this->model->items($assignment->submission_id); foreach ($items as $item) $item->evidence = $this->model->evidence($item->id); return ['assignment' => $assignment, 'items' => $items]; }
+
+    public function workspace($assignment_id, $user_id)
+    {
+        $this->ci->db->trans_begin();
+        $assignment = $this->model->assignment($assignment_id, $user_id, TRUE);
+        if (!$assignment || $assignment->state === 'draft') { $this->ci->db->trans_rollback(); return NULL; }
+        if (!$assignment->submission_id && $assignment->state === 'configured') {
+            if (!$this->model->ensure_submission($assignment->id)) { $this->ci->db->trans_rollback(); return NULL; }
+            $assignment = $this->model->assignment($assignment_id, $user_id, TRUE);
+        }
+        $this->ci->db->trans_complete();
+        if (!$assignment->submission_id) {
+            $items = $this->model->assignment_items($assignment->id);
+            foreach ($items as $item) $item->evidence = [];
+            return ['assignment' => $assignment, 'items' => $items, 'revision_history' => []];
+        }
+        $items = $this->model->items($assignment->submission_id);
+        foreach ($items as $item) $item->evidence = $this->model->evidence($item->id);
+        return ['assignment' => $assignment, 'items' => $items, 'revision_history' => $this->model->revision_history($assignment->id, $user_id)];
+    }
+
     public function save($assignment_id, $user_id, $version, $realizations, $evidence_urls) { return $this->mutate($assignment_id, $user_id, $version, $realizations, $evidence_urls, FALSE); }
     public function submit($assignment_id, $user_id, $version, $realizations, $evidence_urls) { return $this->mutate($assignment_id, $user_id, $version, $realizations, $evidence_urls, TRUE); }
-    protected function mutate($assignment_id, $user_id, $version, $realizations, $evidence_urls, $submit) { $this->ci->db->trans_begin(); $assignment = $this->model->assignment($assignment_id, $user_id, TRUE); if (!$assignment || $assignment->state !== 'configured' || $assignment->submission_status !== 'draft' || (int) $assignment->version !== (int) $version) return $this->rollback(self::CONFLICT); if (!is_array($realizations)) return $this->rollback('Realisasi tidak valid.'); if (!is_array($evidence_urls)) $evidence_urls = []; $items = $this->model->items($assignment->submission_id); $expected = []; foreach ($items as $item) $expected[(string) $item->assignment_item_id] = TRUE; foreach ($realizations as $item_id => $value) if (!isset($expected[(string) $item_id])) return $this->rollback('Realisasi tidak valid.'); foreach ($evidence_urls as $item_id => $value) if (!isset($expected[(string) $item_id])) return $this->rollback('Realisasi tidak valid.'); foreach ($items as $item) { if ($submit && !array_key_exists($item->assignment_item_id, $realizations)) return $this->rollback('Semua realisasi wajib diisi sebelum submit.'); $value = array_key_exists($item->assignment_item_id, $realizations) ? trim((string) $realizations[$item->assignment_item_id]) : ''; $url = array_key_exists($item->assignment_item_id, $evidence_urls) ? trim((string) $evidence_urls[$item->assignment_item_id]) : ''; if ($submit && $value === '') return $this->rollback('Semua realisasi wajib diisi sebelum submit.'); if ($submit && !$this->evidence_policy_ok($item, $url)) return $this->rollback('Bukti wajib sesuai kebijakan sebelum submit.'); if (!$this->model->update_realization($assignment->submission_id, $item->assignment_item_id, $value, $url)) return $this->rollback('Realisasi gagal disimpan.'); } if (!$this->model->update_version($assignment->submission_id, $version, $submit ? 'submitted' : 'draft', $submit) || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT); return $this->finish($submit ? 'Submission SPMI berhasil dikirim.' : 'Realisasi berhasil disimpan.'); }
-    protected function evidence_policy_ok($item, $url) { switch ($item->evidence_policy) { case 'none': trim((string) $item->realization); return TRUE; case 'file': return $this->model->count_evidence($item->id) >= 1; case 'url': return $this->validate_evidence_url($url); case 'either': return $this->validate_evidence_url($url) || $this->model->count_evidence($item->id) >= 1; case 'both': return $this->validate_evidence_url($url) && $this->model->count_evidence($item->id) >= 1; } return FALSE; }
+    public function resubmit($assignment_id, $user_id, $version, $realizations, $evidence_urls) { return $this->mutate($assignment_id, $user_id, $version, $realizations, $evidence_urls, TRUE, TRUE); }
+
+    protected function mutate($assignment_id, $user_id, $version, $realizations, $evidence_urls, $submit, $resubmit = FALSE)
+    {
+        $this->ci->db->trans_begin();
+        $assignment = $this->model->assignment($assignment_id, $user_id, TRUE);
+        $status = $assignment ? $assignment->submission_status : NULL;
+        $editable = in_array($status, ['draft', 'returned_for_revision'], TRUE);
+        if (!$assignment || $assignment->state !== 'configured' || !$editable || (int) $assignment->version !== (int) $version || ($resubmit && $status !== 'returned_for_revision') || (!$resubmit && $submit && $status !== 'draft')) return $this->rollback(self::CONFLICT);
+        if (!is_array($realizations)) return $this->rollback('Realisasi tidak valid.');
+        if (!is_array($evidence_urls)) $evidence_urls = [];
+        $items = $this->model->items($assignment->submission_id);
+        $expected = [];
+        foreach ($items as $item) $expected[(string) $item->assignment_item_id] = TRUE;
+        foreach ($realizations as $item_id => $value) if (!isset($expected[(string) $item_id])) return $this->rollback('Realisasi tidak valid.');
+        foreach ($evidence_urls as $item_id => $value) if (!isset($expected[(string) $item_id])) return $this->rollback('Realisasi tidak valid.');
+        foreach ($items as $item) {
+            if ($submit && !array_key_exists($item->assignment_item_id, $realizations)) return $this->rollback('Semua realisasi wajib diisi sebelum submit.');
+            $value = array_key_exists($item->assignment_item_id, $realizations) ? trim((string) $realizations[$item->assignment_item_id]) : '';
+            $url = array_key_exists($item->assignment_item_id, $evidence_urls) ? trim((string) $evidence_urls[$item->assignment_item_id]) : '';
+            if ($submit && $value === '') return $this->rollback('Semua realisasi wajib diisi sebelum submit.');
+            if ($submit && !$this->evidence_policy_ok($item, $url)) return $this->rollback('Bukti wajib sesuai kebijakan sebelum submit.');
+            if (!$this->model->update_realization($assignment->submission_id, $item->assignment_item_id, $value, $url)) return $this->rollback('Realisasi gagal disimpan.');
+        }
+        $new_status = $resubmit ? 'resubmitted' : ($submit ? 'submitted' : $status);
+        $event_status = $resubmit ? ['status' => 'resubmitted'] : ['status' => $new_status];
+        if (!$this->model->update_version($assignment->submission_id, $version, $event_status['status'], $submit, [$status]) || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT);
+        if ($resubmit && !$this->model->add_revision_event(['submission_id' => (int) $assignment->submission_id, 'assignment_id' => (int) $assignment->id, 'actor_user_id' => (int) $user_id, 'reason' => 'Resubmitted by auditee.', 'submission_version' => (int) $version + 1, 'previous_status' => 'returned_for_revision', 'new_status' => 'resubmitted', 'previous_version' => (int) $version, 'resulting_version' => (int) $version + 1])) return $this->rollback('Riwayat revisi gagal disimpan.');
+        return $this->finish($resubmit ? 'Submission SPMI berhasil dikirim ulang.' : ($submit ? 'Submission SPMI berhasil dikirim.' : 'Draft SPMI berhasil disimpan.'));
+    }
+
+    protected function evidence_policy_ok($item, $url)
+    {
+        switch ($item->evidence_policy) {
+            case 'none': trim((string) $item->realization); return TRUE;
+            case 'file': return $this->model->count_evidence($item->id) >= 1;
+            case 'url': return $this->validate_evidence_url($url);
+            case 'either': return $this->validate_evidence_url($url) || $this->model->count_evidence($item->id) >= 1;
+            case 'both': return $this->validate_evidence_url($url) && $this->model->count_evidence($item->id) >= 1;
+        }
+        return FALSE;
+    }
+
     protected function validate_evidence_url($url) { if ($url === '' || filter_var($url, FILTER_VALIDATE_URL) === FALSE) return FALSE; $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME)); return in_array($scheme, ['http', 'https'], TRUE); }
-    public function upload($item_id, $user_id, $version, $file) { $this->ci->db->trans_begin(); $item = $this->model->item_for_update($item_id, $user_id, $version); if (!$item || $item->state !== 'configured' || $item->status !== 'draft') return $this->rollback(self::CONFLICT); if ($this->model->lock_evidence_count($item->id) >= 5) return $this->rollback('Maksimal 5 bukti per item.'); $validated = $this->validate_file($file); if (!$validated['success']) return $this->rollback($validated['message']); $dir = private_storage_dir('audit_evidence'); if (!is_dir($dir) && !mkdir($dir, 0700, TRUE) && !is_dir($dir)) return $this->rollback('Bukti gagal disimpan.'); $paths = []; try { $name = bin2hex(random_bytes(24)) . '.' . $validated['extension']; } catch (Exception $e) { return $this->rollback('Bukti gagal disimpan.'); } $path = $dir . $name; $paths[] = $path; if (!move_uploaded_file($file['tmp_name'], $path)) return $this->rollback('Bukti gagal disimpan.'); $hash = hash_file('sha256', $path); if ($hash === FALSE || !$this->model->add_evidence(['submission_item_id' => $item->id, 'stored_name' => $name, 'original_name' => basename($file['name']), 'mime_type' => $validated['mime'], 'size_bytes' => (int) $file['size'], 'sha256' => $hash]) || !$this->model->update_version($item->submission_id, $version)) { $this->cleanup_paths($paths); return $this->rollback(self::CONFLICT); } $result = $this->finish('Bukti berhasil ditambahkan.'); if (!$result['success']) $this->cleanup_paths($paths); return $result; }
+
+    public function upload($item_id, $user_id, $version, $file)
+    {
+        $this->ci->db->trans_begin();
+        $item = $this->model->item_for_update($item_id, $user_id, $version);
+        if (!$item || $item->state !== 'configured' || !in_array($item->status, ['draft', 'returned_for_revision'], TRUE)) return $this->rollback(self::CONFLICT);
+        if ($this->model->lock_evidence_count($item->id) >= 5) return $this->rollback('Maksimal 5 bukti per item.');
+        $validated = $this->validate_file($file);
+        if (!$validated['success']) return $this->rollback($validated['message']);
+        $dir = private_storage_dir('audit_evidence');
+        if (!is_dir($dir) && !mkdir($dir, 0700, TRUE) && !is_dir($dir)) return $this->rollback('Bukti gagal disimpan.');
+        $paths = [];
+        try { $name = bin2hex(random_bytes(24)) . '.' . $validated['extension']; } catch (Exception $e) { return $this->rollback('Bukti gagal disimpan.'); }
+        $path = $dir . $name;
+        $paths[] = $path;
+        if (!move_uploaded_file($file['tmp_name'], $path)) return $this->rollback('Bukti gagal disimpan.');
+        $hash = hash_file('sha256', $path);
+        if ($hash === FALSE || !$this->model->add_evidence(['submission_item_id' => $item->id, 'stored_name' => $name, 'original_name' => basename($file['name']), 'mime_type' => $validated['mime'], 'size_bytes' => (int) $file['size'], 'sha256' => $hash]) || !$this->model->update_version($item->submission_id, $version, $item->status, FALSE, [$item->status])) { $this->cleanup_paths($paths); return $this->rollback(self::CONFLICT); }
+        $result = $this->finish('Bukti berhasil ditambahkan.');
+        if (!$result['success']) $this->cleanup_paths($paths);
+        return $result;
+    }
+
     protected function validate_file($file) { if (!is_array($file) || !isset($file['error'], $file['tmp_name'], $file['size'], $file['name']) || $file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name']) || (int) $file['size'] > 5 * 1024 * 1024) return ['success' => FALSE, 'message' => 'Bukti harus berupa PDF, JPEG, atau PNG maksimal 5 MiB.']; $finfo = finfo_open(FILEINFO_MIME_TYPE); $mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : FALSE; if ($finfo) finfo_close($finfo); $image = @getimagesize($file['tmp_name']); $allowed = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png']; if (!isset($allowed[$mime]) || (($mime === 'image/jpeg' || $mime === 'image/png') && (!$image || $image['mime'] !== $mime))) return ['success' => FALSE, 'message' => 'Bukti harus berupa PDF, JPEG, atau PNG maksimal 5 MiB.']; return ['success' => TRUE, 'mime' => $mime, 'extension' => $allowed[$mime]]; }
-    public function delete($evidence_id, $user_id, $version) { $this->ci->db->trans_begin(); $evidence = $this->model->evidence_for_update($evidence_id, $user_id, $version); if (!$evidence || $evidence->state !== 'configured' || $evidence->status !== 'draft') return $this->rollback(self::CONFLICT); if (!$this->model->delete_evidence($evidence_id) || !$this->model->update_version($evidence->submission_id, $version)) return $this->rollback(self::CONFLICT); $result = $this->finish('Bukti berhasil dihapus.'); $path = private_storage_path('audit_evidence', $evidence->stored_name); if ($result['success'] && $path && is_file($path)) unlink($path); return $result; }
+
+    public function delete($evidence_id, $user_id, $version)
+    {
+        $this->ci->db->trans_begin();
+        $evidence = $this->model->evidence_for_update($evidence_id, $user_id, $version);
+        if (!$evidence || $evidence->state !== 'configured' || !in_array($evidence->status, ['draft', 'returned_for_revision'], TRUE)) return $this->rollback(self::CONFLICT);
+        if (!$this->model->delete_evidence($evidence_id) || !$this->model->update_version($evidence->submission_id, $version, $evidence->status, FALSE, [$evidence->status])) return $this->rollback(self::CONFLICT);
+        $result = $this->finish('Bukti berhasil dihapus.');
+        $path = private_storage_path('audit_evidence', $evidence->stored_name);
+        if ($result['success'] && $path && is_file($path)) unlink($path);
+        return $result;
+    }
+
     public function download($evidence_id, $user_id) { $evidence = $this->model->evidence_for_read($evidence_id, $user_id); if (!$evidence) return NULL; $path = private_storage_path('audit_evidence', $evidence->stored_name); return $path && is_file($path) ? ['path' => $path, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name] : NULL; }
     public function assignment_id_for_item($item_id, $user_id) { $row = $this->model->assignment_id_for_item($item_id, $user_id); return $row ? (int) $row->id : 0; }
     public function assignment_id_for_evidence($evidence_id, $user_id) { $row = $this->model->assignment_id_for_evidence($evidence_id, $user_id); return $row ? (int) $row->id : 0; }

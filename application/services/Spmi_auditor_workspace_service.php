@@ -4,6 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Spmi_auditor_workspace_service
 {
     const CONFLICT = 'Data telah diperbarui di sesi lain. Muat ulang halaman lalu coba lagi.';
+
     protected $ci;
     protected $model;
 
@@ -14,7 +15,7 @@ class Spmi_auditor_workspace_service
     {
         $assignment = $this->model->assignment($assignment_id, $user_id);
         if (!$assignment || ($assignment->state === 'closed' && !$assignment->assessment_id)) return NULL;
-        if (!$assignment->assessment_id && $assignment->state === 'configured') {
+        if (!$assignment->assessment_id && $assignment->state === 'configured' && in_array($assignment->submission_status, ['submitted', 'resubmitted'], TRUE)) {
             $created = $this->create($assignment_id, $user_id);
             if (!$created['success']) return NULL;
             $assignment = $this->model->assignment($assignment_id, $user_id);
@@ -25,7 +26,7 @@ class Spmi_auditor_workspace_service
         $by_item = [];
         foreach ($assessment_items as $item) $by_item[(string) $item->assignment_item_id] = $item;
         foreach ($items as $item) { $item->rubrics = $this->model->rubrics($item->id, $user_id); $item->assessment = isset($by_item[(string) $item->id]) ? $by_item[(string) $item->id] : NULL; $item->evidence = $this->model->evidence($item->id, $user_id); if (!$item->assessment) $item->realization_snapshot = ''; }
-        return ['assignment' => $assignment, 'assessment' => $assessment, 'items' => $items];
+        return ['assignment' => $assignment, 'assessment' => $assessment, 'items' => $items, 'revision_history' => $this->model->revision_history($assignment_id, $user_id)];
     }
 
     public function save($assignment_id, $user_id, $version, $values) { return $this->mutate($assignment_id, $user_id, $version, $values, FALSE); }
@@ -37,8 +38,8 @@ class Spmi_auditor_workspace_service
         $assignment = $this->model->assignment($assignment_id, $user_id, TRUE);
         $cycle = $assignment ? $this->model->cycle_for_update($assignment->cycle_id) : NULL;
         $submission = $assignment ? $this->model->submission_for_update($assignment->id) : NULL;
-        if (!$assignment || !$cycle || $cycle->state !== 'configured' || !$submission || $submission->status !== 'submitted' || $this->model->assessment_for_update($assignment->id, $user_id)) return $this->rollback(self::CONFLICT);
-        $assessment_id = $this->model->create_assessment($assignment->id);
+        if (!$assignment || !$cycle || $cycle->state !== 'configured' || !$submission || !in_array($submission->status, ['submitted', 'resubmitted'], TRUE) || $this->model->assessment_for_update($assignment->id, $user_id)) return $this->rollback(self::CONFLICT);
+        $assessment_id = $this->model->create_assessment($assignment->id, $submission->version);
         if (!$assessment_id) return $this->rollback('Penilaian SPMI gagal dibuat.');
         foreach ($this->model->submitted_items($assignment->id, $user_id) as $item) if (!$this->model->create_item(['assessment_id' => $assessment_id, 'assignment_item_id' => (int) $item->assignment_item_id, 'realization_snapshot' => (string) $item->realization])) return $this->rollback('Snapshot realisasi gagal dibuat.');
         return $this->finish('Penilaian SPMI berhasil dibuka.');
@@ -51,7 +52,9 @@ class Spmi_auditor_workspace_service
         $cycle = $assignment ? $this->model->cycle_for_update($assignment->cycle_id) : NULL;
         $submission = $assignment ? $this->model->submission_for_update($assignment->id) : NULL;
         $assessment = $assignment ? $this->model->assessment_for_update($assignment->id, $user_id) : NULL;
-        if (!$assignment || !$cycle || !$submission || $cycle->state !== 'configured' || $submission->status !== 'submitted' || !$assessment || $assessment->status !== 'draft' || (int) $assessment->version !== (int) $version || !is_array($values)) return $this->rollback(self::CONFLICT);
+        if (!$assignment || !$cycle || !$submission || $cycle->state !== 'configured' || !in_array($submission->status, ['submitted', 'resubmitted'], TRUE) || !$assessment || $assessment->status !== 'draft' || (int) $assessment->version !== (int) $version || !is_array($values)) return $this->rollback(self::CONFLICT);
+        if ($assessment->source_submission_version === NULL && $submission->status === 'resubmitted') return $this->rollback(self::CONFLICT);
+        if ($assessment->source_submission_version !== NULL && (int) $assessment->source_submission_version !== (int) $submission->version) return $this->rollback(self::CONFLICT);
         $items = $this->model->assessment_items_for_update($assessment->id, $user_id);
         $expected = [];
         foreach ($items as $item) $expected[(string) $item->assignment_item_id] = $item;
@@ -67,6 +70,23 @@ class Spmi_auditor_workspace_service
         }
         if (!$this->model->update_assessment($assessment->id, $version, $finalize ? 'finalized' : 'draft') || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT);
         return $this->finish($finalize ? 'Penilaian SPMI berhasil difinalisasi.' : 'Draft penilaian SPMI berhasil disimpan.');
+    }
+
+    public function return_for_revision($assignment_id, $user_id, $submission_version, $reason)
+    {
+        $reason = trim($reason);
+        if ($reason === '') return ['success' => FALSE, 'message' => 'Alasan revisi wajib diisi.'];
+        $this->ci->db->trans_begin();
+        $assignment = $this->model->assignment($assignment_id, $user_id, TRUE);
+        $cycle = $assignment ? $this->model->cycle_for_update($assignment->cycle_id) : NULL;
+        $submission = $assignment ? $this->model->submission_for_update($assignment->id) : NULL;
+        $assessment = $assignment ? $this->model->assessment_for_update($assignment->id, $user_id) : NULL;
+        if (!$assignment || !$cycle || !$submission || $cycle->state !== 'configured' || ($submission->status !== 'submitted' && $submission->status !== 'resubmitted') || (int) $submission->version !== (int) $submission_version || ($assessment && $assessment->status === 'finalized')) return $this->rollback(self::CONFLICT);
+        $next_version = (int) $submission->version + 1;
+        $event_status = ['status' => 'returned_for_revision'];
+        if (!$this->model->update_submission_status($submission->id, $submission->version, ['submitted', 'resubmitted'], $event_status['status']) || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT);
+        if (!$this->model->add_revision_event(['submission_id' => (int) $submission->id, 'assignment_id' => (int) $assignment->id, 'actor_user_id' => (int) $user_id, 'reason' => $reason, 'submission_version' => $next_version, 'previous_status' => (string) $submission->status, 'new_status' => 'returned_for_revision', 'previous_version' => (int) $submission->version, 'resulting_version' => $next_version])) return $this->rollback('Riwayat revisi gagal disimpan.');
+        return $this->finish('Submission dikembalikan untuk revisi.');
     }
 
     public function download($evidence_id, $user_id) { $evidence = $this->model->evidence_for_read($evidence_id, $user_id); if (!$evidence) return NULL; $path = private_storage_path('audit_evidence', $evidence->stored_name); return $path && is_file($path) ? ['path' => $path, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name] : NULL; }

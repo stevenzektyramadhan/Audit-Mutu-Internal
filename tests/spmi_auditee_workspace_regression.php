@@ -59,4 +59,10 @@ foreach (['curl_', 'file_get_contents($url', 'fopen($url', 'get_headers', 'fsock
 foreach (['finfo_open', 'getimagesize', '5 * 1024 * 1024', 'private_storage_path', 'lock_evidence_count', '>= 5', 'evidence_for_update', 'evidence_for_read', 'a.auditee_id', 'update_version'] as $literal) m8_check(strpos($service . $model, $literal) !== FALSE, 'M17-03 must preserve private owned versioned file controls: ' . $literal);
 m8_check(strpos($assignment, 'evidence_policy') !== FALSE && strpos($assignment, 'name="evidence_url[') !== FALSE && strpos($assignment, 'type="url"') !== FALSE && strpos($assignment, 'html_escape($item->evidence_url') !== FALSE, 'M17-03 UI must expose policy and controlled escaped evidence_url input.');
 
+m8_check(strpos($routes, 'auditee/spmi/assignment/(:num)/resubmit') !== FALSE, 'M17-04 auditee resubmit POST route missing.');
+m8_check(strpos($controller, 'public function resubmit(') !== FALSE && strpos($controller, "method(TRUE) !== 'POST'") !== FALSE && strpos($controller, 'resubmit(') !== FALSE, 'M17-04 auditee resubmit POST action missing.');
+m8_check(strpos($service, 'public function resubmit(') !== FALSE && strpos($service, "status !== 'returned_for_revision'") !== FALSE && strpos($service, "'status' => 'resubmitted'") !== FALSE, 'M17-04 returned_for_revision to resubmitted transition missing.');
+m8_check(strpos($service, "status !== 'returned_for_revision'") !== FALSE && strpos($service, 'update_realization') !== FALSE && strpos($service, 'update_version') !== FALSE, 'M17-04 auditee edits must be restricted to returned revisions and versioned.');
+m8_check(strpos($model, 'revision_history') !== FALSE && strpos($model, 'a.auditee_id') !== FALSE && strpos($model, 'spmi_auditee_submission_revision_events') !== FALSE, 'M17-04 ownership-scoped immutable revision history read missing.');
+
 fwrite(STDOUT, "SPMI auditee workspace regression checks passed.\n");

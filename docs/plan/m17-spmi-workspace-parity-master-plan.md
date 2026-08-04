@@ -1739,13 +1739,13 @@ Static schema correction acceptance PASS; additive lifecycle schema compatibilit
 
 M17-04 Revision Lifecycle
 
-NOT_STARTED
+PASS
 
-see Git history (schema blocker resolved by M17-01A)
+implementation SHA recorded in Git history
 
-No behavior work started; static source gate only; runtime/DB/migration/browser NOT_RUN_ENVIRONMENT.
+Static tests passed; runtime/DB/migration/browser NOT_RUN_ENVIRONMENT.
 
-Schema blocker RESOLVED by M17-01A revision lifecycle schema correction; M17-04 behavior, authorization, version increments, stale rejection, and runtime lifecycle work remain unstarted in this task.
+Schema blocker remains preserved as historical context and is RESOLVED by M17-01A revision lifecycle schema correction; M17-04 submission revision lifecycle source implementation is complete for this gate, and M17-05 is eligible after this PASS but must not be started by this task.
 
 M17-05 Auditor Assessment Parity
 
@@ -2056,13 +2056,13 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-04 eligible but NOT_STARTED; M17-04 behavior not started by this task; M17-05+ and M18 remain NOT_STARTED
 
 ### 2026-08-05 00:01 — M17-04
-- Status: NOT_STARTED
+- Status: PASS
 - Branch: dev
 - Start SHA: see Git history
-- End SHA: —
-- Commit: —
-- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
-- Tests: Static source gate update only; behavior/runtime tests not run
-- Runtime verification: NOT_RUN_ENVIRONMENT; behavior, migrations, DB actions, and browser/runtime checks were not run in this environment
-- Notes: All historical BLOCKED entries remain preserved exactly. The M17-04 schema blocker is RESOLVED by M17-01A, so this task is now eligible, but return/resubmit behavior, authorization, version increments, stale-finalization rejection, and runtime lifecycle verification have not begun in this task.
-- Next gate: M17-04 may start in a future task; M17-05+ and M18 remain NOT_STARTED
+- End SHA: implementation SHA recorded in Git history
+- Commit: implementation SHA recorded in Git history
+- Files: application/config/routes.php, application/controllers/Spmi_auditee_workspace.php, application/controllers/Spmi_auditor_workspace.php, application/models/Spmi_auditee_workspace_model.php, application/models/Spmi_auditor_workspace_model.php, application/services/Spmi_auditee_workspace_service.php, application/services/Spmi_auditor_workspace_service.php, application/views/spmi_auditee_workspace/assignment.php, application/views/spmi_auditor_workspace/assignment.php, application/views/spmi_auditor_workspace/index.php, tests/spmi_auditee_workspace_regression.php, tests/spmi_auditor_workspace_regression.php, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l application/config/routes.php PASS; php -l application/controllers/Spmi_auditee_workspace.php PASS; php -l application/controllers/Spmi_auditor_workspace.php PASS; php -l application/models/Spmi_auditee_workspace_model.php PASS; php -l application/models/Spmi_auditor_workspace_model.php PASS; php -l application/services/Spmi_auditee_workspace_service.php PASS; php -l application/services/Spmi_auditor_workspace_service.php PASS; php -l application/views/spmi_auditee_workspace/assignment.php PASS; php -l application/views/spmi_auditor_workspace/assignment.php PASS; php -l application/views/spmi_auditor_workspace/index.php PASS; php -l tests/spmi_auditee_workspace_regression.php PASS; php -l tests/spmi_auditor_workspace_regression.php PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; GIT_MASTER=1 git diff --check PASS
+- Runtime verification: NOT_RUN_ENVIRONMENT; runtime, DB, migration execution, and browser checks were not run in this environment
+- Notes: All historical BLOCKED entries remain preserved exactly. Static tests passed for the M17-04 submission revision lifecycle implementation and plan update only; no schema, migration, database, reports/RTM/export, legacy, sidebar/config beyond the reviewed SPMI routes, or post-M17-04 code was changed by this task. The exact implementation SHA is represented by Git history because a commit cannot prewrite its own final SHA.
+- Next gate: M17-05 is eligible after this PASS but must not be started by this task; M17-05+ and M18 remain NOT_STARTED
