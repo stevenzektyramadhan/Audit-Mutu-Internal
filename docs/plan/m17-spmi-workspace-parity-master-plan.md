@@ -1655,13 +1655,13 @@ Static evidence-policy CRUD/display verification PASS for Admin LPMPI question p
 
 M17-03 Auditee Evidence Parity
 
-NOT_STARTED
+PASS
 
-—
+see Git history (self SHA unavailable in preimage)
 
-—
+php -l application/controllers/Spmi_auditee_workspace.php; php -l application/models/Spmi_audits_model.php; php -l application/models/Spmi_auditee_workspace_model.php; php -l application/services/Spmi_audits_service.php; php -l application/services/Spmi_auditee_workspace_service.php; php -l application/views/spmi_auditee_workspace/assignment.php; php -l tests/spmi_auditee_workspace_regression.php; php tests/m17_schema_regression.php; php tests/spmi_instruments_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; GIT_MASTER=1 git diff --check; runtime NOT_RUN_ENVIRONMENT (deferred to M17-07)
 
-—
+Static assignment-item evidence_policy snapshot and server-side auditee submit enforcement verification PASS; tested diff excludes M17-04 revision lifecycle, M17-05 auditor assessment, M17-06 reporting/result, legacy, config, route/auth, and .multibrain changes; runtime, DB, migration, and browser verification NOT_RUN_ENVIRONMENT; M17-04 eligible after PASS but NOT_STARTED and not started by this task; exact implementation SHA is represented by Git history because a commit cannot record its own final SHA in the preimage
 
 M17-04 Revision Lifecycle
 
@@ -1932,3 +1932,15 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: NOT_RUN_ENVIRONMENT; no runtime/browser/live POST/migration/DB action was run because V2 defers runtime verification to M17-07
 - Notes: This entry reconciles the M17-02 ledger to the implementation SHA `099a6db`; the status/log-only documentation reconciliation commit is represented by Git history and does not introduce a separate self-SHA field, placeholder, or invented value; only the plan file changed; M17-03 remains eligible but was not started by this task
 - Next gate: M17-03 eligible but not started by this task
+
+### 2026-08-05 00:00 — M17-03
+- Status: PASS
+- Branch: dev
+- Start SHA: 68b8c06
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: see Git history (self SHA unavailable in preimage)
+- Files: migrations/026_add_assignment_item_evidence_policy.sql, database_schema.sql, application/models/Spmi_audits_model.php, application/services/Spmi_audits_service.php, application/controllers/Spmi_auditee_workspace.php, application/models/Spmi_auditee_workspace_model.php, application/services/Spmi_auditee_workspace_service.php, application/views/spmi_auditee_workspace/assignment.php, tests/spmi_auditee_workspace_regression.php, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l application/controllers/Spmi_auditee_workspace.php PASS; php -l application/models/Spmi_audits_model.php PASS; php -l application/models/Spmi_auditee_workspace_model.php PASS; php -l application/services/Spmi_audits_service.php PASS; php -l application/services/Spmi_auditee_workspace_service.php PASS; php -l application/views/spmi_auditee_workspace/assignment.php PASS; php -l tests/spmi_auditee_workspace_regression.php PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; GIT_MASTER=1 git diff --check PASS
+- Runtime verification: NOT_RUN_ENVIRONMENT; no migrations, DB actions, runtime/browser/live HTTP checks, or runtime checks were run because V2 defers runtime verification to M17-07
+- Notes: Static acceptance PASS for assignment-item evidence_policy snapshot and server-side auditee submit enforcement only; tested diff contains no M17-04 revision lifecycle, M17-05 auditor assessment, M17-06 reporting/result, legacy, config, route/auth, or .multibrain changes; exact implementation SHA cannot be written into the preimage of the same commit and is therefore represented by Git history without guesswork or rewrite; M17-04 is eligible after this PASS but was not started by this task
+- Next gate: M17-04 eligible but NOT_STARTED; M17-04 not started by this task

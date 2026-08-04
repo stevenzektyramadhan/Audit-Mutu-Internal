@@ -34,7 +34,7 @@ class Spmi_auditee_workspace extends CI_Controller
     protected function mutate($id, $submit)
     {
         $this->require_post();
-        $result = $this->service->{$submit ? 'submit' : 'save'}((int) $id, $this->user_id(), (int) $this->input->post('version', TRUE), $this->input->post('realization', TRUE));
+        $result = $this->service->{$submit ? 'submit' : 'save'}((int) $id, $this->user_id(), (int) $this->input->post('version', TRUE), $this->input->post('realization', TRUE), $this->input->post('evidence_url', TRUE));
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect('auditee/spmi/assignment/' . (int) $id);
     }

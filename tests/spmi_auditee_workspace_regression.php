@@ -2,12 +2,15 @@
 $root = dirname(__DIR__);
 function m8_source($path) { $value = file_get_contents(dirname(__DIR__) . DIRECTORY_SEPARATOR . $path); if ($value === FALSE) throw new RuntimeException('Tidak dapat membaca ' . $path); return $value; }
 function m8_check($condition, $message) { if (!$condition) throw new RuntimeException($message); }
+function m8_table_block($source, $table) { $pattern = '/CREATE TABLE IF NOT EXISTS `' . preg_quote($table, '/') . '` \((.*?)\n\) ENGINE=/s'; if (!preg_match($pattern, $source, $match)) throw new RuntimeException('Table block missing: ' . $table); return $match[1]; }
 
 $migration = m8_source('migrations/018_create_spmi_auditee_workspace.sql');
 $schema = m8_source('database_schema.sql');
 $helper = m8_source('application/helpers/app_helper.php');
 $model = m8_source('application/models/Spmi_auditee_workspace_model.php');
 $service = m8_source('application/services/Spmi_auditee_workspace_service.php');
+$audits_model = m8_source('application/models/Spmi_audits_model.php');
+$audits_service = m8_source('application/services/Spmi_audits_service.php');
 $controller = m8_source('application/controllers/Spmi_auditee_workspace.php');
 $routes = m8_source('application/config/routes.php');
 $sidebar = m8_source('application/views/layouts/sidebar.php');
@@ -35,5 +38,25 @@ m8_check(strpos($assignment, 'form_open(') !== FALSE && strpos($assignment, 'for
 m8_check(strpos($assignment, 'formaction=') !== FALSE && strpos($assignment, 'name="realization[') !== FALSE && strpos($assignment, 'hidden" name="realization[') === FALSE, 'Submit must use current realization fields in same form.');
 m8_check(strpos($controller, "post('version'") !== FALSE && strpos($controller, "auditee/spmi/assignment/' . " . '$assignment_id') !== FALSE, 'M8 evidence mutations need posted version and owning assignment redirect.');
 foreach (['Auditee', 'Jawaban_model', 'tugas_audit', 'jawaban_audit', 'dokumen_bukti', 'link_bukti'] as $legacy) m8_check(strpos($model . $service . $controller . $index . $assignment, $legacy) === FALSE, 'M8 legacy isolation broken: ' . $legacy);
+
+$assignment_items_schema = m8_table_block($schema, 'spmi_audit_assignment_items');
+$submission_items_schema = m8_table_block($schema, 'spmi_auditee_submission_items');
+m8_check(strpos($assignment_items_schema, "`evidence_policy` ENUM('none','file','url','either','both') NOT NULL DEFAULT 'none'") !== FALSE, 'M17-03 assignment-item schema must snapshot immutable evidence_policy capacity.');
+m8_check(strpos($submission_items_schema, '`evidence_url` VARCHAR(500) NULL') !== FALSE, 'M17-03 submission item schema must persist evidence_url.');
+m8_check(strpos($audits_model, 'evidence_policy') !== FALSE && preg_match('/package_questions\([^)]*\).*select\([^\n]*q\.\*,/s', $audits_model), 'M17-03 assignment creation source query must expose question evidence_policy.');
+m8_check(strpos($audits_service, "'evidence_policy' => $" . "question->evidence_policy") !== FALSE, 'M17-03 assignment creation must copy question evidence_policy into assignment item snapshot.');
+m8_check(strpos($model, 'ai.evidence_policy') !== FALSE && strpos($model, 'si.evidence_url') !== FALSE, 'M17-03 auditee model must read policy snapshot and existing evidence_url.');
+m8_check(strpos($model, 'update_realization') !== FALSE && strpos($model, 'evidence_url') !== FALSE, 'M17-03 auditee model must persist evidence_url with realization.');
+m8_check(strpos($service, '$evidence_urls') !== FALSE && strpos($service, 'evidence_policy') !== FALSE && strpos($service, 'validate_evidence_url') !== FALSE, 'M17-03 submit path must branch on evidence_policy snapshots and validate evidence URLs.');
+m8_check(strpos($service, "case 'none'") !== FALSE && strpos($service, "case 'file'") !== FALSE && strpos($service, "case 'url'") !== FALSE && strpos($service, "case 'either'") !== FALSE && strpos($service, "case 'both'") !== FALSE, 'M17-03 submit path must cover none/file/url/either/both policies.');
+m8_check(strpos($service, "case 'none'") !== FALSE && preg_match("/case 'none'.{0,600}trim/s", $service), 'M17-03 none policy still requires realization while evidence remains optional.');
+m8_check(strpos($service, "case 'file'") !== FALSE && preg_match("/case 'file'.{0,600}(count_evidence|lock_evidence_count)/s", $service), 'M17-03 file policy must require at least one private evidence file.');
+m8_check(strpos($service, "case 'url'") !== FALSE && preg_match("/case 'url'.{0,600}validate_evidence_url/s", $service), 'M17-03 url policy must require a valid HTTP/HTTPS URL.');
+m8_check(strpos($service, "case 'either'") !== FALSE && preg_match("/case 'either'.{0,800}(validate_evidence_url).{0,800}(count_evidence|lock_evidence_count)|(count_evidence|lock_evidence_count).{0,800}(validate_evidence_url)/s", $service), 'M17-03 either policy must require valid URL or file.');
+m8_check(strpos($service, "case 'both'") !== FALSE && preg_match("/case 'both'.{0,800}(validate_evidence_url).{0,800}(count_evidence|lock_evidence_count)|(count_evidence|lock_evidence_count).{0,800}(validate_evidence_url)/s", $service), 'M17-03 both policy must require valid URL and file.');
+m8_check(strpos($service, 'filter_var') !== FALSE && strpos($service, 'FILTER_VALIDATE_URL') !== FALSE && strpos($service, 'parse_url') !== FALSE && strpos($service, 'in_array($scheme, [\'http\', \'https\'], TRUE)') !== FALSE, 'M17-03 evidence URL validation must be syntax-only HTTP/HTTPS.');
+foreach (['curl_', 'file_get_contents($url', 'fopen($url', 'get_headers', 'fsockopen', 'stream_socket_client'] as $remote_fetch) m8_check(strpos($service, $remote_fetch) === FALSE, 'M17-03 evidence URL handling must not fetch remote URLs: ' . $remote_fetch);
+foreach (['finfo_open', 'getimagesize', '5 * 1024 * 1024', 'private_storage_path', 'lock_evidence_count', '>= 5', 'evidence_for_update', 'evidence_for_read', 'a.auditee_id', 'update_version'] as $literal) m8_check(strpos($service . $model, $literal) !== FALSE, 'M17-03 must preserve private owned versioned file controls: ' . $literal);
+m8_check(strpos($assignment, 'evidence_policy') !== FALSE && strpos($assignment, 'name="evidence_url[') !== FALSE && strpos($assignment, 'type="url"') !== FALSE && strpos($assignment, 'html_escape($item->evidence_url') !== FALSE, 'M17-03 UI must expose policy and controlled escaped evidence_url input.');
 
 fwrite(STDOUT, "SPMI auditee workspace regression checks passed.\n");

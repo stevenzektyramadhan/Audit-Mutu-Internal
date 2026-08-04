@@ -8,6 +8,7 @@
 -- current parity migration 001-023
 -- current parity migration 001-024
 -- current parity migration 001-025
+-- current parity migration 001-026
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -382,6 +383,7 @@ CREATE TABLE IF NOT EXISTS `spmi_audit_assignment_items` (
     `question_code` VARCHAR(64) NOT NULL,
     `question_text` TEXT NOT NULL,
     `evidence_instruction` TEXT NOT NULL,
+    `evidence_policy` ENUM('none','file','url','either','both') NOT NULL DEFAULT 'none',
     `indicator_code` VARCHAR(64) NOT NULL,
     `indicator_title` VARCHAR(200) NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
