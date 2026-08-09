@@ -2206,9 +2206,21 @@ DO NOT MAKE CUTOVER CHANGES.
 - Branch: dev
 - Start SHA: see Git history
 - End SHA: see Git history
-- Commit: docs(m17): mark M17-07 auditor evidence blocker
+- Commit: docs(m17): mark M17-07 build environment blocker
 - Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
 - Tests: STATIC SOURCE REVIEW only; GIT_MASTER=1 git diff --check PASS; markdown lint scripts unavailable in repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal; no Docker/DB/migration/HTTP/browser action was run
 - Runtime verification: not run
-- Notes: M17-07 is blocked by a true product gap in the auditor workspace runtime lane. The required lane "Auditor membaca URL dan file evidence" is explicit in the plan at lines 1470 to 1472, but `application/models/Spmi_auditor_workspace_model.php:27` selects only `assignment_item_id, realization`, `application/models/Spmi_auditor_workspace_model.php:28` returns only assignment-item fields, and `application/views/spmi_auditor_workspace/assignment.php:18-20` renders submitted realization plus private-file download links only. The auditor workspace never projects or renders the auditee submission item's `evidence_url`. `application/services/Spmi_reports_service.php:37` stores `evidence_url_snapshot`, but that is a report snapshot path, not the auditor workspace read path. Tests alone cannot satisfy this required runtime lane because the blocker is a missing production read and render path, not a syntax or contract issue. Minimum resolution is a scoped production change that joins the submission-item evidence URL into the auditor workspace with ownership scoping, renders it escaped and read-only, and then verifies it with regression plus isolated runtime proof. M17-07A passed fixture isolation, but that does not satisfy the full M17-07 runtime lanes. No Docker, DB, migration, HTTP, or browser action was taken for this blocker record. This preserves the prior historical M17-07 fixture-bootstrap blocker entry exactly and leaves M17-08 unstarted.
+- Notes: M17-07 is blocked by a confirmed environment failure in the runtime lane, not by a product or runtime behavior defect. The one runner invocation `bash tests/run_m17_07a_runtime.sh run` failed during Docker image build before bootstrap, fixture, or HTTP smoke because Composer timed out while downloading Packagist metadata, surfaced as `curl error 28`, and exited with Composer code 100. The exact log is `/tmp/m17_07_draft_wkqh7rgj.log`. The draft lane is NOT_RUN, no retry occurred, no product defect is inferred from this failure, and no M17-08 or post-M17 work is authorized from this record. Historical M17-07 BLOCKED entries remain preserved verbatim.
+- Next gate: STOP: M17-08 must not start; no post-M17 milestone may start
+
+### 2026-08-09 10:01 — M17-07
+- Status: BLOCKED
+- Branch: dev
+- Start SHA: see Git history
+- End SHA: see Git history
+- Commit: docs(m17): mark M17-07 build environment blocker
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only; GIT_MASTER=1 git diff --check PASS; markdown lint scripts unavailable in repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal; no Docker/DB/migration/HTTP/browser action was run
+- Runtime verification: NOT_RUN
+- Notes: Confirmed environment blocker for the draft lane. The single runner invocation `bash tests/run_m17_07a_runtime.sh run` failed during Docker image build before bootstrap, fixture, or HTTP smoke because Composer timed out downloading Packagist metadata, reported `curl error 28`, and exited 100. Exact log `/tmp/m17_07_draft_wkqh7rgj.log`. No retry occurred, no product defect is inferred, and no M17-08 or post-M17 work is authorized from this record.
 - Next gate: STOP: M17-08 must not start; no post-M17 milestone may start
