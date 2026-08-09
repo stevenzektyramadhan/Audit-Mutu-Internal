@@ -1771,13 +1771,13 @@ Static final-report snapshot and auditee final-result acceptance PASS for finali
 
 M17-07 Runtime Hardening
 
-NOT_STARTED
+BLOCKED
+
+67fe1bd
 
 —
 
-—
-
-M17-07A fixture bootstrap is now PASS and unblocks M17-07 as the next actionable task only. This task did not run any broader M17-07 runtime-hardening lanes beyond the disposable bootstrap proof, and M17-08 remains NOT_STARTED.
+Missing auditor evidence URL read/render blocker. M17-08 remains NOT_STARTED.
 
 M17-07A Disposable Runtime Fixture Bootstrap
 
