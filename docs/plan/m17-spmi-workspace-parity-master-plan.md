@@ -2138,3 +2138,15 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: tests/run_m17_07a_runtime.sh run PASS (exit 0) with project `m17_07a_1000_1786243974_24449`; log `/tmp/m17_07a_runtime_permissions_retry.pykqcy81.log` shows fresh named network plus four named volumes, healthy MySQL, harmless readiness `curl: (56) Recv failure: Connection reset by peer` retry, `M17-07A HTTP fixture smoke passed.`, and exact-resource teardown removing app/mysql/volumes/network
 - Notes: This PASS proves only the disposable M17-07A runtime fixture bootstrap: six normal login CSRF accounts, auditee A/B submission, auditor A/B open, and cross-user denial checks in a fresh schema seeded from `database_schema.sql` plus `tests/fixtures/m17_07a_runtime.sql`. It does not perform broader M17-07 runtime hardening, Docker/DB/HTTP changes beyond the fixture lane, or any M17-08/M18 work. Historical M17-07 BLOCKED evidence remains preserved verbatim.
 - Next gate: M17-07 is now actionable and remains NOT_STARTED; M17-08 remains NOT_STARTED and must not start yet
+
+### 2026-08-09 10:00 — M17-07
+- Status: BLOCKED
+- Branch: dev
+- Start SHA: see Git history
+- End SHA: see Git history
+- Commit: docs(m17): mark M17-07 auditor evidence blocker
+- Files: docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: STATIC SOURCE REVIEW only; GIT_MASTER=1 git diff --check PASS; markdown lint scripts unavailable in repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal; no Docker/DB/migration/HTTP/browser action was run
+- Runtime verification: not run
+- Notes: M17-07 is blocked by a true product gap in the auditor workspace runtime lane. The required lane "Auditor membaca URL dan file evidence" is explicit in the plan at lines 1470 to 1472, but `application/models/Spmi_auditor_workspace_model.php:27` selects only `assignment_item_id, realization`, `application/models/Spmi_auditor_workspace_model.php:28` returns only assignment-item fields, and `application/views/spmi_auditor_workspace/assignment.php:18-20` renders submitted realization plus private-file download links only. The auditor workspace never projects or renders the auditee submission item's `evidence_url`. `application/services/Spmi_reports_service.php:37` stores `evidence_url_snapshot`, but that is a report snapshot path, not the auditor workspace read path. Tests alone cannot satisfy this required runtime lane because the blocker is a missing production read and render path, not a syntax or contract issue. Minimum resolution is a scoped production change that joins the submission-item evidence URL into the auditor workspace with ownership scoping, renders it escaped and read-only, and then verifies it with regression plus isolated runtime proof. M17-07A passed fixture isolation, but that does not satisfy the full M17-07 runtime lanes. No Docker, DB, migration, HTTP, or browser action was taken for this blocker record. This preserves the prior historical M17-07 fixture-bootstrap blocker entry exactly and leaves M17-08 unstarted.
+- Next gate: STOP: M17-08 must not start; no post-M17 milestone may start
