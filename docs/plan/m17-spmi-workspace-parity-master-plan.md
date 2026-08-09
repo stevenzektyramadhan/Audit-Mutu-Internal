@@ -1821,13 +1821,13 @@ Static final-report snapshot and auditee final-result acceptance PASS for finali
 
 M17-07 Runtime Hardening
 
-NOT_STARTED
+BLOCKED
 
-—
+9382919
 
-—
+Draft runtime lane did not run because the single isolated runner build failed at Composer/Packagist timeout before bootstrap, fixture, or HTTP smoke.
 
-Historical auditor evidence URL blocker is RESOLVED by M17-05A PASS evidence. Remaining full runtime and hardening lanes are still not run, so M17-07 is actionable NOT_STARTED. M17-08 remains NOT_STARTED.
+Historical auditor evidence URL blocker is RESOLVED by M17-05A PASS evidence. The current M17-07 runtime hardening state is BLOCKED by the environment failure recorded in commit 9382919. M17-08 remains NOT_STARTED.
 
 M17-07A Disposable Runtime Fixture Bootstrap
 
