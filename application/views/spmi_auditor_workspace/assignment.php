@@ -16,6 +16,8 @@ $version = $assessment ? (int) $assessment->version : 0;
 <p><?php echo nl2br(html_escape($item->question_text)); ?></p>
 <p><strong>Instruksi bukti</strong><br><?php echo nl2br(html_escape($item->evidence_instruction)); ?></p>
 <p><strong>Realisasi submitted</strong><br><?php echo nl2br(html_escape($item->assessment ? $item->assessment->realization_snapshot : '')); ?></p>
+<?php $evidence_url = trim((string) $item->evidence_url); $evidence_scheme = strtolower((string) parse_url($evidence_url, PHP_URL_SCHEME)); $is_evidence_link = $evidence_url !== '' && filter_var($evidence_url, FILTER_VALIDATE_URL) && in_array($evidence_scheme, ['http', 'https'], TRUE); ?>
+<p><strong>Evidence</strong><br><span>Link bukti: </span><?php if ($evidence_url === ''): ?><span class="text-muted">Tidak ada link bukti</span><?php elseif ($is_evidence_link): ?><a href="<?php echo html_escape($evidence_url); ?>" target="_blank" rel="noopener noreferrer"><?php echo html_escape($evidence_url); ?></a><?php else: ?><span class="text-muted">Link bukti tidak valid</span><?php endif; ?></p>
 <div><strong>Rubrik</strong><?php foreach ($item->rubrics as $rubric): ?><div><?php echo html_escape((string) $rubric->score . ' — ' . $rubric->descriptor); ?></div><?php endforeach; ?></div>
 <ul><?php foreach ($item->evidence as $evidence): ?><li><a href="<?php echo site_url('auditor/spmi/evidence/' . (int) $evidence->id . '/download'); ?>"><?php echo html_escape($evidence->original_name); ?></a></li><?php endforeach; ?></ul>
 <?php $current_score = $item->assessment ? $item->assessment->score : ''; ?>

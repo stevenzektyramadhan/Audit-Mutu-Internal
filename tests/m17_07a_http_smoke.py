@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import http.cookiejar
 import os
 import re
@@ -15,6 +16,7 @@ CSRF_PATTERN = re.compile(r'name="csrf_test_name" value="([^"]+)"')
 ITEM_PATTERN = re.compile(r'name="realization\[(\d+)\]"')
 VERSION_PATTERN = re.compile(r'name="version" value="(\d+)"')
 SUBMITTED_STATUS_PATTERN = re.compile(r'\bsubmitted\b|\bdiisi\b|\bterkirim\b', re.IGNORECASE)
+PRIVATE_EVIDENCE_DOWNLOAD_PATTERN = re.compile(r'href=["\']([^"\']*/auditor/spmi/evidence/\d+/download)["\']')
 DASHBOARD_MARKERS = {
     "super-admin@m17-07a.test": "Dashboard Super Admin",
     "admin-lpmpi@m17-07a.test": "Dashboard Super Admin",
@@ -186,7 +188,7 @@ def assert_submitted_assignment(opener: urllib.request.OpenerDirector, assignmen
         )
 
 
-def submit_auditee_assignment(opener: urllib.request.OpenerDirector, base_url: str, assignment_id: str) -> None:
+def submit_auditee_assignment(opener: urllib.request.OpenerDirector, base_url: str, assignment_id: str) -> list[str]:
     assignment_url = base_url + "/auditee/spmi/assignment/" + assignment_id
     page = expect_page(opener, assignment_url, "M17-07A Runtime Package")
     token = csrf(page)
@@ -198,9 +200,12 @@ def submit_auditee_assignment(opener: urllib.request.OpenerDirector, base_url: s
     for item_id in item_ids:
         token, version = upload_evidence(opener, assignment_url, base_url + "/auditee/spmi/item/" + item_id + "/evidence/upload", token, version)
     fields = {"csrf_test_name": token, "version": version}
+    evidence_urls = []
     for item_id in item_ids:
         fields["realization[" + item_id + "]"] = "M17-07A normal auditee submission"
-        fields["evidence_url[" + item_id + "]"] = "https://m17-07a.test/evidence/" + item_id
+        evidence_url = "https://m17-07a.test/evidence/" + item_id
+        fields["evidence_url[" + item_id + "]"] = evidence_url
+        evidence_urls.append(evidence_url)
     status, location, context = submit_request(opener, assignment_url + "/submit", form_data(fields), "application/x-www-form-urlencoded")
     if status not in (302, 303):
         raise RuntimeError(
@@ -209,6 +214,35 @@ def submit_auditee_assignment(opener: urllib.request.OpenerDirector, base_url: s
         )
     assert_assignment_redirect_location("auditee submission", assignment_url, location, context)
     assert_submitted_assignment(opener, assignment_url, version)
+    return evidence_urls
+
+
+def assert_evidence_urls(page: str, evidence_urls: list[str]) -> None:
+    missing_urls = [url for url in evidence_urls if url not in page]
+    if missing_urls:
+        raise RuntimeError(
+            "auditor assignment page did not render submitted auditee evidence URLs; "
+            f"missing={missing_urls}; context={bounded_context(page)}"
+        )
+
+
+def extract_private_evidence_download_url(page: str, base_url: str) -> str | None:
+    base_parts = urllib.parse.urlsplit(base_url)
+    for match in PRIVATE_EVIDENCE_DOWNLOAD_PATTERN.finditer(page):
+        candidate = urllib.parse.urljoin(base_url + "/", html.unescape(match.group(1)))
+        parsed = urllib.parse.urlsplit(candidate)
+        if parsed.scheme == base_parts.scheme and parsed.netloc == base_parts.netloc:
+            return candidate
+    return None
+
+
+def assert_private_evidence_download(opener: urllib.request.OpenerDirector, download_url: str) -> None:
+    status, content = request(opener, download_url)
+    if status != 200 or "%PDF-1.4" not in content:
+        raise RuntimeError(
+            "expected authorized private evidence PDF download; "
+            f"observed HTTP {status}; url={bounded_location(download_url)}; context={bounded_context(content)}"
+        )
 
 
 def expect_denied(opener: urllib.request.OpenerDirector, url: str) -> None:
@@ -237,18 +271,26 @@ def main() -> int:
         sessions[email] = opener
 
     auditee_a = sessions["auditee-a@m17-07a.test"]
-    submit_auditee_assignment(auditee_a, base_url, args.auditee_a_assignment)
+    auditee_a_evidence_urls = submit_auditee_assignment(auditee_a, base_url, args.auditee_a_assignment)
     expect_denied(auditee_a, base_url + "/auditee/spmi/assignment/" + args.auditee_b_assignment)
 
     auditee_b = sessions["auditee-b@m17-07a.test"]
     submit_auditee_assignment(auditee_b, base_url, args.auditee_b_assignment)
 
     auditor_a = sessions["auditor-a@m17-07a.test"]
-    expect_page(auditor_a, base_url + "/auditor/spmi/assignment/" + args.auditor_a_assignment, "M17-07A Runtime Package")
+    auditor_a_page = expect_page(auditor_a, base_url + "/auditor/spmi/assignment/" + args.auditor_a_assignment, "M17-07A Runtime Package")
+    assert_evidence_urls(auditor_a_page, auditee_a_evidence_urls)
+    auditor_a_download_url = extract_private_evidence_download_url(auditor_a_page, base_url)
+    if auditor_a_download_url is None:
+        raise RuntimeError("Auditor A assignment page did not render a private evidence download URL")
+    assert_private_evidence_download(auditor_a, auditor_a_download_url)
     expect_denied(auditor_a, base_url + "/auditor/spmi/assignment/" + args.auditor_b_assignment)
 
     auditor_b = sessions["auditor-b@m17-07a.test"]
-    expect_page(auditor_b, base_url + "/auditor/spmi/assignment/" + args.auditor_b_assignment, "M17-07A Runtime Package")
+    auditor_b_page = expect_page(auditor_b, base_url + "/auditor/spmi/assignment/" + args.auditor_b_assignment, "M17-07A Runtime Package")
+    auditor_b_download_url = extract_private_evidence_download_url(auditor_b_page, base_url)
+    if auditor_b_download_url is not None:
+        expect_denied(auditor_a, auditor_b_download_url)
 
     print("M17-07A HTTP fixture smoke passed.")
     return 0

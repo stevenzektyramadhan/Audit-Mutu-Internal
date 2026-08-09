@@ -791,7 +791,7 @@ M17-05 Auditor Assessment Parity
 ↓
 M17-06 Report Snapshot & Auditee Result
 ↓
-M17-07A Disposable Runtime Fixture Bootstrap
+M17-05A Auditor Evidence Read Parity
 ↓
 M17-07 Runtime and E2E Hardening
 ↓
@@ -1455,11 +1455,51 @@ Commit
 
 feat(m17): expose final SPMI results to auditee
 
+M17-05A — Auditor Evidence Read Parity
+
+Type
+
+CORRECTIVE DEPENDENCY
+
+Objective
+
+Memastikan ownership-scoped auditor evidence URL read/render parity untuk assignment yang sah, terbatas pada read/render URL bukti milik ownership, beserta focused test dan runtime proof.
+
+Ownership and Boundaries
+
+M17-05A hanya memiliki ownership-scoped auditor evidence URL read/render.
+
+M17-05A hanya boleh mengerjakan focused test dan runtime proof untuk bukti read/render URL milik assignment yang berwenang.
+
+M17-05A tidak boleh mengubah report snapshot, submission revision, assessment behavior, legacy behavior, route lain, atau scope M17-07.
+
+M17-07 tetap BLOCKED sampai M17-05A membuktikan PASS.
+
+Acceptance Criteria
+
+Evidence URL milik assignment yang sah dapat dibaca dan dirender oleh role yang berwenang.
+
+Cross-user access tetap ditolak.
+
+Focused test dan runtime proof tercatat.
+
+M17-07 tetap BLOCKED sampai bukti PASS M17-05A tersedia.
+
+Commit
+
+fix(m17): expose auditee evidence URL to auditor
+
 M17-07 — Runtime and End-to-End Hardening
 
 Objective
 
 Membuktikan alur lengkap secara runtime, bukan hanya static source-contract.
+
+Dependency
+
+M17-07 bergantung pada PASS M17-05A Auditor Evidence Read Parity.
+
+M17-07 tetap BLOCKED sampai M17-05A membuktikan PASS.
 
 Required Runtime Lanes
 
@@ -1759,6 +1799,16 @@ php -l application/services/Spmi_auditor_workspace_service.php; php -l applicati
 
 Static auditor assessment parity acceptance PASS for finding_type parsing, persistence, display, and finalize validation only; M17-04 stale/version protections remain preserved; runtime, DB, migration execution, and browser verification NOT_RUN_ENVIRONMENT; exact implementation commit SHA is represented by Git history because a commit cannot prewrite its own final SHA; M17-06 is eligible after this PASS but NOT_STARTED and not started by this task
 
+M17-05A Auditor Evidence Read Parity
+
+PASS
+
+see Git history (self SHA unavailable in preimage)
+
+php -l application/models/Spmi_auditor_workspace_model.php; php -l application/views/spmi_auditor_workspace/assignment.php; php -l tests/spmi_auditor_workspace_regression.php; php -l tests/m17_07a_runtime_fixture_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/m17_07a_runtime_fixture_regression.php; php tests/m17_schema_regression.php; php tests/m16_security_regression.php; php tests/hardening_regression.php; GIT_MASTER=1 git diff --check; historical runtime proof cited from `bash tests/run_m17_07a_runtime.sh run` exit 0
+
+Ownership-scoped auditor evidence URL read/render parity PASS only. Historical evidence URL blocker is RESOLVED by the existing runtime proof from `bash tests/run_m17_07a_runtime.sh run` (exit 0) with log `/tmp/m17_05a_final_aavbj7f6.log`, project `m17_07a_1000_1786253247_26187`, rendered submitted evidence URL visibility, authorized own private PDF evidence download, cross-auditor A-to-B denial, and exact-resource teardown. M17-07 is now actionable NOT_STARTED for the remaining full runtime and hardening lanes not yet run. M17-08 remains NOT_STARTED.
+
 M17-06 Report & Auditee Result
 
 PASS
@@ -1771,13 +1821,13 @@ Static final-report snapshot and auditee final-result acceptance PASS for finali
 
 M17-07 Runtime Hardening
 
-BLOCKED
-
-67fe1bd
+NOT_STARTED
 
 —
 
-Missing auditor evidence URL read/render blocker. M17-08 remains NOT_STARTED.
+—
+
+Historical auditor evidence URL blocker is RESOLVED by M17-05A PASS evidence. Remaining full runtime and hardening lanes are still not run, so M17-07 is actionable NOT_STARTED. M17-08 remains NOT_STARTED.
 
 M17-07A Disposable Runtime Fixture Bootstrap
 
@@ -1887,6 +1937,18 @@ Format:
 - Runtime verification: not run
 - Notes: User-authorized corrective schema task to resolve the M17-04 blocker. No schema implementation completed yet, and no runtime or DB action performed.
 - Next gate: execute the additive lifecycle schema correction before any M17-04 behavior work.
+
+### 2026-08-09 00:00 — M17-05A
+- Status: PASS
+- Branch: dev
+- Start SHA: ae81c59
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: fix(m17): expose auditee evidence URL to auditor
+- Files: application/models/Spmi_auditor_workspace_model.php; application/views/spmi_auditor_workspace/assignment.php; tests/spmi_auditor_workspace_regression.php; tests/m17_07a_http_smoke.py; tests/m17_07a_runtime_fixture_regression.php; docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l application/models/Spmi_auditor_workspace_model.php PASS; php -l application/views/spmi_auditor_workspace/assignment.php PASS; php -l tests/spmi_auditor_workspace_regression.php PASS; php -l tests/m17_07a_runtime_fixture_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; php tests/m17_schema_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; GIT_MASTER=1 git diff --check PASS
+- Runtime verification: historical proof cited only; `bash tests/run_m17_07a_runtime.sh run` PASS (exit 0) with project `m17_07a_1000_1786253247_26187` and log `/tmp/m17_05a_final_aavbj7f6.log`; no runtime rerun performed in this finalization step
+- Notes: User-authorized corrective dependency is complete. Ownership remains limited to auditor evidence URL read/render parity for owned assignments. The cited runtime proof shows rendered submitted evidence URL visibility, authorized own private PDF evidence download, cross-auditor A-to-B denial, and exact-resource teardown. Historical M17-07 BLOCKED entries remain preserved verbatim. M17-07 is now actionable NOT_STARTED for the remaining full hardening lanes not run, and M17-08 remains NOT_STARTED.
+- Next gate: start M17-07 only for the remaining full runtime and hardening lanes; do not start M17-08 yet.
 
 16. Final Milestone Acceptance
 
