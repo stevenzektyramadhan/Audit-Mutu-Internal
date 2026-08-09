@@ -791,6 +791,8 @@ M17-05 Auditor Assessment Parity
 ↓
 M17-06 Report Snapshot & Auditee Result
 ↓
+M17-07A Disposable Runtime Fixture Bootstrap
+↓
 M17-07 Runtime and E2E Hardening
 ↓
 M17-08 Cutover Readiness Audit
@@ -1765,17 +1767,27 @@ see Git history (self SHA unavailable in preimage)
 
 php -l application/config/routes.php; php -l application/controllers/Spmi_auditee_workspace.php; php -l application/controllers/lpmpi/Spmi_reports.php; php -l application/models/Spmi_auditee_workspace_model.php; php -l application/models/Spmi_reports_model.php; php -l application/services/Spmi_auditee_workspace_service.php; php -l application/services/Spmi_reports_service.php; php -l application/views/spmi_auditee_workspace/final_result.php; php -l application/views/lpmpi/spmi_reports/detail.php; php -l application/views/lpmpi/spmi_reports/print.php; php -l tests/spmi_auditee_workspace_regression.php; php -l tests/spmi_reports_regression.php; php tests/m17_schema_regression.php; php tests/spmi_instruments_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; php tests/spmi_audits_regression.php; php tests/legacy_ami_archive_regression.php; php tests/m16_security_regression.php; php tests/hardening_regression.php; GIT_MASTER=1 git diff --check; runtime/DB/migration/browser NOT_RUN_ENVIRONMENT
 
-Static final-report snapshot and auditee final-result acceptance PASS for finalized assessment snapshot population, immutable report reads, auditee-owned final result authorization, and report export snapshot rendering only; no migrations/schema, RTM models/services, legacy, M17-04/05, config/sidebar, or post-M17 behavior changes are included; runtime, DB, migration execution, and browser verification NOT_RUN_ENVIRONMENT; exact implementation commit SHA is represented by Git history because a commit cannot prewrite its own final SHA; M17-07 is eligible after this PASS but NOT_STARTED and not started by this task
+Static final-report snapshot and auditee final-result acceptance PASS for finalized assessment snapshot population, immutable report reads, auditee-owned final result authorization, and report export snapshot rendering only; no migrations/schema, RTM models/services, legacy, M17-04/05, config/sidebar, or post-M17 behavior changes are included; runtime, DB, migration execution, and browser verification NOT_RUN_ENVIRONMENT; exact implementation commit SHA is represented by Git history because a commit cannot prewrite its own final SHA; M17-07A is eligible after this PASS but NOT_STARTED and not started by this task
 
 M17-07 Runtime Hardening
 
-BLOCKED
+NOT_STARTED
 
-docs(m17): mark M17-07 runtime fixture blocker
+—
 
-STATIC SOURCE REVIEW only; GIT_MASTER=1 git diff --check PASS; markdown lint scripts unavailable in repo root because there is no package.json or bun script in /home/steven/Documents/Audit-Mutu-Internal; no Docker/DB/migration/HTTP/browser mutation was run
+—
 
-Static preflight evidence found Docker/Compose isolation available, database_dummy.sql:1-3 says it does not create demo users, database_dummy.sql:7-8 selects pre-existing auditor/auditee users, application/services/Auth_service.php:16-25 requires a stored password hash for login, and application/services/User_service.php:47-68 shows user creation exists as application behavior; however no repository-controlled isolated fixture/bootstrap CLI or entrypoint exists to provision synthetic roles and the minimal SPMI runtime graph in a uniquely named fresh Compose project with teardown, so the required M17-07 multi-role runtime graph cannot be provisioned safely without ad hoc test data or shared-state changes; minimum resolution is a repository-controlled disposable fixture bootstrap that creates the synthetic roles and minimal SPMI graph in a fresh Compose project with teardown, then rerun all required runtime lanes; M17-08 remains NOT_STARTED and was not made eligible
+M17-07A fixture bootstrap is now PASS and unblocks M17-07 as the next actionable task only. This task did not run any broader M17-07 runtime-hardening lanes beyond the disposable bootstrap proof, and M17-08 remains NOT_STARTED.
+
+M17-07A Disposable Runtime Fixture Bootstrap
+
+PASS
+
+see Git history (self SHA unavailable in preimage)
+
+php -l tests/m17_07a_runtime_fixture_regression.php; php tests/m17_07a_runtime_fixture_regression.php; python3 -m py_compile tests/m17_07a_http_smoke.py; bash -n tests/run_m17_07a_runtime.sh; docker compose -f tests/m17_07a_runtime.compose.yaml config --quiet; php tests/m17_schema_regression.php; php tests/spmi_instruments_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; php tests/spmi_audits_regression.php; php tests/legacy_ami_archive_regression.php; php tests/m16_security_regression.php; php tests/hardening_regression.php; tests/run_m17_07a_runtime.sh run; GIT_MASTER=1 git diff --check PASS
+
+Disposable runtime fixture bootstrap PASS only. Verified exact runtime evidence with command `tests/run_m17_07a_runtime.sh run`, project `m17_07a_1000_1786243974_24449`, log `/tmp/m17_07a_runtime_permissions_retry.pykqcy81.log`, fresh named project/network/four volumes, healthy MySQL, `M17-07A HTTP fixture smoke passed.`, and exact-resource teardown removing app/mysql/volumes/network. The readiness curl reset was retried and harmless during startup, not an unaddressed failure. Runtime scope proves only the M17-07A fixture bootstrap for six normal login CSRF accounts plus A/B submission/open and cross-user ownership checks; it does not complete full M17-07 lanes. M17-07 is now actionable NOT_STARTED, and M17-08 remains NOT_STARTED.
 
 M17-08 Cutover Readiness Audit
 
@@ -2089,7 +2101,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Tests: php -l application/config/routes.php PASS; php -l application/controllers/Spmi_auditee_workspace.php PASS; php -l application/controllers/lpmpi/Spmi_reports.php PASS; php -l application/models/Spmi_auditee_workspace_model.php PASS; php -l application/models/Spmi_reports_model.php PASS; php -l application/services/Spmi_auditee_workspace_service.php PASS; php -l application/services/Spmi_reports_service.php PASS; php -l application/views/spmi_auditee_workspace/final_result.php PASS; php -l application/views/lpmpi/spmi_reports/detail.php PASS; php -l application/views/lpmpi/spmi_reports/print.php PASS; php -l tests/spmi_auditee_workspace_regression.php PASS; php -l tests/spmi_reports_regression.php PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; GIT_MASTER=1 git diff --check PASS
 - Runtime verification: NOT_RUN_ENVIRONMENT; runtime, DB, migration execution, and browser checks were not run in this environment
 - Notes: Static final-report snapshot and auditee final-result acceptance PASS for finalized assessment snapshot population, immutable report reads, auditee-owned final result authorization, and report export snapshot rendering only; no migrations/schema, RTM models/services, legacy, M17-04/05, config/sidebar, or post-M17 behavior changes are included; exact implementation SHA is represented by Git history because a commit cannot prewrite its own final SHA.
-- Next gate: M17-07 is eligible after this PASS but must not be started by this task; M17-07+ and M18 remain NOT_STARTED
+- Next gate: M17-07A is eligible after this PASS but must not be started by this task; M17-07+ and M18 remain NOT_STARTED
 
 ### 2026-08-05 00:02 — M17-07
 - Status: BLOCKED
@@ -2102,3 +2114,27 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: not run
 - Notes: Static preflight evidence found Docker/Compose isolation available, database_dummy.sql:1-3 says it does not create demo users, database_dummy.sql:7-8 selects pre-existing auditor/auditee users, application/services/Auth_service.php:16-25 requires a stored password hash for login, and application/services/User_service.php:47-68 shows user creation exists as application behavior; however no repository-controlled isolated fixture/bootstrap CLI or entrypoint exists to provision synthetic roles and the minimal SPMI runtime graph in a uniquely named fresh Compose project with teardown, so the required M17-07 multi-role runtime graph cannot be provisioned safely without ad hoc test data or shared-state changes; minimum resolution is a repository-controlled disposable fixture bootstrap that creates the synthetic roles and minimal SPMI graph in a fresh Compose project with teardown, then rerun all required runtime lanes; M17-08 remains NOT_STARTED and was not made eligible
 - Next gate: STOP: M17-08 must not start; no post-M17 milestone may start
+
+### 2026-08-09 — M17-07A
+- Status: IN_PROGRESS
+- Branch: dev
+- Start SHA: uncommitted working tree
+- End SHA: not applicable before completion
+- Commit: not created by this task
+- Files: tests/m17_07a_runtime.compose.yaml, tests/fixtures/m17_07a_runtime.sql, tests/m17_07a_runtime_fixture_regression.php, tests/m17_07a_http_smoke.py, tests/run_m17_07a_runtime.sh, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: RED static fixture contract confirmed before infrastructure existed; static validation passed; no Docker/DB/migration/HTTP/browser runtime lane was run
+- Runtime verification: NOT_RUN_ENVIRONMENT by task scope
+- Notes: This dependency owns disposable test-only runtime bootstrap infrastructure only. It does not start or complete M17-07, alter production behavior, replace the historical M17-07 BLOCKED record, or change M17-08 status.
+- Next gate: complete static fixture validation, then separately authorize and execute M17-07 runtime lanes; M17-08 remains NOT_STARTED
+
+### 2026-08-09 09:53 — M17-07A
+- Status: PASS
+- Branch: dev
+- Start SHA: 25f3714
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: test(m17): add disposable runtime fixture bootstrap
+- Files: tests/m17_07a_runtime.compose.yaml, tests/fixtures/m17_07a_runtime.sql, tests/m17_07a_runtime_fixture_regression.php, tests/m17_07a_http_smoke.py, tests/run_m17_07a_runtime.sh, docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l tests/m17_07a_runtime_fixture_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; python3 -m py_compile tests/m17_07a_http_smoke.py PASS; bash -n tests/run_m17_07a_runtime.sh PASS; docker compose -f tests/m17_07a_runtime.compose.yaml config --quiet PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; GIT_MASTER=1 git diff --check PASS
+- Runtime verification: tests/run_m17_07a_runtime.sh run PASS (exit 0) with project `m17_07a_1000_1786243974_24449`; log `/tmp/m17_07a_runtime_permissions_retry.pykqcy81.log` shows fresh named network plus four named volumes, healthy MySQL, harmless readiness `curl: (56) Recv failure: Connection reset by peer` retry, `M17-07A HTTP fixture smoke passed.`, and exact-resource teardown removing app/mysql/volumes/network
+- Notes: This PASS proves only the disposable M17-07A runtime fixture bootstrap: six normal login CSRF accounts, auditee A/B submission, auditor A/B open, and cross-user denial checks in a fresh schema seeded from `database_schema.sql` plus `tests/fixtures/m17_07a_runtime.sql`. It does not perform broader M17-07 runtime hardening, Docker/DB/HTTP changes beyond the fixture lane, or any M17-08/M18 work. Historical M17-07 BLOCKED evidence remains preserved verbatim.
+- Next gate: M17-07 is now actionable and remains NOT_STARTED; M17-08 remains NOT_STARTED and must not start yet
