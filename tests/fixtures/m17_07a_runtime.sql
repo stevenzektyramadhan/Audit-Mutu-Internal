@@ -78,4 +78,16 @@ FROM `spmi_audit_assignment_items` AS assignment_item
 JOIN `spmi_instrument_rubrics` AS rubric ON rubric.`question_id` = assignment_item.`source_question_id`
 WHERE assignment_item.`assignment_id` IN (@assignment_a_id, @assignment_b_id);
 
+INSERT INTO `legacy_ami_archive_runs` (`id`, `archive_code`, `source_label`, `status`, `legacy_task_count`, `legacy_answer_count`, `archived_task_count`, `archived_answer_count`, `issue_count`, `notes`, `created_by_snapshot`, `created_at`, `updated_at`) VALUES
+(17071, 'M17-07A-ARCHIVE-RUN-1', 'M17-07A test-only legacy archive fixture', 'reconciled', 1, 1, 1, 1, 1, 'M17-07A read-only archive fixture row for legacy GET smoke.', 'admin-lpmpi@m17-07a.test', '2026-08-09 00:00:00', NULL);
+
+INSERT INTO `legacy_ami_archive_tasks` (`id`, `run_id`, `legacy_tugas_id`, `legacy_periode_id`, `legacy_standar_id`, `legacy_auditor_id`, `legacy_auditee_id`, `periode_name_snapshot`, `periode_year_snapshot`, `periode_semester_snapshot`, `standard_name_snapshot`, `standard_description_snapshot`, `auditor_name_snapshot`, `auditor_email_snapshot`, `auditee_name_snapshot`, `auditee_email_snapshot`, `auditee_unit_snapshot`, `auditee_unit_type_snapshot`, `legacy_status_snapshot`, `legacy_created_at_snapshot`, `archived_at`) VALUES
+(17072, 17071, 17072, NULL, NULL, NULL, NULL, 'M17-07A-ARCHIVE-PERIOD-1', '2026', 'genap', 'M17-07A-ARCHIVE-STANDARD-1', 'M17-07A archive standard snapshot.', 'M17-07A Archive Auditor', 'auditor-a@m17-07a.test', 'M17-07A Archive Auditee', 'auditee-a@m17-07a.test', 'M17-07A Archive Unit', 'unit', 'dinilai', '2026-08-09 00:01:00', '2026-08-09 00:02:00');
+
+INSERT INTO `legacy_ami_archive_answers` (`id`, `archive_task_id`, `legacy_jawaban_id`, `legacy_pertanyaan_id`, `question_order_snapshot`, `question_text_snapshot`, `question_category_snapshot`, `answer_text_snapshot`, `evidence_link_snapshot`, `submitted_snapshot`, `submitted_at_snapshot`, `score_snapshot`, `finding_snapshot`, `finding_type_snapshot`, `recommendation_snapshot`, `improvement_plan_snapshot`, `evidence_document_name_snapshot`, `evidence_date_snapshot`, `assessment_submitted_snapshot`, `assessment_submitted_at_snapshot`, `archived_at`) VALUES
+(17073, 17072, 17073, NULL, 1, 'M17-07A-ARCHIVE-QUESTION-1', 'IKU', 'M17-07A-ARCHIVE-ANSWER-1', 'https://example.test/m17-07a/archive-evidence', 1, '2026-08-09 00:03:00', 4, 'M17-07A-ARCHIVE-FINDING-1', 'ob', 'M17-07A-ARCHIVE-RECOMMENDATION-1', 'M17-07A-ARCHIVE-IMPROVEMENT-1', 'm17-07a-archive-evidence.pdf', '2026-08-09', 1, '2026-08-09 00:04:00', '2026-08-09 00:05:00');
+
+INSERT INTO `legacy_ami_archive_issues` (`id`, `run_id`, `archive_task_id`, `archive_answer_id`, `severity`, `issue_code`, `message`, `legacy_table_snapshot`, `legacy_id_snapshot`, `created_at`) VALUES
+(17074, 17071, 17072, 17073, 'info', 'M17-07A-ARCHIVE-ISSUE-1', 'M17-07A archive fixture issue marker for read-only legacy pages.', 'jawaban_audit', 17073, '2026-08-09 00:06:00');
+
 COMMIT;

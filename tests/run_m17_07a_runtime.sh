@@ -3,6 +3,7 @@ set -euo pipefail
 
 M17_07A_FIXTURE_PASSWORD=m17-07a-only-password
 readonly M17_07A_FIXTURE_PASSWORD
+M17_07A_REUSE_APP_IMAGE=${M17_07A_REUSE_APP_IMAGE:-}
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 compose_file="$root/tests/m17_07a_runtime.compose.yaml"
 project=""
@@ -12,6 +13,7 @@ usage() {
     printf '%s\n' 'bootstrap waits for the normal CSRF login form after MySQL initializes the fresh named volume.'
     printf '%s\n' 'run generates an isolated project, then runs start -> bootstrap -> verify -> smoke and always tears it down.'
     printf '%s\n' 'start/bootstrap/verify/smoke/teardown require --project for a manually managed isolated environment.'
+    printf '%s\n' 'Set M17_07A_REUSE_APP_IMAGE to reuse a local app image without building.'
 }
 
 compose() {
@@ -115,6 +117,11 @@ verify_fixture() {
 }
 
 start() {
+    if [ -n "$M17_07A_REUSE_APP_IMAGE" ]; then
+        docker image tag "$M17_07A_REUSE_APP_IMAGE" "${project}-app:latest"
+        compose up --no-build --detach
+        return
+    fi
     compose up --build --detach
 }
 
