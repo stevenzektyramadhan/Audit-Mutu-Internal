@@ -1821,13 +1821,13 @@ Static final-report snapshot and auditee final-result acceptance PASS for finali
 
 M17-07 Runtime Hardening
 
-BLOCKED
+PASS
 
-9382919
+e41f0ed (product/schema), 600de8a (test suite), docs commit follows in this batch
 
 Draft runtime lane did not run because the single isolated runner build failed at Composer/Packagist timeout before bootstrap, fixture, or HTTP smoke.
 
-Historical auditor evidence URL blocker is RESOLVED by M17-05A PASS evidence. The current M17-07 runtime hardening state is BLOCKED by the environment failure recorded in commit 9382919. M17-08 remains NOT_STARTED.
+M17-07 PASS execution log: runtime PASS; static PASS; dependency-image-reuse documented. All eight full runtime hardening lanes passed using `M17_07A_REUSE_APP_IMAGE=m17_07a_1000_1786261927_17669-app:latest timeout 900s bash tests/run_m17_07a_runtime.sh run`, exit 0, teardown verified: draft `/tmp/m17_07_draft_reuse_20260809_26187.log`; policy `/tmp/m17_07_policy_reuse_MCbCIM.log`; revision `/tmp/m17_07_revision_reuse_20260809_150243_23466836.log`; assessment `/tmp/m17_07_assessment_reuse_ZM8cjr.log`; report/RTM `/tmp/m17_07_report_rtm_retry_1786265744.log`; upload security `/tmp/m17_07_security_upload_retry_1786267298_c9109a03.log`; legacy archive `/tmp/m17_07_legacy_archive_retry_AxKq.log`; direct download/traversal `/tmp/m17_07_direct_download_retry_FINAL.log`. Static suite PASS: php -l on all 13 modified PHP product/test files; php tests/m17_schema_regression.php; php tests/spmi_instruments_regression.php; php tests/spmi_auditee_workspace_regression.php; php tests/spmi_auditor_workspace_regression.php; php tests/spmi_reports_regression.php; php tests/spmi_audits_regression.php; php tests/spmi_rtm_regression.php; php tests/spmi_rtm_follow_ups_regression.php; php tests/legacy_ami_archive_regression.php; php tests/m16_security_regression.php; php tests/hardening_regression.php; php tests/m17_07a_runtime_fixture_regression.php; PYTHONPYCACHEPREFIX=/tmp/m17_pycache python3 -B -m py_compile tests/m17_07a_http_smoke.py; bash -n tests/run_m17_07a_runtime.sh; GIT_MASTER=1 git diff --check. No runtime migration/DB/browser execution occurred outside isolated container init. M17-08 is eligible after this PASS but NOT_STARTED and not started by this task.
 
 M17-07A Disposable Runtime Fixture Bootstrap
 
