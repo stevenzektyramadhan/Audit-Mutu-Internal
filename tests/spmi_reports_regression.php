@@ -37,4 +37,10 @@ foreach (['finding_type_snapshot', 'evidence_url_snapshot', 'evidence_file_origi
 foreach (['finding_type_snapshot', 'evidence_url_snapshot', 'evidence_file_original_name_snapshot', 'evidence_file_mime_type_snapshot', 'evidence_file_size_bytes_snapshot', 'evidence_file_sha256_snapshot'] as $field) m10_check(strpos($controller, '$item->' . $field) !== FALSE, 'M17-06 export must consume item snapshot field: ' . $field);
 foreach (['spmi_reports', 'spmi_report_items'] as $literal) m10_check(strpos(m10_source('application/models/Spmi_rtm_model.php') . m10_source('application/services/Spmi_rtm_service.php'), $literal) !== FALSE, 'M17-06 RTM must remain linked to report snapshots: ' . $literal);
 
+m10_check(preg_match('/finalized_assessments\(\).*spmi_auditee_submissions s.*s\.assignment_id = a\.id.*aa\.source_submission_version = s\.version/s', $model) === 1, 'M17-07B finalized assessment list must require current submission provenance match.');
+m10_check(preg_match('/assessment_for_update\(\$assessment_id\).*JOIN spmi_auditee_submissions s ON s\.assignment_id = a\.id AND s\.version = aa\.source_submission_version/s', $model) === 1, 'M17-07B report assessment lock must include matching source_submission_version.');
+m10_check(preg_match('/submission_for_update\(\$assignment_id, \$source_submission_version\).*version = \?/s', $model) === 1, 'M17-07B report submission lock must select exact assessment source submission version.');
+m10_check(preg_match('/\$this->model->submission_for_update\(\$assessment->assignment_id, \$assessment->source_submission_version\)/', $service) === 1, 'M17-07B report generation must load submission matching assessment provenance.');
+m10_check(preg_match('/\(int\) \$assessment->source_submission_version\s*!==\s*\(int\) \$submission->version/', $service) === 1, 'M17-07B report generation must reject finalized assessment when current submission provenance mismatches.');
+
 fwrite(STDOUT, "SPMI reports regression checks passed.\n");

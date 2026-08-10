@@ -20,8 +20,9 @@ class Spmi_reports_service
         $existing = $this->model->report_for_assessment_for_update($assessment_id);
         if ($existing) return $this->finish_existing($existing);
         $cycle = $assessment ? $this->model->cycle_for_update($assessment->cycle_id) : NULL;
-        $submission = $assessment ? $this->model->submission_for_update($assessment->assignment_id) : NULL;
+        $submission = $assessment ? $this->model->submission_for_update($assessment->assignment_id, $assessment->source_submission_version) : NULL;
         if (!$assessment || $assessment->status !== 'finalized' || !$assessment->finalized_at || !$cycle || !in_array($cycle->state, ['configured', 'closed'], TRUE) || !$submission || !in_array($submission->status, self::FINAL_SUBMISSION_STATUSES, TRUE)) return $this->rollback('Assessment M9 belum memenuhi syarat laporan.');
+        if ((int) $assessment->source_submission_version !== (int) $submission->version) return $this->rollback('Assessment M9 tidak cocok dengan versi submission aktif.');
         $items = $this->model->submission_items_for_report($assessment->id, $submission->id);
         if (!$items || count($items) !== $this->model->assignment_items_count($assessment->assignment_id)) return $this->rollback('Set item assessment M9 belum lengkap.');
         foreach ($items as $item) {

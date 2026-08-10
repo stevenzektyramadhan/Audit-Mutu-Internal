@@ -9,6 +9,7 @@
 -- current parity migration 001-024
 -- current parity migration 001-025
 -- current parity migration 001-027
+-- current parity migration 001-028
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -472,7 +473,7 @@ CREATE TABLE IF NOT EXISTS `spmi_auditor_assessments` (
     `source_submission_version` INT UNSIGNED NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY `uq_spmi_auditor_assessments_assignment` (`assignment_id`),
+    UNIQUE KEY `uq_spmi_auditor_assessments_assignment_source_version` (`assignment_id`, `source_submission_version`),
     KEY `idx_spmi_auditor_assessments_status` (`status`),
     CONSTRAINT `fk_spmi_auditor_assessments_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `spmi_audit_assignments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

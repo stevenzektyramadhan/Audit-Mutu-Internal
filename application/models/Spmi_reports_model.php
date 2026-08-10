@@ -12,6 +12,7 @@ class Spmi_reports_model extends CI_Model
     {
         return $this->db->select('aa.id, c.cycle_code, c.title AS cycle_title, a.auditee_name, aa.finalized_at')
             ->from('spmi_auditor_assessments aa')->join('spmi_audit_assignments a', 'a.id = aa.assignment_id')
+            ->join('spmi_auditee_submissions s', 's.assignment_id = a.id AND aa.source_submission_version = s.version')
             ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')->join('spmi_reports r', 'r.assessment_id = aa.id', 'left')
             ->where('aa.status', 'finalized')->where('r.id IS NULL', NULL, FALSE)
             ->where_in('c.state', ['configured', 'closed'])->order_by('aa.finalized_at', 'DESC')->get()->result();
@@ -34,7 +35,7 @@ class Spmi_reports_model extends CI_Model
 
     public function assessment_for_update($assessment_id)
     {
-        return $this->db->query('SELECT aa.*, a.cycle_id, a.source_version_code, a.source_version_title, a.source_standard_code, a.source_standard_title, a.source_package_code, a.source_package_title, a.auditor_name, a.auditee_name, c.cycle_code, c.title AS cycle_title, c.start_date AS cycle_start_date, c.end_date AS cycle_end_date FROM spmi_auditor_assessments aa JOIN spmi_audit_assignments a ON a.id = aa.assignment_id JOIN spmi_audit_cycles c ON c.id = a.cycle_id WHERE aa.id = ? FOR UPDATE', [(int) $assessment_id])->row();
+        return $this->db->query('SELECT aa.*, a.cycle_id, a.source_version_code, a.source_version_title, a.source_standard_code, a.source_standard_title, a.source_package_code, a.source_package_title, a.auditor_name, a.auditee_name, c.cycle_code, c.title AS cycle_title, c.start_date AS cycle_start_date, c.end_date AS cycle_end_date FROM spmi_auditor_assessments aa JOIN spmi_audit_assignments a ON a.id = aa.assignment_id JOIN spmi_auditee_submissions s ON s.assignment_id = a.id AND s.version = aa.source_submission_version JOIN spmi_audit_cycles c ON c.id = a.cycle_id WHERE aa.id = ? FOR UPDATE', [(int) $assessment_id])->row();
     }
 
     public function cycle_for_update($cycle_id)
@@ -42,9 +43,9 @@ class Spmi_reports_model extends CI_Model
         return $this->db->query('SELECT * FROM spmi_audit_cycles WHERE id = ? FOR UPDATE', [(int) $cycle_id])->row();
     }
 
-    public function submission_for_update($assignment_id)
+    public function submission_for_update($assignment_id, $source_submission_version)
     {
-        return $this->db->query('SELECT * FROM spmi_auditee_submissions WHERE assignment_id = ? AND status IN (?, ?) FOR UPDATE', [(int) $assignment_id, 'submitted', 'resubmitted'])->row();
+        return $this->db->query('SELECT * FROM spmi_auditee_submissions WHERE assignment_id = ? AND version = ? AND status IN (?, ?) FOR UPDATE', [(int) $assignment_id, (int) $source_submission_version, 'submitted', 'resubmitted'])->row();
     }
 
     public function submission_items_for_report($assessment_id, $submission_id)

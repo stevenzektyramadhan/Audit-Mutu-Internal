@@ -73,6 +73,7 @@ $report_items = m17_table_block($schema, 'spmi_report_items');
 // When: reading only static schema artifacts, without executing migrations or application behavior.
 $combined_schema = $schema . "\n" . $migration_contract;
 $m17_01a_migration = m17_optional_source('migrations/027_add_revision_lifecycle_schema_correction.sql');
+$m17_07b_migration = m17_optional_source('migrations/028_add_versioned_auditor_assessments.sql');
 
 // Then: M17-01 provides dormant, backward-compatible schema for M17-02 through M17-06.
 m17_check(
@@ -126,6 +127,19 @@ foreach (['submission_id', 'assignment_id', 'actor_user_id', 'reason', 'created_
 m17_check(
     m17_has_column($assessments, 'source_submission_version', 'INT UNSIGNED NULL'),
     'M17-01A auditor assessments must store nullable source_submission_version INT UNSIGNED provenance.'
+);
+m17_check(
+    preg_match('/UNIQUE KEY `[^`]*` \(`assignment_id`, `source_submission_version`\)/', $assessments . "\n" . $m17_07b_migration) === 1,
+    'M17-07B auditor assessment identity must be composite assignment_id/source_submission_version.'
+);
+m17_check(
+    strpos($assessments . "\n" . $m17_07b_migration, 'UNIQUE KEY `uq_spmi_auditor_assessments_assignment` (`assignment_id`)') === FALSE,
+    'M17-07B auditor assessment identity must not remain assignment-only unique.'
+);
+m17_check(
+    strpos($m17_07b_migration, 'DROP INDEX `uq_spmi_auditor_assessments_assignment`') !== FALSE
+        && strpos($m17_07b_migration, '`assignment_id`, `source_submission_version`') !== FALSE,
+    'M17-07B migration 028 must replace assignment-only unique key with composite source-version unique key.'
 );
 
 m17_check(strpos($m17_01a_migration, 'INFORMATION_SCHEMA.COLUMNS') !== FALSE, 'M17-01A migration 027 must use additive idempotent column guards.');

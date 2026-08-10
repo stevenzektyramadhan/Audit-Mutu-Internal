@@ -9,7 +9,7 @@ $version = $assessment ? (int) $assessment->version : 0;
 <h2 class="ami-section-title"><?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?></h2>
 <p><?php echo nl2br(html_escape($assignment->source_package_description ?: 'Deskripsi paket belum diisi.')); ?></p>
 <p><strong>Status submission</strong>: <?php echo html_escape($assignment->submission_status); ?></p>
-<?php if (!$readonly): ?><?php echo form_open('auditor/spmi/assignment/' . (int) $assignment->id . '/save'); ?><input type="hidden" name="version" value="<?php echo html_escape((string) $version); ?>"><?php endif; ?>
+<?php if (!$readonly): ?><?php echo form_open('auditor/spmi/assignment/' . (int) $assignment->id . '/save'); ?><input type="hidden" name="version" value="<?php echo html_escape((string) $version); ?>"><input type="hidden" name="source_submission_version" value="<?php echo html_escape((string) $assignment->submission_version); ?>"><?php endif; ?>
 <?php foreach ($items as $item): ?>
 <article class="card mb-3"><div class="card-body">
 <h3><?php echo html_escape((string) $item->display_order . '. ' . $item->question_code); ?></h3>
