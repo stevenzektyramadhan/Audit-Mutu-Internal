@@ -1,0 +1,47 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ami
+      MYSQL_USER: ami_runtime
+      MYSQL_PASSWORD: ami_runtime_password
+      # Docker's official MySQL initializer requires a root-password setting; test fixture only.
+      MYSQL_ROOT_PASSWORD: m17-07a-test-only-root-password
+    volumes:
+      - m17_07a_db:/var/lib/mysql
+      - ../database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./fixtures/m17_07a_runtime.sql:/docker-entrypoint-initdb.d/02-fixture.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  app:
+    build:
+      context: ..
+    environment:
+      CI_ENV: development
+      DB_HOST: mysql
+      DB_USERNAME: ami_runtime
+      DB_PASSWORD: ami_runtime_password
+      DB_DATABASE: ami
+      APP_PRIVATE_STORAGE_PATH: /srv/ami/private
+    command: >-
+      sh -c 'mkdir -p /srv/ami/private && chown www-data:www-data /srv/ami/private && exec apache2-foreground'
+    ports:
+      - "127.0.0.1::80"
+    volumes:
+      - m17_07a_sessions:/var/www/html/application/cache/sessions
+      - m17_07a_uploads:/var/www/html/uploads
+      - m17_07a_private_storage:/srv/ami/private
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  m17_07a_db:
+  m17_07a_sessions:
+  m17_07a_uploads:
+  m17_07a_private_storage:

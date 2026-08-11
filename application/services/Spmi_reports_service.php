@@ -3,6 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Spmi_reports_service
 {
+    const FINAL_SUBMISSION_STATUSES = ['submitted', 'resubmitted'];
+
     protected $ci;
     protected $model;
 
@@ -18,9 +20,10 @@ class Spmi_reports_service
         $existing = $this->model->report_for_assessment_for_update($assessment_id);
         if ($existing) return $this->finish_existing($existing);
         $cycle = $assessment ? $this->model->cycle_for_update($assessment->cycle_id) : NULL;
-        $submission = $assessment ? $this->model->submission_for_update($assessment->assignment_id) : NULL;
-        if (!$assessment || $assessment->status !== 'finalized' || !$assessment->finalized_at || !$cycle || !in_array($cycle->state, ['configured', 'closed'], TRUE) || !$submission || $submission->status !== 'submitted') return $this->rollback('Assessment M9 belum memenuhi syarat laporan.');
-        $items = $this->model->assessment_items_for_update($assessment->id);
+        $submission = $assessment ? $this->model->submission_for_update($assessment->assignment_id, $assessment->source_submission_version) : NULL;
+        if (!$assessment || $assessment->status !== 'finalized' || !$assessment->finalized_at || !$cycle || !in_array($cycle->state, ['configured', 'closed'], TRUE) || !$submission || !in_array($submission->status, self::FINAL_SUBMISSION_STATUSES, TRUE)) return $this->rollback('Assessment M9 belum memenuhi syarat laporan.');
+        if ((int) $assessment->source_submission_version !== (int) $submission->version) return $this->rollback('Assessment M9 tidak cocok dengan versi submission aktif.');
+        $items = $this->model->submission_items_for_report($assessment->id, $submission->id);
         if (!$items || count($items) !== $this->model->assignment_items_count($assessment->assignment_id)) return $this->rollback('Set item assessment M9 belum lengkap.');
         foreach ($items as $item) {
             if ($item->score === NULL || (int) $item->score < 1 || (int) $item->score > 4) return $this->rollback('Semua item assessment M9 wajib memiliki skor 1 sampai 4.');
@@ -32,7 +35,7 @@ class Spmi_reports_service
         if (!$report_id || $this->ci->db->affected_rows() !== 1) return $this->rollback('Laporan SPMI gagal dibuat.');
         foreach ($items as $item) {
             $rubric = $this->model->rubric($item->assignment_item_id, $item->score);
-            if (!$this->model->insert_item(['report_id' => $report_id, 'display_order' => (int) $item->display_order, 'question_code_snapshot' => $item->question_code, 'question_text_snapshot' => $item->question_text, 'indicator_code_snapshot' => $item->indicator_code, 'indicator_title_snapshot' => $item->indicator_title, 'realization_snapshot' => $item->realization_snapshot, 'score' => (int) $item->score, 'descriptor_snapshot' => $rubric->descriptor, 'finding_snapshot' => $item->finding, 'recommendation_snapshot' => $item->recommendation])) return $this->rollback('Item laporan SPMI gagal dibuat.');
+            if (!$this->model->insert_item(['report_id' => $report_id, 'display_order' => (int) $item->display_order, 'question_code_snapshot' => $item->question_code, 'question_text_snapshot' => $item->question_text, 'indicator_code_snapshot' => $item->indicator_code, 'indicator_title_snapshot' => $item->indicator_title, 'realization_snapshot' => $item->realization_snapshot, 'evidence_url_snapshot' => $item->evidence_url_snapshot, 'evidence_file_original_name_snapshot' => $item->evidence_file_original_name_snapshot, 'evidence_file_mime_type_snapshot' => $item->evidence_file_mime_type_snapshot, 'evidence_file_size_bytes_snapshot' => $item->evidence_file_size_bytes_snapshot, 'evidence_file_sha256_snapshot' => $item->evidence_file_sha256_snapshot, 'score' => (int) $item->score, 'descriptor_snapshot' => $rubric->descriptor, 'finding_snapshot' => $item->finding, 'finding_type_snapshot' => $item->finding_type, 'recommendation_snapshot' => $item->recommendation])) return $this->rollback('Item laporan SPMI gagal dibuat.');
         }
         return $this->finish(['success' => TRUE, 'message' => 'Laporan SPMI berhasil dibuat.', 'report_id' => $report_id]);
     }

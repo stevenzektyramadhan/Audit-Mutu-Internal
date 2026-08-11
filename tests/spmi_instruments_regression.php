@@ -30,4 +30,13 @@ spmi_instrument_check(strpos($service, "delete('spmi_instrument_questions'") ===
 spmi_instrument_check(strpos($service, "delete('spmi_instrument_rubrics'") === FALSE, 'M6 question delete must not cascade rubrics.');
 spmi_instrument_check(strpos($views[2], 'Hanya-baca') !== FALSE && strpos($views[4], 'Belum ada rubrik') !== FALSE, 'M6 immutable and completeness states missing.');
 
+// V2 M17-02 red phase: static CRUD wiring only. Runtime UI/POST authorization remains M17-07 verification.
+spmi_instrument_check(strpos($controller, "set_rules('evidence_policy', 'Kebijakan bukti', 'required|in_list[none,file,url,either,both]'") !== FALSE, 'M17-02 controller must require evidence_policy in the closed five-value allowlist.');
+foreach (['none', 'file', 'url', 'either', 'both'] as $policy) spmi_instrument_check(strpos($service, "'" . $policy . "'") !== FALSE, 'M17-02 service evidence_policy allowlist missing: ' . $policy);
+spmi_instrument_check(strpos($service, 'isset($data[\'evidence_policy\'])') !== FALSE && strpos($service, '\'evidence_policy\' => $evidence_policy') !== FALSE, 'M17-02 service must independently default/validate and persist evidence_policy.');
+spmi_instrument_check(strpos($views[3], 'name="evidence_policy"') !== FALSE && strpos($views[3], '<select') !== FALSE, 'M17-02 question form must expose evidence_policy as a controlled select.');
+foreach (['value="none"', 'value="file"', 'value="url"', 'value="either"', 'value="both"'] as $literal) spmi_instrument_check(strpos($views[3], $literal) !== FALSE, 'M17-02 question form evidence_policy option missing: ' . $literal);
+spmi_instrument_check(strpos($views[3], "evidence_policy : 'none'") !== FALSE, 'M17-02 question form must default missing/new evidence_policy to none.');
+spmi_instrument_check(strpos($views[4], 'evidence_policy') !== FALSE && strpos($views[4], 'html_escape($question->evidence_policy') !== FALSE, 'M17-02 question detail must render saved evidence_policy safely.');
+
 fwrite(STDOUT, "SPMI instruments regression checks passed.\n");

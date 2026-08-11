@@ -20,7 +20,7 @@ Business logic, ownership check, dan transaksi database ditempatkan pada service
 
 ## Setup dan Deployment
 
-Docker bersifat opsional. Pilih satu mode sesuai lingkungan, jangan menjalankan `docker compose up` tanpa `CI_ENV` karena aplikasi akan menolak startup.
+Docker bersifat opsional. Pilih satu mode sesuai lingkungan. Compose app sudah set `CI_ENV=development`, jadi jangan tambah mode lain yang mengubah perilaku itu.
 
 | Mode | Pilih jika | Menjalankan aplikasi | Database |
 |---|---|---|---|
@@ -52,8 +52,8 @@ Ganti `APP_BASE_URL` dengan URL proyek yang dipakai, selalu dengan garis miring 
 
 Pilih mode ini bila Apache dan MySQL/MariaDB sudah tersedia di XAMPP atau Laragon. Contoh lokasi proyek Windows adalah `C:\laragon\www\AMI` atau `C:\xampp\htdocs\AMI`.
 
-1. Jalankan Apache dan MySQL dari Laragon atau XAMPP, lalu pastikan `CI_ENV=development` pada konfigurasi Apache seperti bagian prasyarat.
-2. Buat database dan import schema. `database_schema.sql` membuat struktur database `ami`, tetapi tidak membuat akun demo.
+1. Jalankan Apache dan MySQL/MariaDB dari Laragon atau XAMPP, lalu pastikan `CI_ENV=development` pada konfigurasi Apache seperti bagian prasyarat.
+2. Untuk database baru, import `database_schema.sql`. Ini membuat struktur database `ami`, bukan akun demo.
 
    ```powershell
    mysql -u root -e "source C:/laragon/www/AMI/database_schema.sql"
@@ -85,31 +85,42 @@ Pilih mode ini bila Apache dan MySQL/MariaDB sudah tersedia di XAMPP atau Larago
    SetEnv DB_DATABASE ami
    ```
 
-5. Buka `http://localhost/AMI/index.php`, atau URL yang sama dengan `APP_BASE_URL` yang telah ditetapkan.
+5. Buka URL yang memakai `/index.php`, misalnya `http://localhost/AMI/index.php`. Semua URL aplikasi tetap memakai `/index.php` karena konfigurasi saat ini memang begitu.
 
 ### Docker Penuh
 
-Pilih mode ini bila Docker Desktop dan Compose v2 tersedia dan aplikasi maupun MySQL harus berjalan dalam container. Dari root proyek, jalankan perintah berikut, termasuk `CI_ENV=development`:
+Pilih mode ini bila Docker Desktop dan Compose v2 tersedia dan aplikasi maupun MySQL harus berjalan dalam container. Dari root proyek, jalankan:
 
 ```bash
-docker compose run --build --service-ports -e CI_ENV=development app
+docker compose up -d --build
 ```
 
-Pada volume database baru, MySQL menjalankan `database_schema.sql` sebagai `01-schema.sql`, lalu `database_dummy.sql` sebagai `02-demo.sql`. Seed tidak membuat pengguna demo. Aplikasi dimulai setelah healthcheck MySQL berhasil. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
+Periksa status dengan:
 
-Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host. Jika sudah berganti dan login ditolak, tutup tab aplikasi lalu hapus site data untuk kedua host sebelum membuka URL `127.0.0.1` lagi.
+```bash
+docker compose ps
+```
 
-Compose sengaja tidak memublikasikan port MySQL ke host. Sesi, upload, dan data MySQL tersimpan dalam named volume. Hentikan container tanpa menghapus data:
+Lihat log app dengan:
+
+```bash
+docker compose logs --tail=100 app
+```
+
+Pada volume database baru, MySQL menjalankan `database_schema.sql` sebagai `01-schema.sql`, lalu `database_dummy.sql` sebagai `02-demo.sql`. Seed tidak membuat pengguna demo. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
+
+Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host yang berbeda. Jika sudah berganti dan login ditolak, tutup tab aplikasi lalu hapus site data untuk kedua host sebelum membuka `127.0.0.1` lagi.
+
+Compose sengaja tidak memublikasikan port MySQL ke host. Sesi, upload, dan data MySQL tersimpan dalam named volume. `docker compose down` menghentikan container dan mempertahankan named volume.
 
 ```bash
 docker compose down
 ```
 
-Reset berikut menghapus database, sesi login, dan seluruh upload, lalu inisialisasi schema serta seed kembali pada startup berikutnya:
+`docker compose down -v` menghapus named volume, jadi database lokal, sesi, dan upload hilang.
 
 ```bash
 docker compose down -v
-docker compose run --build --service-ports -e CI_ENV=development app
 ```
 
 ### Apache/PHP Lokal dan MySQL Docker
@@ -146,13 +157,41 @@ File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara di
 
 `database_schema.sql` adalah bootstrap schema-only untuk database baru. Jangan import `database_dummy.sql` atau memakai akun demo di produksi. Buat administrator awal melalui proses terkontrol tim deployment.
 
-CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw SQL yang dijalankan manual oleh tim deployment setelah backup database. Dua migration historis bernomor `009` tidak diubah; untuk deployment yang sudah berjalan, jalankan reconciliation berikut setelah memilih database:
+#### Database baru
 
-```bash
-mysql -u <user> -p <database> < migrations/010_reconcile_pertanyaan_columns.sql
-```
+Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `028` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
 
-Migration `010` idempotent dan aman dijalankan ulang. Untuk release M16, jalankan `migrations/024_create_audit_logs.sql` setelah backup agar audit log append-only tersedia. Untuk release berikutnya, jalankan raw migration baru berdasarkan nomor unik secara berurutan. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup; jangan menjalankan blok `DOWN` migration historis otomatis.
+#### Database lama, legacy, belum punya table organisasi, capability, atau SPMI
+
+Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan hanya migration `012` sampai `028` secara numerik, satu file tiap langkah, dalam urutan naik. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
+
+1. `012_create_organization_structure.sql`
+2. `013_create_spmi_versioned_standards.sql`
+3. `014_enforce_spmi_version_invariants.sql`
+4. `015_create_spmi_indicators.sql`
+5. `016_create_spmi_instrument_packages.sql`
+6. `017_create_spmi_audit_cycles.sql`
+7. `018_create_spmi_auditee_workspace.sql`
+8. `019_create_spmi_auditor_workspace.sql`
+9. `020_create_spmi_reports.sql`
+10. `021_create_spmi_rtm_meetings.sql`
+11. `022_create_spmi_rtm_follow_ups.sql`
+12. `023_create_legacy_ami_archive.sql`
+13. `024_create_audit_logs.sql`
+14. `025_create_spmi_m17_schema_foundation.sql`
+15. `026_add_assignment_item_evidence_policy.sql`
+16. `027_add_revision_lifecycle_schema_correction.sql`
+17. `028_add_versioned_auditor_assessments.sql`
+
+Jalankan satu file tiap langkah, satu per satu, memakai klien MySQL yang dipilih tim ke database yang memang dituju. Jangan membatch file. Jangan menambahkan kredensial.
+
+Jangan pakai `--force`. Jangan matikan foreign key checks. Hentikan di error pertama. Jangan jalankan blok `DOWN` historis.
+
+Catatan penting, migration `014` berhenti bila lebih dari satu active version ditemukan. Migration `028` membuat index composite `(assignment_id, source_submission_version)` dulu, baru menghapus unique index lama, supaya aman untuk FK.
+
+CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw SQL yang dijalankan manual oleh tim deployment setelah backup database. Untuk database yang sudah masuk jalur legacy di atas, ikuti nomor migration yang sudah ditetapkan, satu file tiap langkah, tanpa melewati urutan atau menjalankan blok `DOWN` historis otomatis. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup.
+
+`tests/fixtures/m17_07_demo_ui_seed.sql` bukan setup normal. Jangan import file itu ke database shared atau production selama hardening safety masih berlangsung.
 
 Konfigurasi web server wajib menerapkan HTTPS dan HSTS, menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, serta private storage, dan menonaktifkan directory listing. Pantau kapasitas disk serta rotasi log. Error detail hanya masuk log private; browser produksi tidak menampilkan error PHP atau debug database.
 
@@ -228,3 +267,32 @@ Export PDF, email, notifikasi, MFA, rate limit login, dan approval bertingkat be
 - 12 pertanyaan
 - tugas dengan status `belum_diisi`, `diisi`, dan `dinilai`
 - jawaban, skor, serta catatan contoh
+
+## Post-pull Check
+
+Jalankan cek berikut setelah pull dan sebelum handoff:
+
+### Semua mode
+
+```bash
+php tests/auth_login_regression.php
+php tests/spmi_auditee_workspace_regression.php
+php tests/m17_schema_regression.php
+```
+
+### Docker
+
+```bash
+docker compose config --quiet
+curl -i http://127.0.0.1:8081/index.php/auth/login
+```
+
+### Apache/PHP lokal
+
+```bash
+curl -i "${APP_BASE_URL}index.php/auth/login"
+```
+
+Pakai `APP_BASE_URL` lokal yang sudah berakhiran `/`, lalu tambahkan `index.php/auth/login` satu kali.
+
+Verifikasi browser yang terautentikasi tetap manual.

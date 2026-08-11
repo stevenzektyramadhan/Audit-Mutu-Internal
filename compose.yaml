@@ -20,6 +20,7 @@ services:
   app:
     build: .
     environment:
+      CI_ENV: development
       DB_HOST: db
       DB_USERNAME: ami_local
       DB_PASSWORD: ami_local_password

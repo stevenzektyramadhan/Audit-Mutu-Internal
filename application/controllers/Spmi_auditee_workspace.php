@@ -28,13 +28,23 @@ class Spmi_auditee_workspace extends CI_Controller
         $this->load->view('spmi_auditee_workspace/assignment', $workspace);
     }
 
+    public function final_result($id)
+    {
+        $result = $this->service->final_result((int) $id, $this->user_id());
+        if (!$result) { show_error('Laporan SPMI tidak ditemukan.', 404, 'Not Found'); return; }
+        $result['title'] = 'Hasil Akhir SPMI'; $result['page_title'] = 'Hasil Akhir SPMI'; $result['page_subtitle'] = 'Beranda / Workspace SPMI / Hasil Akhir'; $result['active_menu'] = 'spmi_workspace';
+        $this->load->view('spmi_auditee_workspace/final_result', $result);
+    }
+
     public function save($id) { $this->mutate($id, FALSE); }
     public function submit($id) { $this->mutate($id, TRUE); }
+    public function resubmit($id) { $this->mutate($id, TRUE, TRUE); }
 
-    protected function mutate($id, $submit)
+    protected function mutate($id, $submit, $resubmit = FALSE)
     {
         $this->require_post();
-        $result = $this->service->{$submit ? 'submit' : 'save'}((int) $id, $this->user_id(), (int) $this->input->post('version', TRUE), $this->input->post('realization', TRUE));
+        $method = $resubmit ? 'resubmit' : ($submit ? 'submit' : 'save');
+        $result = $this->service->$method((int) $id, $this->user_id(), (int) $this->input->post('version', TRUE), $this->input->post('realization', TRUE), $this->input->post('evidence_url', TRUE));
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect('auditee/spmi/assignment/' . (int) $id);
     }
