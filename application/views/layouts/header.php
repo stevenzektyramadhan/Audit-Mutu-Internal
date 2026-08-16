@@ -11,6 +11,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo html_escape($title); ?></title>
+    <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
     <script>
         (function () {
             try {
