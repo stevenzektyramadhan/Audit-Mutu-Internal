@@ -44,6 +44,25 @@ class Spmi_auditee_workspace extends CI_Controller
         $this->load->view('spmi_auditee_workspace/assignment', $workspace);
     }
 
+    public function confirm($id)
+    {
+        $user_id = $this->user_id();
+        $result = $this->service->confirm((int) $id, $user_id);
+        if ($result['status'] === 'not_found') { show_error('Penugasan tidak ditemukan.', 404, 'Not Found'); return; }
+        if ($result['status'] === 'forbidden') { show_error('Penugasan belum dapat dikonfirmasi.', 403, 'Forbidden'); return; }
+
+        $workspace = $result['data'];
+        $attention_count = $this->service->attention_count($user_id);
+        $workspace['title'] = 'Konfirmasi Submission SPMI'; $workspace['page_title'] = 'Konfirmasi Submission SPMI'; $workspace['page_subtitle'] = 'Beranda / Workspace SPMI / Konfirmasi'; $workspace['active_menu'] = 'spmi_workspace';
+        $workspace['menu_badges'] = ['spmi_workspace' => $attention_count, 'spmi_auditee_dashboard' => $attention_count];
+        $workspace['preview'] = [
+            'version' => $this->preview_scalar('version'),
+            'realization' => $this->preview_map('realization'),
+            'evidence_url' => $this->preview_map('evidence_url'),
+        ];
+        $this->load->view('spmi_auditee_workspace/confirm', $workspace);
+    }
+
     public function final_result($id)
     {
         $user_id = $this->user_id();
@@ -87,6 +106,18 @@ class Spmi_auditee_workspace extends CI_Controller
     }
 
     protected function user_id() { return (int) $this->session->userdata('user_id'); }
+    protected function preview_scalar($key) { $value = $this->input->get($key, TRUE); return is_scalar($value) ? trim((string) $value) : ''; }
+    protected function preview_map($key)
+    {
+        $values = $this->input->get($key, TRUE);
+        if (!is_array($values)) return [];
+        $clean = [];
+        foreach ($values as $item_id => $value) {
+            if (!is_scalar($item_id) || !ctype_digit((string) $item_id) || !is_scalar($value)) continue;
+            $clean[(int) $item_id] = trim((string) $value);
+        }
+        return $clean;
+    }
     protected function filters($allowed_statuses)
     {
         $cycle_id = $this->input->get('cycle_id', TRUE);
