@@ -795,6 +795,16 @@ M17-05A Auditor Evidence Read Parity
 ↓
 M17-07 Runtime and E2E Hardening
 ↓
+M17-07B Auditor Evidence Upload Parity
+↓
+M17-07C Auditor Finding Detail Parity
+↓
+M17-07D Auditor Per-Item Autosave
+↓
+M17-07E Workspace Filter and Badge Parity
+↓
+M17-07F Auditee Submission Confirmation Step
+↓
 M17-08 Cutover Readiness Audit
 
 Tidak boleh melompati dependency.
@@ -1573,6 +1583,266 @@ Commit
 
 test(m17): harden SPMI workspace parity lifecycle
 
+M17-07B — Auditor Evidence Upload Parity
+
+Type
+
+FEATURE (gap closure — legacy parity)
+
+Dependency
+
+M17-07B dapat dimulai setelah M17-07 dan M17-07A PASS. Tidak bergantung pada M17-07C/D/E/F, boleh dikerjakan berurutan atau di sesi terpisah.
+
+Objective
+
+Auditor dapat melampirkan bukti pendukung penilaiannya sendiri per item, setara dengan kemampuan legacy `Auditor::save_penilaian_item()` beserta `handle_bukti_upload()`-nya.
+
+Ownership and Boundaries
+
+M17-07B hanya menambahkan evidence milik auditor (level assessment item), terpisah sepenuhnya dari evidence milik auditee yang sudah ada.
+
+Tidak boleh mengubah evidence atau realization milik auditee.
+
+Tidak boleh mengubah field score, finding, finding_type, atau recommendation yang sudah ada dari M17-05.
+
+Pola validasi file WAJIB reuse logic yang sama dengan `Spmi_auditee_workspace_service::validate_file()` — PDF/JPEG/PNG, maksimal 5 MiB, MIME dicek via finfo dan getimagesize (bukan cuma ekstensi), nama file disimpan random, hash sha256 disimpan. Dilarang membuat validasi baru yang lebih longgar.
+
+Expected Change Areas
+
+Migration baru: tabel `spmi_auditor_assessment_evidence` (id, assessment_item_id FK ke spmi_auditor_assessment_items, stored_name, original_name, mime_type, size_bytes, sha256, created_at) — mirror struktur `spmi_auditee_evidence`;
+
+application/models/Spmi_auditor_workspace_model.php — tambah method evidence, add_evidence, delete_evidence, dan varian for_update/for_read yang relevan;
+
+application/services/Spmi_auditor_workspace_service.php — tambah method upload dan delete;
+
+application/controllers/Spmi_auditor_workspace.php — tambah upload_evidence($item_id) dan delete_evidence($id);
+
+application/config/routes.php — tambah route upload/delete evidence auditor;
+
+application/views/spmi_auditor_workspace/assignment.php — tambah form upload multipart, list bukti auditor, tombol hapus per item, hanya tampil saat tidak readonly.
+
+Required Behavior
+
+Maksimal 5 bukti per item, sama seperti batas di sisi auditee.
+
+Upload dan hapus hanya diizinkan selama assessment belum finalized.
+
+Evidence hanya dapat dihapus oleh auditor pemilik assignment tersebut.
+
+Evidence auditor ikut menjadi bagian snapshot laporan final — field baru ditambahkan secara additive ke report snapshot, tidak mengubah struktur snapshot M17-06 yang sudah ada.
+
+Rules
+
+Jangan mengubah tabel atau kolom milik evidence auditee.
+
+Jangan menyentuh file/route/tabel legacy.
+
+Acceptance Criteria
+
+Auditor dapat upload dan hapus bukti sendiri per item, tervalidasi MIME/size/jumlah.
+
+Cross-user access ditolak — auditor lain tidak dapat menghapus bukti milik auditor lain.
+
+Evidence auditor tampil di report snapshot final dan halaman hasil auditee.
+
+Regression test baru ditambahkan, seluruh regression test lama tetap lulus.
+
+Commit
+
+feat(m17): add auditor evidence upload parity
+
+M17-07C — Auditor Finding Detail Parity
+
+Type
+
+FEATURE (amandemen scope M17-05)
+
+Dependency
+
+Tidak bergantung task lain, tapi wajib selesai sebelum M17-08 karena mengubah field yang akan dievaluasi dalam audit parity.
+
+Objective
+
+Menambahkan dua field yang sebelumnya sengaja dikecualikan di M17-05 — kontrak M17-05 asli menyatakan eksplisit "rencana perbaikan tidak ditambahkan". Task ini membatalkan pembatasan tersebut sesuai keputusan produk terbaru yang menghendaki parity penuh dengan legacy, bukan scope yang dipersempit.
+
+Ownership and Boundaries
+
+M17-07C secara eksplisit mengamandemen pembatasan pada kontrak M17-05 asli. Ini adalah perubahan keputusan produk yang disengaja dan dicatat di sini, bukan pelanggaran terhadap kontrak lama.
+
+Tidak boleh mengubah field score, finding, finding_type, atau recommendation yang sudah ada.
+
+Tidak boleh mengubah revision lifecycle (M17-04) atau evidence policy (M17-02/M17-03).
+
+Expected Change Areas
+
+Migration baru: ALTER TABLE spmi_auditor_assessment_items ADD COLUMN improvement_plan TEXT NULL, ADD COLUMN evidence_date DATE NULL;
+
+Model dan service Spmi_auditor_workspace — baca/tulis dua kolom baru saat save dan finalize;
+
+View assignment.php auditor — tambah textarea "Rencana perbaikan" dan input tanggal "Tanggal bukti" per item;
+
+Area report snapshot (M17-06) — tambah dua kolom snapshot baru secara additive (improvement_plan_snapshot, evidence_date_snapshot), ditampilkan di halaman hasil final auditee dan report LPMPI.
+
+Required Behavior
+
+Draft boleh kosong untuk kedua field.
+
+Saat finalisasi: jika finding_type bernilai kts, improvement_plan wajib diisi, selaras dengan aturan existing bahwa recommendation wajib saat kts.
+
+evidence_date tetap opsional pada seluruh kondisi, sama seperti legacy yang tidak mewajibkannya.
+
+Rules
+
+Field baru wajib backward-compatible untuk assessment yang sudah pernah difinalisasi sebelum task ini — nilai NULL diperbolehkan, tidak retroactive-required.
+
+Acceptance Criteria
+
+Dua field baru tersimpan, tampil di form, dan tervalidasi sesuai aturan kts.
+
+Report snapshot dan halaman hasil auditee menampilkan kedua field.
+
+Assessment lama yang sudah finalized tetap terbaca tanpa error meski field barunya NULL.
+
+Commit
+
+feat(m17): add improvement plan and evidence date to auditor assessment
+
+M17-07D — Auditor Per-Item Autosave
+
+Type
+
+FEATURE (UX gap closure)
+
+Objective
+
+Auditor dapat menyimpan penilaian per item secara individual tanpa submit seluruh form sekaligus, setara dengan `Auditor::save_penilaian_item()` di legacy.
+
+Ownership and Boundaries
+
+Tidak menggantikan endpoint save/finalize whole-form yang sudah ada — endpoint tersebut tetap menjadi jalur resmi untuk finalisasi.
+
+Tidak boleh melonggarkan optimistic concurrency — validasi version di level assessment tetap wajib berlaku pada autosave per item.
+
+Expected Change Areas
+
+Spmi_auditor_workspace_service.php — tambah method save_item yang memutasi satu item dalam transaksi dan mengembalikan version baru;
+
+Spmi_auditor_workspace.php — tambah endpoint save_item($item_id) yang mengembalikan JSON;
+
+routes.php — tambah route auditor/spmi/item/(:num)/save;
+
+assignment.php — tambah script fetch per kartu item beserta indikator status tersimpan.
+
+Required Behavior
+
+Autosave per item tidak mensyaratkan seluruh item terisi.
+
+Response JSON berisi version baru untuk dipakai pada request berikutnya, mencegah race condition antar-tab.
+
+Autosave tunduk pada aturan readonly yang sama seperti whole-form save — assessment finalized atau submission bukan submitted/resubmitted akan ditolak.
+
+Rules
+
+Endpoint ini tidak boleh dipakai untuk finalisasi — finalisasi tetap lewat endpoint whole-form dengan validasi lengkap seluruh item.
+
+Acceptance Criteria
+
+Autosave per item berhasil tanpa reload halaman.
+
+Version conflict terdeteksi dan direspon dengan pesan yang jelas ke pengguna.
+
+Regression test baru untuk endpoint ini ditambahkan, seluruh test lama tetap lulus.
+
+Commit
+
+feat(m17): add per-item autosave for auditor assessment
+
+M17-07E — Workspace Filter and Badge Parity
+
+Type
+
+FEATURE (UX gap closure)
+
+Objective
+
+Menambahkan filter siklus/status dan badge notifikasi di halaman index auditor dan auditee SPMI, setara dengan legacy `Auditee::tugas()` dan badge menu Auditor.
+
+Expected Change Areas
+
+Spmi_auditor_workspace_model.php dan Spmi_auditee_workspace_model.php — tambah parameter filter cycle_id dan status pada method assignments;
+
+Controller kedua sisi — membaca query param filter, meneruskan ke service, menghitung badge count assignment yang perlu perhatian;
+
+sidebar.php — tambah badge count pada menu SPMI untuk kedua role;
+
+index.php kedua sisi — tambah dropdown filter siklus dan status di atas tabel.
+
+Required Behavior
+
+Filter bekerja tanpa mengubah data assignment itu sendiri, murni read-only.
+
+Badge menghitung: sisi auditee — assignment berstatus draft atau returned_for_revision; sisi auditor — assignment berstatus submitted atau resubmitted yang assessment-nya belum finalized.
+
+Rules
+
+Tidak boleh mengubah struktur tabel assignment.
+
+Tidak boleh mengubah sidebar untuk role selain auditor dan auditee.
+
+Acceptance Criteria
+
+Filter dan badge berfungsi di kedua halaman index.
+
+sidebar_navigation_regression tetap lulus, ditambah assertion baru untuk badge.
+
+Commit
+
+feat(m17): add cycle/status filter and badge parity to SPMI workspaces
+
+M17-07F — Auditee Submission Confirmation Step
+
+Type
+
+FEATURE (UX gap closure)
+
+Objective
+
+Menambahkan halaman ringkasan konfirmasi sebelum submit final, setara dengan `Auditee::konfirmasi()` di legacy.
+
+Expected Change Areas
+
+Spmi_auditee_workspace.php — tambah method confirm($id), read-only, reuse service workspace yang sudah ada;
+
+View baru spmi_auditee_workspace/confirm.php;
+
+assignment.php — tombol submit final (submit/resubmit) diarahkan ke halaman confirm terlebih dahulu, bukan langsung POST; tombol "Simpan draft" tetap POST langsung seperti sekarang, tidak berubah;
+
+routes.php — tambah route auditee/spmi/assignment/(:num)/confirm.
+
+Required Behavior
+
+Halaman confirm menampilkan seluruh realisasi dan bukti secara read-only.
+
+Tombol final di halaman confirm mengirim POST ke endpoint submit/resubmit yang sudah ada — tidak membuat endpoint submit baru.
+
+Assignment yang bukan berstatus draft atau returned_for_revision tidak dapat mengakses halaman confirm (403).
+
+Rules
+
+Tidak mengubah endpoint submit atau resubmit yang sudah ada.
+
+Acceptance Criteria
+
+Alur submit final sekarang melewati halaman confirm terlebih dahulu.
+
+Assignment yang tidak dapat diedit ditolak aksesnya ke halaman confirm.
+
+Regression test baru ditambahkan, seluruh regression test lama tetap lulus.
+
+Commit
+
+feat(m17): add auditee submission confirmation step
+
 M17-08 — Cutover Readiness Audit
 
 Type
@@ -1586,6 +1856,10 @@ Hanya:
 docs/audit/spmi-parity-cutover-readiness.md
 
 Dan status/log file plan ini.
+
+Dependency
+
+M17-08 tetap BLOCKED sampai M17-07B, M17-07C, M17-07D, M17-07E, dan M17-07F seluruhnya membuktikan PASS. Audit ini menilai kesiapan cutover terhadap kontrak yang sudah diamandemen (termasuk M17-07C), bukan terhadap kontrak M17-05 asli yang scope-nya lebih sempit.
 
 Objective
 
@@ -1684,6 +1958,130 @@ BLOCKED
 Commit
 
 docs(m17): audit SPMI parity cutover readiness
+
+M17-09 — Cutover Execution
+
+Type
+
+EXECUTION (navigation/routing only, no deletion)
+
+Dependency
+
+M17-09 hanya boleh dimulai jika M17-08 menghasilkan keputusan READY_FOR_CUTOVER_MILESTONE.
+
+Jika hasil M17-08 adalah NOT_READY atau BLOCKED, M17-09 tetap BLOCKED dan tidak boleh dijalankan, tidak peduli seberapa kecil perubahan yang direncanakan.
+
+Objective
+
+Menjadikan SPMI sebagai satu-satunya jalur kerja aktif untuk auditor dan auditee, tanpa menghapus kode, route, atau data legacy.
+
+Ownership and Boundaries
+
+M17-09 hanya boleh mengubah navigasi/sidebar, default landing route per role, dan pesan/banner informatif pada halaman legacy.
+
+M17-09 tidak boleh menghapus controller, service, model, view, route, migration, atau tabel legacy.
+
+M17-09 tidak boleh mengubah behavior fungsional legacy yang masih diakses langsung via URL — endpoint legacy harus tetap berfungsi penuh sebagai jaring pengaman.
+
+M17-09 tidak boleh membuat migration baru.
+
+M17-09 tidak boleh menyentuh file yang menjadi scope M17-01 sampai M17-08.
+
+Expected Change Areas
+
+application/views/layouts/sidebar.php — sembunyikan entri menu legacy untuk role auditor dan auditee;
+
+application/config/routes.php — opsional, hanya redirect default landing page per role ke SPMI, route lama tidak dihapus;
+
+application/controllers/Auditee.php, application/controllers/Auditor.php — opsional, tambah banner informatif non-blocking di halaman index (contoh: "Fitur ini sudah digantikan oleh menu SPMI"), tidak mengubah logic penilaian/pengisian yang sudah ada.
+
+Required Behavior
+
+Auditor dan auditee tidak lagi melihat menu legacy di sidebar setelah login.
+
+Mengetik URL legacy secara langsung tetap berhasil diakses (tidak 404, tidak 500, tidak redirect paksa kecuali didokumentasikan sebagai keputusan produk).
+
+SPMI menjadi entry point default untuk role auditor dan auditee.
+
+Tidak ada regresi pada seluruh test yang sudah ada, termasuk yang mengetes legacy secara langsung.
+
+Rules
+
+Jangan hapus satu pun file, route, atau kolom database legacy.
+
+Jangan ubah data.
+
+Setiap perubahan harus reversible dengan satu revert commit tunggal.
+
+Acceptance Criteria
+
+Sidebar auditor dan auditee tidak lagi menampilkan menu legacy.
+
+Route legacy tetap dapat diakses tanpa error saat dibuka langsung.
+
+sidebar_navigation_regression lulus, ditambah assertion baru untuk kondisi ini.
+
+Seluruh regression test yang ada tetap lulus tanpa pengecualian.
+
+git diff --stat hanya menunjukkan file yang tercantum di Expected Change Areas.
+
+Commit
+
+feat(m17): cutover SPMI as default active workspace
+
+M17-10 — Legacy Decommission
+
+Type
+
+DESTRUCTIVE — WAJIB PERSETUJUAN MANUSIA EKSPLISIT SEBELUM EKSEKUSI
+
+Dependency
+
+M17-10 hanya boleh dimulai setelah masa observasi pasca-M17-09 dinyatakan aman secara eksplisit oleh product owner/tim, dicatat sebagai instruksi tertulis sebelum task ini dijalankan.
+
+Agent tidak boleh menganggap "sudah beberapa waktu tanpa laporan bug" sebagai izin otomatis untuk memulai M17-10. Ketiadaan keluhan bukan approval.
+
+Prasyarat wajib yang harus diverifikasi ulang oleh agent sebelum eksekusi (bukan diasumsikan dari dokumentasi task sebelumnya)
+
+Jumlah baris di tabel legacy*ami_archive*\* dibandingkan ulang terhadap jumlah baris tugas_audit/jawaban_audit saat ini, untuk memastikan tidak ada data yang muncul setelah arsip terakhir dijalankan dan belum ikut terarsip.
+
+Tidak ada assignment/tugas legacy yang masih berstatus aktif atau belum selesai.
+
+Backup database penuh sudah diambil, lokasinya dan checksum-nya dicatat di execution log, sebelum satu pun perintah DROP dijalankan.
+
+Objective
+
+Menghapus kode dan tabel AMI legacy yang sudah tidak dipakai, karena seluruh datanya sudah tersimpan permanen dan terverifikasi di legacy*ami_archive*\*.
+
+Expected Change Areas
+
+Hapus application/controllers/Auditee.php, application/controllers/Auditor.php, dan isi application/controllers/auditee/, application/controllers/auditor/ — verifikasi dulu tidak ada file di dalamnya yang ternyata masih direferensikan modul lain (termasuk modul Legacy_ami_archive) sebelum dihapus;
+
+Hapus application/views/auditee/, application/views/auditor/ — dengan verifikasi yang sama;
+
+Hapus baris route legacy terkait di application/config/routes.php;
+
+Migration baru untuk DROP TABLE tugas_audit, jawaban_audit — hanya dieksekusi setelah seluruh prasyarat di atas terverifikasi ulang dan tercatat.
+
+Rules
+
+Jangan hapus tabel legacy*ami_archive*\* atau apa pun yang menjadi dependency modul Legacy_ami_archive — modul arsip harus tetap berfungsi penuh sebagai riwayat read-only selamanya.
+
+Jangan jalankan langkah destruktif apa pun tanpa checkpoint konfirmasi tertulis di execution log untuk setiap sub-langkah (hapus kode, lalu verifikasi test, baru migration DROP — tidak digabung jadi satu commit besar tanpa jeda verifikasi).
+
+Backup wajib diambil sebelum DROP, bukan sesudah.
+
+Acceptance Criteria
+
+legacy_ami_archive_regression tetap lulus penuh setelah seluruh perubahan (archive tidak boleh ikut rusak).
+
+Tidak ada 500 error di seluruh aplikasi setelah penghapusan, diverifikasi lewat smoke test menyeluruh, bukan hanya area yang dihapus.
+
+git diff --stat dan daftar tabel yang di-drop dicatat lengkap di execution log sebagai bukti scope.
+
+Commit
+
+chore(m17): decommission legacy AMI codebase and tables
 
 12. Required Test Families
 
@@ -1839,6 +2237,56 @@ php -l tests/m17_07a_runtime_fixture_regression.php; php tests/m17_07a_runtime_f
 
 Disposable runtime fixture bootstrap PASS only. Verified exact runtime evidence with command `tests/run_m17_07a_runtime.sh run`, project `m17_07a_1000_1786243974_24449`, log `/tmp/m17_07a_runtime_permissions_retry.pykqcy81.log`, fresh named project/network/four volumes, healthy MySQL, `M17-07A HTTP fixture smoke passed.`, and exact-resource teardown removing app/mysql/volumes/network. The readiness curl reset was retried and harmless during startup, not an unaddressed failure. Runtime scope proves only the M17-07A fixture bootstrap for six normal login CSRF accounts plus A/B submission/open and cross-user ownership checks; it does not complete full M17-07 lanes. M17-07 is now actionable NOT_STARTED, and M17-08 remains NOT_STARTED.
 
+M17-07B Auditor Evidence Upload Parity
+
+NOT_STARTED
+
+—
+
+—
+
+Gap closure vs legacy Auditor bukti upload; independent of M17-07C/D/E/F
+
+M17-07C Auditor Finding Detail Parity
+
+NOT_STARTED
+
+—
+
+—
+
+Amends M17-05 restriction on rencana perbaikan / tanggal bukti; must PASS before M17-08
+
+M17-07D Auditor Per-Item Autosave
+
+NOT_STARTED
+
+—
+
+—
+
+UX gap closure vs legacy save_penilaian_item
+
+M17-07E Workspace Filter and Badge Parity
+
+NOT_STARTED
+
+—
+
+—
+
+UX gap closure, both auditor and auditee index pages
+
+M17-07F Auditee Submission Confirmation Step
+
+NOT_STARTED
+
+—
+
+—
+
+UX gap closure vs legacy Auditee::konfirmasi()
+
 M17-08 Cutover Readiness Audit
 
 NOT_STARTED
@@ -1847,7 +2295,27 @@ NOT_STARTED
 
 —
 
+BLOCKED until M17-07B through M17-07F all record PASS
+
+M17-09 Cutover Execution
+
+NOT_STARTED
+
 —
+
+—
+
+BLOCKED until M17-08 records READY_FOR_CUTOVER_MILESTONE
+
+M17-10 Legacy Decommission
+
+NOT_STARTED
+
+—
+
+—
+
+BLOCKED until explicit human approval is recorded after the M17-09 observation window
 
 Allowed status:
 
@@ -1915,6 +2383,7 @@ Format:
 - Next gate:
 
 ### 2026-08-05 00:00 — M17-04
+
 - Status: BLOCKED
 - Branch: dev
 - Start SHA: see Git history
@@ -1927,6 +2396,7 @@ Format:
 - Next gate: STOP: M17-05 and later tasks must not start until corrective schema scope is authorized and complete.
 
 ### 2026-08-05 00:00 — M17-01A
+
 - Status: IN_PROGRESS
 - Branch: dev
 - Start SHA: see Git history
@@ -1939,6 +2409,7 @@ Format:
 - Next gate: execute the additive lifecycle schema correction before any M17-04 behavior work.
 
 ### 2026-08-09 00:00 — M17-05A
+
 - Status: PASS
 - Branch: dev
 - Start SHA: ae81c59
@@ -2010,6 +2481,7 @@ DO NOT HIDE LEGACY.
 DO NOT MAKE CUTOVER CHANGES.
 
 ### 2026-08-04 00:00 — M17-00
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 9652f9f
@@ -2022,6 +2494,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-01 blocked until commit SHA is finalized and M17-00 hard gate remains APPROVED_BY_PLAN
 
 ### 2026-08-04 00:00 — M17-00
+
 - Status: BLOCKED
 - Branch: dev
 - Start SHA: 9652f9f
@@ -2034,6 +2507,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: STOP: M17-01 not authorized
 
 ### 2026-08-04 00:00 — M17-00
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 9652f9f
@@ -2046,6 +2520,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-01 is eligible only after this gate stays PASS, but it must not be started by this task
 
 ### 2026-08-04 00:00 — M17-00
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 1c56a01
@@ -2058,6 +2533,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: STOP: M17-01 not started by this task.
 
 ### 2026-08-04 00:01 — M17-00
+
 - Status: PASS
 - Branch: dev
 - Start SHA: c97114f
@@ -2070,6 +2546,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-01 remains NOT_STARTED
 
 ### 2026-08-04 00:02 — M17-01
+
 - Status: PASS
 - Branch: dev
 - Start SHA: f439fe1
@@ -2082,6 +2559,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-02 eligible but NOT started by this task
 
 ### 2026-08-04 00:03 — M17-02
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 31e5b55
@@ -2094,6 +2572,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-03 eligible but NOT_STARTED; M17-03 not started by this task
 
 ### 2026-08-04 16:47 — M17-02
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 099a6db
@@ -2106,6 +2585,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-03 eligible but not started by this task
 
 ### 2026-08-05 00:00 — M17-03
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 68b8c06
@@ -2118,6 +2598,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-04 eligible but NOT_STARTED; M17-04 not started by this task
 
 ### 2026-08-05 00:01 — M17-01A
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 99a1be2
@@ -2130,6 +2611,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-04 eligible but NOT_STARTED; M17-04 behavior not started by this task; M17-05+ and M18 remain NOT_STARTED
 
 ### 2026-08-05 00:01 — M17-04
+
 - Status: PASS
 - Branch: dev
 - Start SHA: see Git history
@@ -2142,6 +2624,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-05 is eligible after this PASS but must not be started by this task; M17-05+ and M18 remain NOT_STARTED
 
 ### 2026-08-05 00:01 — M17-05
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 1790f7f
@@ -2154,6 +2637,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-06 is eligible after this PASS but must not be started by this task; M17-06+ and M18 remain NOT_STARTED
 
 ### 2026-08-05 00:01 — M17-06
+
 - Status: PASS
 - Branch: dev
 - Start SHA: e730d2e
@@ -2176,8 +2660,8 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: not run
 - Notes: Static preflight evidence found Docker/Compose isolation available, database_dummy.sql:1-3 says it does not create demo users, database_dummy.sql:7-8 selects pre-existing auditor/auditee users, application/services/Auth_service.php:16-25 requires a stored password hash for login, and application/services/User_service.php:47-68 shows user creation exists as application behavior; however no repository-controlled isolated fixture/bootstrap CLI or entrypoint exists to provision synthetic roles and the minimal SPMI runtime graph in a uniquely named fresh Compose project with teardown, so the required M17-07 multi-role runtime graph cannot be provisioned safely without ad hoc test data or shared-state changes; minimum resolution is a repository-controlled disposable fixture bootstrap that creates the synthetic roles and minimal SPMI graph in a fresh Compose project with teardown, then rerun all required runtime lanes; M17-08 remains NOT_STARTED and was not made eligible
 - Next gate: STOP: M17-08 must not start; no post-M17 milestone may start
-
 ### 2026-08-09 — M17-07A
+
 - Status: IN_PROGRESS
 - Branch: dev
 - Start SHA: uncommitted working tree
@@ -2190,6 +2674,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: complete static fixture validation, then separately authorize and execute M17-07 runtime lanes; M17-08 remains NOT_STARTED
 
 ### 2026-08-09 09:53 — M17-07A
+
 - Status: PASS
 - Branch: dev
 - Start SHA: 25f3714
@@ -2202,6 +2687,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: M17-07 is now actionable and remains NOT_STARTED; M17-08 remains NOT_STARTED and must not start yet
 
 ### 2026-08-09 10:00 — M17-07
+
 - Status: BLOCKED
 - Branch: dev
 - Start SHA: see Git history
@@ -2214,6 +2700,7 @@ DO NOT MAKE CUTOVER CHANGES.
 - Next gate: STOP: M17-08 must not start; no post-M17 milestone may start
 
 ### 2026-08-09 10:01 — M17-07
+
 - Status: BLOCKED
 - Branch: dev
 - Start SHA: see Git history

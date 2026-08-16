@@ -52,12 +52,12 @@ class Spmi_reports extends Admin_Lpmpi_Controller
         $spreadsheet->getProperties()->setCreator('AMI')->setTitle('Laporan SPMI')->setSubject('Snapshot laporan SPMI');
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Laporan SPMI');
-        $headers = ['A' => 'No', 'B' => 'Kode Pertanyaan', 'C' => 'Pertanyaan', 'D' => 'Indikator', 'E' => 'Realisasi', 'F' => 'URL Bukti', 'G' => 'File Bukti', 'H' => 'MIME Bukti', 'I' => 'Ukuran Bukti', 'J' => 'SHA-256 Bukti', 'K' => 'Skor', 'L' => 'Deskriptor', 'M' => 'Jenis Temuan', 'N' => 'Temuan', 'O' => 'Rekomendasi'];
+        $headers = ['A' => 'No', 'B' => 'Kode Pertanyaan', 'C' => 'Pertanyaan', 'D' => 'Indikator', 'E' => 'Realisasi', 'F' => 'URL Bukti', 'G' => 'File Bukti', 'H' => 'MIME Bukti', 'I' => 'Ukuran Bukti', 'J' => 'SHA-256 Bukti', 'K' => 'Bukti Auditor', 'L' => 'Skor', 'M' => 'Deskriptor', 'N' => 'Jenis Temuan', 'O' => 'Temuan', 'P' => 'Rekomendasi', 'Q' => 'Rencana perbaikan', 'R' => 'Tanggal bukti'];
         foreach ($headers as $column => $label) $this->set_text($sheet, $column . '1', $label);
         $row = 2;
-        foreach ($data['items'] as $item) { $this->set_text($sheet, 'A' . $row, $item->display_order); $this->set_text($sheet, 'B' . $row, $item->question_code_snapshot); $this->set_text($sheet, 'C' . $row, $item->question_text_snapshot); $this->set_text($sheet, 'D' . $row, $item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); $this->set_text($sheet, 'E' . $row, $item->realization_snapshot); $this->set_text($sheet, 'F' . $row, isset($item->evidence_url_snapshot) ? $item->evidence_url_snapshot : NULL); $this->set_text($sheet, 'G' . $row, isset($item->evidence_file_original_name_snapshot) ? $item->evidence_file_original_name_snapshot : NULL); $this->set_text($sheet, 'H' . $row, isset($item->evidence_file_mime_type_snapshot) ? $item->evidence_file_mime_type_snapshot : NULL); $this->set_text($sheet, 'I' . $row, isset($item->evidence_file_size_bytes_snapshot) ? $item->evidence_file_size_bytes_snapshot : NULL); $this->set_text($sheet, 'J' . $row, isset($item->evidence_file_sha256_snapshot) ? $item->evidence_file_sha256_snapshot : NULL); $sheet->setCellValue('K' . $row, (int) $item->score); $this->set_text($sheet, 'L' . $row, $item->descriptor_snapshot); $this->set_text($sheet, 'M' . $row, isset($item->finding_type_snapshot) ? $item->finding_type_snapshot : NULL); $this->set_text($sheet, 'N' . $row, $item->finding_snapshot); $this->set_text($sheet, 'O' . $row, $item->recommendation_snapshot); $row++; }
-        $sheet->getStyle('A1:O' . max(1, $row - 1))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP)->setWrapText(TRUE);
-        $sheet->getStyle('A1:O1')->getFont()->setBold(TRUE);
+        foreach ($data['items'] as $item) { $this->set_text($sheet, 'A' . $row, $item->display_order); $this->set_text($sheet, 'B' . $row, $item->question_code_snapshot); $this->set_text($sheet, 'C' . $row, $item->question_text_snapshot); $this->set_text($sheet, 'D' . $row, $item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); $this->set_text($sheet, 'E' . $row, $item->realization_snapshot); $this->set_text($sheet, 'F' . $row, isset($item->evidence_url_snapshot) ? $item->evidence_url_snapshot : NULL); $this->set_text($sheet, 'G' . $row, isset($item->evidence_file_original_name_snapshot) ? $item->evidence_file_original_name_snapshot : NULL); $this->set_text($sheet, 'H' . $row, isset($item->evidence_file_mime_type_snapshot) ? $item->evidence_file_mime_type_snapshot : NULL); $this->set_text($sheet, 'I' . $row, isset($item->evidence_file_size_bytes_snapshot) ? $item->evidence_file_size_bytes_snapshot : NULL); $this->set_text($sheet, 'J' . $row, isset($item->evidence_file_sha256_snapshot) ? $item->evidence_file_sha256_snapshot : NULL); $this->set_text($sheet, 'K' . $row, $this->auditor_evidence_text(isset($item->auditor_evidence_snapshot) ? $item->auditor_evidence_snapshot : NULL)); $sheet->setCellValue('L' . $row, (int) $item->score); $this->set_text($sheet, 'M' . $row, $item->descriptor_snapshot); $this->set_text($sheet, 'N' . $row, isset($item->finding_type_snapshot) ? $item->finding_type_snapshot : NULL); $this->set_text($sheet, 'O' . $row, $item->finding_snapshot); $this->set_text($sheet, 'P' . $row, $item->recommendation_snapshot); $this->set_text($sheet, 'Q' . $row, isset($item->improvement_plan_snapshot) ? $item->improvement_plan_snapshot : NULL); $this->set_text($sheet, 'R' . $row, isset($item->evidence_date_snapshot) ? $item->evidence_date_snapshot : NULL); $row++; }
+        $sheet->getStyle('A1:R' . max(1, $row - 1))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP)->setWrapText(TRUE);
+        $sheet->getStyle('A1:R1')->getFont()->setBold(TRUE);
         $sheet->freezePane('A2');
         while (ob_get_level() > 0) @ob_end_clean();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -75,5 +75,17 @@ class Spmi_reports extends Admin_Lpmpi_Controller
         $formula_prefixes = ['=', '+', '-', '@'];
         if ($value !== '' && in_array($value[0], $formula_prefixes, TRUE)) $value = "'" . $value;
         $sheet->setCellValueExplicit($cell, $value === '' ? '-' : $value, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    }
+
+    private function auditor_evidence_text($snapshot)
+    {
+        $evidence = json_decode((string) $snapshot, TRUE);
+        if (!is_array($evidence)) return '-';
+        $lines = [];
+        foreach ($evidence as $item) {
+            if (!is_array($item)) continue;
+            $lines[] = (string) (isset($item['original_name']) ? $item['original_name'] : '-') . ' / ' . (string) (isset($item['mime_type']) ? $item['mime_type'] : '-') . ' / ' . (string) (isset($item['size_bytes']) ? (int) $item['size_bytes'] : 0) . ' bytes / ' . (string) (isset($item['sha256']) ? $item['sha256'] : '-');
+        }
+        return $lines ? implode("\n", $lines) : '-';
     }
 }

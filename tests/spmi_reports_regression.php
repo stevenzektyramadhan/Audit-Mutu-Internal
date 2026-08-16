@@ -13,10 +13,12 @@ $sidebar = m10_source('application/views/layouts/sidebar.php');
 $index = m10_source('application/views/lpmpi/spmi_reports/index.php');
 $detail = m10_source('application/views/lpmpi/spmi_reports/detail.php');
 $print = m10_source('application/views/lpmpi/spmi_reports/print.php');
+$final_result = m10_source('application/views/spmi_auditee_workspace/final_result.php');
+$auditor_evidence_migration = m10_source('migrations/029_add_spmi_auditor_assessment_evidence.sql');
 
 foreach (['spmi_reports', 'spmi_report_items', 'UNIQUE KEY `uq_spmi_reports_assessment`', 'UNIQUE KEY `uq_spmi_reports_report_number`', 'generated_by', 'generated_at', 'descriptor_snapshot', '`score` TINYINT UNSIGNED NOT NULL', 'ON DELETE RESTRICT', 'ON UPDATE RESTRICT'] as $literal) m10_check(strpos($migration, $literal) !== FALSE, 'M10 migration contract missing: ' . $literal);
 m10_check(!preg_match('/(^|;|\R)\s*(INSERT|UPDATE|DELETE)\s+/i', $migration), 'M10 migration must be seed-free.');
-foreach (['current parity migration 001-020', 'spmi_reports', 'spmi_report_items', 'uq_spmi_reports_assessment', 'uq_spmi_reports_report_number', 'uq_spmi_report_items_order'] as $literal) m10_check(strpos($schema, $literal) !== FALSE, 'M10 schema parity missing: ' . $literal);
+foreach (['current parity migration 001-030', 'spmi_reports', 'spmi_report_items', 'uq_spmi_reports_assessment', 'uq_spmi_reports_report_number', 'uq_spmi_report_items_order'] as $literal) m10_check(strpos($schema, $literal) !== FALSE, 'M10 schema parity missing: ' . $literal);
 foreach (['assessment_for_update', 'cycle_for_update', 'submission_for_update', 'report_for_assessment_for_update', 'insert_item', 'report_by_id', 'reports', 'FOR UPDATE'] as $literal) m10_check(strpos($model, $literal) !== FALSE, 'M10 model contract missing: ' . $literal);
 foreach (['trans_begin', 'finalized', 'submitted', 'configured', 'closed', 'score', 'descriptor', 'realization_snapshot', 'affected_rows', 'report_number'] as $literal) m10_check(strpos($service, $literal) !== FALSE, 'M10 service contract missing: ' . $literal);
 foreach (['extends Admin_Lpmpi_Controller', "method(TRUE) !== 'POST'", 'generate', 'export', 'print', 'Spmi_reports_service', 'show_error'] as $literal) m10_check(strpos($controller, $literal) !== FALSE, 'M10 controller contract missing: ' . $literal);
@@ -42,5 +44,17 @@ m10_check(preg_match('/assessment_for_update\(\$assessment_id\).*JOIN spmi_audit
 m10_check(preg_match('/submission_for_update\(\$assignment_id, \$source_submission_version\).*version = \?/s', $model) === 1, 'M17-07B report submission lock must select exact assessment source submission version.');
 m10_check(preg_match('/\$this->model->submission_for_update\(\$assessment->assignment_id, \$assessment->source_submission_version\)/', $service) === 1, 'M17-07B report generation must load submission matching assessment provenance.');
 m10_check(preg_match('/\(int\) \$assessment->source_submission_version\s*!==\s*\(int\) \$submission->version/', $service) === 1, 'M17-07B report generation must reject finalized assessment when current submission provenance mismatches.');
+
+foreach (['spmi_auditor_assessment_evidence', 'auditor_evidence_snapshot', 'INFORMATION_SCHEMA.COLUMNS'] as $literal) m10_check(strpos($auditor_evidence_migration, $literal) !== FALSE, 'M17-07B report migration contract missing: ' . $literal);
+m10_check(strpos($schema, '`auditor_evidence_snapshot` TEXT NULL') !== FALSE, 'M17-07B report snapshot column missing from canonical schema.');
+foreach (['auditor_evidence_for_report', 'spmi_auditor_assessment_evidence', 'ORDER BY id ASC', 'FOR UPDATE'] as $literal) m10_check(strpos($model, $literal) !== FALSE, 'M17-07B report model auditor evidence snapshot lock missing: ' . $literal);
+foreach (['auditor_evidence_for_report', 'auditor_evidence_snapshot', "'original_name'", "'mime_type'", "'size_bytes'", "'sha256'", 'json_encode'] as $literal) m10_check(strpos($service, $literal) !== FALSE, 'M17-07B report service metadata-only snapshot missing: ' . $literal);
+foreach ([$detail, $print, $final_result, $controller] as $surface) m10_check(strpos($surface, 'auditor_evidence_snapshot') !== FALSE, 'M17-07B report surface must consume auditor evidence snapshot.');
+foreach ([$detail, $print, $final_result] as $surface) m10_check(strpos($surface, 'json_decode') !== FALSE && strpos($surface, 'html_escape') !== FALSE, 'M17-07B report evidence metadata rendering must JSON-decode with escaped fallback.');
+m10_check(strpos($model . $service . $controller . $detail . $print . $final_result, 'stored_name') === FALSE, 'M17-07B reports must not expose stored evidence names.');
+m10_check(strpos($controller, 'auditor_evidence_text') !== FALSE && strpos($controller, 'json_decode') !== FALSE && strpos($controller, "'original_name'") !== FALSE && strpos($controller, "'mime_type'") !== FALSE && strpos($controller, "'size_bytes'") !== FALSE && strpos($controller, "'sha256'") !== FALSE, 'M17-07B XLSX export must format auditor evidence snapshot metadata.');
+m10_check(strpos($controller, "'K' . \$row, \$this->auditor_evidence_text") !== FALSE && strpos($controller, "'K' . \$row, isset(\$item->auditor_evidence_snapshot)") === FALSE, 'M17-07B XLSX export must not write raw auditor evidence JSON.');
+foreach (['improvement_plan_snapshot', 'evidence_date_snapshot'] as $field) m10_check(strpos($schema, '`' . $field . '`') !== FALSE && strpos($service, "'" . $field . "'") !== FALSE && strpos($detail, '$item->' . $field) !== FALSE && strpos($print, '$item->' . $field) !== FALSE && strpos($controller, '$item->' . $field) !== FALSE, 'M17-07C report snapshot must persist and render: ' . $field);
+m10_check(strpos($controller . $detail . $print . $final_result, 'spmi_auditor_assessment_items') === FALSE, 'M17-07C report read surfaces must not read live assessment items.');
 
 fwrite(STDOUT, "SPMI reports regression checks passed.\n");

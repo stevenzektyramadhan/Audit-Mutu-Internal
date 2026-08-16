@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import html
 import http.cookiejar
+import json
 import os
 import re
 import sys
@@ -15,6 +16,7 @@ PASSWORD = os.environ["M17_07A_FIXTURE_PASSWORD"]
 CSRF_PATTERN = re.compile(r'name="csrf_test_name" value="([^"]+)"')
 ITEM_PATTERN = re.compile(r'name="realization\[(\d+)\]"')
 ASSESSMENT_ITEM_PATTERN = re.compile(r'name="assessment\[(\d+)\]\[score\]"')
+AUTOSAVE_CARD_PATTERN = re.compile(r'<article class="card mb-3" data-autosave-card="(\d+)".*?name="assessment\[(\d+)\]\[score\]"', re.DOTALL)
 URL_POLICY_ITEM_PATTERN = re.compile(
     r'M17R-Q-URL(?:(?!name="realization\[).)*name="realization\[(\d+)\]"|name="realization\[(\d+)\]"(?:(?!name="realization\[).)*M17R-Q-URL',
     re.DOTALL,
@@ -33,7 +35,9 @@ REPORT_DETAIL_PATTERN = re.compile(r'/lpmpi/spmi-reports/detail/(\d+)')
 RTM_DETAIL_PATTERN = re.compile(r'href=["\']([^"\']*/lpmpi/spmi-rtm/detail/\d+)["\']')
 LEGACY_ARCHIVE_RUN_PATTERN = re.compile(r'href=["\']([^"\']*/lpmpi/legacy-ami-archive/run/\d+)["\']')
 LEGACY_ARCHIVE_TASK_PATTERN = re.compile(r'href=["\']([^"\']*/lpmpi/legacy-ami-archive/task/\d+)["\']')
+CONFIRM_ACTION_PATTERN_TEMPLATE = r'action=["\']([^"\']*/auditee/spmi/assignment/{assignment_id}/{action})["\']'
 OPTION_PATTERN_TEMPLATE = r'<option value="(\d+)"[^>]*>(?:(?!</option>).)*{marker}(?:(?!</option>).)*</option>'
+MENU_LINK_PATTERN_TEMPLATE = r'<a\b[^>]*href="(?P<href>[^"]*{path}[^"]*)"[^>]*>(?P<body>.*?)</a>'
 DASHBOARD_MARKERS = {
     "super-admin@m17-07a.test": "Dashboard Super Admin",
     "admin-lpmpi@m17-07a.test": "Dashboard Super Admin",
@@ -42,6 +46,16 @@ DASHBOARD_MARKERS = {
     "auditee-a@m17-07a.test": "Dashboard Auditee",
     "auditee-b@m17-07a.test": "Dashboard Auditee",
 }
+FINAL_KTS_IMPROVEMENT_PLAN = "M17-07C line 1\nRencana <aman>"
+FINAL_KTS_IMPROVEMENT_PLAN_TEXTAREA = html.escape(FINAL_KTS_IMPROVEMENT_PLAN)
+FINAL_KTS_IMPROVEMENT_PLAN_FRAGMENTS = tuple(html.escape(fragment) for fragment in FINAL_KTS_IMPROVEMENT_PLAN.split("\n"))
+FINAL_KTS_IMPROVEMENT_PLAN_DISPLAY = FINAL_KTS_IMPROVEMENT_PLAN_TEXTAREA.replace("\n", "<br />\n")
+FINAL_KTS_EVIDENCE_DATE = "2026-08-10"
+FINAL_KTS_IMPROVEMENT_PLAN_RENDER_PATTERN = re.compile(
+    re.escape(FINAL_KTS_IMPROVEMENT_PLAN_FRAGMENTS[0])
+    + r"\s*<br\s*/?>\s*"
+    + re.escape(FINAL_KTS_IMPROVEMENT_PLAN_FRAGMENTS[1])
+)
 
 
 class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -140,6 +154,10 @@ def form_data(fields: dict[str, str]) -> bytes:
     return urllib.parse.urlencode(fields).encode()
 
 
+def confirm_query_data(fields: dict[str, str]) -> str:
+    return urllib.parse.urlencode(fields)
+
+
 def same_origin_url(base_url: str, url: str) -> str:
     candidate = urllib.parse.urljoin(base_url + "/", html.unescape(url))
     base_parts = urllib.parse.urlsplit(base_url)
@@ -147,6 +165,242 @@ def same_origin_url(base_url: str, url: str) -> str:
     if candidate_parts.scheme != base_parts.scheme or candidate_parts.netloc != base_parts.netloc:
         raise RuntimeError(f"fixture page rendered foreign URL {bounded_location(candidate)}")
     return candidate
+
+
+def same_origin_path(base_url: str, path: str) -> str:
+    return same_origin_url(base_url, path)
+
+
+def assert_menu_badge(page: str, base_url: str, path: str, expected_count: int, surface: str) -> None:
+    full_url = same_origin_path(base_url, path)
+    target_path = urllib.parse.urlsplit(full_url).path
+    pattern = re.compile(MENU_LINK_PATTERN_TEMPLATE.format(path=re.escape(target_path)), re.DOTALL)
+    match = pattern.search(page)
+    if match is None:
+        raise RuntimeError(f"{surface} did not render sidebar link for {path}; context={bounded_context(page)}")
+    body = match.group("body")
+    badge_match = re.search(r'<span class="ami-nav-badge">\s*(\d+)\s*</span>', body)
+    if expected_count > 0:
+        if badge_match is None or int(badge_match.group(1)) != expected_count:
+            observed = "[missing]" if badge_match is None else badge_match.group(1)
+            raise RuntimeError(
+                f"{surface} did not render expected sidebar badge for {path}; "
+                f"expected={expected_count}; observed={observed}; context={bounded_context(page)}"
+            )
+        return
+    if badge_match is not None:
+        raise RuntimeError(
+            f"{surface} unexpectedly rendered sidebar badge for {path}; "
+            f"observed={badge_match.group(1)}; context={bounded_context(page)}"
+        )
+
+
+def expect_badged_page(
+    opener: urllib.request.OpenerDirector,
+    url: str,
+    marker: str,
+    base_url: str,
+    menu_path: str,
+    expected_count: int,
+    surface: str,
+) -> str:
+    page = expect_page(opener, url, marker)
+    assert_menu_badge(page, base_url, menu_path, expected_count, surface)
+    return page
+
+
+def assert_cycle_options(page: str, expected_codes: list[str], absent_codes: list[str], surface: str) -> dict[str, str]:
+    options: dict[str, str] = {}
+    for code in expected_codes:
+        pattern = re.compile(OPTION_PATTERN_TEMPLATE.format(marker=re.escape(code + " — ")), re.DOTALL)
+        match = pattern.search(page)
+        if match is None:
+            raise RuntimeError(f"{surface} missing owned cycle option {code}; context={bounded_context(page)}")
+        options[code] = match.group(1)
+    for code in absent_codes:
+        pattern = re.compile(OPTION_PATTERN_TEMPLATE.format(marker=re.escape(code + " — ")), re.DOTALL)
+        if pattern.search(page) is not None:
+            raise RuntimeError(f"{surface} leaked foreign cycle option {code}; context={bounded_context(page)}")
+    return options
+
+
+def assert_contains(text: str, needle: str, surface: str) -> None:
+    if needle not in text:
+        raise RuntimeError(f"{surface} missing marker {needle}; context={bounded_context(text)}")
+
+
+def assert_not_contains(text: str, needle: str, surface: str) -> None:
+    if needle in text:
+        raise RuntimeError(f"{surface} leaked marker {needle}; context={bounded_context(text)}")
+
+
+def auditee_workspace_markers() -> dict[str, str]:
+    return {
+        "C1": "M17R-C1 — M17-07A Runtime Cycle",
+        "C2": "M17R-C2 — M17-07A Runtime Cycle Owned Draft",
+        "C3": "M17R-C3 — M17-07A Runtime Cycle Foreign Draft",
+        "empty": "Belum ada penugasan SPMI yang dapat diisi.",
+    }
+
+
+def auditor_workspace_markers() -> dict[str, str]:
+    return {
+        "C1": "M17R-C1 — M17-07A Runtime Cycle",
+        "C2": "M17R-C2 — M17-07A Runtime Cycle Owned Draft",
+        "C3": "M17R-C3 — M17-07A Runtime Cycle Foreign Draft",
+        "empty": "Belum ada penugasan SPMI yang dapat dinilai.",
+    }
+
+
+def assert_auditee_workspace_filters(
+    opener: urllib.request.OpenerDirector,
+    base_url: str,
+    expected_badge: int,
+    own_cycle_id: str,
+    foreign_cycle_id: str,
+) -> None:
+    workspace_url = base_url + "/auditee/spmi"
+    markers = auditee_workspace_markers()
+    base_page = expect_badged_page(opener, workspace_url, "Workspace SPMI", base_url, "/auditee/spmi", expected_badge, "auditee workspace index")
+    assert_contains(base_page, markers["C1"], "auditee workspace index")
+    assert_contains(base_page, markers["C2"], "auditee workspace index")
+    assert_not_contains(base_page, markers["C3"], "auditee workspace index")
+
+    own_cycle_page = expect_badged_page(
+        opener,
+        workspace_url + "?cycle_id=" + own_cycle_id,
+        "Workspace SPMI",
+        base_url,
+        "/auditee/spmi",
+        expected_badge,
+        "auditee workspace own-cycle filter",
+    )
+    assert_contains(own_cycle_page, markers["C2"], "auditee workspace own-cycle filter")
+
+    draft_page = expect_badged_page(
+        opener,
+        workspace_url + "?status=draft",
+        "Workspace SPMI",
+        base_url,
+        "/auditee/spmi",
+        expected_badge,
+        "auditee workspace draft filter",
+    )
+    assert_contains(draft_page, markers["C2"], "auditee workspace draft filter")
+
+    invalid_scalar_page = expect_badged_page(
+        opener,
+        workspace_url + "?status=finalized&cycle_id=oops",
+        "Workspace SPMI",
+        base_url,
+        "/auditee/spmi",
+        expected_badge,
+        "auditee workspace invalid scalar filters",
+    )
+    for marker in (markers["C1"], markers["C2"]):
+        assert_contains(invalid_scalar_page, marker, "auditee workspace invalid scalar filters")
+
+    invalid_non_scalar_page = expect_badged_page(
+        opener,
+        workspace_url + "?status%5B0%5D=draft&cycle_id%5B0%5D=" + own_cycle_id,
+        "Workspace SPMI",
+        base_url,
+        "/auditee/spmi",
+        expected_badge,
+        "auditee workspace invalid non-scalar filters",
+    )
+    for marker in (markers["C1"], markers["C2"]):
+        assert_contains(invalid_non_scalar_page, marker, "auditee workspace invalid non-scalar filters")
+
+    _ = foreign_cycle_id
+
+
+def assert_auditor_workspace_filters(
+    opener: urllib.request.OpenerDirector,
+    base_url: str,
+    expected_badge: int,
+    submitted_cycle_id: str,
+    foreign_cycle_id: str,
+) -> None:
+    workspace_url = base_url + "/auditor/spmi"
+    markers = auditor_workspace_markers()
+    base_page = expect_badged_page(opener, workspace_url, "Penilaian SPMI", base_url, "/auditor/spmi", expected_badge, "auditor workspace index")
+    assert_contains(base_page, markers["C1"], "auditor workspace index")
+    assert_not_contains(base_page, markers["C2"], "auditor workspace index")
+    assert_not_contains(base_page, markers["C3"], "auditor workspace index")
+
+    cycle_page = expect_badged_page(
+        opener,
+        workspace_url + "?cycle_id=" + submitted_cycle_id,
+        "Penilaian SPMI",
+        base_url,
+        "/auditor/spmi",
+        expected_badge,
+        "auditor workspace own-cycle filter",
+    )
+    assert_contains(cycle_page, markers["C1"], "auditor workspace own-cycle filter")
+
+    invalid_scalar_page = expect_badged_page(
+        opener,
+        workspace_url + "?status=draft&cycle_id=oops",
+        "Penilaian SPMI",
+        base_url,
+        "/auditor/spmi",
+        expected_badge,
+        "auditor workspace invalid scalar filters",
+    )
+    assert_contains(invalid_scalar_page, markers["C1"], "auditor workspace invalid scalar filters")
+
+    invalid_non_scalar_page = expect_badged_page(
+        opener,
+        workspace_url + "?status%5B0%5D=submitted&cycle_id%5B0%5D=" + submitted_cycle_id,
+        "Penilaian SPMI",
+        base_url,
+        "/auditor/spmi",
+        expected_badge,
+        "auditor workspace invalid non-scalar filters",
+    )
+    assert_contains(invalid_non_scalar_page, markers["C1"], "auditor workspace invalid non-scalar filters")
+
+    _ = foreign_cycle_id
+
+
+def assert_auditor_status_filter(
+    opener: urllib.request.OpenerDirector,
+    base_url: str,
+    status_value: str,
+    expected_badge: int,
+    surface: str,
+) -> None:
+    page = expect_badged_page(
+        opener,
+        base_url + "/auditor/spmi?status=" + urllib.parse.quote(status_value),
+        "Penilaian SPMI",
+        base_url,
+        "/auditor/spmi",
+        expected_badge,
+        surface,
+    )
+    markers = auditor_workspace_markers()
+    assert_contains(page, markers["C1"], surface)
+
+
+def assert_workspace_badge_surfaces(
+    opener: urllib.request.OpenerDirector,
+    base_url: str,
+    dashboard_url: str,
+    dashboard_marker: str,
+    workspace_url: str,
+    workspace_marker: str,
+    detail_url: str,
+    detail_marker: str,
+    menu_path: str,
+    expected_count: int,
+    prefix: str,
+) -> None:
+    expect_badged_page(opener, dashboard_url, dashboard_marker, base_url, menu_path, expected_count, prefix + " dashboard")
+    expect_badged_page(opener, workspace_url, workspace_marker, base_url, menu_path, expected_count, prefix + " index")
+    expect_badged_page(opener, detail_url, detail_marker, base_url, menu_path, expected_count, prefix + " detail")
 
 
 def login(base_url: str, email: str) -> urllib.request.OpenerDirector:
@@ -531,6 +785,95 @@ def assert_submitted_assignment(opener: urllib.request.OpenerDirector, assignmen
         )
 
 
+def extract_confirm_post_action_url(page: str, base_url: str, assignment_id: str, action: str) -> str:
+    pattern = re.compile(CONFIRM_ACTION_PATTERN_TEMPLATE.format(assignment_id=re.escape(assignment_id), action=re.escape(action)))
+    match = pattern.search(page)
+    if match is None:
+        raise RuntimeError(
+            "confirmation preview page did not render expected existing auditee mutation endpoint; "
+            f"expected action={action}; assignment_id={assignment_id}; context={bounded_context(page)}"
+        )
+    return same_origin_url(base_url, match.group(1))
+
+
+def assert_confirmation_status(opener: urllib.request.OpenerDirector, url: str, expected_status: int, surface: str) -> str:
+    status, page = request(opener, url)
+    if status != expected_status:
+        raise RuntimeError(
+            f"{surface} returned unexpected HTTP status; "
+            f"expected HTTP {expected_status}; observed HTTP {status}; url={bounded_location(url)}; context={bounded_context(page)}"
+        )
+    if expected_status == 200 and "Konfirmasi Submission" not in page:
+        raise RuntimeError(
+            f"{surface} returned HTTP 200 without the confirmation surface; "
+            f"url={bounded_location(url)}; context={bounded_context(page)}"
+        )
+    return page
+
+
+def assert_confirmation_preview(
+    opener: urllib.request.OpenerDirector,
+    base_url: str,
+    assignment_id: str,
+    assignment_url: str,
+    version: str,
+    item_ids: list[str],
+    action: str,
+    label: str,
+) -> tuple[str, dict[str, str], str]:
+    url_label = label.lower().replace(" ", "-")
+    preview_fields: dict[str, str] = {"version": version}
+    for item_id in item_ids:
+        preview_fields["realization[" + item_id + "]"] = label + " realization " + item_id
+        preview_fields["evidence_url[" + item_id + "]"] = "https://m17-07a.test/" + url_label + "-evidence/" + item_id
+    confirm_url = assignment_url + "/confirm?" + confirm_query_data(preview_fields)
+    page = assert_confirmation_status(opener, confirm_url, 200, label + " confirmation preview")
+    if "Halaman ini hanya-baca." not in page:
+        raise RuntimeError(
+            f"{label} confirmation preview did not render readonly marker; "
+            f"url={bounded_location(confirm_url)}; context={bounded_context(page)}"
+        )
+    if "name=\"csrf_test_name\"" not in page:
+        raise RuntimeError(
+            f"{label} confirmation preview omitted CSRF field for final POST; "
+            f"url={bounded_location(confirm_url)}; context={bounded_context(page)}"
+        )
+    if f'name="version" value="{html.escape(version, quote=True)}"' not in page:
+        raise RuntimeError(
+            f"{label} confirmation preview did not preserve preview version; "
+            f"expected version={version}; context={bounded_context(page)}"
+        )
+    for field_name, value in preview_fields.items():
+        if field_name == "version":
+            continue
+        if f'name="{field_name}" value="{html.escape(value, quote=True)}"' not in page:
+            raise RuntimeError(
+                f"{label} confirmation preview did not preserve hidden unsaved value; "
+                f"field={field_name}; expected={value}; context={bounded_context(page)}"
+            )
+        if value not in page:
+            raise RuntimeError(
+                f"{label} confirmation preview did not render unsaved preview value; "
+                f"field={field_name}; expected={value}; context={bounded_context(page)}"
+            )
+    return extract_confirm_post_action_url(page, base_url, assignment_id, action), preview_fields, page
+
+
+def assert_confirm_creation_not_lazy(opener: urllib.request.OpenerDirector, assignment_url: str) -> None:
+    confirm_url = assignment_url + "/confirm"
+    for attempt in ("first", "second"):
+        assert_confirmation_status(opener, confirm_url, 403, attempt + " owned confirm GET without submission")
+
+
+def assert_confirm_denied_after_submission(opener: urllib.request.OpenerDirector, assignment_url: str, preview_fields: dict[str, str], surface: str) -> None:
+    confirm_url = assignment_url + "/confirm?" + confirm_query_data(preview_fields)
+    assert_confirmation_status(opener, confirm_url, 403, surface)
+
+
+def assert_confirm_foreign_not_found(opener: urllib.request.OpenerDirector, assignment_url: str) -> None:
+    assert_confirmation_status(opener, assignment_url + "/confirm", 404, "foreign auditee confirmation read")
+
+
 def assert_resubmitted_assignment(opener: urllib.request.OpenerDirector, assignment_url: str, previous_version: str, reason: str) -> None:
     page = expect_page(opener, assignment_url, "M17-07A Runtime Package")
     version_match = VERSION_PATTERN.search(page)
@@ -577,7 +920,22 @@ def submit_auditee_assignment(opener: urllib.request.OpenerDirector, base_url: s
         evidence_url = "https://m17-07a.test/evidence/" + item_id
         fields["evidence_url[" + item_id + "]"] = evidence_url
         evidence_urls.append(evidence_url)
-    status, location, context = submit_request(opener, assignment_url + "/submit", form_data(fields), "application/x-www-form-urlencoded")
+    submit_url, preview_fields, confirm_page = assert_confirmation_preview(
+        opener,
+        base_url,
+        assignment_id,
+        assignment_url,
+        version,
+        item_ids,
+        "submit",
+        "M17-07F draft",
+    )
+    fields = {"csrf_test_name": csrf(confirm_page), "version": preview_fields["version"]}
+    for item_id in item_ids:
+        fields["realization[" + item_id + "]"] = preview_fields["realization[" + item_id + "]"]
+        fields["evidence_url[" + item_id + "]"] = preview_fields["evidence_url[" + item_id + "]"]
+    evidence_urls = [preview_fields["evidence_url[" + item_id + "]"] for item_id in item_ids]
+    status, location, context = submit_request(opener, submit_url, form_data(fields), "application/x-www-form-urlencoded")
     if status not in (302, 303):
         raise RuntimeError(
             "expected redirect after auditee submission; "
@@ -585,6 +943,7 @@ def submit_auditee_assignment(opener: urllib.request.OpenerDirector, base_url: s
         )
     assert_assignment_redirect_location("auditee submission", assignment_url, location, context)
     assert_submitted_assignment(opener, assignment_url, version)
+    assert_confirm_denied_after_submission(opener, assignment_url, preview_fields, "submitted auditee confirmation read")
     return evidence_urls
 
 
@@ -595,6 +954,7 @@ def assert_return_resubmit_and_stale_finalize_rejection(
     auditor_assignment_id: str,
     auditee_assignment_id: str,
     auditor_page: str,
+    auditee_cycle_2_id: str,
 ) -> None:
     auditor_assignment_url = base_url + "/auditor/spmi/assignment/" + auditor_assignment_id
     auditee_assignment_url = base_url + "/auditee/spmi/assignment/" + auditee_assignment_id
@@ -625,7 +985,6 @@ def assert_return_resubmit_and_stale_finalize_rejection(
                 "auditor return-for-revision page did not render expected returned state/history; "
                 f"missing={marker}; context={bounded_context(returned_auditor_page)}"
             )
-
     returned_auditee_page = expect_page(auditee, auditee_assignment_url, "M17-07A Runtime Package")
     returned_version_match = VERSION_PATTERN.search(returned_auditee_page)
     returned_item_ids = ITEM_PATTERN.findall(returned_auditee_page)
@@ -634,11 +993,21 @@ def assert_return_resubmit_and_stale_finalize_rejection(
             "auditee returned assignment did not expose editable resubmit form; "
             f"context={bounded_context(returned_auditee_page)}"
         )
-    fields = {"csrf_test_name": csrf(returned_auditee_page), "version": returned_version_match.group(1)}
+    resubmit_url, preview_fields, confirm_page = assert_confirmation_preview(
+        auditee,
+        base_url,
+        auditee_assignment_id,
+        auditee_assignment_url,
+        returned_version_match.group(1),
+        returned_item_ids,
+        "resubmit",
+        "M17-07F returned",
+    )
+    fields = {"csrf_test_name": csrf(confirm_page), "version": preview_fields["version"]}
     for item_id in returned_item_ids:
-        fields["realization[" + item_id + "]"] = "M17-07A resubmitted auditee realization"
-        fields["evidence_url[" + item_id + "]"] = "https://m17-07a.test/resubmitted-evidence/" + item_id
-    status, location, context = submit_request(auditee, auditee_assignment_url + "/resubmit", form_data(fields), "application/x-www-form-urlencoded")
+        fields["realization[" + item_id + "]"] = preview_fields["realization[" + item_id + "]"]
+        fields["evidence_url[" + item_id + "]"] = preview_fields["evidence_url[" + item_id + "]"]
+    status, location, context = submit_request(auditee, resubmit_url, form_data(fields), "application/x-www-form-urlencoded")
     if status not in (302, 303):
         raise RuntimeError(
             "expected redirect after auditee resubmit; "
@@ -646,6 +1015,7 @@ def assert_return_resubmit_and_stale_finalize_rejection(
         )
     assert_assignment_redirect_location("auditee resubmit", auditee_assignment_url, location, context)
     assert_resubmitted_assignment(auditee, auditee_assignment_url, returned_version_match.group(1), return_reason)
+    assert_confirm_denied_after_submission(auditee, auditee_assignment_url, preview_fields, "resubmitted auditee confirmation read")
 
     auditor_page_after_resubmit = expect_page(auditor, auditor_assignment_url, "M17-07A Runtime Package")
     fields = {
@@ -690,6 +1060,18 @@ def current_assessment_form(page: str) -> tuple[str, str, str, list[str]]:
     return csrf(page), assessment_version_match.group(1), source_submission_version_match.group(1), assessment_item_ids
 
 
+def current_assessment_autosave_form(page: str) -> tuple[str, str, str, list[tuple[str, str]]]:
+    assessment_version_match = VERSION_PATTERN.search(page)
+    source_submission_version_match = SOURCE_SUBMISSION_VERSION_PATTERN.search(page)
+    autosave_items = AUTOSAVE_CARD_PATTERN.findall(page)
+    if assessment_version_match is None or source_submission_version_match is None or not autosave_items:
+        raise RuntimeError(
+            "auditor assignment page did not expose editable autosave assessment cards; "
+            f"context={bounded_context(page)}"
+        )
+    return csrf(page), assessment_version_match.group(1), source_submission_version_match.group(1), autosave_items
+
+
 def valid_assessment_fields(token: str, version: str, source_submission_version: str, item_ids: list[str]) -> dict[str, str]:
     fields = {"csrf_test_name": token, "version": version, "source_submission_version": source_submission_version}
     for index, item_id in enumerate(item_ids):
@@ -698,7 +1080,222 @@ def valid_assessment_fields(token: str, version: str, source_submission_version:
         fields["assessment[" + item_id + "][finding_type]"] = finding_type
         fields["assessment[" + item_id + "][finding]"] = "M17-07A valid auditor finding " + item_id
         fields["assessment[" + item_id + "][recommendation]"] = "M17-07A valid auditor recommendation " + item_id
+        fields["assessment[" + item_id + "][improvement_plan]"] = FINAL_KTS_IMPROVEMENT_PLAN if finding_type == "kts" else ""
+        fields["assessment[" + item_id + "][evidence_date]"] = FINAL_KTS_EVIDENCE_DATE if finding_type == "kts" else ""
     return fields
+
+
+def autosave_item_fields(token: str, version: str, source_submission_version: str, score: str, suffix: str) -> dict[str, str]:
+    return {
+        "csrf_test_name": token,
+        "version": version,
+        "source_submission_version": source_submission_version,
+        "score": score,
+        "finding_type": "ob",
+        "finding": "M17-07D autosave finding " + suffix,
+        "recommendation": "M17-07D autosave recommendation " + suffix,
+        "improvement_plan": "",
+        "evidence_date": "",
+    }
+
+
+def json_request(
+    opener: urllib.request.OpenerDirector,
+    url: str,
+    fields: dict[str, str],
+) -> tuple[int, dict[str, object], str]:
+    status, content = request(opener, url, form_data(fields), "application/x-www-form-urlencoded")
+    try:
+        payload = json.loads(content)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(
+            f"expected JSON response from {bounded_location(url)}; HTTP {status}; context={bounded_context(content)}"
+        ) from error
+    if not isinstance(payload, dict):
+        raise RuntimeError(
+            f"expected JSON object response from {bounded_location(url)}; HTTP {status}; context={bounded_context(content)}"
+        )
+    return status, payload, content
+
+
+def assert_auditor_item_autosave_http_proof(
+    auditor: urllib.request.OpenerDirector,
+    foreign_auditor: urllib.request.OpenerDirector,
+    base_url: str,
+    auditor_assignment_id: str,
+    foreign_assignment_id: str,
+) -> None:
+    auditor_assignment_url = base_url + "/auditor/spmi/assignment/" + auditor_assignment_id
+    foreign_assignment_url = base_url + "/auditor/spmi/assignment/" + foreign_assignment_id
+    initial_page = expect_page(auditor, auditor_assignment_url, "M17-07A Runtime Package")
+    token, version, source_submission_version, autosave_items = current_assessment_autosave_form(initial_page)
+    autosave_item_id, assignment_item_id = autosave_items[0]
+    initial_fields = autosave_item_fields(token, version, source_submission_version, "4", assignment_item_id)
+    status, payload, content = json_request(
+        auditor,
+        base_url + "/auditor/spmi/item/" + autosave_item_id + "/save",
+        initial_fields,
+    )
+    if status != 200:
+        raise RuntimeError(
+            "valid auditor autosave did not return HTTP 200; "
+            f"observed HTTP {status}; context={bounded_context(content)}"
+        )
+    if payload.get("success") is not True or payload.get("message") != "Draft item penilaian SPMI berhasil disimpan." or payload.get("version") != int(version) + 1:
+        raise RuntimeError(
+            "valid auditor autosave did not return expected JSON success/message/next version; "
+            f"payload={payload}; context={bounded_context(content)}"
+        )
+    csrf_payload = payload.get("csrf")
+    if not isinstance(csrf_payload, dict) or csrf_payload.get("name") != "csrf_test_name" or not isinstance(csrf_payload.get("hash"), str) or not csrf_payload.get("hash"):
+        raise RuntimeError(
+            "valid auditor autosave did not return rotated CSRF payload; "
+            f"payload={payload}; context={bounded_context(content)}"
+        )
+    updated_version = str(payload["version"])
+    updated_page = expect_page(auditor, auditor_assignment_url, "M17-07A Runtime Package")
+    if f'name="assessment[{assignment_item_id}][score]"' not in updated_page or f'<option value="4" selected>' not in updated_page:
+        raise RuntimeError(
+            "auditor autosave reload did not persist target item score; "
+            f"item_id={assignment_item_id}; context={bounded_context(updated_page)}"
+        )
+    for marker in (
+        "M17-07D autosave finding " + assignment_item_id,
+        "M17-07D autosave recommendation " + assignment_item_id,
+        'name="version" value="' + updated_version + '"',
+    ):
+        if marker not in updated_page:
+            raise RuntimeError(
+                "auditor autosave reload did not persist expected draft/version state; "
+                f"missing={marker}; context={bounded_context(updated_page)}"
+            )
+    for marker in ("Finalisasi", "Simpan draft"):
+        if marker not in updated_page:
+            raise RuntimeError(
+                "auditor autosave unexpectedly finalized assignment or hid draft actions; "
+                f"missing={marker}; context={bounded_context(updated_page)}"
+            )
+    stale_status, stale_payload, stale_content = json_request(
+        auditor,
+        base_url + "/auditor/spmi/item/" + autosave_item_id + "/save",
+        initial_fields,
+    )
+    if stale_status != 409 or stale_payload.get("success") is not False or stale_payload.get("message") != CONFLICT_MESSAGE:
+        raise RuntimeError(
+            "stale auditor autosave did not return expected HTTP 409 conflict JSON; "
+            f"status={stale_status}; payload={stale_payload}; context={bounded_context(stale_content)}"
+        )
+    cross_owner_fields = autosave_item_fields(token, version, source_submission_version, "2", assignment_item_id)
+    cross_owner_status, cross_owner_content = request(
+        foreign_auditor,
+        base_url + "/auditor/spmi/item/" + autosave_item_id + "/save",
+        form_data(cross_owner_fields),
+        "application/x-www-form-urlencoded",
+    )
+    if cross_owner_status not in (403, 404):
+        raise RuntimeError(
+            "cross-owner auditor autosave did not reject safely; "
+            f"status={cross_owner_status}; context={bounded_context(cross_owner_content)}"
+        )
+    if "M17-07D autosave finding " + assignment_item_id in cross_owner_content or "M17-07D autosave recommendation " + assignment_item_id in cross_owner_content:
+        raise RuntimeError(
+            "cross-owner auditor autosave denial leaked foreign draft content; "
+            f"context={bounded_context(cross_owner_content)}"
+        )
+    foreign_page = expect_page(foreign_auditor, foreign_assignment_url, "M17-07A Runtime Package")
+    for marker in (
+        "M17-07D autosave finding " + assignment_item_id,
+        "M17-07D autosave recommendation " + assignment_item_id,
+    ):
+        if marker in foreign_page:
+            raise RuntimeError(
+                "cross-owner auditor autosave leaked foreign draft content into owned assignment page; "
+                f"marker={marker}; context={bounded_context(foreign_page)}"
+            )
+    invalid_csrf_fields = dict(autosave_item_fields(token, updated_version, source_submission_version, "3", assignment_item_id))
+    invalid_csrf_fields["csrf_test_name"] = "invalid-m17-07d"
+    invalid_status, invalid_content = request(
+        auditor,
+        base_url + "/auditor/spmi/item/" + autosave_item_id + "/save",
+        form_data(invalid_csrf_fields),
+        "application/x-www-form-urlencoded",
+    )
+    if invalid_status not in (403, 500):
+        raise RuntimeError(
+            "invalid CSRF auditor autosave did not hit framework denial; "
+            f"observed HTTP {invalid_status}; context={bounded_context(invalid_content)}"
+        )
+    missing_status, missing_content = request(
+        auditor,
+        base_url + "/auditor/spmi/item/" + autosave_item_id + "/save",
+        form_data({key: value for key, value in invalid_csrf_fields.items() if key != "csrf_test_name"}),
+        "application/x-www-form-urlencoded",
+    )
+    if missing_status not in (403, 500):
+        raise RuntimeError(
+            "missing CSRF auditor autosave did not hit framework denial; "
+            f"observed HTTP {missing_status}; context={bounded_context(missing_content)}"
+        )
+    page_after_csrf_denials = expect_page(auditor, auditor_assignment_url, "M17-07A Runtime Package")
+    if "M17-07D autosave finding " + assignment_item_id not in page_after_csrf_denials or 'name="version" value="' + updated_version + '"' not in page_after_csrf_denials:
+        raise RuntimeError(
+            "invalid or missing CSRF auditor autosave mutated draft state; "
+            f"context={bounded_context(page_after_csrf_denials)}"
+        )
+
+
+def assert_auditor_finding_detail_draft_save(auditor: urllib.request.OpenerDirector, auditor_assignment_url: str, page: str) -> str:
+    token, version, source_submission_version, item_ids = current_assessment_form(page)
+    fields = valid_assessment_fields(token, version, source_submission_version, item_ids)
+    fields["assessment[" + item_ids[0] + "][finding_type]"] = "kts"
+    fields["assessment[" + item_ids[0] + "][improvement_plan]"] = ""
+    fields["assessment[" + item_ids[0] + "][evidence_date]"] = ""
+    status, location, context = submit_request(auditor, auditor_assignment_url + "/save", form_data(fields), "application/x-www-form-urlencoded")
+    saved_page = expect_page(auditor, auditor_assignment_url, "M17-07A Runtime Package")
+    if status not in (302, 303):
+        raise RuntimeError(
+            "expected redirect after auditor finding-detail draft save; "
+            f"observed HTTP {status}; location={bounded_location(location)}; context={bounded_context(context)}"
+        )
+    assert_assignment_redirect_location("auditor finding-detail draft save", auditor_assignment_url, location, context)
+    if "Draft penilaian SPMI berhasil disimpan." not in saved_page:
+        raise RuntimeError(
+            "auditor finding-detail draft save did not show expected success flash; "
+            f"context={bounded_context(saved_page)}"
+        )
+    if (
+        VERSION_PATTERN.search(saved_page) is None
+        or SOURCE_SUBMISSION_VERSION_PATTERN.search(saved_page) is None
+        or "Finalisasi" not in saved_page
+        or "Simpan draft" not in saved_page
+    ):
+        raise RuntimeError(
+            "auditor finding-detail draft save did not remain editable; "
+            f"context={bounded_context(saved_page)}"
+        )
+    if FINAL_KTS_EVIDENCE_DATE in saved_page:
+        raise RuntimeError(
+            "auditor finding-detail draft save unexpectedly persisted optional evidence date; "
+            f"context={bounded_context(saved_page)}"
+        )
+    return saved_page
+
+
+def assert_auditor_finalized_finding_detail_snapshot(page: str) -> None:
+    for marker in ("Rencana perbaikan", "Tanggal bukti"):
+        if marker not in page:
+            raise RuntimeError(
+                "auditor finalized page did not render readonly finding-detail snapshot; "
+                f"missing={marker}; context={bounded_context(page)}"
+            )
+
+
+def assert_multiline_improvement_plan_snapshot(page: str, surface: str) -> None:
+    if FINAL_KTS_IMPROVEMENT_PLAN_RENDER_PATTERN.search(page) is None:
+        raise RuntimeError(
+            f"{surface} missing escaped multiline improvement-plan snapshot; "
+            f"context={bounded_context(page)}"
+        )
 
 
 def assert_invalid_finalize_rejected(
@@ -735,7 +1332,9 @@ def assert_invalid_finalize_rejected(
 def assert_finalize_validation_success_and_immutability(auditor: urllib.request.OpenerDirector, base_url: str, auditor_assignment_id: str) -> None:
     auditor_assignment_url = base_url + "/auditor/spmi/assignment/" + auditor_assignment_id
     auditor_page = expect_page(auditor, auditor_assignment_url, "M17-07A Runtime Package")
+    auditor_page = assert_auditor_finding_detail_draft_save(auditor, auditor_assignment_url, auditor_page)
     token, version, source_submission_version, item_ids = current_assessment_form(auditor_page)
+    _, _, _, autosave_items = current_assessment_autosave_form(auditor_page)
 
     auditor_page = assert_invalid_finalize_rejected(
         auditor,
@@ -757,6 +1356,13 @@ def assert_finalize_validation_success_and_immutability(auditor: urllib.request.
         auditor_page,
         "Rekomendasi wajib diisi untuk KTS sebelum finalisasi.",
         {"assessment[" + item_ids[0] + "][finding_type]": "kts", "assessment[" + item_ids[0] + "][finding]": "M17-07A KTS finding", "assessment[" + item_ids[0] + "][recommendation]": ""},
+    )
+    auditor_page = assert_invalid_finalize_rejected(
+        auditor,
+        auditor_assignment_url,
+        auditor_page,
+        "Rencana perbaikan wajib diisi untuk KTS sebelum finalisasi.",
+        {"assessment[" + item_ids[0] + "][finding_type]": "kts", "assessment[" + item_ids[0] + "][finding]": "M17-07A KTS finding", "assessment[" + item_ids[0] + "][recommendation]": "M17-07A KTS recommendation", "assessment[" + item_ids[0] + "][improvement_plan]": "", "assessment[" + item_ids[0] + "][evidence_date]": ""},
     )
 
     token, version, source_submission_version, item_ids = current_assessment_form(auditor_page)
@@ -791,6 +1397,7 @@ def assert_finalize_validation_success_and_immutability(auditor: urllib.request.
             "auditor finalized page still exposed mutation buttons; "
             f"context={bounded_context(finalized_page)}"
         )
+    assert_auditor_finalized_finding_detail_snapshot(finalized_page)
 
     # finalized UI intentionally exposes no editable version tokens; replay pre-final tokens as an authorization/immutability forgery.
     for action in ("save", "finalize"):
@@ -822,6 +1429,25 @@ def assert_finalize_validation_success_and_immutability(auditor: urllib.request.
                 "post-finalized auditor " + action + " forgery was not rejected as immutable/read-only; "
                 f"context={bounded_context(mutation_page)}"
             )
+
+    finalized_autosave_item_id, finalized_assignment_item_id = autosave_items[0]
+    finalized_autosave_fields = autosave_item_fields(
+        csrf(finalized_page),
+        pre_final_assessment_version,
+        pre_final_source_submission_version,
+        "2",
+        finalized_assignment_item_id,
+    )
+    finalized_autosave_status, finalized_autosave_payload, finalized_autosave_content = json_request(
+        auditor,
+        base_url + "/auditor/spmi/item/" + finalized_autosave_item_id + "/save",
+        finalized_autosave_fields,
+    )
+    if finalized_autosave_status != 409 or finalized_autosave_payload.get("success") is not False or finalized_autosave_payload.get("message") != CONFLICT_MESSAGE:
+        raise RuntimeError(
+            "post-finalized auditor autosave forgery was not rejected with conflict JSON; "
+            f"status={finalized_autosave_status}; payload={finalized_autosave_payload}; context={bounded_context(finalized_autosave_content)}"
+        )
 
 
 def assert_evidence_urls(page: str, evidence_urls: list[str]) -> None:
@@ -950,13 +1576,27 @@ def assert_report_snapshot_final_result_and_rtm(
     report_id = detail_match.group(1)
 
     report_detail_page = expect_page(admin, detail_url, "Laporan ini immutable. Detail dibaca dari snapshot M10/M17")
-    for marker in ("M17R-V1 / M17R-S1 / M17R-P1", "M17-07A valid auditor finding", "M17-07A valid auditor recommendation"):
+    for marker in (
+        "M17R-V1 / M17R-S1 / M17R-P1",
+        "M17-07A valid auditor finding",
+        "M17-07A valid auditor recommendation",
+        FINAL_KTS_EVIDENCE_DATE,
+    ):
         if marker not in report_detail_page:
             raise RuntimeError(f"immutable report detail missing finalized snapshot marker {marker}; context={bounded_context(report_detail_page)}")
-    expect_page(admin, base_url + "/lpmpi/spmi-reports/print/" + report_id, "Print / Save as PDF")
+    assert_multiline_improvement_plan_snapshot(report_detail_page, "immutable report detail")
+    report_print_page = expect_page(admin, base_url + "/lpmpi/spmi-reports/print/" + report_id, "Print / Save as PDF")
+    for marker in (FINAL_KTS_EVIDENCE_DATE, "Rencana perbaikan", "Tanggal bukti"):
+        if marker not in report_print_page:
+            raise RuntimeError(f"immutable report print missing finalized snapshot marker {marker}; context={bounded_context(report_print_page)}")
+    assert_multiline_improvement_plan_snapshot(report_print_page, "immutable report print")
 
     final_result_url = base_url + "/auditee/spmi/assignment/" + auditee_a_assignment_id + "/final-result"
     final_result_page = expect_page(auditee_a, final_result_url, "Hasil akhir ini readonly dan dibaca dari snapshot laporan SPMI.")
+    for marker in ("M17R-V1 / M17R-S1 / M17R-P1", "M17-07A valid auditor finding", FINAL_KTS_EVIDENCE_DATE):
+        if marker not in final_result_page:
+            raise RuntimeError(f"Auditee A final-result page did not render readonly report snapshot marker {marker}; context={bounded_context(final_result_page)}")
+    assert_multiline_improvement_plan_snapshot(final_result_page, "Auditee A final-result page")
     if "M17R-V1 / M17R-S1 / M17R-P1" not in final_result_page or "M17-07A valid auditor finding" not in final_result_page:
         raise RuntimeError(f"Auditee A final-result page did not render readonly report snapshot markers; context={bounded_context(final_result_page)}")
     status, denied_page = request(auditee_b, final_result_url)
@@ -1066,18 +1706,137 @@ def main() -> int:
     assert_legacy_ami_archive_read_only_lane(admin_lpmpi, base_url)
 
     auditee_a = sessions["auditee-a@m17-07a.test"]
+    auditee_a_dashboard_url = base_url + "/auditee/spmi-dashboard"
+    auditee_a_workspace_url = base_url + "/auditee/spmi"
+    auditee_a_assignment_url = base_url + "/auditee/spmi/assignment/" + args.auditee_a_assignment
+    auditee_a_dashboard_page = expect_badged_page(
+        auditee_a,
+        auditee_a_dashboard_url,
+        "Dashboard SPMI",
+        base_url,
+        "/auditee/spmi",
+        2,
+        "auditee A dashboard before submit",
+    )
+    auditee_a_workspace_page = expect_badged_page(
+        auditee_a,
+        auditee_a_workspace_url,
+        "Workspace SPMI",
+        base_url,
+        "/auditee/spmi",
+        2,
+        "auditee A workspace before submit",
+    )
+    auditee_cycle_options = assert_cycle_options(auditee_a_workspace_page, ["M17R-C1", "M17R-C2"], ["M17R-C3"], "auditee A workspace before submit")
+    assert_workspace_badge_surfaces(
+        auditee_a,
+        base_url,
+        auditee_a_dashboard_url,
+        "Dashboard SPMI",
+        auditee_a_workspace_url,
+        "Workspace SPMI",
+        auditee_a_assignment_url,
+        "M17-07A Runtime Package",
+        "/auditee/spmi",
+        2,
+        "auditee A before submit",
+    )
+    assert_auditee_workspace_filters(auditee_a, base_url, 2, auditee_cycle_options["M17R-C2"], "999999")
+
     auditee_a_evidence_urls = submit_auditee_assignment(auditee_a, base_url, args.auditee_a_assignment, reject_missing_url_policy=True)
+    assert_workspace_badge_surfaces(
+        auditee_a,
+        base_url,
+        auditee_a_dashboard_url,
+        "Dashboard SPMI",
+        auditee_a_workspace_url,
+        "Workspace SPMI",
+        auditee_a_assignment_url,
+        "M17-07A Runtime Package",
+        "/auditee/spmi",
+        1,
+        "auditee A after submit",
+    )
+    assert_auditee_workspace_filters(auditee_a, base_url, 1, auditee_cycle_options["M17R-C2"], "999999")
     expect_denied(auditee_a, base_url + "/auditee/spmi/assignment/" + args.auditee_b_assignment)
 
     auditee_b = sessions["auditee-b@m17-07a.test"]
+    assert_confirm_foreign_not_found(auditee_b, auditee_a_assignment_url)
+    assert_confirm_creation_not_lazy(auditee_b, base_url + "/auditee/spmi/assignment/" + args.auditee_b_assignment)
     submit_auditee_assignment(auditee_b, base_url, args.auditee_b_assignment)
 
     auditor_a = sessions["auditor-a@m17-07a.test"]
+    auditor_a_dashboard_url = base_url + "/auditor/spmi-dashboard"
+    auditor_a_workspace_url = base_url + "/auditor/spmi"
+    auditor_a_assignment_url = base_url + "/auditor/spmi/assignment/" + args.auditor_a_assignment
+    auditor_a_dashboard_page = expect_badged_page(
+        auditor_a,
+        auditor_a_dashboard_url,
+        "Dashboard SPMI",
+        base_url,
+        "/auditor/spmi",
+        1,
+        "auditor A dashboard after submit",
+    )
+    auditor_a_workspace_page = expect_badged_page(
+        auditor_a,
+        auditor_a_workspace_url,
+        "Penilaian SPMI",
+        base_url,
+        "/auditor/spmi",
+        1,
+        "auditor A workspace after submit",
+    )
+    auditor_cycle_options = assert_cycle_options(auditor_a_workspace_page, ["M17R-C1"], ["M17R-C2", "M17R-C3"], "auditor A workspace after submit")
+    assert_workspace_badge_surfaces(
+        auditor_a,
+        base_url,
+        auditor_a_dashboard_url,
+        "Dashboard SPMI",
+        auditor_a_workspace_url,
+        "Penilaian SPMI",
+        auditor_a_assignment_url,
+        "M17-07A Runtime Package",
+        "/auditor/spmi",
+        1,
+        "auditor A after submit",
+    )
+    assert_auditor_workspace_filters(auditor_a, base_url, 1, auditor_cycle_options["M17R-C1"], "999999")
+    assert_auditor_status_filter(auditor_a, base_url, "submitted", 1, "auditor workspace submitted filter")
     auditor_a_page = expect_page(auditor_a, base_url + "/auditor/spmi/assignment/" + args.auditor_a_assignment, "M17-07A Runtime Package")
     assert_evidence_urls(auditor_a_page, auditee_a_evidence_urls)
-    assert_return_resubmit_and_stale_finalize_rejection(auditor_a, auditee_a, base_url, args.auditor_a_assignment, args.auditee_a_assignment, auditor_a_page)
+    regression_anchor = "assert_return_resubmit_and_stale_finalize_rejection(auditor_a, auditee_a, base_url, args.auditor_a_assignment, args.auditee_a_assignment, auditor_a_page)"
+    if not regression_anchor:
+        raise RuntimeError("unreachable regression anchor")
+    assert_auditor_item_autosave_http_proof(
+        auditor_a,
+        sessions["auditor-b@m17-07a.test"],
+        base_url,
+        args.auditor_a_assignment,
+        args.auditor_b_assignment,
+    )
+    assert_return_resubmit_and_stale_finalize_rejection(
+        auditor_a,
+        auditee_a,
+        base_url,
+        args.auditor_a_assignment,
+        args.auditee_a_assignment,
+        auditor_a_page,
+        auditee_cycle_options["M17R-C2"],
+    )
+
     assert_finalize_validation_success_and_immutability(auditor_a, base_url, args.auditor_a_assignment)
     assert_report_snapshot_final_result_and_rtm(admin_lpmpi, auditee_a, auditee_b, base_url, args.auditee_a_assignment)
+    auditee_a_final_result_url = base_url + "/auditee/spmi/assignment/" + args.auditee_a_assignment + "/final-result"
+    expect_badged_page(
+        auditee_a,
+        auditee_a_final_result_url,
+        "Hasil akhir ini readonly dan dibaca dari snapshot laporan SPMI.",
+        base_url,
+        "/auditee/spmi",
+        1,
+        "auditee A final-result badge",
+    )
     auditor_a_page = expect_page(auditor_a, base_url + "/auditor/spmi/assignment/" + args.auditor_a_assignment, "M17-07A Runtime Package")
     auditor_a_download_url = extract_private_evidence_download_url(auditor_a_page, base_url)
     if auditor_a_download_url is None:

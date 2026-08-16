@@ -9,7 +9,19 @@ class Spmi_auditor_workspace_service
     protected $model;
 
     public function __construct() { $this->ci = &get_instance(); $this->ci->load->model('Spmi_auditor_workspace_model'); $this->model = $this->ci->Spmi_auditor_workspace_model; }
-    public function assignments($user_id) { return $this->model->assignments($user_id); }
+    public function assignments($user_id, $filters) { return $this->model->assignments($user_id, $this->filters($filters)); }
+    public function cycle_options($user_id) { return $this->model->cycle_options($user_id); }
+    public function attention_count($user_id) { return $this->model->attention_count($user_id); }
+
+    protected function filters($filters)
+    {
+        $cycle_id = isset($filters['cycle_id']) && is_scalar($filters['cycle_id']) && ctype_digit((string) $filters['cycle_id']) ? (int) $filters['cycle_id'] : 0;
+        $status = isset($filters['status']) && is_scalar($filters['status']) ? trim((string) $filters['status']) : '';
+        return [
+            'cycle_id' => $cycle_id,
+            'status' => in_array($status, ['submitted', 'resubmitted', 'returned_for_revision'], TRUE) ? $status : '',
+        ];
+    }
 
     public function workspace($assignment_id, $user_id)
     {
@@ -25,11 +37,25 @@ class Spmi_auditor_workspace_service
         $assessment_items = $assessment ? $this->model->assessment_items($assessment->id, $user_id) : [];
         $by_item = [];
         foreach ($assessment_items as $item) $by_item[(string) $item->assignment_item_id] = $item;
-        foreach ($items as $item) { $item->rubrics = $this->model->rubrics($item->id, $user_id); $item->assessment = isset($by_item[(string) $item->id]) ? $by_item[(string) $item->id] : NULL; $item->evidence = $this->model->evidence($item->id, $user_id); if (!$item->assessment) $item->realization_snapshot = ''; }
+        foreach ($items as $item) { $item->rubrics = $this->model->rubrics($item->id, $user_id); $item->assessment = isset($by_item[(string) $item->id]) ? $by_item[(string) $item->id] : NULL; $item->evidence = $this->model->evidence($item->id, $user_id); $item->auditor_evidence = $item->assessment ? $this->model->auditor_evidence($item->assessment->id, $user_id) : []; if (!$item->assessment) $item->realization_snapshot = ''; }
         return ['assignment' => $assignment, 'assessment' => $assessment, 'items' => $items, 'revision_history' => $this->model->revision_history($assignment_id, $user_id)];
     }
 
     public function save($assignment_id, $user_id, $version, $source_submission_version, $values) { return $this->mutate($assignment_id, $user_id, $version, $source_submission_version, $values, FALSE); }
+    public function save_item($assessment_item_id, $user_id, $version, $source_submission_version, $value)
+    {
+        if (!$this->valid_int($version) || !$this->valid_int($source_submission_version)) return ['success' => FALSE, 'message' => self::CONFLICT, 'version' => (int) $version];
+        $this->ci->db->trans_begin();
+        $item = $this->model->assessment_item_autosave_for_update($assessment_item_id, $user_id);
+        if (!$item || $item->state !== 'configured' || !in_array($item->submission_status, ['submitted', 'resubmitted'], TRUE) || $item->assessment_status !== 'draft' || (int) $item->version !== (int) $version || (int) $source_submission_version !== (int) $item->submission_version || (int) $item->source_submission_version !== (int) $item->submission_version) return $this->versioned($this->rollback(self::CONFLICT), $version);
+        $validated = $this->validate_item_value($value);
+        if (!$validated['success']) return $this->versioned($this->rollback($validated['message']), $version);
+        if (!$this->model->update_item($item->id, $validated['data'])) return $this->versioned($this->rollback('Penilaian SPMI gagal disimpan.'), $version);
+        if (!$this->model->update_assessment($item->assessment_id, $version) || $this->ci->db->affected_rows() !== 1) return $this->versioned($this->rollback(self::CONFLICT), $version);
+        $result = $this->finish('Draft item penilaian SPMI berhasil disimpan.');
+        if (!$result['success']) return $this->versioned($result, $version);
+        return ['success' => TRUE, 'message' => $result['message'], 'version' => (int) $version + 1];
+    }
     public function finalize($assignment_id, $user_id, $version, $source_submission_version, $values) { return $this->mutate($assignment_id, $user_id, $version, $source_submission_version, $values, TRUE); }
 
     protected function create($assignment_id, $user_id)
@@ -72,10 +98,14 @@ class Spmi_auditor_workspace_service
             else $finding_type = $raw_finding_type;
             $finding = $this->text($value, 'finding');
             $recommendation = $this->text($value, 'recommendation');
+            $improvement_plan = $this->text($value, 'improvement_plan');
+            $evidence_date = $this->date($value, 'evidence_date');
+            if ($evidence_date === FALSE) return $this->rollback('Tanggal bukti tidak valid.');
             if ($finalize && $score === NULL) return $this->rollback('Semua item wajib diberi skor 1 sampai 4 sebelum finalisasi.');
             if ($finalize && in_array($finding_type, ['ob', 'kts'], TRUE) && $finding === NULL) return $this->rollback('Uraian temuan wajib diisi untuk OB atau KTS sebelum finalisasi.');
             if ($finalize && $finding_type === 'kts' && $recommendation === NULL) return $this->rollback('Rekomendasi wajib diisi untuk KTS sebelum finalisasi.');
-            if (!$this->model->update_item($item->id, ['score' => $score, 'finding_type' => $finding_type, 'finding' => $finding, 'recommendation' => $recommendation])) return $this->rollback('Penilaian SPMI gagal disimpan.');
+            if ($finalize && $finding_type === 'kts' && $improvement_plan === NULL) return $this->rollback('Rencana perbaikan wajib diisi untuk KTS sebelum finalisasi.');
+            if (!$this->model->update_item($item->id, ['score' => $score, 'finding_type' => $finding_type, 'finding' => $finding, 'recommendation' => $recommendation, 'improvement_plan' => $improvement_plan, 'evidence_date' => $evidence_date])) return $this->rollback('Penilaian SPMI gagal disimpan.');
         }
         if (!$this->model->update_assessment($assessment->id, $version, $finalize ? 'finalized' : 'draft') || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT);
         return $this->finish($finalize ? 'Penilaian SPMI berhasil difinalisasi.' : 'Draft penilaian SPMI berhasil disimpan.');
@@ -99,8 +129,64 @@ class Spmi_auditor_workspace_service
     }
 
     public function download($evidence_id, $user_id) { $evidence = $this->model->evidence_for_read($evidence_id, $user_id); if (!$evidence) return NULL; $path = private_storage_path('audit_evidence', $evidence->stored_name); return $path && is_file($path) ? ['path' => $path, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name] : NULL; }
+    public function upload_auditor_evidence($assessment_item_id, $user_id, $version, $source_submission_version, $file)
+    {
+        $this->ci->db->trans_begin();
+        $item = $this->model->assessment_item_for_update($assessment_item_id, $user_id, $version);
+        if (!$this->valid_int($source_submission_version) || !$item || $item->state !== 'configured' || $item->assessment_status !== 'draft' || !in_array($item->submission_status, ['submitted', 'resubmitted'], TRUE) || (int) $source_submission_version !== (int) $item->submission_version || (int) $item->source_submission_version !== (int) $item->submission_version) return $this->rollback(self::CONFLICT);
+        if ($this->model->lock_auditor_evidence_count($item->id) >= 5) return $this->rollback('Maksimal 5 bukti per item.');
+        $validated = $this->validate_file($file);
+        if (!$validated['success']) return $this->rollback($validated['message']);
+        $dir = private_storage_dir('audit_evidence');
+        if (!is_dir($dir) && !mkdir($dir, 0700, TRUE) && !is_dir($dir)) return $this->rollback('Bukti gagal disimpan.');
+        $paths = [];
+        try { $name = bin2hex(random_bytes(24)) . '.' . $validated['extension']; } catch (Exception $e) { return $this->rollback('Bukti gagal disimpan.'); }
+        $path = $dir . $name;
+        $paths[] = $path;
+        if (!move_uploaded_file($file['tmp_name'], $path)) return $this->rollback('Bukti gagal disimpan.');
+        $hash = hash_file('sha256', $path);
+        if ($hash === FALSE || !$this->model->add_auditor_evidence(['assessment_item_id' => $item->id, 'stored_name' => $name, 'original_name' => basename($file['name']), 'mime_type' => $validated['mime'], 'size_bytes' => (int) $file['size'], 'sha256' => $hash]) || !$this->model->update_assessment($item->assessment_id, $version) || $this->ci->db->affected_rows() !== 1) { $this->cleanup_paths($paths); return $this->rollback(self::CONFLICT); }
+        $result = $this->finish('Bukti auditor berhasil ditambahkan.');
+        if (!$result['success']) $this->cleanup_paths($paths);
+        return $result;
+    }
+    public function delete_auditor_evidence($evidence_id, $user_id, $version, $source_submission_version)
+    {
+        $this->ci->db->trans_begin();
+        $evidence = $this->model->auditor_evidence_for_update($evidence_id, $user_id, $version);
+        if (!$this->valid_int($source_submission_version) || !$evidence || $evidence->state !== 'configured' || $evidence->assessment_status !== 'draft' || !in_array($evidence->submission_status, ['submitted', 'resubmitted'], TRUE) || (int) $source_submission_version !== (int) $evidence->submission_version || (int) $evidence->source_submission_version !== (int) $evidence->submission_version) return $this->rollback(self::CONFLICT);
+        if (!$this->model->delete_auditor_evidence($evidence_id) || !$this->model->update_assessment($evidence->assessment_id, $version) || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT);
+        $result = $this->finish('Bukti auditor berhasil dihapus.');
+        $path = private_storage_path('audit_evidence', $evidence->stored_name);
+        if ($result['success'] && $path && is_file($path)) unlink($path);
+        return $result;
+    }
+    public function download_auditor_evidence($evidence_id, $user_id) { $evidence = $this->model->auditor_evidence_for_read($evidence_id, $user_id); if (!$evidence) return NULL; $path = private_storage_path('audit_evidence', $evidence->stored_name); return $path && is_file($path) ? ['path' => $path, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name] : NULL; }
+    public function assignment_id_for_assessment_item($assessment_item_id, $user_id) { $row = $this->model->assignment_id_for_assessment_item($assessment_item_id, $user_id); return $row ? (int) $row->id : 0; }
+    public function assignment_id_for_auditor_evidence($evidence_id, $user_id) { $row = $this->model->assignment_id_for_auditor_evidence($evidence_id, $user_id); return $row ? (int) $row->id : 0; }
+    protected function validate_file($file) { if (!is_array($file) || !isset($file['error'], $file['tmp_name'], $file['size'], $file['name']) || $file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name']) || (int) $file['size'] > 5 * 1024 * 1024) return ['success' => FALSE, 'message' => 'Bukti harus berupa PDF, JPEG, atau PNG maksimal 5 MiB.']; $finfo = finfo_open(FILEINFO_MIME_TYPE); $mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : FALSE; if ($finfo) finfo_close($finfo); $image = @getimagesize($file['tmp_name']); $allowed = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png']; if (!isset($allowed[$mime]) || (($mime === 'image/jpeg' || $mime === 'image/png') && (!$image || $image['mime'] !== $mime))) return ['success' => FALSE, 'message' => 'Bukti harus berupa PDF, JPEG, atau PNG maksimal 5 MiB.']; return ['success' => TRUE, 'mime' => $mime, 'extension' => $allowed[$mime]]; }
+    protected function cleanup_paths($paths) { foreach ($paths as $path) if (is_file($path)) unlink($path); }
+    protected function validate_item_value($value)
+    {
+        $fields = ['score', 'finding_type', 'finding', 'recommendation', 'improvement_plan', 'evidence_date'];
+        if (!is_array($value) || count(array_diff(array_keys($value), $fields)) || count(array_diff($fields, array_keys($value)))) return ['success' => FALSE, 'message' => 'Data penilaian tidak valid.'];
+        foreach ($fields as $field) if (!is_scalar($value[$field]) && $value[$field] !== NULL) return ['success' => FALSE, 'message' => 'Data penilaian tidak valid.'];
+        $raw_score = (string) $value['score'];
+        if ($raw_score === '') $score = NULL;
+        elseif (!in_array($raw_score, ['1', '2', '3', '4'], TRUE)) return ['success' => FALSE, 'message' => 'Skor wajib kosong atau bernilai 1 sampai 4.'];
+        else $score = (int) $raw_score;
+        $raw_finding_type = (string) $value['finding_type'];
+        if ($raw_finding_type === '') $finding_type = NULL;
+        elseif (!in_array($raw_finding_type, ['ob', 'kts'], TRUE)) return ['success' => FALSE, 'message' => 'Jenis temuan wajib kosong, OB, atau KTS.'];
+        else $finding_type = $raw_finding_type;
+        $evidence_date = $this->date($value, 'evidence_date');
+        if ($evidence_date === FALSE) return ['success' => FALSE, 'message' => 'Tanggal bukti tidak valid.'];
+        return ['success' => TRUE, 'data' => ['score' => $score, 'finding_type' => $finding_type, 'finding' => $this->text($value, 'finding'), 'recommendation' => $this->text($value, 'recommendation'), 'improvement_plan' => $this->text($value, 'improvement_plan'), 'evidence_date' => $evidence_date]];
+    }
     protected function text($value, $key) { return trim((string) (isset($value[$key]) ? $value[$key] : '')) ?: NULL; }
+    protected function date($value, $key) { if (!isset($value[$key]) || $value[$key] === '') return NULL; if (!is_string($value[$key])) return FALSE; $date = trim($value[$key]); return $date === '' || (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) && date('Y-m-d', strtotime($date)) === $date) ? $date : FALSE; }
     protected function valid_int($value) { return (is_int($value) && $value >= 0) || (is_string($value) && ctype_digit($value)); }
     protected function rollback($message) { $this->ci->db->trans_rollback(); return ['success' => FALSE, 'message' => $message]; }
     protected function finish($message) { $this->ci->db->trans_complete(); return ['success' => $this->ci->db->trans_status(), 'message' => $message]; }
+    protected function versioned($result, $version) { $result['version'] = (int) $version; return $result; }
 }

@@ -69,11 +69,14 @@ $submissions = m17_table_block($schema, 'spmi_auditee_submissions');
 $assessments = m17_table_block($schema, 'spmi_auditor_assessments');
 $assessment_items = m17_table_block($schema, 'spmi_auditor_assessment_items');
 $report_items = m17_table_block($schema, 'spmi_report_items');
+$auditor_evidence = m17_table_block($schema, 'spmi_auditor_assessment_evidence');
 
 // When: reading only static schema artifacts, without executing migrations or application behavior.
 $combined_schema = $schema . "\n" . $migration_contract;
 $m17_01a_migration = m17_optional_source('migrations/027_add_revision_lifecycle_schema_correction.sql');
 $m17_07b_migration = m17_optional_source('migrations/028_add_versioned_auditor_assessments.sql');
+$m17_07b_evidence_migration = m17_optional_source('migrations/029_add_spmi_auditor_assessment_evidence.sql');
+$m17_07c_migration = m17_optional_source('migrations/030_add_spmi_auditor_assessment_finding_details.sql');
 
 // Then: M17-01 provides dormant, backward-compatible schema for M17-02 through M17-06.
 m17_check(
@@ -154,6 +157,17 @@ foreach (['ALTER TABLE `pertanyaan`', 'ALTER TABLE `tugas_audit`', 'ALTER TABLE 
     m17_check(strpos($m17_01a_migration, $legacy_mutation) === FALSE, 'M17-01A migration 027 must not mutate legacy table: ' . $legacy_mutation);
 }
 
-m17_check(strpos($combined_schema, 'current parity migration 001-027') !== FALSE, 'M17-01A schema parity marker missing: current parity migration 001-027');
+m17_check(strpos($combined_schema, 'current parity migration 001-030') !== FALSE, 'M17-07C schema parity marker missing: current parity migration 001-030');
+
+foreach (['assessment_item_id', 'stored_name', 'original_name', 'mime_type', 'size_bytes', 'sha256', 'created_at', 'uq_spmi_auditor_assessment_evidence_stored_name', 'idx_spmi_auditor_assessment_evidence_item', 'fk_spmi_auditor_assessment_evidence_item'] as $literal) m17_check(strpos($auditor_evidence, $literal) !== FALSE, 'M17-07B auditor evidence schema field missing: ' . $literal);
+m17_check(strpos($auditor_evidence, 'ON DELETE RESTRICT') !== FALSE, 'M17-07B auditor evidence FK must restrict deletion.');
+m17_check(m17_has_column($report_items, 'auditor_evidence_snapshot', 'TEXT NULL'), 'M17-07B report item auditor evidence snapshot must be nullable TEXT.');
+foreach (['spmi_auditor_assessment_evidence', 'INFORMATION_SCHEMA.COLUMNS', 'auditor_evidence_snapshot'] as $literal) m17_check(strpos($m17_07b_evidence_migration, $literal) !== FALSE, 'M17-07B additive migration contract missing: ' . $literal);
+
+foreach ([['improvement_plan', 'TEXT NULL'], ['evidence_date', 'DATE NULL']] as $field) m17_check(m17_has_column($assessment_items, $field[0], $field[1]), 'M17-07C assessment finding detail missing: ' . $field[0]);
+foreach ([['improvement_plan_snapshot', 'TEXT NULL'], ['evidence_date_snapshot', 'DATE NULL']] as $field) m17_check(m17_has_column($report_items, $field[0], $field[1]), 'M17-07C report finding snapshot missing: ' . $field[0]);
+m17_check(substr_count($m17_07c_migration, 'INFORMATION_SCHEMA.COLUMNS') === 4, 'M17-07C migration 030 must use four additive column guards.');
+foreach (['spmi_auditor_assessment_items', 'improvement_plan', 'evidence_date', 'spmi_report_items', 'improvement_plan_snapshot', 'evidence_date_snapshot'] as $literal) m17_check(strpos($m17_07c_migration, $literal) !== FALSE, 'M17-07C migration detail missing: ' . $literal);
+foreach (['INSERT', 'UPDATE', 'DELETE'] as $verb) m17_has_no_statement($m17_07c_migration, $verb, 'M17-07C migration 030 must not perform DML: ' . $verb);
 
 fwrite(STDOUT, "M17 schema regression checks passed.\n");
