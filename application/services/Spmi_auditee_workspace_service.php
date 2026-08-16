@@ -15,9 +15,30 @@ class Spmi_auditee_workspace_service
         $this->model = $this->ci->Spmi_auditee_workspace_model;
     }
 
-    public function assignments($user_id) { return $this->model->assignments($user_id); }
-
+    public function assignments($user_id, $filters) { return $this->model->assignments($user_id, $this->filters($filters)); }
+    public function cycle_options($user_id) { return $this->model->cycle_options($user_id); }
+    public function attention_count($user_id) { return $this->model->attention_count($user_id); }
     public function final_result($assignment_id, $user_id) { return $this->model->final_result_for_auditee($assignment_id, $user_id); }
+
+    public function confirm($assignment_id, $user_id)
+    {
+        $assignment = $this->model->confirmation_assignment($assignment_id, $user_id);
+        if (!$assignment) return ['status' => 'not_found'];
+        if ($assignment->state !== 'configured' || !$assignment->submission_id || !in_array($assignment->submission_status, ['draft', 'returned_for_revision'], TRUE)) return ['status' => 'forbidden'];
+        $items = $this->model->items($assignment->submission_id);
+        foreach ($items as $item) $item->evidence = $this->model->evidence($item->id);
+        return ['status' => 'ok', 'data' => ['assignment' => $assignment, 'items' => $items, 'revision_history' => $this->model->revision_history($assignment->id, $user_id)]];
+    }
+
+    protected function filters($filters)
+    {
+        $cycle_id = isset($filters['cycle_id']) && is_scalar($filters['cycle_id']) && ctype_digit((string) $filters['cycle_id']) ? (int) $filters['cycle_id'] : 0;
+        $status = isset($filters['status']) && is_scalar($filters['status']) ? trim((string) $filters['status']) : '';
+        return [
+            'cycle_id' => $cycle_id,
+            'status' => in_array($status, ['draft', 'submitted', 'returned_for_revision', 'resubmitted'], TRUE) ? $status : '',
+        ];
+    }
 
     public function workspace($assignment_id, $user_id)
     {
