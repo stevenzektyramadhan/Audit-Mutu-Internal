@@ -4,6 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Spmi_auditee_workspace extends CI_Controller
 {
     protected $service;
+    protected $filter_statuses = ['draft', 'submitted', 'returned_for_revision', 'resubmitted'];
 
     public function __construct()
     {
@@ -17,22 +18,40 @@ class Spmi_auditee_workspace extends CI_Controller
 
     public function index()
     {
-        $this->load->view('spmi_auditee_workspace/index', ['title' => 'Workspace SPMI', 'page_title' => 'Workspace SPMI', 'page_subtitle' => 'Beranda / Workspace SPMI', 'active_menu' => 'spmi_workspace', 'assignments' => $this->service->assignments($this->user_id())]);
+        $user_id = $this->user_id();
+        $filters = $this->filters($this->filter_statuses);
+        $attention_count = $this->service->attention_count($user_id);
+        $this->load->view('spmi_auditee_workspace/index', [
+            'title' => 'Workspace SPMI',
+            'page_title' => 'Workspace SPMI',
+            'page_subtitle' => 'Beranda / Workspace SPMI',
+            'active_menu' => 'spmi_workspace',
+            'assignments' => $this->service->assignments($user_id, $filters),
+            'cycle_options' => $this->service->cycle_options($user_id),
+            'filters' => $filters,
+            'menu_badges' => ['spmi_workspace' => $attention_count, 'spmi_auditee_dashboard' => $attention_count],
+        ]);
     }
 
     public function assignment($id)
     {
-        $workspace = $this->service->workspace((int) $id, $this->user_id());
+        $user_id = $this->user_id();
+        $workspace = $this->service->workspace((int) $id, $user_id);
         if (!$workspace) { show_error('Penugasan tidak ditemukan.', 404, 'Not Found'); return; }
+        $attention_count = $this->service->attention_count($user_id);
         $workspace['title'] = 'Workspace SPMI'; $workspace['page_title'] = 'Workspace SPMI'; $workspace['page_subtitle'] = 'Beranda / Workspace SPMI / Penugasan'; $workspace['active_menu'] = 'spmi_workspace';
+        $workspace['menu_badges'] = ['spmi_workspace' => $attention_count, 'spmi_auditee_dashboard' => $attention_count];
         $this->load->view('spmi_auditee_workspace/assignment', $workspace);
     }
 
     public function final_result($id)
     {
-        $result = $this->service->final_result((int) $id, $this->user_id());
+        $user_id = $this->user_id();
+        $result = $this->service->final_result((int) $id, $user_id);
         if (!$result) { show_error('Laporan SPMI tidak ditemukan.', 404, 'Not Found'); return; }
+        $attention_count = $this->service->attention_count($user_id);
         $result['title'] = 'Hasil Akhir SPMI'; $result['page_title'] = 'Hasil Akhir SPMI'; $result['page_subtitle'] = 'Beranda / Workspace SPMI / Hasil Akhir'; $result['active_menu'] = 'spmi_workspace';
+        $result['menu_badges'] = ['spmi_workspace' => $attention_count, 'spmi_auditee_dashboard' => $attention_count];
         $this->load->view('spmi_auditee_workspace/final_result', $result);
     }
 
@@ -68,5 +87,13 @@ class Spmi_auditee_workspace extends CI_Controller
     }
 
     protected function user_id() { return (int) $this->session->userdata('user_id'); }
+    protected function filters($allowed_statuses)
+    {
+        $cycle_id = $this->input->get('cycle_id', TRUE);
+        $status = $this->input->get('status', TRUE);
+        $cycle_id = is_scalar($cycle_id) && ctype_digit((string) $cycle_id) ? (int) $cycle_id : 0;
+        $status = is_scalar($status) ? trim((string) $status) : '';
+        return ['cycle_id' => $cycle_id, 'status' => in_array($status, $allowed_statuses, TRUE) ? $status : ''];
+    }
     protected function require_post() { if ($this->input->method(TRUE) !== 'POST') { show_error('Method tidak diizinkan.', 405, 'Method Not Allowed'); exit; } }
 }
