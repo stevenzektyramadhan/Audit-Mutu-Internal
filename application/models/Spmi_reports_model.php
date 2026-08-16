@@ -52,6 +52,10 @@ class Spmi_reports_model extends CI_Model
     {
         return $this->db->query('SELECT ai.*, i.display_order, i.question_code, i.question_text, i.indicator_code, i.indicator_title, si.realization AS realization_snapshot, si.evidence_url AS evidence_url_snapshot, e.original_name AS evidence_file_original_name_snapshot, e.mime_type AS evidence_file_mime_type_snapshot, e.size_bytes AS evidence_file_size_bytes_snapshot, e.sha256 AS evidence_file_sha256_snapshot FROM spmi_auditor_assessment_items ai JOIN spmi_audit_assignment_items i ON i.id = ai.assignment_item_id JOIN spmi_auditee_submission_items si ON si.assignment_item_id = ai.assignment_item_id AND si.submission_id = ? LEFT JOIN spmi_auditee_evidence e ON e.id = (SELECT MIN(e2.id) FROM spmi_auditee_evidence e2 WHERE e2.submission_item_id = si.id) WHERE ai.assessment_id = ? ORDER BY i.display_order ASC, e.id ASC FOR UPDATE', [(int) $submission_id, (int) $assessment_id])->result();
     }
+    public function auditor_evidence_for_report($assessment_item_id)
+    {
+        return $this->db->query('SELECT original_name, mime_type, size_bytes, sha256 FROM spmi_auditor_assessment_evidence WHERE assessment_item_id = ? ORDER BY id ASC FOR UPDATE', [(int) $assessment_item_id])->result();
+    }
 
     public function assignment_items_count($assignment_id)
     {
