@@ -159,11 +159,11 @@ File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara di
 
 #### Database baru
 
-Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `028` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
+Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `030` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
 
 #### Database lama, legacy, belum punya table organisasi, capability, atau SPMI
 
-Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan hanya migration `012` sampai `028` secara numerik, satu file tiap langkah, dalam urutan naik. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
+Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan hanya migration `012` sampai `030` secara numerik, satu file tiap langkah, dalam urutan naik. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -182,12 +182,14 @@ Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage 
 15. `026_add_assignment_item_evidence_policy.sql`
 16. `027_add_revision_lifecycle_schema_correction.sql`
 17. `028_add_versioned_auditor_assessments.sql`
+18. `029_add_spmi_auditor_assessment_evidence.sql`
+19. `030_add_spmi_auditor_assessment_finding_details.sql`
 
 Jalankan satu file tiap langkah, satu per satu, memakai klien MySQL yang dipilih tim ke database yang memang dituju. Jangan membatch file. Jangan menambahkan kredensial.
 
 Jangan pakai `--force`. Jangan matikan foreign key checks. Hentikan di error pertama. Jangan jalankan blok `DOWN` historis.
 
-Catatan penting, migration `014` berhenti bila lebih dari satu active version ditemukan. Migration `028` membuat index composite `(assignment_id, source_submission_version)` dulu, baru menghapus unique index lama, supaya aman untuk FK.
+Catatan penting, migration `014` berhenti bila lebih dari satu active version ditemukan. Migration `028` membuat index composite `(assignment_id, source_submission_version)` dulu, baru menghapus unique index lama, supaya aman untuk FK. Migration `029` menambahkan bukti assessment auditor dan snapshot metadata laporan secara aditif. Migration `030` menambahkan detail temuan dan snapshot laporan secara aditif.
 
 CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw SQL yang dijalankan manual oleh tim deployment setelah backup database. Untuk database yang sudah masuk jalur legacy di atas, ikuti nomor migration yang sudah ditetapkan, satu file tiap langkah, tanpa melewati urutan atau menjalankan blok `DOWN` historis otomatis. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup.
 
