@@ -10,6 +10,7 @@
 -- current parity migration 001-025
 -- current parity migration 001-027
 -- current parity migration 001-028
+-- current parity migration 001-030
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -487,12 +488,28 @@ CREATE TABLE IF NOT EXISTS `spmi_auditor_assessment_items` (
     `finding` TEXT NULL,
     `finding_type` ENUM('ob','kts') NULL,
     `recommendation` TEXT NULL,
+    `improvement_plan` TEXT NULL,
+    `evidence_date` DATE NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_auditor_assessment_items_item` (`assessment_id`, `assignment_item_id`),
     KEY `idx_spmi_auditor_assessment_items_item` (`assignment_item_id`),
     CONSTRAINT `fk_spmi_auditor_assessment_items_assessment` FOREIGN KEY (`assessment_id`) REFERENCES `spmi_auditor_assessments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_auditor_assessment_items_assignment_item` FOREIGN KEY (`assignment_item_id`) REFERENCES `spmi_audit_assignment_items` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `spmi_auditor_assessment_evidence` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `assessment_item_id` INT NOT NULL,
+    `stored_name` VARCHAR(255) NOT NULL,
+    `original_name` VARCHAR(255) NOT NULL,
+    `mime_type` VARCHAR(100) NOT NULL,
+    `size_bytes` INT UNSIGNED NOT NULL,
+    `sha256` CHAR(64) NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_spmi_auditor_assessment_evidence_stored_name` (`stored_name`),
+    KEY `idx_spmi_auditor_assessment_evidence_item` (`assessment_item_id`),
+    CONSTRAINT `fk_spmi_auditor_assessment_evidence_item` FOREIGN KEY (`assessment_item_id`) REFERENCES `spmi_auditor_assessment_items` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `spmi_reports` (
@@ -534,11 +551,14 @@ CREATE TABLE IF NOT EXISTS `spmi_report_items` (
     `evidence_file_mime_type_snapshot` VARCHAR(100) NULL,
     `evidence_file_size_bytes_snapshot` INT UNSIGNED NULL,
     `evidence_file_sha256_snapshot` CHAR(64) NULL,
+    `auditor_evidence_snapshot` TEXT NULL,
     `score` TINYINT UNSIGNED NOT NULL,
     `descriptor_snapshot` TEXT NOT NULL,
     `finding_snapshot` TEXT NULL,
     `finding_type_snapshot` ENUM('ob','kts') NULL,
     `recommendation_snapshot` TEXT NULL,
+    `improvement_plan_snapshot` TEXT NULL,
+    `evidence_date_snapshot` DATE NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_report_items_order` (`report_id`, `display_order`),
     CONSTRAINT `fk_spmi_report_items_report` FOREIGN KEY (`report_id`) REFERENCES `spmi_reports` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
