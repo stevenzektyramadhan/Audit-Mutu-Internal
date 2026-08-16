@@ -62,21 +62,36 @@ WHERE question.`package_id` = @package_id;
 INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `start_date`, `end_date`, `state`, `created_by`) VALUES
 ('M17R-C1', 'M17-07A Runtime Cycle', 'Configured disposable lifecycle fixture', '2026-01-01', '2026-12-31', 'configured', @admin_id);
 SET @cycle_id := LAST_INSERT_ID();
+INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `start_date`, `end_date`, `state`, `created_by`) VALUES
+('M17R-C2', 'M17-07A Runtime Cycle Owned Draft', 'Second configured cycle owned by Auditor A/Auditee A for M17-07E filter coverage', '2026-02-01', '2026-12-31', 'configured', @admin_id);
+SET @cycle_owned_draft_id := LAST_INSERT_ID();
+INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `start_date`, `end_date`, `state`, `created_by`) VALUES
+('M17R-C3', 'M17-07A Runtime Cycle Foreign Draft', 'Configured foreign cycle owned by Auditor B/Auditee B for M17-07E leak checks', '2026-03-01', '2026-12-31', 'configured', @admin_id);
+SET @cycle_foreign_draft_id := LAST_INSERT_ID();
 INSERT INTO `spmi_audit_assignments` (`cycle_id`, `source_package_id`, `auditor_id`, `auditee_id`, `created_by`, `source_version_id`, `source_version_code`, `source_version_title`, `source_standard_id`, `source_standard_code`, `source_standard_title`, `source_package_code`, `source_package_title`, `source_package_description`, `auditor_name`, `auditor_email`, `auditee_name`, `auditee_email`) VALUES
 (@cycle_id, @package_id, @auditor_a_id, @auditee_a_id, @admin_id, @version_id, 'M17R-V1', 'M17-07A Runtime Version', @standard_id, 'M17R-S1', 'M17-07A Runtime Standard', 'M17R-P1', 'M17-07A Runtime Package', 'All evidence-policy fixtures', 'M17-07A Auditor A', 'auditor-a@m17-07a.test', 'M17-07A Auditee A', 'auditee-a@m17-07a.test'),
-(@cycle_id, @package_id, @auditor_b_id, @auditee_b_id, @admin_id, @version_id, 'M17R-V1', 'M17-07A Runtime Version', @standard_id, 'M17R-S1', 'M17-07A Runtime Standard', 'M17R-P1', 'M17-07A Runtime Package', 'All evidence-policy fixtures', 'M17-07A Auditor B', 'auditor-b@m17-07a.test', 'M17-07A Auditee B', 'auditee-b@m17-07a.test');
-SET @assignment_a_id := (SELECT `id` FROM `spmi_audit_assignments` WHERE `auditor_id` = @auditor_a_id AND `auditee_id` = @auditee_a_id);
-SET @assignment_b_id := (SELECT `id` FROM `spmi_audit_assignments` WHERE `auditor_id` = @auditor_b_id AND `auditee_id` = @auditee_b_id);
+(@cycle_id, @package_id, @auditor_b_id, @auditee_b_id, @admin_id, @version_id, 'M17R-V1', 'M17-07A Runtime Version', @standard_id, 'M17R-S1', 'M17-07A Runtime Standard', 'M17R-P1', 'M17-07A Runtime Package', 'All evidence-policy fixtures', 'M17-07A Auditor B', 'auditor-b@m17-07a.test', 'M17-07A Auditee B', 'auditee-b@m17-07a.test'),
+(@cycle_owned_draft_id, @package_id, @auditor_a_id, @auditee_a_id, @admin_id, @version_id, 'M17R-V1', 'M17-07A Runtime Version', @standard_id, 'M17R-S1', 'M17-07A Runtime Standard', 'M17R-P1', 'M17-07A Runtime Package', 'All evidence-policy fixtures', 'M17-07A Auditor A', 'auditor-a@m17-07a.test', 'M17-07A Auditee A', 'auditee-a@m17-07a.test'),
+(@cycle_foreign_draft_id, @package_id, @auditor_b_id, @auditee_b_id, @admin_id, @version_id, 'M17R-V1', 'M17-07A Runtime Version', @standard_id, 'M17R-S1', 'M17-07A Runtime Standard', 'M17R-P1', 'M17-07A Runtime Package', 'All evidence-policy fixtures', 'M17-07A Auditor B', 'auditor-b@m17-07a.test', 'M17-07A Auditee B', 'auditee-b@m17-07a.test');
+SET @assignment_a_id := (SELECT `id` FROM `spmi_audit_assignments` WHERE `cycle_id` = @cycle_id AND `auditor_id` = @auditor_a_id AND `auditee_id` = @auditee_a_id);
+SET @assignment_b_id := (SELECT `id` FROM `spmi_audit_assignments` WHERE `cycle_id` = @cycle_id AND `auditor_id` = @auditor_b_id AND `auditee_id` = @auditee_b_id);
+SET @assignment_a_cycle_2_id := (SELECT `id` FROM `spmi_audit_assignments` WHERE `cycle_id` = @cycle_owned_draft_id AND `auditor_id` = @auditor_a_id AND `auditee_id` = @auditee_a_id);
+SET @assignment_b_cycle_3_id := (SELECT `id` FROM `spmi_audit_assignments` WHERE `cycle_id` = @cycle_foreign_draft_id AND `auditor_id` = @auditor_b_id AND `auditee_id` = @auditee_b_id);
 INSERT INTO `spmi_audit_assignment_items` (`assignment_id`, `source_question_id`, `source_indicator_id`, `display_order`, `question_code`, `question_text`, `evidence_instruction`, `evidence_policy`, `indicator_code`, `indicator_title`)
 SELECT assignments.assignment_id, question.`id`, @indicator_id, question.`display_order`, question.`question_code`, question.`question_text`, question.`evidence_instruction`, question.`evidence_policy`, 'M17R-I1', 'M17-07A Runtime Indicator'
-FROM (SELECT @assignment_a_id AS assignment_id UNION ALL SELECT @assignment_b_id) AS assignments
+FROM (
+    SELECT @assignment_a_id AS assignment_id
+    UNION ALL SELECT @assignment_b_id
+    UNION ALL SELECT @assignment_a_cycle_2_id
+    UNION ALL SELECT @assignment_b_cycle_3_id
+) AS assignments
 CROSS JOIN `spmi_instrument_questions` AS question
 WHERE question.`package_id` = @package_id;
 INSERT INTO `spmi_audit_assignment_item_rubrics` (`assignment_item_id`, `score`, `descriptor`)
 SELECT assignment_item.`id`, rubric.`score`, rubric.`descriptor`
 FROM `spmi_audit_assignment_items` AS assignment_item
 JOIN `spmi_instrument_rubrics` AS rubric ON rubric.`question_id` = assignment_item.`source_question_id`
-WHERE assignment_item.`assignment_id` IN (@assignment_a_id, @assignment_b_id);
+WHERE assignment_item.`assignment_id` IN (@assignment_a_id, @assignment_b_id, @assignment_a_cycle_2_id, @assignment_b_cycle_3_id);
 
 INSERT INTO `legacy_ami_archive_runs` (`id`, `archive_code`, `source_label`, `status`, `legacy_task_count`, `legacy_answer_count`, `archived_task_count`, `archived_answer_count`, `issue_count`, `notes`, `created_by_snapshot`, `created_at`, `updated_at`) VALUES
 (17071, 'M17-07A-ARCHIVE-RUN-1', 'M17-07A test-only legacy archive fixture', 'reconciled', 1, 1, 1, 1, 1, 'M17-07A read-only archive fixture row for legacy GET smoke.', 'admin-lpmpi@m17-07a.test', '2026-08-09 00:00:00', NULL);

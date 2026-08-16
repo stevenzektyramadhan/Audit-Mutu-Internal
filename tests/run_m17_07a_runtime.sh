@@ -109,8 +109,8 @@ verify_fixture() {
     compose exec -T mysql mysql -N -uami_runtime -pami_runtime_password ami -e "
         SELECT COUNT(*) = 6 FROM users WHERE email LIKE '%@m17-07a.test';
         SELECT COUNT(*) = 5 FROM spmi_instrument_questions WHERE package_id = (SELECT id FROM spmi_instrument_packages WHERE package_code = 'M17R-P1');
-        SELECT COUNT(*) = 40 FROM spmi_audit_assignment_item_rubrics;
-        SELECT COUNT(*) = 2 FROM spmi_audit_assignments;
+        SELECT COUNT(*) = 80 FROM spmi_audit_assignment_item_rubrics;
+        SELECT COUNT(*) = 4 FROM spmi_audit_assignments;
         SELECT COUNT(*) = 0 FROM spmi_auditee_submissions;
         SELECT COUNT(*) = 0 FROM spmi_auditor_assessments;
     " | grep -cx '1' | grep -qx '6'
