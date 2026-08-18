@@ -97,6 +97,10 @@ check(substr_count($sidebar, "'key' => 'legacy_ami_archive', 'label' => 'Arsip A
 check(strpos($sidebar, "'group' => 'Pengaturan'") === FALSE && strpos($sidebar, "'Pengaturan'") === FALSE, 'Pengaturan group literal must be removed.');
 check(strpos($sidebar, '$active_menu === $menu[\'key\']') !== FALSE, 'Active menu comparison must remain exact.');
 check(strpos($sidebar, "isset(" . '$menu_badges[$menu[\'key\']]' . ") && (int) " . '$menu_badges[$menu[\'key\']]' . " > 0") !== FALSE, 'Badges must remain positive-only.');
+foreach (['application/controllers/Spmi_auditor_workspace.php', 'application/controllers/Spmi_auditee_workspace.php'] as $path) {
+    $controller = source($root, $path);
+    check(strpos($controller, "'menu_badges' =>") !== FALSE, 'M17-07E workspace sidebar badge missing: ' . $path);
+}
 check(strpos($sidebar, "form_open('auth/logout');") !== FALSE
     && strpos($sidebar, "form_open('auth/logout', ['class' => 'mb-0'])") !== FALSE,
     'Sidebar and account dropdown must both retain POST logout forms.');
