@@ -2239,63 +2239,63 @@ Disposable runtime fixture bootstrap PASS only. Verified exact runtime evidence 
 
 M17-07B Auditor Evidence Upload Parity
 
-NOT_STARTED
+PARTIAL
 
-—
+31682885384f1caa05ae5b2e3380e950fbcba36c, 174cc1160af1d7cb7d2c6ad5264665eabe846b05
 
-—
+STATIC SOURCE REVIEW only; php -l on relevant PHP files passed; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; runtime NOT_RUN_ENVIRONMENT for this documentation-only reconciliation
 
-Gap closure vs legacy Auditor bukti upload; independent of M17-07C/D/E/F
+Late ledger reconciliation from Git history; planned commit subject differed from the recorded implementation history, and the separate later assertion-coverage commit `a98c76786d5d53c152bd4c5698ae02639935350c` completed the coverage note rather than the original implementation commit. No B-07 runtime flow was executed here.
 
 M17-07C Auditor Finding Detail Parity
 
-NOT_STARTED
+PARTIAL
 
-—
+31682885384f1caa05ae5b2e3380e950fbcba36c, 174cc1160af1d7cb7d2c6ad5264665eabe846b05
 
-—
+STATIC SOURCE REVIEW only; php -l on relevant PHP files passed; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; runtime NOT_RUN_ENVIRONMENT for this documentation-only reconciliation
 
-Amends M17-05 restriction on rencana perbaikan / tanggal bukti; must PASS before M17-08
+Late ledger reconciliation from Git history; planned commit subject differed from the recorded implementation history, and the separate later assertion-coverage commit `a98c76786d5d53c152bd4c5698ae02639935350c` completed the coverage note rather than the original implementation commit. No B-07 runtime flow was executed here.
 
 M17-07D Auditor Per-Item Autosave
 
-NOT_STARTED
+PARTIAL
 
-—
+31682885384f1caa05ae5b2e3380e950fbcba36c
 
-—
+STATIC SOURCE REVIEW only; php -l on relevant PHP files passed; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; runtime NOT_RUN_ENVIRONMENT for this documentation-only reconciliation
 
-UX gap closure vs legacy save_penilaian_item
+Late ledger reconciliation from Git history; planned commit subject differed from the recorded implementation history. No B-07 runtime flow was executed here.
 
 M17-07E Workspace Filter and Badge Parity
 
-NOT_STARTED
+PARTIAL
 
-—
+31682885384f1caa05ae5b2e3380e950fbcba36c, 8e22101d718718c8ccda619b342900c31840d623
 
-—
+STATIC SOURCE REVIEW only; php -l on relevant PHP files passed; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; runtime NOT_RUN_ENVIRONMENT for this documentation-only reconciliation
 
-UX gap closure, both auditor and auditee index pages
+Late ledger reconciliation from Git history; planned commit subject differed from the recorded implementation history, and the separate later assertion-coverage commit `a98c76786d5d53c152bd4c5698ae02639935350c` completed the coverage note rather than the original implementation commit. No B-07 runtime flow was executed here.
 
 M17-07F Auditee Submission Confirmation Step
 
-NOT_STARTED
+PARTIAL
 
-—
+76f3d229c6d77bfb3d7abb94d86fce4c3b921c56, 3ad6d85ec96aab5177386e0e302cfd0ddee29baf
 
-—
+STATIC SOURCE REVIEW only; php -l on relevant PHP files passed; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; runtime NOT_RUN_ENVIRONMENT for this documentation-only reconciliation
 
-UX gap closure vs legacy Auditee::konfirmasi()
+Late ledger reconciliation from Git history; planned commit subject differed from the recorded implementation history. No B-07 runtime flow was executed here.
 
 M17-08 Cutover Readiness Audit
 
-NOT_STARTED
+BLOCKED
 
-—
+see Git history (self SHA unavailable in preimage)
 
-—
+STATIC SOURCE REVIEW only; php -l on relevant PHP files passed; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; runtime NOT_RUN_ENVIRONMENT for this documentation-only reconciliation
 
-BLOCKED until M17-07B through M17-07F all record PASS
+Blocked because M17-07B through M17-07F are PARTIAL rather than PASS, so the all-five gate is unmet. No M17-08 runtime flow was executed here.
 
 M17-09 Cutover Execution
 
@@ -2711,3 +2711,68 @@ DO NOT MAKE CUTOVER CHANGES.
 - Runtime verification: NOT_RUN
 - Notes: Confirmed environment blocker for the draft lane. The single runner invocation `bash tests/run_m17_07a_runtime.sh run` failed during Docker image build before bootstrap, fixture, or HTTP smoke because Composer timed out downloading Packagist metadata, reported `curl error 28`, and exited 100. Exact log `/tmp/m17_07_draft_wkqh7rgj.log`. No retry occurred, no product defect is inferred, and no M17-08 or post-M17 work is authorized from this record.
 - Next gate: STOP: M17-08 must not start; no post-M17 milestone may start
+
+### 2026-08-18 14:31 — M17-07B
+
+- Status: PARTIAL
+- Branch: dev
+- Start SHA: 31682885384f1caa05ae5b2e3380e950fbcba36c
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: 31682885384f1caa05ae5b2e3380e950fbcba36c, 174cc1160af1d7cb7d2c6ad5264665eabe846b05
+- Files: application/controllers/Spmi_auditor_workspace.php; application/services/Spmi_auditor_workspace_service.php; tests/spmi_auditor_workspace_regression.php; tests/m17_07a_runtime_fixture_regression.php; a98c76786d5d53c152bd4c5698ae02639935350c; docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l relevant PHP files PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; a98c76786d5d53c152bd4c5698ae02639935350c assertion coverage completed in a separate later test commit; runtime NOT_RUN_ENVIRONMENT
+- Runtime verification: NOT_RUN_ENVIRONMENT by documentation-only reconciliation
+- Notes: Late ledger reconciliation from Git history. Planned commit subject differs from the actual implementation history, and the assertion coverage note was completed in the later `a98c76786d5d53c152bd4c5698ae02639935350c` test commit, not in the original implementation commit. No B-07 runtime flow was executed here.
+- Next gate: M17-07C remains PARTIAL until its runtime lane is executed and recorded
+
+### 2026-08-18 14:32 — M17-07C
+
+- Status: PARTIAL
+- Branch: dev
+- Start SHA: 31682885384f1caa05ae5b2e3380e950fbcba36c
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: 31682885384f1caa05ae5b2e3380e950fbcba36c, 174cc1160af1d7cb7d2c6ad5264665eabe846b05
+- Files: application/controllers/Spmi_auditor_workspace.php; application/services/Spmi_auditor_workspace_service.php; tests/spmi_auditor_workspace_regression.php; tests/m17_07a_runtime_fixture_regression.php; a98c76786d5d53c152bd4c5698ae02639935350c; docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l relevant PHP files PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; a98c76786d5d53c152bd4c5698ae02639935350c assertion coverage completed in a separate later test commit; runtime NOT_RUN_ENVIRONMENT
+- Runtime verification: NOT_RUN_ENVIRONMENT by documentation-only reconciliation
+- Notes: Late ledger reconciliation from Git history. Planned commit subject differs from the actual implementation history, and the assertion coverage note was completed in the later `a98c76786d5d53c152bd4c5698ae02639935350c` test commit, not in the original implementation commit. No B-07 runtime flow was executed here.
+- Next gate: M17-07D remains PARTIAL until its runtime lane is executed and recorded
+
+### 2026-08-18 14:33 — M17-07D
+
+- Status: PARTIAL
+- Branch: dev
+- Start SHA: 31682885384f1caa05ae5b2e3380e950fbcba36c
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: 31682885384f1caa05ae5b2e3380e950fbcba36c
+- Files: application/controllers/Spmi_auditor_workspace.php; application/services/Spmi_auditor_workspace_service.php; tests/spmi_auditor_workspace_regression.php; docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l relevant PHP files PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; runtime NOT_RUN_ENVIRONMENT
+- Runtime verification: NOT_RUN_ENVIRONMENT by documentation-only reconciliation
+- Notes: Late ledger reconciliation from Git history. Planned commit subject differs from the actual implementation history. No B-07 runtime flow was executed here.
+- Next gate: M17-07E remains PARTIAL until its runtime lane is executed and recorded
+
+### 2026-08-18 14:34 — M17-07E
+
+- Status: PARTIAL
+- Branch: dev
+- Start SHA: 31682885384f1caa05ae5b2e3380e950fbcba36c
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: 31682885384f1caa05ae5b2e3380e950fbcba36c, 8e22101d718718c8ccda619b342900c31840d623
+- Files: application/controllers/Spmi_auditor_workspace.php; application/services/Spmi_auditor_workspace_service.php; tests/spmi_auditor_workspace_regression.php; tests/m17_07a_runtime_fixture_regression.php; a98c76786d5d53c152bd4c5698ae02639935350c; docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l relevant PHP files PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; a98c76786d5d53c152bd4c5698ae02639935350c assertion coverage completed in a separate later test commit; runtime NOT_RUN_ENVIRONMENT
+- Runtime verification: NOT_RUN_ENVIRONMENT by documentation-only reconciliation
+- Notes: Late ledger reconciliation from Git history. Planned commit subject differs from the actual implementation history, and the assertion coverage note was completed in the later `a98c76786d5d53c152bd4c5698ae02639935350c` test commit, not in the original implementation commit. No B-07 runtime flow was executed here.
+- Next gate: M17-07F remains PARTIAL until its runtime lane is executed and recorded
+
+### 2026-08-18 14:35 — M17-07F
+
+- Status: PARTIAL
+- Branch: dev
+- Start SHA: 76f3d229c6d77bfb3d7abb94d86fce4c3b921c56
+- End SHA: see Git history (self SHA unavailable in preimage)
+- Commit: 76f3d229c6d77bfb3d7abb94d86fce4c3b921c56, 3ad6d85ec96aab5177386e0e302cfd0ddee29baf
+- Files: application/controllers/Spmi_auditee_workspace.php; application/services/Spmi_auditee_workspace_service.php; tests/spmi_auditee_workspace_regression.php; tests/m17_07a_runtime_fixture_regression.php; docs/plan/m17-spmi-workspace-parity-master-plan.md
+- Tests: php -l relevant PHP files PASS; php tests/m17_schema_regression.php PASS; php tests/spmi_instruments_regression.php PASS; php tests/spmi_auditee_workspace_regression.php PASS; php tests/spmi_auditor_workspace_regression.php PASS; php tests/spmi_reports_regression.php PASS; php tests/spmi_audits_regression.php PASS; php tests/legacy_ami_archive_regression.php PASS; php tests/m16_security_regression.php PASS; php tests/hardening_regression.php PASS; php tests/sidebar_navigation_regression.php PASS; php tests/m17_07a_runtime_fixture_regression.php PASS; runtime NOT_RUN_ENVIRONMENT
+- Runtime verification: NOT_RUN_ENVIRONMENT by documentation-only reconciliation
+- Notes: Late ledger reconciliation from Git history. Planned commit subject differs from the actual implementation history. No B-07 runtime flow was executed here.
+- Next gate: M17-08 remains BLOCKED until M17-07B through M17-07F all record PASS
