@@ -16,6 +16,7 @@ foreach (['spmi_rtm_meetings', 'spmi_rtm_meeting_reports', 'spmi_rtm_participant
 rtm_check(!preg_match('/(^|;|\R)\s*(INSERT|UPDATE|DELETE)\s+/i', $migration), 'M11 migration must be seed-free.');
 foreach (['current parity migration 001-021', 'spmi_rtm_meetings', 'spmi_rtm_meeting_reports', 'spmi_rtm_participants', 'spmi_rtm_decisions', 'uq_spmi_rtm_decisions_order'] as $literal) rtm_check(strpos($schema, $literal) !== FALSE, 'M11 schema parity missing: ' . $literal);
 foreach (['meeting', 'meeting_reports', 'participants', 'decisions', 'report_for_update', 'report_item_for_update', 'users_for_update', 'FOR UPDATE', 'delete_children'] as $literal) rtm_check(strpos($model, $literal) !== FALSE, 'M11 model contract missing: ' . $literal);
+foreach (['CASE WHEN fu.id IS NULL THEN 0 ELSE 1 END AS has_follow_up', 'spmi_rtm_follow_ups fu', "'fu.decision_id = d.id', 'left'"] as $literal) rtm_check(strpos($model, $literal) !== FALSE, 'RTM follow-up marker contract missing: ' . $literal);
 foreach (['trans_begin', 'trans_rollback', 'trans_complete', 'status !== \'draft\'', 'status\' => \'resolved\'', 'meeting', 'report_for_update', 'users_for_update', 'report_item_id', 'decision_text', 'action_text', 'strtoupper', 'DateTime::createFromFormat', '!Y-m-d', '/^[A-Z0-9._-]+$/', 'strlen($meeting_data[\'meeting_code\']) > 128', 'strlen($meeting_data[\'meeting_title\']) > 200', 'strlen($meeting_data[\'location\']) > 200', 'isset($data[\'decisions\']) ? $data[\'decisions\'] : []', '[\'valid\' => $valid, \'rows\' => $result]'] as $literal) rtm_check(strpos($service, $literal) !== FALSE, 'M11 service contract missing: ' . $literal);
 rtm_check(strpos($service, 'if (!$decision_text && !$action_text && !$report_id && !$report_item_id) continue;') !== FALSE, 'Blank optional decision rows must be ignored.');
 rtm_check(strpos($service, 'if (!$decision_text || !$action_text) { $valid = FALSE;') !== FALSE, 'Partial decision rows must be rejected.');
@@ -26,5 +27,8 @@ rtm_check(substr_count($sidebar, "'key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'i
 rtm_check(strpos($views, 'form_open(') !== FALSE && strpos($views, 'html_escape') !== FALSE && strpos($views, 'nl2br(html_escape(') !== FALSE, 'M11 views must use CSRF forms and escaped multiline output.');
 rtm_check(strpos($views, 'M12') === FALSE && strpos($model . $service . $controller . $views, 'tugas_audit') === FALSE, 'M11 must stay isolated from legacy and M12 workflow.');
 rtm_check(strpos($views, "status === 'draft'") !== FALSE && strpos($views, 'resolved permanen dan hanya-baca') !== FALSE, 'Resolved RTM must be read-only.');
+rtm_check(strpos($views, 'lpmpi/spmi-follow-ups/create/') !== FALSE, 'Resolved RTM detail must expose the manual follow-up creation route.');
+rtm_check(strpos($views, '$meeting->status === "resolved"') !== FALSE, 'Manual follow-up link must stay gated to resolved RTM status.');
+rtm_check(strpos($views, '(int) $decision->has_follow_up === 0') !== FALSE, 'Manual follow-up link must stay hidden when a follow-up already exists.');
 
 fwrite(STDOUT, "SPMI RTM regression checks passed.\n");

@@ -12,7 +12,7 @@ class Spmi_rtm_model extends CI_Model
     public function users() { return $this->db->where_in('role', ['super_admin', 'admin_lpmpi', 'auditor', 'auditee'])->order_by('nama', 'ASC')->get('users')->result(); }
     public function meeting_reports($meeting_id) { return $this->db->select('mr.*, r.report_number, r.cycle_code_snapshot, r.cycle_title_snapshot')->from('spmi_rtm_meeting_reports mr')->join('spmi_reports r', 'r.id = mr.report_id')->where('mr.meeting_id', (int) $meeting_id)->order_by('mr.id', 'ASC')->get()->result(); }
     public function participants($meeting_id) { return $this->db->where('meeting_id', (int) $meeting_id)->order_by('name_snapshot', 'ASC')->get('spmi_rtm_participants')->result(); }
-    public function decisions($meeting_id) { return $this->db->where('meeting_id', (int) $meeting_id)->order_by('display_order', 'ASC')->get('spmi_rtm_decisions')->result(); }
+    public function decisions($meeting_id) { return $this->db->select('d.*, CASE WHEN fu.id IS NULL THEN 0 ELSE 1 END AS has_follow_up', FALSE)->from('spmi_rtm_decisions d')->join('spmi_rtm_follow_ups fu', 'fu.decision_id = d.id', 'left')->where('d.meeting_id', (int) $meeting_id)->order_by('d.display_order', 'ASC')->get()->result(); }
     public function insert_meeting($data) { return $this->db->insert('spmi_rtm_meetings', $data) ? (int) $this->db->insert_id() : 0; }
     public function update_meeting($id, $data) { return $this->db->where('id', (int) $id)->update('spmi_rtm_meetings', $data); }
     public function insert_report_link($data) { return $this->db->insert('spmi_rtm_meeting_reports', $data); }

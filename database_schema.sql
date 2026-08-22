@@ -11,6 +11,7 @@
 -- current parity migration 001-027
 -- current parity migration 001-028
 -- current parity migration 001-030
+-- current parity migration 001-031
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -331,6 +332,8 @@ CREATE TABLE IF NOT EXISTS `spmi_audit_cycles` (
     `cycle_code` VARCHAR(64) NOT NULL,
     `title` VARCHAR(200) NOT NULL,
     `description` TEXT NULL,
+    `academic_year` VARCHAR(20) NULL,
+    `semester` ENUM('ganjil','genap') NULL,
     `start_date` DATE NOT NULL,
     `end_date` DATE NOT NULL,
     `state` ENUM('draft','configured','closed') NOT NULL DEFAULT 'draft',

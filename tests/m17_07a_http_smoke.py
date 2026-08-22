@@ -385,6 +385,35 @@ def assert_auditor_status_filter(
     assert_contains(page, markers["C1"], surface)
 
 
+def assert_admin_cycle_academic_period_rendering(opener: urllib.request.OpenerDirector, base_url: str) -> None:
+    index_page = expect_page(opener, base_url + "/lpmpi/spmi-audits", "Siklus & Penugasan SPMI")
+    for marker in (
+        "2026/2027 — Ganjil",
+        "2026/2027 — Genap",
+        "2025/2026 — Genap",
+        "2026-01-01 — 2026-12-31",
+        "2026-02-01 — 2026-12-31",
+        "2026-03-01 — 2026-12-31",
+    ):
+        if marker not in index_page:
+            raise RuntimeError(
+                f"admin LPMPI cycle index did not render academic-period/date-range marker {marker}; "
+                f"context={bounded_context(index_page)}"
+            )
+
+    detail_page = expect_page(opener, base_url + "/lpmpi/spmi-audits/cycle/detail/1", "Detail Siklus SPMI")
+    for marker in (
+        "Periode akademik: 2026/2027 — Ganjil",
+        "Periode: 2026-01-01 — 2026-12-31",
+        "Status: <strong>configured</strong>",
+    ):
+        if marker not in detail_page:
+            raise RuntimeError(
+                f"admin LPMPI cycle detail did not render academic-period/date-range marker {marker}; "
+                f"context={bounded_context(detail_page)}"
+            )
+
+
 def assert_workspace_badge_surfaces(
     opener: urllib.request.OpenerDirector,
     base_url: str,
@@ -1703,6 +1732,7 @@ def main() -> int:
         sessions[email] = opener
 
     admin_lpmpi = sessions["admin-lpmpi@m17-07a.test"]
+    assert_admin_cycle_academic_period_rendering(admin_lpmpi, base_url)
     assert_legacy_ami_archive_read_only_lane(admin_lpmpi, base_url)
 
     auditee_a = sessions["auditee-a@m17-07a.test"]
