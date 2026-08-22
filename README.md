@@ -157,13 +157,24 @@ File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara di
 
 `database_schema.sql` adalah bootstrap schema-only untuk database baru. Jangan import `database_dummy.sql` atau memakai akun demo di produksi. Buat administrator awal melalui proses terkontrol tim deployment.
 
+#### Setelah pull perubahan database
+
+Periksa apakah pull membawa file baru di `migrations/`. Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration baru satu kali secara berurutan. Setelah upgrade, jalankan pemeriksaan terarah berikut dari root proyek:
+
+```bash
+php tests/sidebar_navigation_regression.php
+php tests/spmi_rtm_regression.php
+php tests/spmi_audits_regression.php
+php tests/spmi_ui_consistency_regression.php
+```
+
 #### Database baru
 
-Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `030` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
+Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `031` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
 
 #### Database lama, legacy, belum punya table organisasi, capability, atau SPMI
 
-Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan hanya migration `012` sampai `030` secara numerik, satu file tiap langkah, dalam urutan naik. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
+Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan hanya migration `012` sampai `031` secara numerik, satu file tiap langkah, dalam urutan naik. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -184,12 +195,13 @@ Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage 
 17. `028_add_versioned_auditor_assessments.sql`
 18. `029_add_spmi_auditor_assessment_evidence.sql`
 19. `030_add_spmi_auditor_assessment_finding_details.sql`
+20. `031_add_spmi_audit_cycle_academic_period.sql`
 
 Jalankan satu file tiap langkah, satu per satu, memakai klien MySQL yang dipilih tim ke database yang memang dituju. Jangan membatch file. Jangan menambahkan kredensial.
 
 Jangan pakai `--force`. Jangan matikan foreign key checks. Hentikan di error pertama. Jangan jalankan blok `DOWN` historis.
 
-Catatan penting, migration `014` berhenti bila lebih dari satu active version ditemukan. Migration `028` membuat index composite `(assignment_id, source_submission_version)` dulu, baru menghapus unique index lama, supaya aman untuk FK. Migration `029` menambahkan bukti assessment auditor dan snapshot metadata laporan secara aditif. Migration `030` menambahkan detail temuan dan snapshot laporan secara aditif.
+Catatan penting, migration `014` berhenti bila lebih dari satu active version ditemukan. Migration `028` membuat index composite `(assignment_id, source_submission_version)` dulu, baru menghapus unique index lama, supaya aman untuk FK. Migration `029` menambahkan bukti assessment auditor dan snapshot metadata laporan secara aditif. Migration `030` menambahkan detail temuan dan snapshot laporan secara aditif. Migration `031` menambahkan `academic_year` dan `semester` nullable pada `spmi_audit_cycles` secara aditif dan idempotent. Migration ini tidak melakukan backfill; isi periode akademik untuk siklus draft melalui menu Siklus & Penugasan SPMI setelah upgrade.
 
 CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw SQL yang dijalankan manual oleh tim deployment setelah backup database. Untuk database yang sudah masuk jalur legacy di atas, ikuti nomor migration yang sudah ditetapkan, satu file tiap langkah, tanpa melewati urutan atau menjalankan blok `DOWN` historis otomatis. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup.
 
