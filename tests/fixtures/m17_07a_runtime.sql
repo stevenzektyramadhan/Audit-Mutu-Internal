@@ -59,14 +59,14 @@ FROM `spmi_instrument_questions` AS question
 CROSS JOIN (SELECT 1 AS score UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) AS scores
 WHERE question.`package_id` = @package_id;
 
-INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `start_date`, `end_date`, `state`, `created_by`) VALUES
-('M17R-C1', 'M17-07A Runtime Cycle', 'Configured disposable lifecycle fixture', '2026-01-01', '2026-12-31', 'configured', @admin_id);
+INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `academic_year`, `semester`, `start_date`, `end_date`, `state`, `created_by`) VALUES
+('M17R-C1', 'M17-07A Runtime Cycle', 'Configured disposable lifecycle fixture', '2026/2027', 'ganjil', '2026-01-01', '2026-12-31', 'configured', @admin_id);
 SET @cycle_id := LAST_INSERT_ID();
-INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `start_date`, `end_date`, `state`, `created_by`) VALUES
-('M17R-C2', 'M17-07A Runtime Cycle Owned Draft', 'Second configured cycle owned by Auditor A/Auditee A for M17-07E filter coverage', '2026-02-01', '2026-12-31', 'configured', @admin_id);
+INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `academic_year`, `semester`, `start_date`, `end_date`, `state`, `created_by`) VALUES
+('M17R-C2', 'M17-07A Runtime Cycle Owned Draft', 'Second configured cycle owned by Auditor A/Auditee A for M17-07E filter coverage', '2026/2027', 'genap', '2026-02-01', '2026-12-31', 'configured', @admin_id);
 SET @cycle_owned_draft_id := LAST_INSERT_ID();
-INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `start_date`, `end_date`, `state`, `created_by`) VALUES
-('M17R-C3', 'M17-07A Runtime Cycle Foreign Draft', 'Configured foreign cycle owned by Auditor B/Auditee B for M17-07E leak checks', '2026-03-01', '2026-12-31', 'configured', @admin_id);
+INSERT INTO `spmi_audit_cycles` (`cycle_code`, `title`, `description`, `academic_year`, `semester`, `start_date`, `end_date`, `state`, `created_by`) VALUES
+('M17R-C3', 'M17-07A Runtime Cycle Foreign Draft', 'Configured foreign cycle owned by Auditor B/Auditee B for M17-07E leak checks', '2025/2026', 'genap', '2026-03-01', '2026-12-31', 'configured', @admin_id);
 SET @cycle_foreign_draft_id := LAST_INSERT_ID();
 INSERT INTO `spmi_audit_assignments` (`cycle_id`, `source_package_id`, `auditor_id`, `auditee_id`, `created_by`, `source_version_id`, `source_version_code`, `source_version_title`, `source_standard_id`, `source_standard_code`, `source_standard_title`, `source_package_code`, `source_package_title`, `source_package_description`, `auditor_name`, `auditor_email`, `auditee_name`, `auditee_email`) VALUES
 (@cycle_id, @package_id, @auditor_a_id, @auditee_a_id, @admin_id, @version_id, 'M17R-V1', 'M17-07A Runtime Version', @standard_id, 'M17R-S1', 'M17-07A Runtime Standard', 'M17R-P1', 'M17-07A Runtime Package', 'All evidence-policy fixtures', 'M17-07A Auditor A', 'auditor-a@m17-07a.test', 'M17-07A Auditee A', 'auditee-a@m17-07a.test'),
