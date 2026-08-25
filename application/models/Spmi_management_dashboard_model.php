@@ -5,6 +5,7 @@ class Spmi_management_dashboard_model extends CI_Model
 {
     public function dashboard()
     {
+        $this->load->model('User_model');
         $eligible_cycles = "SELECT id FROM spmi_audit_cycles WHERE state IN ('configured', 'closed')";
         $count = function ($table, $where = [], $from = NULL, $joins = []) {
             $query = $this->db->select('COUNT(*) AS total', FALSE)->from($from ?: $table);
@@ -33,7 +34,15 @@ class Spmi_management_dashboard_model extends CI_Model
                 'follow_ups_overdue' => (int) $this->db->select('COUNT(*) AS total', FALSE)->where_in('status', ['open', 'in_progress'])->where('due_date IS NOT NULL', NULL, FALSE)->where('due_date < CURDATE()', NULL, FALSE)->get('spmi_rtm_follow_ups')->row()->total,
             ],
         ];
-        return ['metrics' => $metrics, 'notifications' => $this->notifications($metrics)];
+        return [
+            'metrics' => $metrics,
+            'notifications' => $this->notifications($metrics),
+            'account_totals' => [
+                'total_user' => $this->User_model->count_all(),
+                'total_auditor' => $this->User_model->count_by_role('auditor'),
+                'total_auditee' => $this->User_model->count_by_role('auditee'),
+            ],
+        ];
     }
 
     public function export_rows($year)

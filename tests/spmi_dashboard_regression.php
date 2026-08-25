@@ -49,6 +49,12 @@ check(strpos($management_controller, "header('Content-Disposition: attachment; f
 check(strpos($management_controller, "FCPATH . 'vendor/autoload.php'") !== FALSE && strpos($management_controller, 'require_once $autoload') !== FALSE && strpos($management_controller, "class_exists('PhpOffice\\\\PhpSpreadsheet\\\\Spreadsheet')") !== FALSE, 'PhpSpreadsheet Composer autoload guard missing.');
 check(strpos($management_controller, "'page_subtitle' => 'Beranda / Insights / Dashboard SPMI'") !== FALSE, 'Management dashboard subtitle must include Insights.');
 check(strpos($management_model, 'function export_rows($year)') !== FALSE, 'Export rows must receive requested year.');
+check(strpos($management_model, "'account_totals'") !== FALSE, 'Management account totals contract missing.');
+foreach (['total_user', 'total_auditor', 'total_auditee'] as $account_total) {
+    check(strpos($management_model, "'" . $account_total . "'") !== FALSE, 'Management account total missing: ' . $account_total);
+}
+check(strpos($management_model, 'User_model') !== FALSE && strpos($management_model, 'count_all()') !== FALSE && strpos($management_model, "count_by_role('auditor')") !== FALSE && strpos($management_model, "count_by_role('auditee')") !== FALSE, 'Raw registered-account count sources missing.');
+check(strpos($auditor_model, 'account_totals') === FALSE && strpos($auditee_model, 'account_totals') === FALSE, 'Account totals must not leak to role dashboards.');
 foreach ([$management_model, $auditor_model, $auditee_model] as $model) {
     foreach (['tugas_audit', 'jawaban_audit', 'Dashboard_service', 'Laporan_model'] as $legacy) {
         check(stripos($model, $legacy) === FALSE, 'Legacy reference leaked into M14 model: ' . $legacy);
@@ -89,13 +95,25 @@ foreach ([$management_view, $auditor_view, $auditee_view] as $view) {
     check(strpos($view, 'Belum ada') !== FALSE, 'Dashboard zero state missing.');
     check(strpos($view, '<form') === FALSE && strpos($view, 'form_open') === FALSE, 'Dashboard view must remain read-only.');
 }
+foreach ([$management_view, $auditor_view, $auditee_view] as $view) {
+    $notification_position = strpos($view, 'aria-labelledby="');
+    $metric_position = strpos($view, 'ami-stat-grid');
+    check(strpos($view, 'ami-dashboard-logo-banner') !== FALSE, 'SPMI dashboard identity banner missing.');
+    check($notification_position !== FALSE && $metric_position !== FALSE && $notification_position < $metric_position, 'SPMI notifications must precede metrics.');
+    check(strpos($view, 'ami-stat-grid') !== FALSE && strpos($view, 'ami-stat-icon') !== FALSE, 'SPMI dashboard must reuse AMI stat primitives.');
+    check(strpos($view, 'ami-task-card') !== FALSE && strpos($view, 'ami-task-icon') !== FALSE, 'SPMI notifications must reuse AMI task cards.');
+    check(strpos($view, 'list-group') === FALSE, 'SPMI notifications must not use Bootstrap list groups.');
+    check(strpos($view, "'danger' ? 'tone-rose'") !== FALSE && strpos($view, "'warning' ? 'tone-amber'") !== FALSE, 'SPMI notification severity tone mapping changed.');
+}
+check(strpos($management_view, "site_url('lpmpi/spmi-dashboard/export?year=' . date('Y'))") !== FALSE, 'Management export action changed.');
+check(strpos($management_view, 'ami-empty') !== FALSE || strpos($management_view, 'Belum ada data') !== FALSE, 'Management zero state must remain present.');
 foreach (['Belum ada data penetapan SPMI.', 'Belum ada data pelaksanaan SPMI.', 'Belum ada data evaluasi SPMI.', 'Belum ada data pengendalian SPMI.', 'Belum ada data peningkatan SPMI.'] as $empty_text) check(strpos($management_view, $empty_text) !== FALSE, 'Management stage zero state missing: ' . $empty_text);
 check(strpos($auditor_view, 'Belum ada penugasan SPMI untuk Anda.') !== FALSE && strpos($auditee_view, 'Belum ada penugasan SPMI untuk Anda.') !== FALSE, 'Role empty state missing.');
 check(strpos($auditor_view, 'print') === FALSE && strpos($auditor_view, 'export') === FALSE, 'Auditor dashboard must not expose print/export.');
 check(strpos($auditee_view, 'print') === FALSE && strpos($auditee_view, 'export') === FALSE, 'Auditee dashboard must not expose print/export.');
 check(strpos($management_controller, "in_array(") !== FALSE && strpos($management_controller, "['=', '+', '-', '@']") !== FALSE, 'Export formula safety missing.');
 foreach ([
-    "'key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Insights'",
+    "'key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'",
     "'key' => 'spmi_auditor_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'auditor/spmi-dashboard', 'group' => 'Overview'",
     "'key' => 'spmi_auditee_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'auditee/spmi-dashboard', 'group' => 'Overview'",
 ] as $entry) {
