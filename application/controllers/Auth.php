@@ -16,7 +16,7 @@ class Auth extends CI_Controller {
     public function index()
     {
         if ($this->session->userdata('user_id')) {
-            redirect('dashboard');
+            redirect($this->login_redirect());
         }
 
         $this->load->view('auth/login');
@@ -40,7 +40,7 @@ class Auth extends CI_Controller {
 
         if ($result['success']) {
             $this->audit_logger->log('auth.login', 'success', 'auth', 'login');
-            redirect('dashboard');
+            redirect($this->login_redirect());
         }
 
         $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'credentials']);
@@ -58,5 +58,17 @@ class Auth extends CI_Controller {
         $this->audit_logger->log('auth.logout', 'success', 'auth', 'logout');
         $this->session->sess_destroy();
         redirect('auth');
+    }
+
+    private function login_redirect()
+    {
+        $login_redirects = [
+            'super_admin' => 'lpmpi/spmi-dashboard',
+            'admin_lpmpi' => 'lpmpi/spmi-dashboard',
+            'auditor' => 'auditor/spmi-dashboard',
+            'auditee' => 'auditee/spmi-dashboard',
+        ];
+
+        return $login_redirects[$this->session->userdata('role')] ?? 'dashboard';
     }
 }
