@@ -53,6 +53,11 @@ $route['default_controller'] = 'auth';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
+$route['auth/forgot-password'] = 'Auth/forgot_password';
+$route['auth/forgot-password/request'] = 'Auth/send_password_reset';
+$route['auth/reset-password/submit'] = 'Auth/update_password';
+$route['auth/reset-password/(:any)'] = 'Auth/reset_password/$1';
+
 $route['profil'] = 'Profil/index';
 $route['profil/edit'] = 'Profil/edit';
 $route['profil/update'] = 'Profil/update';

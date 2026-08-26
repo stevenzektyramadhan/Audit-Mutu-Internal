@@ -542,8 +542,8 @@
 
             <?php echo form_close(); ?>
 
-            <!-- Lupa Password (placeholder, no action in MVP) -->
-            <span class="login-forgot">Lupa password?</span>
+            <!-- Lupa Password -->
+            <a href="<?php echo site_url('auth/forgot-password'); ?>" class="login-forgot">Lupa password?</a>
         </div>
     </div>
 </main>

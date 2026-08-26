@@ -12,6 +12,7 @@
 -- current parity migration 001-028
 -- current parity migration 001-030
 -- current parity migration 001-031
+-- current parity migration 001-032
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -26,6 +27,18 @@ CREATE TABLE IF NOT EXISTS `users` (
     `jenis_unit` ENUM('prodi','unit','lembaga') NULL,
     `profile_photo_path` VARCHAR(255) NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `token_hash` CHAR(64) NOT NULL,
+    `expires_at` DATETIME NOT NULL,
+    `consumed_at` DATETIME NULL DEFAULT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_password_reset_tokens_hash` (`token_hash`),
+    KEY `idx_password_reset_tokens_user_active` (`user_id`, `consumed_at`, `expires_at`),
+    CONSTRAINT `fk_password_reset_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `periode_audit` (

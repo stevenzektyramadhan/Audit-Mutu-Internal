@@ -143,13 +143,60 @@ APP_COOKIE_SECURE=true
 APP_LOG_THRESHOLD=1
 APP_LOG_PATH=/srv/ami/logs
 APP_PRIVATE_STORAGE_PATH=/srv/ami/private
+BREVO_API_KEY=<secret Brevo>
+MAIL_FROM_ADDRESS=<verified sender address>
+MAIL_FROM_NAME=<sender display name, opsional>
 DB_HOST=<host database>
 DB_USERNAME=<user aplikasi>
 DB_PASSWORD=<secret database>
 DB_DATABASE=ami
 ```
 
-`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib sudah ada, writable, dan berada di luar document root. Aplikasi produksi gagal tertutup jika setting wajib tersebut hilang atau tidak aman. Jangan menyimpan fallback secret di source. Rotasi `APP_ENCRYPTION_KEY` jika key lama pernah digunakan di luar lingkungan tepercaya.
+`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib sudah ada, writable, dan berada di luar document root. Reset password hanya aktif bila `BREVO_API_KEY` dan `MAIL_FROM_ADDRESS` tersedia. Aplikasi mengirim email reset lewat Brevo HTTPS API di `https://api.brevo.com/v3/smtp/email` dengan port 443 dan native HTTPS streams, memakai `BREVO_API_KEY` sebagai satu-satunya API key, serta `MAIL_FROM_ADDRESS` dan opsional `MAIL_FROM_NAME` sebagai sender. Sender harus sudah diverifikasi di Brevo. Tidak ada fallback SMTP, mail, atau sendmail. Jika pengiriman gagal atau API key tidak tersedia, token reset tidak dipakai, token aktif dibatalkan, dan pengguna tetap menerima respons generik yang sama. Konfigurasi produksi gagal tertutup jika setting wajib tersebut hilang atau tidak aman. Jangan menyimpan secret di source. Rotasi `APP_ENCRYPTION_KEY` jika key lama pernah digunakan di luar lingkungan tepercaya.
+
+Jika perlu override lokal yang tidak ikut Git, simpan di `test-data/compose.smtp.yaml` sebagai file override yang diabaikan. Jangan isi contoh itu dengan secret apa pun, dan jangan jadikan file itu sumber konfigurasi produksi.
+
+### Panduan Uji Lokal Reset Password
+
+Pakai bagian ini untuk menyiapkan branch ini di mesin lokal lalu menguji alur `Lupa Password` sampai email reset terkirim lewat Brevo.
+
+1. Pull branch ini, lalu pastikan dependency sudah terpasang. Jika memakai Docker Compose, rebuild container setelah environment berubah.
+2. Untuk database lokal yang sudah ada, backup dulu lalu jalankan migration `032_create_password_reset_tokens.sql` satu kali. Untuk database baru, import `database_schema.sql` dulu, lalu buat user uji yang terkontrol. Jangan pakai akun produksi atau isi data rahasia di database lokal.
+3. Set environment lokal berikut lewat VirtualHost, file env Compose yang diabaikan Git, atau compose override lokal yang juga diabaikan Git:
+
+   ```text
+   CI_ENV=development
+   APP_BASE_URL=http://127.0.0.1:8081/
+   BREVO_API_KEY=<secret lokal yang tidak dikomit>
+   MAIL_FROM_ADDRESS=<verified sender di Brevo>
+   MAIL_FROM_NAME=<opsional>
+   ```
+
+   Simpan nilai rahasia hanya di file lokal yang diabaikan Git. Jangan commit file yang berisi secret.
+4. Pastikan `MAIL_FROM_ADDRESS` sudah diverifikasi di Brevo. Jika sender belum verified, email reset tidak akan keluar.
+5. Jalankan ulang Compose dengan override lokal yang berisi nilai secret di file yang diabaikan Git, lalu cek container dan log aplikasi:
+
+   ```bash
+   docker compose -f compose.yaml -f test-data/compose.smtp.yaml up -d --build
+   docker compose ps
+   docker compose logs --tail=100 app
+   ```
+
+   Jika memakai Apache lokal, restart Apache setelah environment berubah.
+6. Buat satu user uji secara terkontrol, lalu buka halaman login dan kirim permintaan dari alur `Lupa Password`. Ambil email reset dari inbox uji, set password baru, lalu login ulang untuk memastikan token dan sesi bekerja.
+7. Jalankan regresi terarah berikut setelah perubahan lokal selesai:
+
+   ```bash
+   php tests/password_reset_regression.php
+   php tests/auth_login_regression.php
+   php tests/account_settings_regression.php
+   ```
+
+   Jika kamu baru memasang database dari schema kosong, tambah juga:
+
+   ```bash
+   php tests/m17_schema_regression.php
+   ```
 
 File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara disimpan di private storage dan hanya diunduh melalui endpoint dengan pemeriksaan role/ownership. Logo profil tetap publik di `uploads/profil`. Record lama yang hanya berisi nama file tetap dibaca dari `uploads/<kategori>`; jangan hapus file lama sebelum proses pemindahan dan verifikasi selesai.
 
@@ -170,11 +217,11 @@ php tests/spmi_ui_consistency_regression.php
 
 #### Database baru
 
-Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `031` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
+Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `032` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
 
 #### Database lama, legacy, belum punya table organisasi, capability, atau SPMI
 
-Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan hanya migration `012` sampai `031` secara numerik, satu file tiap langkah, dalam urutan naik. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
+Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan hanya migration `012` sampai `032` secara numerik, satu file tiap langkah, dalam urutan naik. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -196,6 +243,7 @@ Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage 
 18. `029_add_spmi_auditor_assessment_evidence.sql`
 19. `030_add_spmi_auditor_assessment_finding_details.sql`
 20. `031_add_spmi_audit_cycle_academic_period.sql`
+21. `032_create_password_reset_tokens.sql`
 
 Jalankan satu file tiap langkah, satu per satu, memakai klien MySQL yang dipilih tim ke database yang memang dituju. Jangan membatch file. Jangan menambahkan kredensial.
 
