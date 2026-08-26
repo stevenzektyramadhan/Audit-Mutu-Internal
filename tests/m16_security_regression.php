@@ -41,6 +41,10 @@ m16_check(strpos($auth, "log('auth.logout'") < strpos($auth, 'sess_destroy()'), 
 foreach (["\$ci->input->method(TRUE) !== 'POST'", "['auth/login', 'auth/logout']", "is_cli()", "log('http.mutation', 'attempted', 'http', NULL, ['operation' => 'POST'])", 'catch (Throwable $exception)'] as $literal) m16_check(strpos($mutation, $literal) !== FALSE, 'Mutation audit hook missing: ' . $literal);
 m16_check(strpos($routes . $sidebar, 'audit_logs') === FALSE && strpos($routes . $sidebar, 'm16') === FALSE, 'M16 must add no routes or sidebar menu.');
 foreach (['lpmpi/instrumen/download/(:num)', 'auditor/penilaian', 'auditee/tugas'] as $legacy_route) m16_check(strpos($routes, $legacy_route) !== FALSE, 'Legacy route missing after M16: ' . $legacy_route);
-foreach (["'key' => 'dashboard'", "'url' => 'lpmpi/laporan'", "'url' => 'lpmpi/instrumen'"] as $legacy_menu) m16_check(strpos($sidebar, $legacy_menu) !== FALSE, 'Legacy sidebar target missing after M16: ' . $legacy_menu);
+foreach ([
+    "'key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'",
+    "'key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'",
+    "'key' => 'akun', 'label' => 'Akun Auditor & Auditee', 'icon' => 'fa-user-shield', 'url' => 'lpmpi/akun', 'group' => 'Management'"
+] as $current_menu) m16_check(strpos($sidebar, $current_menu) !== FALSE, 'Current sidebar contract missing after M16: ' . $current_menu);
 
 fwrite(STDOUT, "M16 security regression checks passed.\n");
