@@ -45,6 +45,13 @@ class User_model extends CI_Model
             ->update($this->table, $data);
     }
 
+    public function update_password($id, $password_hash)
+    {
+        return $this->db
+            ->where('id', (int) $id)
+            ->update($this->table, ['password' => $password_hash]);
+    }
+
     public function find_profile_photo_for_update($id)
     {
         $query = $this->db
