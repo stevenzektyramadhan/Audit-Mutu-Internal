@@ -347,6 +347,52 @@ $config['cache_query_string'] = FALSE;
 $app_encryption_key = getenv('APP_ENCRYPTION_KEY');
 $config['encryption_key'] = $app_encryption_key !== FALSE ? (string) $app_encryption_key : '';
 
+$drive_evidence_folder_id = getenv('GOOGLE_DRIVE_EVIDENCE_FOLDER_ID');
+$drive_auth_mode = getenv('GOOGLE_DRIVE_AUTH_MODE');
+$drive_service_account_json_path = getenv('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH');
+$drive_oauth_client_secret_json_path = getenv('GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH');
+$drive_oauth_refresh_token_json_path = getenv('GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH');
+$spmi_evidence_storage_backend = getenv('SPMI_EVIDENCE_STORAGE_BACKEND');
+$spmi_evidence_storage_backend = $spmi_evidence_storage_backend !== FALSE ? trim($spmi_evidence_storage_backend) : 'local';
+$config['spmi_evidence_storage_backend'] = in_array($spmi_evidence_storage_backend, ['local', 'google_drive'], TRUE)
+	? $spmi_evidence_storage_backend
+	: 'local';
+$config['google_drive_evidence_folder_id'] = $drive_evidence_folder_id !== FALSE ? trim($drive_evidence_folder_id) : '';
+$config['google_drive_auth_mode'] = $drive_auth_mode !== FALSE ? trim($drive_auth_mode) : '';
+$config['google_drive_service_account_json_path'] = $drive_service_account_json_path !== FALSE ? trim($drive_service_account_json_path) : '';
+$config['google_drive_oauth_client_secret_json_path'] = $drive_oauth_client_secret_json_path !== FALSE ? trim($drive_oauth_client_secret_json_path) : '';
+$config['google_drive_oauth_refresh_token_json_path'] = $drive_oauth_refresh_token_json_path !== FALSE ? trim($drive_oauth_refresh_token_json_path) : '';
+$google_drive_mode_valid = in_array($config['google_drive_auth_mode'], ['service_account', 'oauth_refresh_token'], TRUE);
+$google_drive_service_account_realpath = $config['google_drive_service_account_json_path'] !== '' ? realpath($config['google_drive_service_account_json_path']) : FALSE;
+$google_drive_oauth_client_secret_realpath = $config['google_drive_oauth_client_secret_json_path'] !== '' ? realpath($config['google_drive_oauth_client_secret_json_path']) : FALSE;
+$google_drive_oauth_refresh_token_realpath = $config['google_drive_oauth_refresh_token_json_path'] !== '' ? realpath($config['google_drive_oauth_refresh_token_json_path']) : FALSE;
+$google_drive_web_root = defined('FCPATH') ? realpath(FCPATH) : FALSE;
+$google_drive_service_account_config_valid = $config['google_drive_auth_mode'] === 'service_account'
+	&& $google_drive_service_account_realpath !== FALSE
+	&& is_file($google_drive_service_account_realpath)
+	&& is_readable($google_drive_service_account_realpath)
+	&& $config['google_drive_oauth_client_secret_json_path'] === ''
+	&& $config['google_drive_oauth_refresh_token_json_path'] === '';
+$google_drive_oauth_config_valid = $config['google_drive_auth_mode'] === 'oauth_refresh_token'
+	&& ENVIRONMENT !== 'production'
+	&& $google_drive_oauth_client_secret_realpath !== FALSE
+	&& is_file($google_drive_oauth_client_secret_realpath)
+	&& is_readable($google_drive_oauth_client_secret_realpath)
+	&& $google_drive_oauth_refresh_token_realpath !== FALSE
+	&& is_file($google_drive_oauth_refresh_token_realpath)
+	&& is_readable($google_drive_oauth_refresh_token_realpath)
+	&& $config['google_drive_service_account_json_path'] === '';
+$google_drive_paths_outside_web_root = $google_drive_web_root !== FALSE;
+foreach ([$google_drive_service_account_realpath, $google_drive_oauth_client_secret_realpath, $google_drive_oauth_refresh_token_realpath] as $google_drive_config_path) {
+	if ($google_drive_config_path !== FALSE && strpos($google_drive_config_path . DIRECTORY_SEPARATOR, $google_drive_web_root . DIRECTORY_SEPARATOR) === 0) {
+		$google_drive_paths_outside_web_root = FALSE;
+	}
+}
+$config['google_drive_evidence_config_valid'] = $config['google_drive_evidence_folder_id'] !== ''
+	&& $google_drive_mode_valid
+	&& $google_drive_paths_outside_web_root
+	&& ($google_drive_service_account_config_valid || $google_drive_oauth_config_valid);
+
 /*
 |--------------------------------------------------------------------------
 | Session Variables
@@ -442,6 +488,19 @@ if (ENVIRONMENT === 'production') {
 	$private_storage_path = $private_storage !== FALSE ? realpath(trim($private_storage)) : FALSE;
 	$web_root = realpath(FCPATH);
 	$log_path = $config['log_path'] !== '' ? realpath($config['log_path']) : FALSE;
+	$drive_config_unused = $config['google_drive_evidence_folder_id'] === ''
+		&& $config['google_drive_auth_mode'] === ''
+		&& $config['google_drive_service_account_json_path'] === ''
+		&& $config['google_drive_oauth_client_secret_json_path'] === ''
+		&& $config['google_drive_oauth_refresh_token_json_path'] === '';
+	$production_drive_service_account_only = $config['google_drive_auth_mode'] === 'service_account'
+		&& $config['google_drive_oauth_client_secret_json_path'] === ''
+		&& $config['google_drive_oauth_refresh_token_json_path'] === ''
+		&& $config['google_drive_evidence_config_valid'];
+	$drive_config_valid = $drive_config_unused || $production_drive_service_account_only;
+	if ($config['spmi_evidence_storage_backend'] === 'google_drive') {
+		$drive_config_valid = $production_drive_service_account_only;
+	}
 	$production_config_valid = strpos($config['base_url'], 'https://') === 0
 		&& $config['encryption_key'] !== ''
 		&& $config['cookie_secure'] === TRUE
@@ -451,7 +510,8 @@ if (ENVIRONMENT === 'production') {
 		&& $private_storage_path !== FALSE
 		&& is_writable($private_storage_path)
 		&& strpos($private_storage_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0
-		&& strpos($log_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0;
+		&& strpos($log_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0
+		&& $drive_config_valid;
 
 	if (!$production_config_valid) {
 		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
