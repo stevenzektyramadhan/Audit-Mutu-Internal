@@ -143,6 +143,12 @@ APP_COOKIE_SECURE=true
 APP_LOG_THRESHOLD=1
 APP_LOG_PATH=/srv/ami/logs
 APP_PRIVATE_STORAGE_PATH=/srv/ami/private
+SPMI_EVIDENCE_STORAGE_BACKEND=local
+GOOGLE_DRIVE_AUTH_MODE=service_account
+GOOGLE_DRIVE_EVIDENCE_FOLDER_ID=
+GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH=
+GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH=
+GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH=
 BREVO_API_KEY=<secret Brevo>
 MAIL_FROM_ADDRESS=<verified sender address>
 MAIL_FROM_NAME=<sender display name, opsional>
@@ -152,16 +158,50 @@ DB_PASSWORD=<secret database>
 DB_DATABASE=ami
 ```
 
-`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib sudah ada, writable, dan berada di luar document root. Reset password hanya aktif bila `BREVO_API_KEY` dan `MAIL_FROM_ADDRESS` tersedia. Aplikasi mengirim email reset lewat Brevo HTTPS API di `https://api.brevo.com/v3/smtp/email` dengan port 443 dan native HTTPS streams, memakai `BREVO_API_KEY` sebagai satu-satunya API key, serta `MAIL_FROM_ADDRESS` dan opsional `MAIL_FROM_NAME` sebagai sender. Sender harus sudah diverifikasi di Brevo. Tidak ada fallback SMTP, mail, atau sendmail. Jika pengiriman gagal atau API key tidak tersedia, token reset tidak dipakai, token aktif dibatalkan, dan pengguna tetap menerima respons generik yang sama. Konfigurasi produksi gagal tertutup jika setting wajib tersebut hilang atau tidak aman. Jangan menyimpan secret di source. Rotasi `APP_ENCRYPTION_KEY` jika key lama pernah digunakan di luar lingkungan tepercaya.
+`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib sudah ada, writable, dan berada di luar document root. Bukti SPMI baru tetap memakai backend lokal secara default; `SPMI_EVIDENCE_STORAGE_BACKEND` hanya menerima `local` atau `google_drive`, dan nilai lain kembali aman ke `local`. Kolom metadata Google Drive hanya fondasi untuk bukti SPMI auditee dan auditor baru, bukan migrasi file lama. Produksi hanya mendukung mode `service_account`; set `GOOGLE_DRIVE_AUTH_MODE=service_account`, isi `GOOGLE_DRIVE_EVIDENCE_FOLDER_ID` dan `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH` jika perlu Google Drive, lalu biarkan dua variabel OAuth kosong. File kredensial wajib berada di luar `FCPATH`/document root; konfigurasi produksi gagal tertutup bila backend Drive dipilih tanpa config Drive valid, salah satu nilai Drive diisi tanpa pasangan lengkap, atau path kredensial berada di area publik. Jangan commit file kredensial atau nilai secret. Reset password hanya aktif bila `BREVO_API_KEY` dan `MAIL_FROM_ADDRESS` tersedia. Aplikasi mengirim email reset lewat Brevo HTTPS API di `https://api.brevo.com/v3/smtp/email` dengan port 443 dan native HTTPS streams, memakai `BREVO_API_KEY` sebagai satu-satunya API key, serta `MAIL_FROM_ADDRESS` dan opsional `MAIL_FROM_NAME` sebagai sender. Sender harus sudah diverifikasi di Brevo. Tidak ada fallback SMTP, mail, atau sendmail. Jika pengiriman gagal atau API key tidak tersedia, token reset tidak dipakai, token aktif dibatalkan, dan pengguna tetap menerima respons generik yang sama. Konfigurasi produksi gagal tertutup jika setting wajib tersebut hilang atau tidak aman. Jangan menyimpan secret di source. Rotasi `APP_ENCRYPTION_KEY` jika key lama pernah digunakan di luar lingkungan tepercaya.
 
 Jika perlu override lokal yang tidak ikut Git, simpan di `test-data/compose.smtp.yaml` sebagai file override yang diabaikan. Jangan isi contoh itu dengan secret apa pun, dan jangan jadikan file itu sumber konfigurasi produksi.
+
+### Handover Google Shared Drive Bukti SPMI
+
+Berlaku hanya untuk bukti SPMI auditee dan auditor baru; file lama, bukti AMI legacy, dan bukti lokal yang sudah ada tetap lokal. Akses tetap lewat endpoint aplikasi dengan pemeriksaan role dan ownership, tanpa URL publik, ID Drive pada UI, atau permission publik di Google Drive. Sebelum produksi berpindah ke Drive, tim IT harus menyiapkan campus Shared Drive, mengaktifkan Drive API, membuat service account, memberi akses service account ke folder bukti dalam Shared Drive, dan menetapkan minimal dua administrator pemulihan manusia pada Shared Drive atau proses Google Workspace terkait. Simpan folder ID dan JSON service account di secret manager atau path server eksternal yang berada di luar repository dan document root; file itu hanya boleh readable oleh runtime PHP, bukan oleh web publik atau user lain. Ambil backup dulu lalu jalankan migration `033_add_spmi_drive_evidence_metadata.sql` satu kali; backup harus mencakup database serta `APP_PRIVATE_STORAGE_PATH`. Migration ini hanya menambah metadata Drive dan `spmi_drive_trash_outbox`, tidak memigrasikan file legacy atau lokal.
+
+Jangan ubah `SPMI_EVIDENCE_STORAGE_BACKEND=local` sampai Shared Drive, service account, credential path, backup, dan rollback sudah siap. Untuk cutover produksi, set `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive`, `GOOGLE_DRIVE_AUTH_MODE=service_account`, isi folder ID dan path service account eksternal, biarkan kedua path OAuth kosong, lalu restart PHP-FPM/Apache. Setelah restart, lakukan uji terkontrol: auditee upload/download/delete, auditor upload/download/delete, dan percobaan download/delete non-owner harus ditolak. Jika harus fallback ke lokal, fallback hanya berlaku untuk upload baru setelah backend dikembalikan; konfigurasi Drive dan akses service account harus tetap tersedia selama masih ada record Drive di database. Retry `spmi_drive_trash_outbox` masih manual: operator memilih row pending/retrying, menjalankan trash file Drive dengan service account, lalu memperbarui status/attempt/error sesuai hasil; belum ada worker otomatis. root `compose.yaml` tidak boleh memuat secret Drive production; pakai secret manager, konfigurasi server, atau override lokal yang diabaikan Git.
+
+### Google Drive untuk Development Lokal
+
+Gunakan mode OAuth ini hanya untuk development pribadi dengan folder My Drive milik sendiri. Aktifkan Google Drive API, buat OAuth client tipe Desktop application, lalu set `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive`. Mode ini dilarang di production. Production tetap harus memakai `service_account`, dengan variabel OAuth dikosongkan dan tanpa public Drive links.
+
+Untuk development lokal, siapkan dua file secret eksternal yang hanya bisa dibaca container, lalu mount keduanya read-only dari luar repo dan di luar document root:
+
+1. Google OAuth Desktop client secret JSON.
+2. Refresh token JSON hasil bootstrap CLI.
+
+Simpan kedua file di luar repository dan di luar document root, lalu mount dengan path absolut. Jalankan bootstrap sekali untuk menulis refresh token pertama kali:
+
+```bash
+php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/refresh-token.json
+```
+
+Setelah itu, gunakan environment berikut pada development lokal:
+
+```text
+SPMI_EVIDENCE_STORAGE_BACKEND=google_drive
+GOOGLE_DRIVE_AUTH_MODE=oauth_refresh_token
+GOOGLE_DRIVE_EVIDENCE_FOLDER_ID=<private My Drive folder ID>
+GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH=
+GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH=<absolute path ke client secret JSON di luar repo>
+GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH=<absolute path ke refresh token JSON di luar repo>
+```
+
+Kedua path wajib berada di luar repo dan document root, serta hanya dipasang read-only. Jangan pernah menyalin file itu ke dalam tree aplikasi. Untuk production, tetap set `GOOGLE_DRIVE_AUTH_MODE=service_account`, kosongkan dua variabel OAuth, dan jangan pakai link Drive publik.
 
 ### Panduan Uji Lokal Reset Password
 
 Pakai bagian ini untuk menyiapkan branch ini di mesin lokal lalu menguji alur `Lupa Password` sampai email reset terkirim lewat Brevo.
 
 1. Pull branch ini, lalu pastikan dependency sudah terpasang. Jika memakai Docker Compose, rebuild container setelah environment berubah.
-2. Untuk database lokal yang sudah ada, backup dulu lalu jalankan migration `032_create_password_reset_tokens.sql` satu kali. Untuk database baru, import `database_schema.sql` dulu, lalu buat user uji yang terkontrol. Jangan pakai akun produksi atau isi data rahasia di database lokal.
+2. Untuk database lokal yang sudah ada, backup dulu lalu jalankan migration `032_create_password_reset_tokens.sql` dan `033_add_spmi_drive_evidence_metadata.sql` satu kali sesuai urutan bila belum diterapkan. Untuk database baru, import `database_schema.sql` dulu, lalu buat user uji yang terkontrol. Jangan pakai akun produksi atau isi data rahasia di database lokal.
 3. Set environment lokal berikut lewat VirtualHost, file env Compose yang diabaikan Git, atau compose override lokal yang juga diabaikan Git:
 
    ```text
@@ -217,7 +257,7 @@ php tests/spmi_ui_consistency_regression.php
 
 #### Database baru
 
-Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `032` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
+Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `033` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
 
 #### Database lama, legacy, belum punya table organisasi, capability, atau SPMI
 
@@ -244,12 +284,15 @@ Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage 
 19. `030_add_spmi_auditor_assessment_finding_details.sql`
 20. `031_add_spmi_audit_cycle_academic_period.sql`
 21. `032_create_password_reset_tokens.sql`
+22. `033_add_spmi_drive_evidence_metadata.sql`
 
 Jalankan satu file tiap langkah, satu per satu, memakai klien MySQL yang dipilih tim ke database yang memang dituju. Jangan membatch file. Jangan menambahkan kredensial.
 
 Jangan pakai `--force`. Jangan matikan foreign key checks. Hentikan di error pertama. Jangan jalankan blok `DOWN` historis.
 
 Catatan penting, migration `014` berhenti bila lebih dari satu active version ditemukan. Migration `028` membuat index composite `(assignment_id, source_submission_version)` dulu, baru menghapus unique index lama, supaya aman untuk FK. Migration `029` menambahkan bukti assessment auditor dan snapshot metadata laporan secara aditif. Migration `030` menambahkan detail temuan dan snapshot laporan secara aditif. Migration `031` menambahkan `academic_year` dan `semester` nullable pada `spmi_audit_cycles` secara aditif dan idempotent. Migration ini tidak melakukan backfill; isi periode akademik untuk siklus draft melalui menu Siklus & Penugasan SPMI setelah upgrade.
+
+Migration `033` menambahkan metadata backend bukti SPMI baru pada `spmi_auditee_evidence` dan `spmi_auditor_assessment_evidence` secara aditif dan idempotent. Kolom `storage_backend` default ke `local`, sedangkan `drive_file_id` dan `drive_folder_id` nullable. Migration ini tidak melakukan DML, tidak memindahkan file lokal lama, tidak mengubah bukti AMI legacy, dan tidak membuat kredensial Google.
 
 CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw SQL yang dijalankan manual oleh tim deployment setelah backup database. Untuk database yang sudah masuk jalur legacy di atas, ikuti nomor migration yang sudah ditetapkan, satu file tiap langkah, tanpa melewati urutan atau menjalankan blok `DOWN` historis otomatis. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup.
 
