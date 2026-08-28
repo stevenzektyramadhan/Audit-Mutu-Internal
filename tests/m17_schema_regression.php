@@ -70,6 +70,7 @@ $assessments = m17_table_block($schema, 'spmi_auditor_assessments');
 $assessment_items = m17_table_block($schema, 'spmi_auditor_assessment_items');
 $report_items = m17_table_block($schema, 'spmi_report_items');
 $auditor_evidence = m17_table_block($schema, 'spmi_auditor_assessment_evidence');
+$drive_trash_outbox = m17_table_block($schema, 'spmi_drive_trash_outbox');
 
 // When: reading only static schema artifacts, without executing migrations or application behavior.
 $combined_schema = $schema . "\n" . $migration_contract;
@@ -77,6 +78,7 @@ $m17_01a_migration = m17_optional_source('migrations/027_add_revision_lifecycle_
 $m17_07b_migration = m17_optional_source('migrations/028_add_versioned_auditor_assessments.sql');
 $m17_07b_evidence_migration = m17_optional_source('migrations/029_add_spmi_auditor_assessment_evidence.sql');
 $m17_07c_migration = m17_optional_source('migrations/030_add_spmi_auditor_assessment_finding_details.sql');
+$m17_drive_evidence_migration = m17_source('migrations/033_add_spmi_drive_evidence_metadata.sql');
 
 // Then: M17-01 provides dormant, backward-compatible schema for M17-02 through M17-06.
 m17_check(
@@ -169,5 +171,25 @@ foreach ([['improvement_plan_snapshot', 'TEXT NULL'], ['evidence_date_snapshot',
 m17_check(substr_count($m17_07c_migration, 'INFORMATION_SCHEMA.COLUMNS') === 4, 'M17-07C migration 030 must use four additive column guards.');
 foreach (['spmi_auditor_assessment_items', 'improvement_plan', 'evidence_date', 'spmi_report_items', 'improvement_plan_snapshot', 'evidence_date_snapshot'] as $literal) m17_check(strpos($m17_07c_migration, $literal) !== FALSE, 'M17-07C migration detail missing: ' . $literal);
 foreach (['INSERT', 'UPDATE', 'DELETE'] as $verb) m17_has_no_statement($m17_07c_migration, $verb, 'M17-07C migration 030 must not perform DML: ' . $verb);
+
+$auditee_evidence = m17_table_block($schema, 'spmi_auditee_evidence');
+foreach ([$auditee_evidence, $auditor_evidence] as $evidence_table) {
+    m17_check(m17_has_column($evidence_table, 'storage_backend', "ENUM\('local','google_drive'\) NOT NULL DEFAULT 'local'"), 'SPMI Drive evidence metadata must keep local as the default backend.');
+    m17_check(m17_has_column($evidence_table, 'drive_file_id', 'VARCHAR\(255\) NULL'), 'SPMI Drive evidence metadata must allow nullable Drive file IDs.');
+    m17_check(m17_has_column($evidence_table, 'drive_folder_id', 'VARCHAR\(255\) NULL'), 'SPMI Drive evidence metadata must allow nullable Drive folder IDs.');
+}
+m17_check(strpos($schema, 'current parity migration 001-033') !== FALSE, 'Schema parity marker missing: current parity migration 001-033');
+foreach (['spmi_auditee_evidence', 'spmi_auditor_assessment_evidence', 'INFORMATION_SCHEMA.COLUMNS', 'INFORMATION_SCHEMA.STATISTICS', "DEFAULT 'local'", 'drive_file_id', 'drive_folder_id'] as $literal) {
+    m17_check(strpos($m17_drive_evidence_migration, $literal) !== FALSE, 'Migration 033 Drive evidence metadata contract missing: ' . $literal);
+}
+foreach (['source_table', 'source_id', "ENUM('trash')", 'drive_file_id', 'drive_folder_id', 'stored_name', "ENUM('pending','retrying','done','failed')", 'attempt_count', 'last_error', 'next_attempt_at', 'idx_spmi_drive_trash_outbox_status'] as $literal) {
+    m17_check(strpos($drive_trash_outbox, $literal) !== FALSE, 'SPMI Drive trash outbox schema missing: ' . $literal);
+}
+m17_check(strpos($m17_drive_evidence_migration, 'CREATE TABLE IF NOT EXISTS `spmi_drive_trash_outbox`') !== FALSE, 'Migration 033 must add the Drive trash outbox idempotently.');
+m17_check(strpos($m17_drive_evidence_migration, 'Manual retry:') !== FALSE && strpos($m17_drive_evidence_migration, 'drive_file_id') !== FALSE && strpos($m17_drive_evidence_migration, 'attempt_count') !== FALSE, 'Migration 033 must document minimal operator retry path.');
+foreach (['INSERT', 'DELETE'] as $verb) m17_has_no_statement($m17_drive_evidence_migration, $verb, 'Migration 033 must not perform destructive/historical DML: ' . $verb);
+foreach (['ALTER TABLE `pertanyaan`', 'ALTER TABLE `tugas_audit`', 'ALTER TABLE `jawaban_audit`'] as $legacy_mutation) {
+    m17_check(strpos($m17_drive_evidence_migration, $legacy_mutation) === FALSE, 'Migration 033 must not mutate legacy table: ' . $legacy_mutation);
+}
 
 fwrite(STDOUT, "M17 schema regression checks passed.\n");

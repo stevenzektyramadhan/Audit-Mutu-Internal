@@ -79,4 +79,31 @@ check(strpos($auditor, 'find_jawaban_for_auditor') !== FALSE, 'Download auditor 
 check(strpos(source($root, 'application/controllers/lpmpi/Instrumen.php'), 'extends Admin_Lpmpi_Controller') !== FALSE, 'Download instrumen admin harus role-protected.');
 check(strpos(source($root, 'application/controllers/lpmpi/Penetapan.php'), 'extends Admin_Lpmpi_Controller') !== FALSE, 'Download penetapan admin harus role-protected.');
 
+$config = source($root, 'application/config/config.php');
+$readme = source($root, 'README.md');
+check(strpos($config, "getenv('GOOGLE_DRIVE_EVIDENCE_FOLDER_ID')") !== FALSE, 'Config harus membaca folder Google Drive dari environment.');
+check(strpos($config, "getenv('GOOGLE_DRIVE_AUTH_MODE')") !== FALSE, 'Config harus membaca mode auth Google Drive dari environment.');
+check(strpos($config, "getenv('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH')") !== FALSE, 'Config harus membaca path service account Google Drive dari environment.');
+check(strpos($config, "getenv('GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH')") !== FALSE, 'Config harus membaca path OAuth client secret Google Drive dari environment.');
+check(strpos($config, "getenv('GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH')") !== FALSE, 'Config harus membaca path OAuth refresh token Google Drive dari environment.');
+check(strpos($config, "getenv('SPMI_EVIDENCE_STORAGE_BACKEND')") !== FALSE, 'Config harus membaca backend bukti SPMI dari environment.');
+check(strpos($config, "in_array($" . "spmi_evidence_storage_backend, ['local', 'google_drive'], TRUE)") !== FALSE && strpos($config, ": 'local';") !== FALSE, 'Config harus allowlist backend bukti SPMI dan default aman ke lokal.');
+check(strpos($config, 'realpath($config[\'google_drive_service_account_json_path\'])') !== FALSE, 'Config produksi harus resolve path kredensial Google Drive.');
+check(strpos($config, 'strpos($google_drive_config_path . DIRECTORY_SEPARATOR, $google_drive_web_root . DIRECTORY_SEPARATOR) === 0') !== FALSE, 'Config produksi harus menolak kredensial Google Drive di bawah FCPATH.');
+check(strpos($config, '$drive_config_valid') !== FALSE, 'Config produksi harus memasukkan validasi Drive ke fail-closed gate.');
+check(strpos($config, '$production_drive_service_account_only') !== FALSE && strpos($config, "['spmi_evidence_storage_backend'] === 'google_drive'") !== FALSE && strpos($config, '$drive_config_valid = $production_drive_service_account_only;') !== FALSE, 'Config produksi harus gagal tertutup saat backend Drive dipilih tanpa config Drive valid.');
+check(strpos($config, "ENVIRONMENT !== 'production'") !== FALSE && strpos($config, "google_drive_oauth_client_secret_json_path'] === ''") !== FALSE && strpos($config, "google_drive_oauth_refresh_token_json_path'] === ''") !== FALSE, 'Config produksi harus menolak OAuth dan mixed credential Google Drive.');
+check(strpos($readme, 'SPMI_EVIDENCE_STORAGE_BACKEND=local') !== FALSE, 'README deployment harus mendokumentasikan backend bukti SPMI default.');
+check(strpos($readme, 'GOOGLE_DRIVE_EVIDENCE_FOLDER_ID=') !== FALSE, 'README deployment harus mendokumentasikan folder Google Drive tanpa nilai nyata.');
+check(strpos($readme, 'GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH=') !== FALSE, 'README deployment harus mendokumentasikan path kredensial Google Drive tanpa nilai nyata.');
+check(strpos($readme, 'backend lokal secara default') !== FALSE, 'README harus menjelaskan backend lokal tetap default.');
+check(strpos($readme, '033_add_spmi_drive_evidence_metadata.sql') !== FALSE, 'README upgrade harus mencantumkan migration 033.');
+check(strpos($readme, '### Handover Google Shared Drive Bukti SPMI') !== FALSE, 'README harus memiliki runbook handover Shared Drive SPMI.');
+check(strpos($readme, 'Berlaku hanya untuk bukti SPMI auditee dan auditor baru') !== FALSE, 'README handover harus membatasi scope Drive ke bukti SPMI baru.');
+check(strpos($readme, 'tanpa URL publik, ID Drive pada UI, atau permission publik') !== FALSE, 'README handover harus melarang akses Drive publik.');
+check(strpos($readme, 'minimal dua administrator pemulihan manusia') !== FALSE, 'README handover harus meminta minimal dua admin pemulihan.');
+check(strpos($readme, 'backup dulu lalu jalankan migration `033_add_spmi_drive_evidence_metadata.sql` satu kali') !== FALSE, 'README handover harus meminta backup dan migration 033 sekali.');
+check(strpos($readme, '`spmi_drive_trash_outbox` masih manual') !== FALSE, 'README handover harus menjelaskan retry trash outbox manual.');
+check(strpos($readme, 'root `compose.yaml` tidak boleh memuat secret Drive production') !== FALSE, 'README handover harus melarang secret Drive produksi di compose root.');
+
 fwrite(STDOUT, "Hardening regression checks passed.\n");

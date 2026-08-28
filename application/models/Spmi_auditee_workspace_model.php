@@ -73,5 +73,6 @@ class Spmi_auditee_workspace_model extends CI_Model
     public function revision_history($assignment_id, $user_id) { return $this->db->select('e.*, u.nama AS actor_name, u.email AS actor_email')->from('spmi_auditee_submission_revision_events e')->join('spmi_audit_assignments a', 'a.id = e.assignment_id')->join('users u', 'u.id = e.actor_user_id')->where('e.assignment_id', (int) $assignment_id)->where('a.auditee_id', (int) $user_id)->order_by('e.created_at', 'ASC')->order_by('e.id', 'ASC')->get()->result(); }
     public function add_evidence($data) { return $this->db->insert('spmi_auditee_evidence', $data); }
     public function delete_evidence($id) { return $this->db->where('id', (int) $id)->delete('spmi_auditee_evidence'); }
+    public function add_drive_trash_outbox($data) { return $this->db->insert('spmi_drive_trash_outbox', $data); }
     public function count_evidence($item_id) { return (int) $this->db->where('submission_item_id', (int) $item_id)->count_all_results('spmi_auditee_evidence'); }
 }

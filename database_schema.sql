@@ -13,6 +13,7 @@
 -- current parity migration 001-030
 -- current parity migration 001-031
 -- current parity migration 001-032
+-- current parity migration 001-033
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -475,9 +476,13 @@ CREATE TABLE IF NOT EXISTS `spmi_auditee_evidence` (
     `mime_type` VARCHAR(100) NOT NULL,
     `size_bytes` INT UNSIGNED NOT NULL,
     `sha256` CHAR(64) NOT NULL,
+    `storage_backend` ENUM('local','google_drive') NOT NULL DEFAULT 'local',
+    `drive_file_id` VARCHAR(255) NULL,
+    `drive_folder_id` VARCHAR(255) NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_auditee_evidence_stored_name` (`stored_name`),
     KEY `idx_spmi_auditee_evidence_item` (`submission_item_id`),
+    KEY `idx_spmi_auditee_evidence_drive_file` (`storage_backend`, `drive_file_id`),
     CONSTRAINT `fk_spmi_auditee_evidence_submission_item` FOREIGN KEY (`submission_item_id`) REFERENCES `spmi_auditee_submission_items` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -522,10 +527,32 @@ CREATE TABLE IF NOT EXISTS `spmi_auditor_assessment_evidence` (
     `mime_type` VARCHAR(100) NOT NULL,
     `size_bytes` INT UNSIGNED NOT NULL,
     `sha256` CHAR(64) NOT NULL,
+    `storage_backend` ENUM('local','google_drive') NOT NULL DEFAULT 'local',
+    `drive_file_id` VARCHAR(255) NULL,
+    `drive_folder_id` VARCHAR(255) NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_auditor_assessment_evidence_stored_name` (`stored_name`),
     KEY `idx_spmi_auditor_assessment_evidence_item` (`assessment_item_id`),
+    KEY `idx_spmi_auditor_assessment_evidence_drive_file` (`storage_backend`, `drive_file_id`),
     CONSTRAINT `fk_spmi_auditor_assessment_evidence_item` FOREIGN KEY (`assessment_item_id`) REFERENCES `spmi_auditor_assessment_items` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `spmi_drive_trash_outbox` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `source_table` VARCHAR(64) NOT NULL,
+    `source_id` INT UNSIGNED NULL,
+    `operation` ENUM('trash') NOT NULL DEFAULT 'trash',
+    `drive_file_id` VARCHAR(255) NOT NULL,
+    `drive_folder_id` VARCHAR(255) NULL,
+    `stored_name` VARCHAR(255) NULL,
+    `status` ENUM('pending','retrying','done','failed') NOT NULL DEFAULT 'pending',
+    `attempt_count` INT UNSIGNED NOT NULL DEFAULT 0,
+    `last_error` VARCHAR(120) NULL,
+    `next_attempt_at` DATETIME NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_spmi_drive_trash_outbox_status` (`status`, `next_attempt_at`, `id`),
+    KEY `idx_spmi_drive_trash_outbox_drive_file` (`drive_file_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `spmi_reports` (

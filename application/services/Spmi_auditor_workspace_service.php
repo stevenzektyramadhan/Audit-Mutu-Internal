@@ -7,6 +7,7 @@ class Spmi_auditor_workspace_service
 
     protected $ci;
     protected $model;
+    protected $drive_storage;
 
     public function __construct() { $this->ci = &get_instance(); $this->ci->load->model('Spmi_auditor_workspace_model'); $this->model = $this->ci->Spmi_auditor_workspace_model; }
     public function assignments($user_id, $filters) { return $this->model->assignments($user_id, $this->filters($filters)); }
@@ -128,7 +129,7 @@ class Spmi_auditor_workspace_service
         return $this->finish('Submission dikembalikan untuk revisi.');
     }
 
-    public function download($evidence_id, $user_id) { $evidence = $this->model->evidence_for_read($evidence_id, $user_id); if (!$evidence) return NULL; $path = private_storage_path('audit_evidence', $evidence->stored_name); return $path && is_file($path) ? ['path' => $path, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name] : NULL; }
+    public function download($evidence_id, $user_id) { $evidence = $this->model->evidence_for_read($evidence_id, $user_id); if (!$evidence) return NULL; if ($this->is_drive_evidence($evidence)) return ['backend' => 'google_drive', 'drive_file_id' => $evidence->drive_file_id, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name, 'size' => (int) $evidence->size_bytes]; $path = private_storage_path('audit_evidence', $evidence->stored_name); return $path && is_file($path) ? ['backend' => 'local', 'path' => $path, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name] : NULL; }
     public function upload_auditor_evidence($assessment_item_id, $user_id, $version, $source_submission_version, $file)
     {
         $this->ci->db->trans_begin();
@@ -137,6 +138,7 @@ class Spmi_auditor_workspace_service
         if ($this->model->lock_auditor_evidence_count($item->id) >= 5) return $this->rollback('Maksimal 5 bukti per item.');
         $validated = $this->validate_file($file);
         if (!$validated['success']) return $this->rollback($validated['message']);
+        $use_drive = $this->use_drive_storage();
         $dir = private_storage_dir('audit_evidence');
         if (!is_dir($dir) && !mkdir($dir, 0700, TRUE) && !is_dir($dir)) return $this->rollback('Bukti gagal disimpan.');
         $paths = [];
@@ -145,9 +147,19 @@ class Spmi_auditor_workspace_service
         $paths[] = $path;
         if (!move_uploaded_file($file['tmp_name'], $path)) return $this->rollback('Bukti gagal disimpan.');
         $hash = hash_file('sha256', $path);
-        if ($hash === FALSE || !$this->model->add_auditor_evidence(['assessment_item_id' => $item->id, 'stored_name' => $name, 'original_name' => basename($file['name']), 'mime_type' => $validated['mime'], 'size_bytes' => (int) $file['size'], 'sha256' => $hash]) || !$this->model->update_assessment($item->assessment_id, $version) || $this->ci->db->affected_rows() !== 1) { $this->cleanup_paths($paths); return $this->rollback(self::CONFLICT); }
+        $drive_file_id = NULL;
+        $drive_folder_id = NULL;
+        if ($hash !== FALSE && $use_drive) {
+            $upload = $this->drive_storage()->upload($path, $name, $validated['mime']);
+            if (!$upload['success']) { $this->cleanup_paths($paths); return $this->rollback('Bukti gagal disimpan.'); }
+            $drive_file_id = $upload['file_id'];
+            $drive_folder_id = $this->ci->config->item('google_drive_evidence_folder_id');
+        }
+        $data = ['assessment_item_id' => $item->id, 'stored_name' => $name, 'original_name' => basename($file['name']), 'mime_type' => $validated['mime'], 'size_bytes' => (int) $file['size'], 'sha256' => $hash, 'storage_backend' => $use_drive ? 'google_drive' : 'local', 'drive_file_id' => $drive_file_id, 'drive_folder_id' => $drive_folder_id];
+        if ($hash === FALSE || !$this->model->add_auditor_evidence($data) || !$this->model->update_assessment($item->assessment_id, $version) || $this->ci->db->affected_rows() !== 1) { $this->ci->db->trans_rollback(); if ($drive_file_id !== NULL) { $trash = $this->drive_storage()->trash($drive_file_id); if (!$trash['success']) $this->record_drive_trash_failure('spmi_auditor_assessment_evidence', NULL, $drive_file_id, $drive_folder_id, $name); } $this->cleanup_paths($paths); return ['success' => FALSE, 'message' => self::CONFLICT]; }
         $result = $this->finish('Bukti auditor berhasil ditambahkan.');
-        if (!$result['success']) $this->cleanup_paths($paths);
+        if (!$result['success'] && $drive_file_id !== NULL) { $trash = $this->drive_storage()->trash($drive_file_id); if (!$trash['success']) $this->record_drive_trash_failure('spmi_auditor_assessment_evidence', NULL, $drive_file_id, $drive_folder_id, $name); }
+        if ($use_drive || !$result['success']) $this->cleanup_paths($paths);
         return $result;
     }
     public function delete_auditor_evidence($evidence_id, $user_id, $version, $source_submission_version)
@@ -157,15 +169,21 @@ class Spmi_auditor_workspace_service
         if (!$this->valid_int($source_submission_version) || !$evidence || $evidence->state !== 'configured' || $evidence->assessment_status !== 'draft' || !in_array($evidence->submission_status, ['submitted', 'resubmitted'], TRUE) || (int) $source_submission_version !== (int) $evidence->submission_version || (int) $evidence->source_submission_version !== (int) $evidence->submission_version) return $this->rollback(self::CONFLICT);
         if (!$this->model->delete_auditor_evidence($evidence_id) || !$this->model->update_assessment($evidence->assessment_id, $version) || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT);
         $result = $this->finish('Bukti auditor berhasil dihapus.');
+        if ($result['success'] && $this->is_drive_evidence($evidence)) { $trash = $this->drive_storage()->trash($evidence->drive_file_id); if (!$trash['success']) $this->record_drive_trash_failure('spmi_auditor_assessment_evidence', (int) $evidence->id, $evidence->drive_file_id, $evidence->drive_folder_id, $evidence->stored_name); }
         $path = private_storage_path('audit_evidence', $evidence->stored_name);
-        if ($result['success'] && $path && is_file($path)) unlink($path);
+        if ($result['success'] && !$this->is_drive_evidence($evidence) && $path && is_file($path)) unlink($path);
         return $result;
     }
-    public function download_auditor_evidence($evidence_id, $user_id) { $evidence = $this->model->auditor_evidence_for_read($evidence_id, $user_id); if (!$evidence) return NULL; $path = private_storage_path('audit_evidence', $evidence->stored_name); return $path && is_file($path) ? ['path' => $path, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name] : NULL; }
+    public function download_auditor_evidence($evidence_id, $user_id) { $evidence = $this->model->auditor_evidence_for_read($evidence_id, $user_id); if (!$evidence) return NULL; if ($this->is_drive_evidence($evidence)) return ['backend' => 'google_drive', 'drive_file_id' => $evidence->drive_file_id, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name, 'size' => (int) $evidence->size_bytes]; $path = private_storage_path('audit_evidence', $evidence->stored_name); return $path && is_file($path) ? ['backend' => 'local', 'path' => $path, 'mime' => $evidence->mime_type, 'name' => $evidence->original_name] : NULL; }
+    public function stream_drive_download($file_id, $output) { return $this->drive_storage()->stream_download($file_id, $output); }
     public function assignment_id_for_assessment_item($assessment_item_id, $user_id) { $row = $this->model->assignment_id_for_assessment_item($assessment_item_id, $user_id); return $row ? (int) $row->id : 0; }
     public function assignment_id_for_auditor_evidence($evidence_id, $user_id) { $row = $this->model->assignment_id_for_auditor_evidence($evidence_id, $user_id); return $row ? (int) $row->id : 0; }
     protected function validate_file($file) { if (!is_array($file) || !isset($file['error'], $file['tmp_name'], $file['size'], $file['name']) || $file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name']) || (int) $file['size'] > 5 * 1024 * 1024) return ['success' => FALSE, 'message' => 'Bukti harus berupa PDF, JPEG, atau PNG maksimal 5 MiB.']; $finfo = finfo_open(FILEINFO_MIME_TYPE); $mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : FALSE; if ($finfo) finfo_close($finfo); $image = @getimagesize($file['tmp_name']); $allowed = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png']; if (!isset($allowed[$mime]) || (($mime === 'image/jpeg' || $mime === 'image/png') && (!$image || $image['mime'] !== $mime))) return ['success' => FALSE, 'message' => 'Bukti harus berupa PDF, JPEG, atau PNG maksimal 5 MiB.']; return ['success' => TRUE, 'mime' => $mime, 'extension' => $allowed[$mime]]; }
     protected function cleanup_paths($paths) { foreach ($paths as $path) if (is_file($path)) unlink($path); }
+    protected function use_drive_storage() { return $this->ci->config->item('spmi_evidence_storage_backend') === 'google_drive'; }
+    protected function drive_storage() { if (!$this->drive_storage) { $this->ci->load->library('Google_drive_evidence_storage'); $this->drive_storage = $this->ci->google_drive_evidence_storage; } return $this->drive_storage; }
+    protected function is_drive_evidence($evidence) { return isset($evidence->storage_backend, $evidence->drive_file_id) && $evidence->storage_backend === 'google_drive' && $evidence->drive_file_id !== ''; }
+    protected function record_drive_trash_failure($source_table, $source_id, $drive_file_id, $drive_folder_id, $stored_name) { $this->model->add_drive_trash_outbox(['source_table' => $source_table, 'source_id' => $source_id, 'operation' => 'trash', 'drive_file_id' => $drive_file_id, 'drive_folder_id' => $drive_folder_id, 'stored_name' => $stored_name, 'status' => 'pending', 'last_error' => 'drive_trash_failed']); }
     protected function validate_item_value($value)
     {
         $fields = ['score', 'finding_type', 'finding', 'recommendation', 'improvement_plan', 'evidence_date'];

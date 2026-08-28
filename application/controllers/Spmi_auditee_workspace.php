@@ -102,7 +102,7 @@ class Spmi_auditee_workspace extends CI_Controller
     {
         $file = $this->service->download((int) $id, $this->user_id());
         if (!$file) { show_error('Bukti tidak ditemukan.', 404, 'Not Found'); return; }
-        header('Content-Type: ' . $file['mime']); header('Content-Length: ' . (string) filesize($file['path'])); header('Content-Disposition: attachment; filename="' . rawurlencode($file['name']) . '"'); header('Cache-Control: private, no-store'); header('Pragma: no-cache'); readfile($file['path']);
+        $this->output_evidence_file($file, 'Bukti tidak ditemukan.');
     }
 
     protected function user_id() { return (int) $this->session->userdata('user_id'); }
@@ -127,4 +127,23 @@ class Spmi_auditee_workspace extends CI_Controller
         return ['cycle_id' => $cycle_id, 'status' => in_array($status, $allowed_statuses, TRUE) ? $status : ''];
     }
     protected function require_post() { if ($this->input->method(TRUE) !== 'POST') { show_error('Method tidak diizinkan.', 405, 'Method Not Allowed'); exit; } }
+    protected function output_evidence_file($file, $not_found_message)
+    {
+        if ($file['backend'] === 'google_drive') {
+            header('Content-Type: ' . $file['mime']);
+            header('Content-Length: ' . (string) $file['size']);
+            header('Content-Disposition: attachment; filename="' . rawurlencode($file['name']) . '"');
+            header('Cache-Control: private, no-store');
+            header('Pragma: no-cache');
+            $result = $this->service->stream_drive_download($file['drive_file_id'], fopen('php://output', 'wb'));
+            if (!$result['success']) { show_error($not_found_message, 404, 'Not Found'); return; }
+            return;
+        }
+        header('Content-Type: ' . $file['mime']);
+        header('Content-Length: ' . (string) filesize($file['path']));
+        header('Content-Disposition: attachment; filename="' . rawurlencode($file['name']) . '"');
+        header('Cache-Control: private, no-store');
+        header('Pragma: no-cache');
+        readfile($file['path']);
+    }
 }

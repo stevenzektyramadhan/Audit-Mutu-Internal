@@ -12,7 +12,8 @@
 	},
 	"require": {
 		"php": ">=7.4",
-		"phpoffice/phpspreadsheet": "^1.29"
+		"phpoffice/phpspreadsheet": "^1.29",
+		"google/apiclient": "^2.15"
 	},
 	"suggest": {
 		"paragonie/random_compat": "Provides better randomness in PHP 5.x"
