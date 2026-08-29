@@ -26,11 +26,17 @@ services:
       DB_USERNAME: ami_local
       DB_PASSWORD: ami_local_password
       DB_DATABASE: ami
+      APP_PRIVATE_STORAGE_PATH: /srv/ami/private
+    command: >-
+      sh -c "mkdir -p /srv/ami/private
+      && chown -R www-data:www-data /srv/ami/private
+      && exec apache2-foreground"
     ports:
       - "127.0.0.1:8081:80"
     volumes:
       - sessions:/var/www/html/application/cache/sessions
       - uploads:/var/www/html/uploads
+      - private_storage:/srv/ami/private
     depends_on:
       db:
         condition: service_healthy
@@ -39,3 +45,4 @@ volumes:
   db_data:
   sessions:
   uploads:
+  private_storage:
