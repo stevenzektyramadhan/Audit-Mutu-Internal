@@ -130,13 +130,20 @@ class Spmi_auditee_workspace extends CI_Controller
     protected function output_evidence_file($file, $not_found_message)
     {
         if ($file['backend'] === 'google_drive') {
+            $temp = fopen('php://temp', 'w+b');
+            $result = $this->service->stream_drive_download($file['drive_file_id'], $temp);
+            if (!$result['success']) { fclose($temp); show_error($not_found_message, 404, 'Not Found'); return; }
+            rewind($temp);
+            $stat = fstat($temp);
             header('Content-Type: ' . $file['mime']);
-            header('Content-Length: ' . (string) $file['size']);
+            header('Content-Length: ' . (string) $stat['size']);
             header('Content-Disposition: attachment; filename="' . rawurlencode($file['name']) . '"');
             header('Cache-Control: private, no-store');
             header('Pragma: no-cache');
-            $result = $this->service->stream_drive_download($file['drive_file_id'], fopen('php://output', 'wb'));
-            if (!$result['success']) { show_error($not_found_message, 404, 'Not Found'); return; }
+            $output = fopen('php://output', 'wb');
+            stream_copy_to_stream($temp, $output);
+            fclose($output);
+            fclose($temp);
             return;
         }
         header('Content-Type: ' . $file['mime']);
