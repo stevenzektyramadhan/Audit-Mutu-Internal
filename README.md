@@ -111,13 +111,13 @@ Pada volume database baru, MySQL menjalankan `database_schema.sql` sebagai `01-s
 
 Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host yang berbeda. Jika sudah berganti dan login ditolak, tutup tab aplikasi lalu hapus site data untuk kedua host sebelum membuka `127.0.0.1` lagi.
 
-Compose sengaja tidak memublikasikan port MySQL ke host. Sesi, upload, dan data MySQL tersimpan dalam named volume. `docker compose down` menghentikan container dan mempertahankan named volume.
+Compose sengaja tidak memublikasikan port MySQL ke host. Sesi, upload, dan data MySQL tersimpan dalam named volume. SPMI bukti lokal juga disimpan di `/srv/ami/private` lewat named volume `private_storage`, jadi rebuild atau recreate container normal tidak menghapusnya. `docker compose down` menghentikan container dan mempertahankan named volume.
 
 ```bash
 docker compose down
 ```
 
-`docker compose down -v` menghapus named volume, jadi database lokal, sesi, dan upload hilang.
+`docker compose down -v` menghapus named volume, jadi database lokal, sesi, upload, dan `private_storage` hilang.
 
 ```bash
 docker compose down -v
@@ -164,7 +164,7 @@ Jika perlu override lokal yang tidak ikut Git, simpan di `test-data/compose.smtp
 
 ### Handover Google Shared Drive Bukti SPMI
 
-Berlaku hanya untuk bukti SPMI auditee dan auditor baru; file lama, bukti AMI legacy, dan bukti lokal yang sudah ada tetap lokal. Akses tetap lewat endpoint aplikasi dengan pemeriksaan role dan ownership, tanpa URL publik, ID Drive pada UI, atau permission publik di Google Drive. Sebelum produksi berpindah ke Drive, tim IT harus menyiapkan campus Shared Drive, mengaktifkan Drive API, membuat service account, memberi akses service account ke folder bukti dalam Shared Drive, dan menetapkan minimal dua administrator pemulihan manusia pada Shared Drive atau proses Google Workspace terkait. Simpan folder ID dan JSON service account di secret manager atau path server eksternal yang berada di luar repository dan document root; file itu hanya boleh readable oleh runtime PHP, bukan oleh web publik atau user lain. Ambil backup dulu lalu jalankan migration `033_add_spmi_drive_evidence_metadata.sql` satu kali; backup harus mencakup database serta `APP_PRIVATE_STORAGE_PATH`. Migration ini hanya menambah metadata Drive dan `spmi_drive_trash_outbox`, tidak memigrasikan file legacy atau lokal.
+Berlaku hanya untuk bukti SPMI auditee dan auditor baru; file lama, bukti AMI legacy, dan bukti lokal yang sudah ada tetap lokal. Akses tetap lewat endpoint aplikasi dengan pemeriksaan role dan ownership, tanpa URL publik, ID Drive pada UI, atau permission publik di Google Drive. Sebelum produksi berpindah ke Drive, tim IT harus menyiapkan campus Shared Drive, mengaktifkan Drive API, membuat service account, memberi akses service account ke folder bukti dalam Shared Drive, dan menetapkan minimal dua administrator pemulihan manusia pada Shared Drive atau proses Google Workspace terkait. Simpan folder ID dan JSON service account di secret manager atau path server eksternal yang berada di luar repository dan document root; file itu hanya boleh readable oleh runtime PHP, bukan oleh web publik atau user lain. Unduhan Drive membaca konten ke buffer dulu, lalu baru mengirim header attachment jika retrieval berhasil, jadi kegagalan tetap kembali sebagai HTML 404 terkontrol, bukan attachment yang menyesatkan. Ambil backup dulu lalu jalankan migration `033_add_spmi_drive_evidence_metadata.sql` satu kali; backup harus mencakup database serta `APP_PRIVATE_STORAGE_PATH`. Migration ini hanya menambah metadata Drive dan `spmi_drive_trash_outbox`, tidak memigrasikan file legacy atau lokal.
 
 Jangan ubah `SPMI_EVIDENCE_STORAGE_BACKEND=local` sampai Shared Drive, service account, credential path, backup, dan rollback sudah siap. Untuk cutover produksi, set `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive`, `GOOGLE_DRIVE_AUTH_MODE=service_account`, isi folder ID dan path service account eksternal, biarkan kedua path OAuth kosong, lalu restart PHP-FPM/Apache. Setelah restart, lakukan uji terkontrol: auditee upload/download/delete, auditor upload/download/delete, dan percobaan download/delete non-owner harus ditolak. Jika harus fallback ke lokal, fallback hanya berlaku untuk upload baru setelah backend dikembalikan; konfigurasi Drive dan akses service account harus tetap tersedia selama masih ada record Drive di database. Retry `spmi_drive_trash_outbox` masih manual: operator memilih row pending/retrying, menjalankan trash file Drive dengan service account, lalu memperbarui status/attempt/error sesuai hasil; belum ada worker otomatis. root `compose.yaml` tidak boleh memuat secret Drive production; pakai secret manager, konfigurasi server, atau override lokal yang diabaikan Git.
 
