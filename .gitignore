@@ -42,6 +42,14 @@ docs/DATABASE.MD
 docs/TASK.md
 docs/TASKS.md
 docs/*
+!docs/manual-pengguna-ami-spmi.md
+!docs/manual-pengguna-ami-spmi.pdf
+!docs/assets/
+docs/assets/*
+!docs/assets/manual-pengguna/
+docs/assets/manual-pengguna/*
+!docs/assets/manual-pengguna/manifest.md
+!docs/assets/manual-pengguna/*.png
 
 # Local dummy data and feature-testing fixtures
 /test-data/
