@@ -9,6 +9,8 @@ $migration_031 = spmi_audit_source('migrations/031_add_spmi_audit_cycle_academic
 $schema = spmi_audit_source('database_schema.sql');
 $model = spmi_audit_source('application/models/Spmi_audits_model.php');
 $service = spmi_audit_source('application/services/Spmi_audits_service.php');
+$helper = spmi_audit_source('application/helpers/app_helper.php');
+$auditor_workspace_service = spmi_audit_source('application/services/Spmi_auditor_workspace_service.php');
 $controller = spmi_audit_source('application/controllers/lpmpi/Spmi_audits.php');
 $routes = spmi_audit_source('application/config/routes.php');
 $sidebar = spmi_audit_source('application/views/layouts/sidebar.php');
@@ -26,10 +28,16 @@ foreach (['current parity migration 001-031', 'academic_year', 'semester'] as $l
 spmi_audit_match('/CREATE TABLE IF NOT EXISTS `spmi_audit_cycles` \((?s).*`academic_year` VARCHAR\(20\) NULL.*`semester` ENUM\(\'ganjil\',\'genap\'\) NULL/', $schema, 'M31 schema must expose nullable academic period fields on spmi_audit_cycles.');
 spmi_audit_check(substr_count($schema, "`created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP") >= 14, 'M7 baseline child snapshot timestamps missing.');
 spmi_audit_check(strpos($migration, 'INSERT') === FALSE && strpos($migration, '`tugas_audit`') === FALSE && strpos($migration, '`jawaban_audit`') === FALSE && strpos($migration, '`standar`') === FALSE && strpos($migration, '`pertanyaan`') === FALSE, 'M7 migration must be additive and seed-free.');
-foreach (['cycles', 'assignments', 'package_for_update', 'package_questions', 'question_rubrics', 'users_by_role', 'delete_assignment_children'] as $literal) spmi_audit_check(strpos($model, $literal) !== FALSE, 'M7 model contract missing: ' . $literal);
+foreach (['cycles', 'assignments', 'package_for_update', 'package_questions', 'users_by_role', 'delete_assignment_children'] as $literal) spmi_audit_check(strpos($model, $literal) !== FALSE, 'M7 model contract missing: ' . $literal);
 spmi_audit_check(strpos($model, 'package_for_update') !== FALSE && strpos($model, 'FOR UPDATE') !== FALSE, 'M7 package lookup must lock source package rows.');
 foreach (['assignment_workspace_descendant_exists', 'spmi_auditee_submissions', 'spmi_auditor_assessments', 'spmi_auditee_submission_revision_events', 'assignment_id'] as $literal) spmi_audit_check(strpos($model, $literal) !== FALSE, 'M7 assignment workspace preflight missing: ' . $literal);
-foreach (['TRANSITIONS', "'draft' => ['configured', 'closed']", "'configured' => ['draft', 'closed']", "'closed' => []", 'trans_begin', 'cycle($cycle_id, TRUE)', 'version_for_update', 'in_array($version->status, [\'draft\', \'review\']', 'rubrics', '[1, 2, 3, 4]', 'role !==', 'assignment_by_tuple', 'source_version_title', 'question_text', 'descriptor', 'rollback'] as $literal) spmi_audit_check(strpos($service, $literal) !== FALSE, 'M7 service contract missing: ' . $literal);
+foreach (['TRANSITIONS', "'draft' => ['configured', 'closed']", "'configured' => ['draft', 'closed']", "'closed' => []", 'trans_begin', 'cycle($cycle_id, TRUE)', 'version_for_update', 'in_array($version->status, [\'draft\', \'review\']', 'role !==', 'assignment_by_tuple', 'source_version_title', 'question_text', 'descriptor', 'rollback'] as $literal) spmi_audit_check(strpos($service, $literal) !== FALSE, 'M7 service contract missing: ' . $literal);
+spmi_audit_check(strpos($service, '$this->ci->load->helper(\'app\')') !== FALSE && strpos($service, 'skor_audit_options()') !== FALSE, 'M7 assignment service must load app helper itself and call skor_audit_options().');
+spmi_audit_check(strpos($service, 'array_keys($rubric_options) !== [1, 2, 3, 4]') !== FALSE, 'M7 assignment service must guard the global score scale keys.');
+foreach (['Tidak sesuai', 'Kurang sesuai', 'Sesuai', 'Sangat sesuai'] as $descriptor) spmi_audit_check(strpos($helper, $descriptor) !== FALSE, 'Global skor_audit_options descriptor missing: ' . $descriptor);
+spmi_audit_check(strpos($service . $model, 'question_rubrics') === FALSE, 'M7 assignment snapshot must not require source question rubrics.');
+spmi_audit_check(strpos($service, '$rubric_options as $score => $descriptor') !== FALSE && strpos($service, "'assignment_item_id' => \$item_id") !== FALSE && strpos($service, "'score' => (int) \$score") !== FALSE && strpos($service, "'descriptor' => \$descriptor") !== FALSE, 'M7 assignment snapshot must write four helper descriptors per item.');
+spmi_audit_check(strpos($auditor_workspace_service, "in_array(\$raw_score, ['1', '2', '3', '4'], TRUE)") !== FALSE, 'M9 auditor logic must preserve scalar string score validation.');
 foreach (['academic_year', 'semester', "'academic_year' =>", "'semester' =>"] as $literal) spmi_audit_check(strpos($service, $literal) !== FALSE, 'M31 service cycle contract missing: ' . $literal);
 spmi_audit_check(strpos($service, 'strlen($data[\'academic_year\']) <= 20') !== FALSE, 'M31 service must validate academic_year length.');
 spmi_audit_check(strpos($service, 'in_array($data[\'semester\'], [\'ganjil\', \'genap\'], TRUE)') !== FALSE, 'M31 service must restrict semester to ganjil/genap.');
