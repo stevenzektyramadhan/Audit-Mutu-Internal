@@ -21,9 +21,6 @@ class Spmi_instruments_model extends CI_Model
     public function find_question_by_code($package_id, $code, $exclude_id = 0) { $this->db->where(['package_id' => (int) $package_id, 'question_code' => $code]); if ($exclude_id) $this->db->where('id !=', (int) $exclude_id); return $this->db->get('spmi_instrument_questions')->row(); }
     public function find_question_by_order($package_id, $order, $exclude_id = 0) { $this->db->where(['package_id' => (int) $package_id, 'display_order' => (int) $order]); if ($exclude_id) $this->db->where('id !=', (int) $exclude_id); return $this->db->get('spmi_instrument_questions')->row(); }
     public function count_rubrics($question_id) { return $this->db->where('question_id', (int) $question_id)->count_all_results('spmi_instrument_rubrics'); }
-    public function get_rubrics($question_id) { return $this->db->where('question_id', (int) $question_id)->order_by('score', 'ASC')->get('spmi_instrument_rubrics')->result(); }
-    public function find_rubric($id) { return $this->db->where('id', (int) $id)->get('spmi_instrument_rubrics')->row(); }
-    public function find_question_for_rubric($id) { return $this->db->select('q.*')->from('spmi_instrument_rubrics r')->join('spmi_instrument_questions q', 'q.id = r.question_id')->where('r.id', (int) $id)->get()->row(); }
     public function create($table, $data) { return $this->db->insert($table, $data); }
     public function update($table, $id, $data) { return $this->db->where('id', (int) $id)->update($table, $data); }
     public function delete($table, $id) { return $this->db->where('id', (int) $id)->delete($table); }
