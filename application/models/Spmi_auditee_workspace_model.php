@@ -71,7 +71,7 @@ class Spmi_auditee_workspace_model extends CI_Model
     public function update_version($submission_id, $version, $status = 'draft', $submitted = FALSE, $from_statuses = ['draft']) { $data = ['version' => (int) $version + 1, 'status' => $status]; if ($submitted) $data['submitted_at'] = date('Y-m-d H:i:s'); return $this->db->where(['id' => (int) $submission_id, 'version' => (int) $version])->where_in('status', $from_statuses)->update('spmi_auditee_submissions', $data); }
     public function add_revision_event($data) { return $this->db->insert('spmi_auditee_submission_revision_events', $data); }
     public function revision_history($assignment_id, $user_id) { return $this->db->select('e.*, u.nama AS actor_name, u.email AS actor_email')->from('spmi_auditee_submission_revision_events e')->join('spmi_audit_assignments a', 'a.id = e.assignment_id')->join('users u', 'u.id = e.actor_user_id')->where('e.assignment_id', (int) $assignment_id)->where('a.auditee_id', (int) $user_id)->order_by('e.created_at', 'ASC')->order_by('e.id', 'ASC')->get()->result(); }
-    public function add_evidence($data) { return $this->db->insert('spmi_auditee_evidence', $data); }
+    public function add_evidence($data) { return $this->db->insert('spmi_auditee_evidence', $data) ? (int) $this->db->insert_id() : FALSE; }
     public function delete_evidence($id) { return $this->db->where('id', (int) $id)->delete('spmi_auditee_evidence'); }
     public function add_drive_trash_outbox($data) { return $this->db->insert('spmi_drive_trash_outbox', $data); }
     public function count_evidence($item_id) { return (int) $this->db->where('submission_item_id', (int) $item_id)->count_all_results('spmi_auditee_evidence'); }

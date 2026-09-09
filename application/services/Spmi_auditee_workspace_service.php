@@ -134,10 +134,12 @@ class Spmi_auditee_workspace_service
             $drive_folder_id = $this->ci->config->item('google_drive_evidence_folder_id');
         }
         $data = ['submission_item_id' => $item->id, 'stored_name' => $name, 'original_name' => basename($file['name']), 'mime_type' => $validated['mime'], 'size_bytes' => (int) $file['size'], 'sha256' => $hash, 'storage_backend' => $use_drive ? 'google_drive' : 'local', 'drive_file_id' => $drive_file_id, 'drive_folder_id' => $drive_folder_id];
-        if ($hash === FALSE || !$this->model->add_evidence($data) || !$this->model->update_version($item->submission_id, $version, $item->status, FALSE, [$item->status])) { $this->ci->db->trans_rollback(); if ($drive_file_id !== NULL) { $trash = $this->drive_storage()->trash($drive_file_id); if (!$trash['success']) $this->record_drive_trash_failure('spmi_auditee_evidence', NULL, $drive_file_id, $drive_folder_id, $name); } $this->cleanup_paths($paths); return ['success' => FALSE, 'message' => self::CONFLICT]; }
+        $evidence_id = $hash === FALSE ? FALSE : $this->model->add_evidence($data);
+        if ($evidence_id === FALSE || !$this->model->update_version($item->submission_id, $version, $item->status, FALSE, [$item->status])) { $this->ci->db->trans_rollback(); if ($drive_file_id !== NULL) { $trash = $this->drive_storage()->trash($drive_file_id); if (!$trash['success']) $this->record_drive_trash_failure('spmi_auditee_evidence', NULL, $drive_file_id, $drive_folder_id, $name); } $this->cleanup_paths($paths); return ['success' => FALSE, 'message' => self::CONFLICT]; }
         $result = $this->finish('Bukti berhasil ditambahkan.');
         if (!$result['success'] && $drive_file_id !== NULL) { $trash = $this->drive_storage()->trash($drive_file_id); if (!$trash['success']) $this->record_drive_trash_failure('spmi_auditee_evidence', NULL, $drive_file_id, $drive_folder_id, $name); }
         if ($use_drive || !$result['success']) $this->cleanup_paths($paths);
+        if ($result['success']) { $result['evidence'] = ['id' => (int) $evidence_id, 'original_name' => basename($file['name']), 'mime_type' => $validated['mime'], 'size' => (int) $file['size'], 'sha256' => $hash]; $result['version'] = (int) $version + 1; }
         return $result;
     }
 

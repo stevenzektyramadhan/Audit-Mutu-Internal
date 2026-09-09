@@ -14,7 +14,7 @@ $delete_forms = [];
 <?php $file_capable = in_array($item->evidence_policy, ['file', 'either', 'both'], TRUE); $url_capable = in_array($item->evidence_policy, ['url', 'either', 'both'], TRUE); ?><h3><?php echo html_escape((string) $item->display_order . '. ' . $item->question_code); ?></h3><p><?php echo nl2br(html_escape($item->question_text)); ?></p><p><strong>Instruksi bukti</strong><br><?php echo nl2br(html_escape($item->evidence_instruction)); ?></p><p><strong>Kebijakan bukti</strong><br><?php echo html_escape($item->evidence_policy); ?></p><label for="realization-<?php echo (int) $item->assignment_item_id; ?>">Realisasi</label><textarea class="form-control" id="realization-<?php echo (int) $item->assignment_item_id; ?>" name="realization[<?php echo (int) $item->assignment_item_id; ?>]" rows="4" <?php echo $editable ? '' : 'readonly'; ?>><?php echo html_escape($item->realization); ?></textarea>
 <?php if ($editable && $url_capable): ?><label for="evidence-url-<?php echo (int) $item->assignment_item_id; ?>">URL bukti</label><input class="form-control" type="url" id="evidence-url-<?php echo (int) $item->assignment_item_id; ?>" name="evidence_url[<?php echo (int) $item->assignment_item_id; ?>]" value="<?php echo html_escape($item->evidence_url); ?>">
 <?php elseif (!$editable && $item->evidence_url): ?><p><strong>URL bukti</strong><br><?php echo html_escape($item->evidence_url); ?></p><?php endif; ?>
-<?php if ($editable && $file_capable): ?><?php ob_start(); ?><?php echo form_open_multipart('auditee/spmi/item/' . (int) $item->assignment_item_id . '/evidence/upload', ['id' => 'spmi-evidence-upload-' . (int) $item->assignment_item_id]); ?><input type="hidden" name="version" value="<?php echo html_escape((string) $version); ?>" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>"><?php echo form_close(); ?><?php $upload_forms[] = ob_get_clean(); ?><label for="evidence-file-<?php echo (int) $item->assignment_item_id; ?>">File bukti</label><input class="form-control" type="file" id="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>"><button type="submit" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>">Upload bukti item <?php echo html_escape((string) $item->display_order); ?></button><?php endif; ?>
+<?php if ($editable && $file_capable): ?><?php ob_start(); ?><?php echo form_open_multipart('auditee/spmi/item/' . (int) $item->assignment_item_id . '/evidence/upload', ['id' => 'spmi-evidence-upload-' . (int) $item->assignment_item_id]); ?><input type="hidden" name="version" value="<?php echo html_escape((string) $version); ?>" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>"><?php echo form_close(); ?><?php $upload_forms[] = ob_get_clean(); ?><label for="evidence-file-<?php echo (int) $item->assignment_item_id; ?>">File bukti</label><input class="form-control" type="file" id="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>"><button type="submit" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>">Upload bukti item <?php echo html_escape((string) $item->display_order); ?></button><span role="alert" data-evidence-upload-error></span><?php endif; ?>
 <ul><?php foreach ($item->evidence as $evidence): ?><li><a href="<?php echo site_url('auditee/spmi/evidence/' . (int) $evidence->id . '/download'); ?>"><?php echo html_escape($evidence->original_name); ?></a><?php if ($editable && $file_capable): ?><?php $delete_form_id = 'spmi-evidence-delete-' . (int) $evidence->id; ob_start(); ?><?php echo form_open('auditee/spmi/evidence/' . (int) $evidence->id . '/delete', ['id' => $delete_form_id, 'class' => 'd-inline']); ?><input type="hidden" name="version" value="<?php echo html_escape((string) $version); ?>"><?php echo form_close(); ?><?php $delete_forms[] = ob_get_clean(); ?><button type="submit" form="<?php echo $delete_form_id; ?>">Hapus <?php echo html_escape($evidence->original_name); ?></button><?php endif; ?></li><?php endforeach; ?></ul></div></article>
 <?php endforeach; ?>
 <?php if ($editable): ?><button type="submit">Simpan draft</button><button type="button" id="spmi-final-submit" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>"><?php echo $assignment->submission_status === 'returned_for_revision' ? 'Kirim ulang revisi' : 'Submit sekali'; ?></button><?php echo form_close(); ?><script>
@@ -32,6 +32,65 @@ $delete_forms = [];
     });
 }());
 </script><?php endif; ?>
-<?php foreach ($upload_forms as $upload_form): ?><?php echo $upload_form; ?><?php endforeach; ?><?php foreach ($delete_forms as $delete_form): ?><?php echo $delete_form; ?><?php endforeach; ?><?php if (!$editable && $assignment->state === 'closed'): ?><div class="alert alert-info">Riwayat submission closed bersifat hanya-baca.</div><?php elseif (!$editable): ?><div class="alert alert-info">Submission sudah dikirim dan bersifat hanya-baca.</div><?php endif; ?>
+<?php foreach ($upload_forms as $upload_form): ?><?php echo $upload_form; ?><?php endforeach; ?><?php foreach ($delete_forms as $delete_form): ?><?php echo $delete_form; ?><?php endforeach; ?><?php if ($editable): ?><script>
+(function () {
+    var forms = document.querySelectorAll('form[id^="spmi-evidence-upload-"]');
+    forms.forEach(function (uploadForm) {
+        uploadForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var button = document.querySelector('button[form="' + uploadForm.id + '"]');
+            var fileInput = document.querySelector('input[type="file"][form="' + uploadForm.id + '"]');
+            var item = fileInput ? fileInput.closest('article') : null;
+            var error = item ? item.querySelector('[data-evidence-upload-error]') : null;
+            if (!fileInput || !fileInput.files.length) return;
+            if (button) button.disabled = true;
+            if (error) error.textContent = '';
+            fetch(uploadForm.action, { method: 'POST', body: new FormData(uploadForm), credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (response) { return response.json().then(function (payload) { return { ok: response.ok, payload: payload }; }); })
+                .then(function (result) {
+                    var payload = result.payload;
+                    if (payload.csrf && payload.csrf.name && payload.csrf.hash) document.querySelectorAll('input[name="' + payload.csrf.name + '"]').forEach(function (input) { input.value = payload.csrf.hash; });
+                    if (!result.ok || !payload.success) throw new Error(payload.message || 'Bukti gagal disimpan.');
+                    document.querySelectorAll('input[name="version"]').forEach(function (input) { input.value = payload.version; });
+                    var evidence = payload.evidence;
+                    var entry = document.createElement('li');
+                    var link = document.createElement('a');
+                    link.href = '<?php echo site_url('auditee/spmi/evidence/'); ?>' + encodeURIComponent(evidence.id) + '/download';
+                    link.textContent = evidence.original_name;
+                    entry.appendChild(link);
+                    var details = document.createTextNode(' (' + evidence.mime_type + ', ' + evidence.size + ' bytes, SHA-256 ' + evidence.sha256 + ')');
+                    entry.appendChild(details);
+                    var deleteForm = document.createElement('form');
+                    var deleteFormId = 'spmi-evidence-delete-' + evidence.id;
+                    deleteForm.id = deleteFormId;
+                    deleteForm.method = 'post';
+                    deleteForm.action = '<?php echo site_url('auditee/spmi/evidence/'); ?>' + encodeURIComponent(evidence.id) + '/delete';
+                    deleteForm.className = 'd-inline';
+                    var versionInput = document.createElement('input');
+                    versionInput.type = 'hidden';
+                    versionInput.name = 'version';
+                    versionInput.value = payload.version;
+                    deleteForm.appendChild(versionInput);
+                    var csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = payload.csrf.name;
+                    csrfInput.value = payload.csrf.hash;
+                    deleteForm.appendChild(csrfInput);
+                    document.body.appendChild(deleteForm);
+                    var deleteButton = document.createElement('button');
+                    deleteButton.type = 'submit';
+                    deleteButton.setAttribute('form', deleteFormId);
+                    deleteButton.textContent = 'Hapus ' + evidence.original_name;
+                    entry.appendChild(deleteButton);
+                    var evidenceList = item ? item.querySelector('ul') : null;
+                    if (evidenceList) evidenceList.appendChild(entry);
+                    fileInput.value = '';
+                })
+                .catch(function (uploadError) { if (error) error.textContent = uploadError.message; })
+                .finally(function () { if (button) button.disabled = false; });
+        });
+    });
+}());
+</script><?php endif; ?><?php if (!$editable && $assignment->state === 'closed'): ?><div class="alert alert-info">Riwayat submission closed bersifat hanya-baca.</div><?php elseif (!$editable): ?><div class="alert alert-info">Submission sudah dikirim dan bersifat hanya-baca.</div><?php endif; ?>
 <h3>Riwayat revisi</h3><?php if (empty($revision_history)): ?><p>Belum ada riwayat revisi.</p><?php else: ?><ol><?php foreach ($revision_history as $event): ?><li><?php echo html_escape($event->created_at); ?> — <?php echo html_escape($event->previous_status . ' → ' . $event->new_status); ?>, versi <?php echo html_escape((string) $event->previous_version . ' → ' . (string) $event->resulting_version); ?> oleh <?php echo html_escape($event->actor_name ?: $event->actor_email); ?><br><?php echo nl2br(html_escape($event->reason)); ?></li><?php endforeach; ?></ol><?php endif; ?></div></div>
 <?php include APPPATH . 'views/layouts/footer.php'; ?>
