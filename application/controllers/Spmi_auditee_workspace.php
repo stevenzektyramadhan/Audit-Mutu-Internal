@@ -90,6 +90,13 @@ class Spmi_auditee_workspace extends CI_Controller
     public function upload_evidence($item_id)
     {
         $this->require_post(); $version = (int) $this->input->post('version', TRUE); $result = $this->service->upload((int) $item_id, $this->user_id(), $version, isset($_FILES['evidence']) ? $_FILES['evidence'] : NULL);
+        if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+            $payload = ['success' => (bool) $result['success'], 'message' => $result['message'], 'csrf' => ['name' => $this->security->get_csrf_token_name(), 'hash' => $this->security->get_csrf_hash()]];
+            if ($result['success']) $payload['evidence'] = $result['evidence'];
+            if ($result['success']) $payload['version'] = $result['version'];
+            $this->output->set_status_header($result['success'] ? 200 : 422)->set_content_type('application/json', 'utf-8')->set_output(json_encode($payload));
+            return;
+        }
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']); $assignment_id = $this->service->assignment_id_for_item((int) $item_id, $this->user_id()); redirect('auditee/spmi/assignment/' . $assignment_id);
     }
 

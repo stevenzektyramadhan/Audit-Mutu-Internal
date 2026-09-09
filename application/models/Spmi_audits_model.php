@@ -23,7 +23,6 @@ class Spmi_audits_model extends CI_Model
     public function package_for_update($id) { return $this->db->query('SELECT p.*, s.standard_code, s.title AS standard_title, s.version_id, v.version_code, v.title AS version_title, v.status AS version_status FROM spmi_instrument_packages p JOIN spmi_standards s ON s.id = p.standard_id JOIN spmi_versions v ON v.id = s.version_id WHERE p.id = ' . (int) $id . ' FOR UPDATE')->row(); }
     public function version_for_update($id) { return $this->db->query('SELECT * FROM spmi_versions WHERE id = ' . (int) $id . ' FOR UPDATE')->row(); }
     public function package_questions($package_id) { return $this->db->select('q.*, q.evidence_policy, i.indicator_code, i.title AS indicator_title')->from('spmi_instrument_questions q')->join('spmi_indicators i', 'i.id = q.indicator_id')->where('q.package_id', (int) $package_id)->order_by('q.display_order', 'ASC')->get()->result(); }
-    public function question_rubrics($question_id) { return $this->db->where('question_id', (int) $question_id)->order_by('score', 'ASC')->get('spmi_instrument_rubrics')->result(); }
     public function users_by_role($role) { return $this->db->where('role', $role)->order_by('nama', 'ASC')->get('users')->result(); }
     public function user($id) { return $this->db->where('id', (int) $id)->get('users')->row(); }
 }
