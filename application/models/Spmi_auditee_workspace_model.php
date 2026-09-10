@@ -11,7 +11,7 @@ class Spmi_auditee_workspace_model extends CI_Model
             ->join('spmi_auditee_submissions s', 's.assignment_id = a.id', 'left')
             ->where('a.auditee_id', (int) $user_id)
             ->where_in('c.state', ['configured', 'closed'])
-            ->where("s.status IS NULL OR s.status IN ('draft', 'submitted', 'returned_for_revision', 'resubmitted')", NULL, FALSE);
+            ->where("(s.status IS NULL OR s.status IN ('draft', 'submitted', 'returned_for_revision', 'resubmitted'))", NULL, FALSE);
 
         if (!empty($filters['cycle_id'])) {
             $this->db->where('a.cycle_id', (int) $filters['cycle_id']);
@@ -36,7 +36,7 @@ class Spmi_auditee_workspace_model extends CI_Model
             ->join('spmi_auditee_submissions s', 's.assignment_id = a.id', 'left')
             ->where('a.auditee_id', (int) $user_id)
             ->where_in('c.state', ['configured', 'closed'])
-            ->where("s.status IS NULL OR s.status IN ('draft', 'submitted', 'returned_for_revision', 'resubmitted')", NULL, FALSE)
+            ->where("(s.status IS NULL OR s.status IN ('draft', 'submitted', 'returned_for_revision', 'resubmitted'))", NULL, FALSE)
             ->order_by('c.start_date', 'DESC')
             ->order_by('c.id', 'ASC')
             ->get()->result();
