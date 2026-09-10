@@ -139,6 +139,8 @@ foreach (['improvement_plan_snapshot', 'evidence_date_snapshot', 'Rencana perbai
 m8_check(strpos($final_result_view, 'spmi_auditor_assessment_items') === FALSE, 'M17-07C final-result must not read live assessment items.');
 
 foreach (['cycle_id', 'status', "s.status IS NULL OR s.status IN ('draft', 'submitted', 'returned_for_revision', 'resubmitted')", 'a.auditee_id'] as $literal) m8_check(strpos($model, $literal) !== FALSE, 'M17-07E auditee owned filter query missing: ' . $literal);
+m8_check(substr_count($model, "(s.status IS NULL OR s.status IN ('draft', 'submitted', 'returned_for_revision', 'resubmitted'))") === 2, 'Foreign auditee assignments must not bypass list or cycle ownership filters through an ungrouped status OR condition.');
+m8_check(strpos($model, "->where(\"s.status IS NULL OR s.status IN ('draft', 'submitted', 'returned_for_revision', 'resubmitted')\"") === FALSE, 'Foreign auditee assignments must not bypass owner filters through an ungrouped status OR condition.');
 m8_check(strpos($model, 'attention_count') !== FALSE && strpos($model, "s.status IS NULL OR s.status IN ('draft', 'returned_for_revision')") !== FALSE, 'M17-07E auditee badge must include lazy missing submission, draft, and returned work.');
 foreach (['filter', 'cycle_options', 'attention_count', 'menu_badges', 'is_scalar', 'ctype_digit'] as $literal) m8_check(strpos($controller, $literal) !== FALSE, 'M17-07E auditee scalar-safe filter/badge controller contract missing: ' . $literal);
 foreach (['cycle_options', 'attention_count', 'assignments($user_id, $filters)', 'filters'] as $literal) m8_check(strpos($service, $literal) !== FALSE, 'M17-07E auditee filter/badge service contract missing: ' . $literal);
