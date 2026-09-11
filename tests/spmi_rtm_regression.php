@@ -10,6 +10,7 @@ $service = rtm_source('application/services/Spmi_rtm_service.php');
 $controller = rtm_source('application/controllers/lpmpi/Spmi_rtm.php');
 $routes = rtm_source('application/config/routes.php');
 $sidebar = rtm_source('application/views/layouts/sidebar.php');
+$detail = rtm_source('application/views/lpmpi/spmi_rtm/detail.php');
 $views = rtm_source('application/views/lpmpi/spmi_rtm/index.php') . rtm_source('application/views/lpmpi/spmi_rtm/form.php') . rtm_source('application/views/lpmpi/spmi_rtm/detail.php') . rtm_source('application/views/lpmpi/spmi_rtm/print.php');
 
 foreach (['spmi_rtm_meetings', 'spmi_rtm_meeting_reports', 'spmi_rtm_participants', 'spmi_rtm_decisions', 'status` ENUM(\'draft\',\'resolved\')', 'name_snapshot', 'email_snapshot', 'role_snapshot', 'decision_text', 'action_text', 'UNIQUE KEY `uq_spmi_rtm_meetings_code`', 'UNIQUE KEY `uq_spmi_rtm_meeting_reports_report`', 'UNIQUE KEY `uq_spmi_rtm_participants_user`', 'UNIQUE KEY `uq_spmi_rtm_decisions_order', 'ON DELETE RESTRICT', 'ON UPDATE RESTRICT', 'ENGINE=InnoDB DEFAULT CHARSET=utf8'] as $literal) rtm_check(strpos($migration, $literal) !== FALSE, 'M11 migration contract missing: ' . $literal);
@@ -30,5 +31,8 @@ rtm_check(strpos($views, "status === 'draft'") !== FALSE && strpos($views, 'reso
 rtm_check(strpos($views, 'lpmpi/spmi-follow-ups/create/') !== FALSE, 'Resolved RTM detail must expose the manual follow-up creation route.');
 rtm_check(strpos($views, '$meeting->status === "resolved"') !== FALSE, 'Manual follow-up link must stay gated to resolved RTM status.');
 rtm_check(strpos($views, '(int) $decision->has_follow_up === 0') !== FALSE, 'Manual follow-up link must stay hidden when a follow-up already exists.');
+rtm_check(strpos($detail, '<th class="text-center">Aksi</th>') !== FALSE, 'RTM decision table must expose a centered Aksi column.');
+rtm_check(strpos($detail, "nl2br(html_escape(\$decision->action_text)); ?></td><td><?php echo html_escape(\$decision->report_id") !== FALSE, 'RTM action text cell must not contain the follow-up control.');
+rtm_check(strpos($detail, 'class="btn-ami btn-outline-ami ami-action-btn"') !== FALSE, 'RTM follow-up control must use compact action-button styling.');
 
 fwrite(STDOUT, "SPMI RTM regression checks passed.\n");
