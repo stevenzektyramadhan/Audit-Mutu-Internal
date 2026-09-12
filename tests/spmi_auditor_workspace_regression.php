@@ -6,6 +6,7 @@ function m9_check($condition, $message) { if (!$condition) throw new RuntimeExce
 $migration = m9_source('migrations/019_create_spmi_auditor_workspace.sql');
 $schema = m9_source('database_schema.sql');
 $model = m9_source('application/models/Spmi_auditor_workspace_model.php');
+$dashboard_model = m9_source('application/models/Spmi_auditor_dashboard_model.php');
 $service = m9_source('application/services/Spmi_auditor_workspace_service.php');
 $controller = m9_source('application/controllers/Spmi_auditor_workspace.php');
 $routes = m9_source('application/config/routes.php');
@@ -132,10 +133,35 @@ m9_check(strpos($assignment, 'auditor/spmi/item/') !== FALSE && strpos($assignme
 m9_check(strpos($assignment, "document.querySelectorAll('input[name=\"version\"]')") !== FALSE, 'M17-07D autosave must refresh optimistic versions in detached auditor evidence forms.');
 
 foreach (['cycle_id', 'status', "['submitted', 'resubmitted', 'returned_for_revision']", 'source_submission_version = s.version', 'a.auditor_id'] as $literal) m9_check(strpos($model, $literal) !== FALSE, 'M17-07E auditor owned filter query missing: ' . $literal);
-m9_check(strpos($model, 'attention_count') !== FALSE && strpos($model, "aa.status IS NULL OR aa.status != 'finalized'") !== FALSE, 'M17-07E auditor badge must count only current submitted/resubmitted work without finalized current-version assessment.');
+m9_check(strpos($model, 'attention_count') !== FALSE, 'M17-07E auditor workspace badge method missing.');
 foreach (['filter', 'cycle_options', 'attention_count', 'menu_badges', 'is_scalar', 'ctype_digit'] as $literal) m9_check(strpos($controller, $literal) !== FALSE, 'M17-07E auditor scalar-safe filter/badge controller contract missing: ' . $literal);
 foreach (['cycle_options', 'attention_count', 'assignments($user_id, $filters)', 'filters'] as $literal) m9_check(strpos($service, $literal) !== FALSE, 'M17-07E auditor filter/badge service contract missing: ' . $literal);
 foreach (['method="get"', 'name="cycle_id"', 'name="status"', 'site_url(\'auditor/spmi\')', 'html_escape'] as $literal) m9_check(strpos($index, $literal) !== FALSE, 'M17-07E auditor GET filter UI contract missing: ' . $literal);
 foreach (['Spmi_auditor_workspace_service', 'attention_count($user_id)', 'spmi_assessment'] as $literal) m9_check(strpos(m9_source('application/controllers/Spmi_auditor_dashboard.php'), $literal) !== FALSE, 'M17-07E auditor dashboard must propagate workspace attention badge: ' . $literal);
+
+m9_check(strpos($service, "state === 'closed' && !$" . 'assignment->assessment_id') !== FALSE, 'M17-07F workspace detail must keep denying closed assignments without current assessment.');
+$assignments_method = substr($model, strpos($model, 'public function assignments('), strpos($model, 'public function cycle_options(') - strpos($model, 'public function assignments('));
+$cycle_options_method = substr($model, strpos($model, 'public function cycle_options('), strpos($model, 'public function attention_count(') - strpos($model, 'public function cycle_options('));
+$attention_count_method = substr($model, strpos($model, 'public function attention_count('), strpos($model, 'public function assignment(') - strpos($model, 'public function attention_count('));
+foreach (['assignments' => $assignments_method, 'cycle_options' => $cycle_options_method, 'attention_count' => $attention_count_method] as $method => $source) {
+    m9_check(strpos($source, "aa.assignment_id = a.id AND aa.source_submission_version = s.version") !== FALSE, 'M17-07F ' . $method . ' must join current-version assessment before closed visibility guard.');
+    m9_check(strpos($source, 'group_start()') !== FALSE && strpos($source, "where('c.state !=', 'closed')") !== FALSE && strpos($source, "or_where('aa.id IS NOT NULL', NULL, FALSE)") !== FALSE && strpos($source, 'group_end()') !== FALSE, 'M17-07F ' . $method . ' must group closed visibility guard with Query Builder.');
+    m9_check(strpos($source, "where(\"c.state != 'closed' OR aa.id IS NOT NULL\", NULL, FALSE)") === FALSE, 'M17-07F ' . $method . ' must reject raw ungrouped closed visibility OR.');
+    m9_check(strpos($source, "aa.status != 'finalized' OR c.state") === FALSE, 'M17-07F ' . $method . ' must not use assessment status for closed visibility.');
+}
+
+$dashboard_attention_count_method = substr($dashboard_model, strpos($dashboard_model, 'public function attention_count('), strpos($dashboard_model, 'protected function due_count(') - strpos($dashboard_model, 'public function attention_count('));
+foreach (['workspace' => $attention_count_method, 'dashboard' => $dashboard_attention_count_method] as $method => $source) {
+    m9_check(strpos($source, 'COUNT(DISTINCT a.id) AS total') !== FALSE && strpos($source, "where('a.auditor_id', (int) $" . 'user_id)') !== FALSE && strpos($source, "where_in('s.status', ['submitted', 'resubmitted'])") !== FALSE, 'M17-07G ' . $method . ' attention count must preserve owner and submitted/resubmitted filters.');
+    m9_check(strpos($source, 'group_start()') !== FALSE && strpos($source, "where('aa.status IS NULL', NULL, FALSE)") !== FALSE && strpos($source, "or_where('aa.status !=', 'finalized')") !== FALSE && strpos($source, 'group_end()') !== FALSE, 'M17-07G ' . $method . ' attention count must group assessment draft/null status with Query Builder.');
+    m9_check(strpos($source, "where(\"aa.status IS NULL OR aa.status != 'finalized'\", NULL, FALSE)") === FALSE, 'M17-07G ' . $method . ' attention count must reject raw ungrouped assessment status OR.');
+}
+
+$dashboard_method = substr($dashboard_model, strpos($dashboard_model, 'public function dashboard('), strpos($dashboard_model, 'public function attention_count(') - strpos($dashboard_model, 'public function dashboard('));
+foreach (['assignments', 'submissions_submitted'] as $metric) m9_check(strpos($dashboard_method, "'" . $metric . "'") !== FALSE, 'M17-07H dashboard must retain card key: ' . $metric);
+m9_check(strpos($dashboard_method, '$base = function () use ($user_id)') !== FALSE && strpos($dashboard_method, "from('spmi_audit_assignments a')") !== FALSE && strpos($dashboard_method, "join('spmi_audit_cycles c', 'c.id = a.cycle_id')") !== FALSE && strpos($dashboard_method, "where('a.auditor_id', (int) $" . 'user_id)') !== FALSE && strpos($dashboard_method, "where_in('c.state', ['configured', 'closed'])") !== FALSE, 'M17-07H dashboard base must retain owner and configured/closed cycle scope.');
+m9_check(strpos($dashboard_method, '$assignments = $base()->count_all_results();') !== FALSE, 'M17-07H dashboard assignments must count all owner assignments in configured/closed cycles.');
+m9_check(strpos($dashboard_method, '$submitted = $base()->join(\'spmi_auditee_submissions s\', \'s.assignment_id = a.id\')->where_in(\'s.status\', [\'submitted\', \'resubmitted\'])->count_all_results();') !== FALSE, 'M17-07H dashboard submissions must count owner/cycle assignments with exactly submitted or resubmitted submissions.');
+foreach (['$workspace_base', "join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')", 'aa.id', 'returned_for_revision', "where('c.state !=', 'closed')", "or_where('aa.id IS NOT NULL', NULL, FALSE)", "where(\"c.state != 'closed' OR aa.id IS NOT NULL\", NULL, FALSE)"] as $literal) m9_check(strpos($dashboard_method, $literal) === FALSE, 'M17-07H dashboard must not inherit workspace visibility predicate: ' . $literal);
 
 fwrite(STDOUT, "SPMI auditor workspace regression checks passed.\n");

@@ -12,6 +12,10 @@ class Spmi_auditor_workspace_model extends CI_Model
             ->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')
             ->where('a.auditor_id', (int) $user_id)
             ->where_in('c.state', ['configured', 'closed'])
+            ->group_start()
+                ->where('c.state !=', 'closed')
+                ->or_where('aa.id IS NOT NULL', NULL, FALSE)
+            ->group_end()
             ->where_in('s.status', ['submitted', 'resubmitted', 'returned_for_revision']);
 
         if (!empty($filters['cycle_id'])) {
@@ -32,8 +36,13 @@ class Spmi_auditor_workspace_model extends CI_Model
             ->from('spmi_audit_assignments a')
             ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')
             ->join('spmi_auditee_submissions s', 's.assignment_id = a.id')
+            ->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')
             ->where('a.auditor_id', (int) $user_id)
             ->where_in('c.state', ['configured', 'closed'])
+            ->group_start()
+                ->where('c.state !=', 'closed')
+                ->or_where('aa.id IS NOT NULL', NULL, FALSE)
+            ->group_end()
             ->where_in('s.status', ['submitted', 'resubmitted', 'returned_for_revision'])
             ->order_by('c.start_date', 'DESC')
             ->order_by('c.id', 'ASC')
@@ -49,8 +58,15 @@ class Spmi_auditor_workspace_model extends CI_Model
             ->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')
             ->where('a.auditor_id', (int) $user_id)
             ->where_in('c.state', ['configured', 'closed'])
+            ->group_start()
+                ->where('c.state !=', 'closed')
+                ->or_where('aa.id IS NOT NULL', NULL, FALSE)
+            ->group_end()
             ->where_in('s.status', ['submitted', 'resubmitted'])
-            ->where("aa.status IS NULL OR aa.status != 'finalized'", NULL, FALSE)
+            ->group_start()
+                ->where('aa.status IS NULL', NULL, FALSE)
+                ->or_where('aa.status !=', 'finalized')
+            ->group_end()
             ->get()->row()->total;
     }
 
