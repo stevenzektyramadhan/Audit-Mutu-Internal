@@ -9,7 +9,7 @@ class Spmi_auditor_dashboard_model extends CI_Model
             return $this->db->from('spmi_audit_assignments a')->join('spmi_audit_cycles c', 'c.id = a.cycle_id')->where('a.auditor_id', (int) $user_id)->where_in('c.state', ['configured', 'closed']);
         };
         $assignments = $base()->count_all_results();
-        $submitted = $base()->join('spmi_auditee_submissions s', 's.assignment_id = a.id')->where('s.status', 'submitted')->count_all_results();
+        $submitted = $base()->join('spmi_auditee_submissions s', 's.assignment_id = a.id')->where_in('s.status', ['submitted', 'resubmitted'])->count_all_results();
         $draft_assessments = $base()->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id')->where('aa.status', 'draft')->count_all_results();
         $finalized = $base()->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id')->where('aa.status', 'finalized')->count_all_results();
         $attention_count = $this->attention_count($user_id);
@@ -23,7 +23,7 @@ class Spmi_auditor_dashboard_model extends CI_Model
 
     public function attention_count($user_id)
     {
-        return (int) $this->db->select('COUNT(DISTINCT a.id) AS total', FALSE)->from('spmi_audit_assignments a')->join('spmi_audit_cycles c', 'c.id = a.cycle_id')->join('spmi_auditee_submissions s', 's.assignment_id = a.id')->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')->where('a.auditor_id', (int) $user_id)->where_in('c.state', ['configured', 'closed'])->where_in('s.status', ['submitted', 'resubmitted'])->where("aa.status IS NULL OR aa.status != 'finalized'", NULL, FALSE)->get()->row()->total;
+        return (int) $this->db->select('COUNT(DISTINCT a.id) AS total', FALSE)->from('spmi_audit_assignments a')->join('spmi_audit_cycles c', 'c.id = a.cycle_id')->join('spmi_auditee_submissions s', 's.assignment_id = a.id')->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')->where('a.auditor_id', (int) $user_id)->where_in('c.state', ['configured', 'closed'])->where_in('s.status', ['submitted', 'resubmitted'])->group_start()->where('aa.status IS NULL', NULL, FALSE)->or_where('aa.status !=', 'finalized')->group_end()->get()->row()->total;
     }
 
     protected function due_count($user_id, $predicate)
