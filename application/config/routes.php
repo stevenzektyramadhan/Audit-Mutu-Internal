@@ -74,6 +74,12 @@ $route['pertanyaan/import_confirm/(:num)'] = 'Pertanyaan/import_confirm/$1';
 
 $route['lpmpi/instrumen/download/(:num)'] = 'lpmpi/Instrumen/download/$1';
 $route['lpmpi/penetapan/download/(:num)'] = 'lpmpi/Penetapan/download/$1';
+$route['lpmpi/akun'] = 'lpmpi/Akun/index';
+$route['lpmpi/akun/create'] = 'lpmpi/Akun/create';
+$route['lpmpi/akun/store'] = 'lpmpi/Akun/store';
+$route['lpmpi/akun/edit/(:num)'] = 'lpmpi/Akun/edit/$1';
+$route['lpmpi/akun/update/(:num)'] = 'lpmpi/Akun/update/$1';
+$route['lpmpi/akun/delete/(:num)'] = 'lpmpi/Akun/delete/$1';
 $route['lpmpi/organization'] = 'lpmpi/Organization/index';
 $route['lpmpi/organization/unit/create'] = 'lpmpi/Organization/create';
 $route['lpmpi/organization/unit/store'] = 'lpmpi/Organization/store_unit';
