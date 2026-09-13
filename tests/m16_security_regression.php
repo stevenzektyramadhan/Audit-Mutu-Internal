@@ -43,8 +43,8 @@ m16_check(strpos($routes . $sidebar, 'audit_logs') === FALSE && strpos($routes .
 foreach (['lpmpi/instrumen/download/(:num)', 'auditor/penilaian', 'auditee/tugas'] as $legacy_route) m16_check(strpos($routes, $legacy_route) !== FALSE, 'Legacy route missing after M16: ' . $legacy_route);
 foreach ([
     "'key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'",
-    "'key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'",
-    "'key' => 'akun', 'label' => 'Akun Auditor & Auditee', 'icon' => 'fa-user-shield', 'url' => 'lpmpi/akun', 'group' => 'Management'"
+    "'key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'"
 ] as $current_menu) m16_check(strpos($sidebar, $current_menu) !== FALSE, 'Current sidebar contract missing after M16: ' . $current_menu);
+m16_check(strpos($sidebar, "'key' => 'akun', 'label' => 'Akun Auditor & Auditee'") === FALSE, 'Deprecated Akun menu must not return after M16.');
 
 fwrite(STDOUT, "M16 security regression checks passed.\n");

@@ -42,10 +42,9 @@ foreach (['evidence', 'findings', 'overdue_follow_ups', 'target_revisions', 'rec
     check(strpos($model, "'" . $forbidden_metric . "'") === FALSE && strpos($view, "'" . $forbidden_metric . "'") === FALSE, 'Forbidden recap metric still present: ' . $forbidden_metric);
 }
 check(strpos($controller, 'extends Admin_Lpmpi_Controller') !== FALSE && substr_count($controller, 'public function ') === 2, 'Controller must have constructor and index only.');
-check(strpos($controller, "'active_menu' => 'spmi_ppepp_recap'") !== FALSE, 'Active menu missing.');
-check(strpos($controller, "'page_subtitle' => 'Beranda / Insights / Rekap PPEPP SPMI'") !== FALSE, 'Controller subtitle must include Insights.');
+check(strpos($controller, "redirect('lpmpi/spmi-dashboard')") !== FALSE, 'Recap controller must redirect to canonical dashboard.');
 check(strpos($routes, '$route[\'lpmpi/spmi-recap\'] = \'lpmpi/Spmi_ppepp_recap/index\';') !== FALSE, 'Recap route missing.');
-check(substr_count($sidebar, "'key' => 'spmi_ppepp_recap', 'label' => 'Rekap PPEPP SPMI', 'icon' => 'fa-project-diagram', 'url' => 'lpmpi/spmi-recap', 'group' => 'Insights'") === 2, 'Recap sidebar entry must appear twice.');
+check(strpos($sidebar, "'key' => 'spmi_ppepp_recap'") === FALSE, 'Recap sidebar entry must be removed.');
 foreach (['Belum ada standar, indikator, atau target SPMI yang ditetapkan.', 'Belum ada siklus, penugasan, atau submission SPMI yang berjalan.', 'Belum ada penilaian auditor atau laporan SPMI yang dihasilkan.', 'Belum ada RTM resolved atau keputusan pengendalian SPMI.', 'Belum ada tindak lanjut RTM yang terbuka atau diselesaikan.'] as $empty_text) {
     check(strpos($view, $empty_text) !== FALSE, 'Stage zero-state missing: ' . $empty_text);
 }

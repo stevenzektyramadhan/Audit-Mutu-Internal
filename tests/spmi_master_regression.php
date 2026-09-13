@@ -25,13 +25,10 @@ spmi_master_check(stripos($service . $model . $standards_model, 'FOR UPDATE') !=
 foreach (['TYPE_STRING', 'is_uploaded_file', 'UPLOAD_ERR_OK', '2 * 1024 * 1024', 'sha256', '1800', 'rename', 'log_message', 'Import Master SPMI gagal', 'clear_preview', '0700'] as $literal) spmi_master_check(stripos($controller, $literal) !== FALSE, 'M5 controller contract missing: ' . $literal);
 foreach (['purge_expired_artifacts', 'spmi_master_preview_*.json', 'spmi_master_claim_*.json', 'filemtime', 'GLOB_NOSORT', 'basename($current[\'basename\'])', 'time() - 1800'] as $literal) spmi_master_check(stripos($controller, $literal) !== FALSE, 'M5 artifact cleanup contract missing: ' . $literal);
 spmi_master_check(substr_count($controller, '$this->purge_expired_artifacts();') === 3, 'M5 cleanup must run before preview, confirm, and cancel.');
-foreach (['extends Admin_Lpmpi_Controller', 'require_post', 'confirm', 'template', 'export'] as $literal) spmi_master_check(strpos($controller, $literal) !== FALSE, 'M5 controller contract missing: ' . $literal);
-spmi_master_check(strpos($index, 'form_open_multipart(') !== FALSE && strpos($preview, 'form_open(') !== FALSE, 'M5 forms missing.');
-foreach (['find_standard_by_version_code', 'upsert_standard', 'find_indicator_by_standard_code', 'upsert_indicator', 'find_target_by_indicator_year', 'upsert_target'] as $literal) spmi_master_check(strpos($standards_model . $model, $literal) !== FALSE, 'M5 model helper missing: ' . $literal);
-foreach (['lpmpi/spmi-master', 'template/(:num)', 'preview/(:num)', 'confirm/(:num)', 'cancel/(:num)', 'export/(:num)'] as $literal) spmi_master_check(strpos($routes, $literal) !== FALSE, 'M5 route missing: ' . $literal);
-spmi_master_check(substr_count($sidebar, "'key' => 'spmi_master', 'label' => 'Import/Export Master SPMI', 'icon' => 'fa-file-excel', 'url' => 'lpmpi/spmi-master', 'group' => 'Management'") === 2, 'M5 sidebar entry must exist only for management roles.');
-foreach ([$index, $preview] as $view) { spmi_master_check(strpos($view, 'html_escape') !== FALSE, 'M5 view must escape output.'); spmi_master_check(strpos($view, "include APPPATH . 'views/layouts/header.php'") !== FALSE, 'M5 view header missing.'); }
-spmi_master_check(strpos($index, 'Hanya-baca') !== FALSE && strpos($index, 'Belum ada versi') !== FALSE && strpos($index, 'form_open_multipart') !== FALSE, 'M5 index states/form missing.');
-spmi_master_check(strpos($preview, 'valid') !== FALSE && strpos($preview, 'errors') !== FALSE && strpos($preview, 'form_open(\'lpmpi/spmi-master/cancel/') !== FALSE && strpos($preview, 'Batal') !== FALSE, 'M5 preview contract missing.');
+spmi_master_check(strpos($controller, 'extends Admin_Lpmpi_Controller') !== FALSE, 'M5 controller base class missing.');
+spmi_master_check(strpos($controller, "redirect('lpmpi/spmi-standards')") !== FALSE, 'M5 index must redirect to canonical standards page.');
+spmi_master_check(strpos($routes, '$route[\'lpmpi/spmi-master\'] = \'lpmpi/Spmi_master/index\';') !== FALSE, 'M5 route missing.');
+spmi_master_check(strpos($sidebar, "'key' => 'spmi_master'") === FALSE, 'M5 sidebar entry must be removed.');
+spmi_master_check(strpos($preview, 'html_escape') !== FALSE, 'M5 preview must escape output.');
 
 fwrite(STDOUT, "SPMI master regression checks passed.\n");
