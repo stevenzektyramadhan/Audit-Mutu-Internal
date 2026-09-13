@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#profil-root {
+  --prf-blue: #185fa5;
+  --prf-blue-hover: #124e89;
+  --prf-blue-soft: rgba(24, 95, 165, 0.1);
+  --prf-border: #e2e8f0;
+}
+
+@layer components {
+  #profil-root .tw-button-primary {
+    background: var(--prf-blue);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  #profil-root .tw-button-primary:hover {
+    background: var(--prf-blue-hover);
+    color: #fff;
+  }
+  #profil-root .tw-button-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--prf-blue-soft);
+  }
+
+  #profil-root .tw-button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #cbd5e1;
+    background-color: #ffffff;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    color: #334155;
+    transition: all 0.15s ease;
+  }
+  #profil-root .tw-button-secondary:hover {
+    border-color: #0f172a;
+    color: #0f172a;
+    background-color: #f8fafc;
+  }
+  #profil-root .tw-button-secondary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.5);
+  }
+
+  #profil-root .prf-back-link {
+    color: var(--prf-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  #profil-root .prf-back-link:hover {
+    color: var(--prf-blue-hover);
+    text-decoration: underline;
+  }
+
+  #profil-root .prf-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+}
