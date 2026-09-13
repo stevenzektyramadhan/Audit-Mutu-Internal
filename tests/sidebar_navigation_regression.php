@@ -69,19 +69,19 @@ foreach ([
 
 check(substr_count($sidebar, "'group' => 'Settings'") === 6, 'Settings group must cover all account and management profile entries.');
 check(substr_count($sidebar, "'key' => 'spmi_workspace', 'label' => 'Workspace SPMI', 'icon' => 'fa-laptop-house', 'url' => 'auditee/spmi', 'group' => 'Work'") === 1, 'SPMI workspace menu must be auditee-only.');
-check(substr_count($sidebar, "'group' => 'Management'") === 15, 'Management group count changed.');
+check(substr_count($sidebar, "'group' => 'Management'") === 10, 'Management group count changed.');
 check(substr_count($sidebar, "'key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization'") === 2, 'Organization menu must be shared by management roles.');
-check(substr_count($sidebar, "'key' => 'spmi_indicators', 'label' => 'Indikator SPMI', 'icon' => 'fa-chart-line', 'url' => 'lpmpi/spmi-indicators', 'group' => 'Management'") === 2, 'SPMI indicator menu must be shared by two management roles.');
-check(substr_count($sidebar, "'key' => 'spmi_master', 'label' => 'Import/Export Master SPMI', 'icon' => 'fa-file-excel', 'url' => 'lpmpi/spmi-master', 'group' => 'Management'") === 2, 'SPMI master menu must be shared by two management roles.');
+check(strpos($sidebar, "'key' => 'spmi_indicators'") === FALSE, 'SPMI indicator menu must be removed from sidebar.');
+check(strpos($sidebar, "'key' => 'spmi_master'") === FALSE, 'SPMI master menu must be removed from sidebar.');
 check(substr_count($sidebar, "'key' => 'spmi_instruments', 'label' => 'Instrumen Audit SPMI', 'icon' => 'fa-clipboard-check', 'url' => 'lpmpi/spmi-instruments', 'group' => 'Management'") === 2, 'SPMI instrument menu must be shared by two management roles.');
-check(substr_count($sidebar, "'key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'") === 1, 'Users menu must be super_admin-only.');
-check(substr_count($sidebar, "'key' => 'akun', 'label' => 'Akun Auditor & Auditee', 'icon' => 'fa-user-shield', 'url' => 'lpmpi/akun', 'group' => 'Management'") === 2, 'Akun menu must be shared by super_admin and admin_lpmpi.');
-check(substr_count($sidebar, "'group' => 'Insights'") === 8, 'Insights group count changed.');
+check(substr_count($sidebar, "'key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'") === 2, 'Users menu must be shared by management roles.');
+check(strpos($sidebar, "'key' => 'akun', 'label' => 'Akun Auditor & Auditee'") === FALSE, 'Akun menu must be removed after consolidation.');
+check(substr_count($sidebar, "'group' => 'Insights'") === 6, 'Insights group count changed.');
 check(substr_count($sidebar, "'key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'") === 2, 'Management SPMI dashboard menu must appear twice under Overview.');
 check(substr_count($sidebar, "'key' => 'spmi_auditor_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'auditor/spmi-dashboard', 'group' => 'Overview'") === 1, 'Auditor SPMI dashboard menu must appear once.');
 check(substr_count($sidebar, "'key' => 'spmi_auditee_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'auditee/spmi-dashboard', 'group' => 'Overview'") === 1, 'Auditee SPMI dashboard menu must appear once.');
 check(substr_count($sidebar, "'key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'") === 2, 'RTM SPMI menu must be shared by management roles.');
-check(substr_count($sidebar, "'key' => 'spmi_ppepp_recap', 'label' => 'Rekap PPEPP SPMI', 'icon' => 'fa-project-diagram', 'url' => 'lpmpi/spmi-recap', 'group' => 'Insights'") === 2, 'PPEPP recap menu must be shared by management roles.');
+check(strpos($sidebar, "'key' => 'spmi_ppepp_recap'") === FALSE, 'PPEPP recap menu must be removed from sidebar.');
 foreach (['tugas_audit', 'penugasan', 'penetapan', 'periode', 'standar', 'pertanyaan', 'instrumen', 'hasil_audit', 'laporan', 'legacy_ami_archive', 'penilaian', 'tugas_saya', 'pengisian', 'hasil_penilaian'] as $legacy_key) {
     check(strpos($sidebar, "'key' => '{$legacy_key}'") === FALSE, 'Legacy sidebar menu must be hidden: ' . $legacy_key);
 }
@@ -96,7 +96,7 @@ check(strpos($sidebar, "form_open('auth/logout');") !== FALSE
     && strpos($sidebar, "form_open('auth/logout', ['class' => 'mb-0'])") !== FALSE,
     'Sidebar and account dropdown must both retain POST logout forms.');
 check(strpos($sidebar, "site_url('account/photo')") !== FALSE && strpos($sidebar, 'ami-account-menu') !== FALSE, 'Account photo and dropdown must remain available.');
-check(strpos($sidebar, 'data-theme-toggle') !== FALSE, 'Theme toggle hook must remain.');
+check(strpos($sidebar, 'data-theme-toggle') === FALSE, 'Theme toggle must remain removed for light-only UI.');
 foreach (['ami-sidebar', 'data-sidebar-toggle', 'data-sidebar-close', 'ami-sidebar-overlay'] as $hook) {
     check(strpos($sidebar, $hook) !== FALSE, 'Mobile sidebar hook missing: ' . $hook);
 }

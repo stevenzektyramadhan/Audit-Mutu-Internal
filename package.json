@@ -1,0 +1,9 @@
+{
+    "private": true,
+  "scripts": {
+    "build": "tailwindcss -i assets/css/spmi-dashboard.css -o assets/css/spmi-dashboard.build.css && mv assets/css/spmi-dashboard.build.css assets/css/spmi-dashboard.css && tailwindcss -i assets/css/users-management.source.css -o assets/css/users-management.build.css && mv assets/css/users-management.build.css assets/css/users-management.css && tailwindcss -i assets/css/organization.source.css -o assets/css/organization.build.css && mv assets/css/organization.build.css assets/css/organization.css && tailwindcss -i assets/css/standards-management.source.css -o assets/css/standards-management.build.css && mv assets/css/standards-management.build.css assets/css/standards-management.css && tailwindcss -i assets/css/instruments-management.source.css -o assets/css/instruments-management.build.css && mv assets/css/instruments-management.build.css assets/css/instruments-management.css && tailwindcss -i assets/css/spmi-audits.source.css -o assets/css/spmi-audits.css && tailwindcss -i assets/css/spmi-reports.source.css -o assets/css/spmi-reports.css && tailwindcss -i assets/css/spmi-rtm.source.css -o assets/css/spmi-rtm.css && tailwindcss -i assets/css/spmi-follow-ups.source.css -o assets/css/spmi-follow-ups.css && tailwindcss -i assets/css/account.source.css -o assets/css/account.css && tailwindcss -i assets/css/institution-profile.source.css -o assets/css/institution-profile.css && tailwindcss -i assets/css/spmi-auditor-workspace.source.css -o assets/css/spmi-auditor-workspace.css && tailwindcss -i assets/css/spmi-auditee-workspace.source.css -o assets/css/spmi-auditee-workspace.css && tailwindcss -i assets/css/auth.source.css -o assets/css/auth.css"
+  },
+    "devDependencies": {
+        "tailwindcss": "^3.4.17"
+    }
+}
