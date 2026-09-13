@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#audits-root {
+  --audits-blue: #185fa5;
+  --audits-blue-hover: #124e89;
+  --audits-blue-soft: rgba(24, 95, 165, 0.1);
+}
+
+@layer components {
+  #audits-root .tw-label, #audits-root label[for="source_package_picker"] { @apply tw-mb-2 tw-block tw-text-sm tw-font-semibold tw-text-slate-700; }
+  #audits-root .tw-field { @apply tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200; }
+  #audits-root .tw-help { @apply tw-mt-1 tw-block tw-text-xs tw-text-slate-500; }
+  #audits-root .tw-button-primary {
+    background: var(--audits-blue);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background-color 0.15s ease;
+  }
+  #audits-root .tw-button-primary:hover {
+    background: var(--audits-blue-hover);
+    color: #fff;
+  }
+  #audits-root .tw-button-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--audits-blue-soft);
+  }
+  #audits-root .tw-button-secondary { @apply tw-inline-flex tw-items-center tw-justify-center tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-4 tw-py-2.5 tw-text-sm tw-font-semibold tw-text-slate-700 tw-transition hover:tw-border-slate-950 hover:tw-text-slate-950; }
+  #audits-root .tw-button-danger { @apply tw-inline-flex tw-items-center tw-justify-center tw-rounded-lg tw-border tw-border-red-200 tw-bg-white tw-px-4 tw-py-2.5 tw-text-sm tw-font-semibold tw-text-red-700 tw-transition hover:tw-bg-red-50; }
+
+  #audits-root .cycle-tab-btn {
+    border-bottom: 2px solid transparent;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  #audits-root .cycle-tab-btn:hover {
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+  #audits-root .cycle-tab-btn.is-active {
+    border-bottom-color: var(--audits-blue);
+    color: var(--audits-blue);
+  }
+  #audits-root .cycle-tab-btn.is-active:hover {
+    color: var(--audits-blue);
+  }
+
+  #audits-root .audits-back-link {
+    color: var(--audits-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  #audits-root .audits-back-link:hover {
+    color: var(--audits-blue-hover);
+    text-decoration: underline;
+  }
+}

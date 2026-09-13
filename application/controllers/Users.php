@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Users extends CI_Controller {
+class Users extends Admin_Lpmpi_Controller {
 
     /** @var CI_Session */
     public $session;
@@ -12,9 +12,6 @@ class Users extends CI_Controller {
     /** @var CI_Form_validation */
     public $form_validation;
 
-    /** @var Auth_guard */
-    public $auth_guard;
-
     /** @var User_service */
     protected $user_service;
 
@@ -22,12 +19,8 @@ class Users extends CI_Controller {
     {
         parent::__construct();
         $this->load->library('session');
-        $this->load->helper('url');
-        $this->load->library('auth_guard');
-        
-        // Memastikan hanya super_admin yang bisa mengakses halaman ini
-        $this->auth_guard->check();
-        $this->auth_guard->only(['super_admin']);
+        $this->load->helper(['form', 'url']);
+        $this->load->library('form_validation');
         
         require_once APPPATH . 'services/User_service.php';
         $this->user_service = new User_service();
@@ -36,9 +29,11 @@ class Users extends CI_Controller {
     public function index()
     {
         $role_filter = (string) $this->input->get('role', TRUE);
+        $allowed_roles = $this->allowed_filter_roles();
         $filters = [
             'q' => trim((string) $this->input->get('q', TRUE)),
-            'role' => in_array($role_filter, ['super_admin', 'admin_lpmpi', 'auditor', 'auditee'], TRUE) ? $role_filter : '',
+            'role' => in_array($role_filter, $allowed_roles, TRUE) ? $role_filter : '',
+            'actor_role' => $this->session->userdata('role'),
         ];
 
         $data['title'] = 'Data Pengguna - AMI';
@@ -64,13 +59,13 @@ class Users extends CI_Controller {
 
     public function store()
     {
-        $this->load->helper('form');
-        $this->load->library('form_validation');
+        $this->require_post();
 
         $this->form_validation->set_rules('nama', 'Nama', 'required');
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]');
         $this->form_validation->set_rules('password', 'Password', 'required');
         $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,admin_lpmpi,auditor,auditee]');
+        $this->set_unit_rules();
 
         if ($this->form_validation->run() === FALSE) {
             $this->create();
@@ -79,7 +74,10 @@ class Users extends CI_Controller {
                 'nama' => $this->input->post('nama', TRUE),
                 'email' => $this->input->post('email', TRUE),
                 'password' => $this->input->post('password', TRUE),
-                'role' => $this->input->post('role', TRUE)
+                'role' => $this->input->post('role', TRUE),
+                'nama_unit' => $this->input->post('nama_unit', TRUE),
+                'jenis_unit' => $this->input->post('jenis_unit', TRUE),
+                'actor_role' => $this->session->userdata('role'),
             ];
 
             $result = $this->user_service->create_user($data);
@@ -102,6 +100,11 @@ class Users extends CI_Controller {
             return;
         }
 
+        if (!in_array($user->role, $this->allowed_filter_roles(), TRUE)) {
+            show_error('Akses ditolak. Anda tidak memiliki wewenang untuk mengelola pengguna ini.', 403, 'Forbidden');
+            return;
+        }
+
         $data['title'] = 'Edit Pengguna - AMI';
         $data['page_title'] = 'Edit Pengguna';
         $data['page_subtitle'] = 'Beranda / Data Pengguna / Edit';
@@ -113,9 +116,12 @@ class Users extends CI_Controller {
 
     public function update($id)
     {
+        $this->require_post();
+
         $this->form_validation->set_rules('nama', 'Nama', 'required');
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
         $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,admin_lpmpi,auditor,auditee]');
+        $this->set_unit_rules();
 
         if ($this->form_validation->run() === FALSE) {
             $this->edit($id);
@@ -127,6 +133,9 @@ class Users extends CI_Controller {
             'email' => $this->input->post('email', TRUE),
             'password' => $this->input->post('password', TRUE),
             'role' => $this->input->post('role', TRUE),
+            'nama_unit' => $this->input->post('nama_unit', TRUE),
+            'jenis_unit' => $this->input->post('jenis_unit', TRUE),
+            'actor_role' => $this->session->userdata('role'),
         ]);
 
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
@@ -136,9 +145,27 @@ class Users extends CI_Controller {
     public function delete($id)
     {
         $this->require_post();
-        $result = $this->user_service->delete_user((int) $id, (int) $this->session->userdata('user_id'));
+        $result = $this->user_service->delete_user((int) $id, (int) $this->session->userdata('user_id'), $this->session->userdata('role'));
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect('users');
+    }
+
+    private function set_unit_rules()
+    {
+        if ($this->input->post('role', TRUE) === 'auditee') {
+            $this->form_validation->set_rules('nama_unit', 'Nama Unit', 'required');
+            $this->form_validation->set_rules('jenis_unit', 'Jenis Unit', 'required|in_list[prodi,unit,lembaga]');
+            return;
+        }
+
+        $this->form_validation->set_rules('jenis_unit', 'Jenis Unit', 'in_list[,prodi,unit,lembaga]');
+    }
+
+    private function allowed_filter_roles()
+    {
+        return $this->session->userdata('role') === 'admin_lpmpi'
+            ? ['auditor', 'auditee']
+            : User_service::ALLOWED_ROLES;
     }
 
     private function require_post()

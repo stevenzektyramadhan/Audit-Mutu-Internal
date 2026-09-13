@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#account-root {
+  --acc-blue: #185fa5;
+  --acc-blue-hover: #124e89;
+  --acc-blue-soft: rgba(24, 95, 165, 0.1);
+  --acc-border: #e2e8f0;
+}
+
+@layer components {
+  #account-root .tw-button-primary {
+    background: var(--acc-blue);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  #account-root .tw-button-primary:hover {
+    background: var(--acc-blue-hover);
+    color: #fff;
+  }
+  #account-root .tw-button-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--acc-blue-soft);
+  }
+
+  #account-root .acc-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+}

@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#auth-root {
+  --auth-blue: #185fa5;
+  --auth-blue-hover: #124e89;
+  --auth-blue-soft: rgba(24, 95, 165, 0.1);
+  --auth-border: #e2e8f0;
+}
+
+#auth-root,
+#auth-root *,
+#auth-root *::before,
+#auth-root *::after {
+  box-sizing: border-box;
+}
+
+#auth-root .auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 11fr) minmax(420px, 9fr);
+}
+
+#auth-root .auth-visual {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background-color: #172554;
+}
+
+#auth-root .auth-visual-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+#auth-root .auth-visual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.82) 0%, rgba(23, 37, 84, 0.62) 52%, rgba(24, 95, 165, 0.38) 100%);
+}
+
+@media (min-width: 768px) and (max-height: 820px) {
+  #auth-root .auth-visual-content {
+    padding: 2rem;
+  }
+
+  #auth-root .auth-visual-content h2 {
+    max-width: 34rem;
+    font-size: 1.875rem;
+    line-height: 1.15;
+  }
+
+  #auth-root .auth-visual-content h2 + p {
+    margin-top: 0.625rem;
+    line-height: 1.375rem;
+  }
+}
+
+@media (min-width: 768px) and (max-height: 680px) {
+  #auth-root .auth-visual-content {
+    padding: 1.5rem;
+  }
+
+  #auth-root .auth-visual-content h2 {
+    font-size: 1.5rem;
+  }
+
+  #auth-root .auth-visual-content h2 + p {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+}
+
+#auth-root .auth-form-side {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+#auth-root .auth-panel {
+  width: 100%;
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+@media (max-width: 767px) {
+  #auth-root .auth-shell {
+    display: block;
+    min-height: 100vh;
+    background: #f8fafc;
+  }
+
+  #auth-root .auth-visual {
+    min-height: 220px;
+    height: 30vh;
+    max-height: 300px;
+  }
+
+  #auth-root .auth-form-side {
+    min-height: auto;
+  }
+}
+
+@layer components {
+  #auth-root .tw-button-primary {
+    background: var(--auth-blue);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  #auth-root .tw-button-primary:hover {
+    background: var(--auth-blue-hover);
+    color: #fff;
+  }
+  #auth-root .tw-button-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--auth-blue-soft);
+  }
+
+  #auth-root .auth-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+  }
+}

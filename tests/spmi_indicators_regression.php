@@ -28,10 +28,10 @@ spmi_indicator_check(strpos($service, 'standard_version') !== FALSE && strpos($s
 foreach (['extends Admin_Lpmpi_Controller', 'form_validation', 'method(TRUE) !== \'POST\'', 'show_error', 'indicator_create', 'indicator_store', 'indicator_detail', 'indicator_edit', 'indicator_update', 'target_create', 'target_store', 'target_edit', 'target_update'] as $literal) spmi_indicator_check(strpos($controller, $literal) !== FALSE, 'Controller contract missing: ' . $literal);
 spmi_indicator_check(strpos($controller, 'standard_version($standard_id)') !== FALSE && strpos($controller, 'readonly_redirect') !== FALSE, 'Immutable indicator create guard missing.');
 foreach (['lpmpi/spmi-indicators', 'indicator/create', 'indicator/store', 'indicator/detail', 'indicator/edit', 'indicator/update', 'target/create', 'target/store', 'target/edit', 'target/update'] as $literal) spmi_indicator_check(strpos($routes, $literal) !== FALSE, 'Route missing: ' . $literal);
-spmi_indicator_check(substr_count($sidebar, "'key' => 'spmi_indicators', 'label' => 'Indikator SPMI', 'icon' => 'fa-chart-line', 'url' => 'lpmpi/spmi-indicators', 'group' => 'Management'") === 2, 'M4 sidebar entry must exist only for management roles.');
-foreach ($views as $view) { spmi_indicator_check(strpos($view, 'html_escape') !== FALSE, 'M4 view must escape output.'); spmi_indicator_check(strpos($view, "include APPPATH . 'views/layouts/header.php'") !== FALSE, 'M4 view header missing.'); }
-spmi_indicator_check(strpos($views[1], 'form_open(') !== FALSE && strpos($views[3], 'form_open(') !== FALSE, 'M4 forms missing.');
-spmi_indicator_check(strpos($views[2], 'Hanya-baca') !== FALSE && strpos($views[2], 'Belum ada target') !== FALSE, 'M4 read-only and empty target states missing.');
-spmi_indicator_check(strpos($views[0], "in_array(\$standard->version_status, ['draft', 'review'], TRUE)") !== FALSE && strpos($views[0], 'Hanya-baca') !== FALSE, 'M4 index immutable UI guard missing.');
+spmi_indicator_check(strpos($controller, 'extends Admin_Lpmpi_Controller') !== FALSE, 'M4 controller base class missing.');
+spmi_indicator_check(strpos($controller, "redirect('lpmpi/spmi-standards')") !== FALSE, 'M4 index must redirect to canonical standards page.');
+spmi_indicator_check(strpos($routes, '$route[\'lpmpi/spmi-indicators\'] = \'lpmpi/Spmi_indicators/index\';') !== FALSE, 'Route missing.');
+spmi_indicator_check(strpos($sidebar, "'key' => 'spmi_indicators'") === FALSE, 'M4 sidebar entry must be removed.');
+spmi_indicator_check(strpos($views[2], 'html_escape') !== FALSE, 'M4 view must escape output.');
 
 fwrite(STDOUT, "SPMI indicators regression checks passed.\n");

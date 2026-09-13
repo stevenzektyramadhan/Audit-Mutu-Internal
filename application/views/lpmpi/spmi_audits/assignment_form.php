@@ -1,12 +1,8 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); include APPPATH . 'views/layouts/header.php'; include APPPATH . 'views/layouts/sidebar.php'; ?>
-<div class="ami-panel"><div class="ami-panel-body"><?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?><h2 class="ami-section-title mb-4">Tambah Penugasan SPMI</h2><p>Siklus draft: <strong><?php echo html_escape($cycle->cycle_code . ' — ' . $cycle->title); ?></strong></p><div class="alert alert-info">M7 membuat snapshot immutable dari versi M3, paket/pertanyaan/rubrik M6, serta identitas auditor dan auditee. M8/M9 workspace belum tersedia.</div><?php if (empty($packages) || empty($auditors) || empty($auditees)): ?><div class="ami-empty"><div class="ami-empty-title">Prasyarat belum lengkap</div><div>Pastikan tersedia paket M6 lengkap dengan rubrik 1–4, akun auditor, dan akun auditee.</div></div><?php else: ?>
+<main id="audits-root" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8"><div class="tw-mx-auto tw-max-w-2xl"><?php echo validation_errors('<div class="tw-mb-5 tw-rounded-lg tw-border tw-border-red-200 tw-bg-red-50 tw-p-4 tw-text-sm tw-text-red-700">', '</div>'); ?><div class="tw-mb-6"><p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Penugasan SPMI</p><h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950">Tambah penugasan</h1><p class="tw-mt-2 tw-text-sm tw-text-slate-600">Siklus draft: <strong><?php echo html_escape($cycle->cycle_code . ' — ' . $cycle->title); ?></strong></p></div><div class="tw-mb-5 tw-rounded-xl tw-border tw-border-blue-200 tw-bg-blue-50 tw-p-4 tw-text-sm tw-leading-6 tw-text-blue-800">M7 membuat snapshot immutable dari versi M3, paket/pertanyaan/rubrik M6, serta identitas auditor dan auditee. Workspace audit memakai snapshot ini saat tersedia.</div><?php if (empty($packages) || empty($auditors) || empty($auditees)): ?><div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-bg-white tw-p-8 tw-text-center"><h2 class="tw-font-bold tw-text-slate-900">Prasyarat belum lengkap</h2><p class="tw-mt-2 tw-text-sm tw-text-slate-500">Pastikan tersedia paket M6 lengkap dengan rubrik 1–4, akun auditor, dan akun auditee.</p></div><?php else: ?>
 <?php echo form_open('lpmpi/spmi-audits/assignment/store/' . (int) $cycle->id); ?>
-<div class="form-group"><label for="source_package_picker">Paket Instrumen</label><div class="input-group"><input type="text" id="source_package_picker" class="form-control" placeholder="Ketik kode atau nama paket..." role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="source_package_popover" autocomplete="off"><div class="input-group-append"><button type="button" id="source_package_clear" class="btn btn-outline-secondary d-none" aria-label="Hapus paket" disabled>&times;</button></div></div><input type="hidden" id="source_package_id" name="source_package_id" required><div id="source_package_popover" class="list-group mt-2 d-none" role="listbox" aria-label="Hasil paket instrumen"><div id="source_package_count" class="list-group-item text-muted" role="status" aria-live="polite">Paket instrumen ditemukan: <?php echo count($packages); ?></div><?php foreach ($packages as $package): ?><button type="button" id="source_package_option_<?php echo (int) $package->id; ?>" class="list-group-item list-group-item-action" role="option" aria-selected="false" data-package-id="<?php echo (int) $package->id; ?>"><?php echo html_escape($package->version_code . " / " . $package->standard_code . " / " . $package->package_code . " — " . $package->title . " [" . $package->version_status . "]"); ?></button><?php endforeach; ?><div id="source_package_no_results" class="list-group-item text-muted d-none" role="status">Paket tidak ditemukan</div></div></div>
-<div class="form-group"><label for="auditor_id">Auditor</label><select id="auditor_id" name="auditor_id" class="form-control" required><option value="">Pilih auditor</option><?php foreach ($auditors as $user): ?><option value="<?php echo (int) $user->id; ?>"><?php echo html_escape($user->nama . ' — ' . $user->email); ?></option><?php endforeach; ?></select></div><div class="form-group"><label for="auditee_id">Auditee</label><select id="auditee_id" name="auditee_id" class="form-control" required><option value="">Pilih auditee</option><?php foreach ($auditees as $user): ?><option value="<?php echo (int) $user->id; ?>"><?php echo html_escape($user->nama . ' — ' . $user->email); ?></option><?php endforeach; ?></select></div><button class="btn-ami" type="submit">Buat snapshot penugasan</button></form><?php endif; ?></div></div>
-<style>
-.source-package-field { position: relative; }
-#source_package_popover { position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; margin-top: .5rem; }
-</style>
+<div class="tw-relative"><label for="source_package_picker" class="tw-label">Paket Instrumen</label><div class="tw-flex"><input type="text" id="source_package_picker" class="tw-field tw-rounded-r-none" placeholder="Ketik kode atau nama paket..." role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="source_package_popover" autocomplete="off"><div class="tw-flex tw-items-center tw-rounded-r-lg tw-border tw-border-l-0 tw-border-slate-300 tw-bg-slate-50"><button type="button" id="source_package_clear" class="tw-hidden tw-px-3 tw-text-lg tw-text-slate-500" aria-label="Hapus paket" disabled>&times;</button></div></div><input type="hidden" id="source_package_id" name="source_package_id" required><div id="source_package_popover" class="tw-absolute tw-left-0 tw-right-0 tw-z-10 tw-mt-2 tw-hidden tw-overflow-hidden tw-rounded-lg tw-border tw-border-slate-200 tw-bg-white tw-shadow-lg" role="listbox" aria-label="Hasil paket instrumen"><div id="source_package_count" class="tw-border-b tw-border-slate-100 tw-p-3 tw-text-xs tw-text-slate-500" role="status" aria-live="polite">Paket instrumen ditemukan: <?php echo count($packages); ?></div><?php foreach ($packages as $package): ?><button type="button" id="source_package_option_<?php echo (int) $package->id; ?>" class="tw-block tw-w-full tw-border-0 tw-border-b tw-border-slate-100 tw-bg-white tw-p-3 tw-text-left tw-text-sm tw-text-slate-700" role="option" aria-selected="false" data-package-id="<?php echo (int) $package->id; ?>"><?php echo html_escape($package->version_code . " / " . $package->standard_code . " / " . $package->package_code . " — " . $package->title . " [" . $package->version_status . "]"); ?></button><?php endforeach; ?><div id="source_package_no_results" class="tw-hidden tw-p-3 tw-text-sm tw-text-slate-500" role="status">Paket tidak ditemukan</div></div></div>
+<div class="tw-mt-5 tw-grid tw-gap-5 sm:tw-grid-cols-2"><label><span class="tw-label">Auditor</span><select id="auditor_id" name="auditor_id" class="tw-field" required><option value="">Pilih auditor</option><?php foreach ($auditors as $user): ?><option value="<?php echo (int) $user->id; ?>"><?php echo html_escape($user->nama . ' — ' . $user->email); ?></option><?php endforeach; ?></select></label><label><span class="tw-label">Auditee</span><select id="auditee_id" name="auditee_id" class="tw-field" required><option value="">Pilih auditee</option><?php foreach ($auditees as $user): ?><option value="<?php echo (int) $user->id; ?>"><?php echo html_escape($user->nama . ' — ' . $user->email); ?></option><?php endforeach; ?></select></label></div><button class="tw-button-primary tw-mt-8 tw-w-full" type="submit">Buat snapshot penugasan</button></form><?php endif; ?></div></div></main>
 <script data-package-search-picker>
 (function () {
     var input = document.getElementById('source_package_picker');
@@ -19,27 +15,27 @@
         return;
     }
 
-    input.closest('.form-group').classList.add('source-package-field');
+    input.closest('.tw-relative').classList.add('source-package-field');
     var options = Array.prototype.slice.call(list.querySelectorAll('[role="option"]'));
     var activeIndex = -1;
 
     function setClearState() {
         var selected = packageId.value !== '';
         clear.disabled = !selected;
-        clear.classList.toggle('d-none', !selected);
+        clear.classList.toggle('tw-hidden', !selected);
     }
 
     function setOpen(open) {
-        popover.classList.toggle('d-none', !open);
+        popover.classList.toggle('tw-hidden', !open);
         input.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
 
     function setActive(index) {
         activeIndex = index;
         options.forEach(function (option, optionIndex) {
-            var active = optionIndex === activeIndex && !option.classList.contains('d-none');
+            var active = optionIndex === activeIndex && !option.classList.contains('tw-hidden');
             option.setAttribute('aria-selected', active ? 'true' : 'false');
-            option.classList.toggle('active', active);
+            option.classList.toggle('tw-bg-slate-100', active);
         });
         if (activeIndex >= 0 && options[activeIndex]) {
             input.setAttribute('aria-activedescendant', options[activeIndex].id);
@@ -53,11 +49,11 @@
         var query = input.value.trim().toLocaleLowerCase();
         var visible = options.filter(function (option) {
             var matches = query === '' || option.textContent.toLocaleLowerCase().indexOf(query) !== -1;
-            option.classList.toggle('d-none', !matches);
+            option.classList.toggle('tw-hidden', !matches);
             return matches;
         });
         count.textContent = 'Paket instrumen ditemukan: ' + visible.length;
-        document.getElementById('source_package_no_results').classList.toggle('d-none', visible.length !== 0);
+        document.getElementById('source_package_no_results').classList.toggle('tw-hidden', visible.length !== 0);
         setActive(-1);
     }
 
@@ -78,7 +74,7 @@
         setOpen(true);
     });
     input.addEventListener('keydown', function (event) {
-        var visible = options.filter(function (option) { return !option.classList.contains('d-none'); });
+        var visible = options.filter(function (option) { return !option.classList.contains('tw-hidden'); });
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
             event.preventDefault();
             if (!visible.length) return;
@@ -86,7 +82,7 @@
             setActive(options.indexOf(visible[next]));
             return;
         }
-        if ((event.key === 'Enter' || event.key === ' ') && activeIndex >= 0 && options[activeIndex] && !options[activeIndex].classList.contains('d-none')) {
+        if ((event.key === 'Enter' || event.key === ' ') && activeIndex >= 0 && options[activeIndex] && !options[activeIndex].classList.contains('tw-hidden')) {
             event.preventDefault();
             choose(options[activeIndex]);
         } else if (event.key === 'Escape') {

@@ -17,9 +17,14 @@ class Organization extends Admin_Lpmpi_Controller
     public function index()
     {
         $this->require_capability('organization.view');
+        $tab = (string) $this->input->get('tab', TRUE);
+        $allowed_tabs = ['structure', 'assignments', 'access'];
+        $active_tab = in_array($tab, $allowed_tabs, TRUE) ? $tab : 'structure';
+
         $data = $this->page_data('Struktur Organisasi', 'Struktur Organisasi');
         $data['units'] = $this->organization_service->units();
         $data['assignments'] = $this->organization_service->assignments();
+        $data['active_tab'] = $active_tab;
         $data['can_manage'] = $this->can('organization.manage');
         $data['can_assign'] = $this->can('organization.assignment.manage');
         $data['can_capabilities'] = $this->can('organization.capability.manage');
@@ -39,7 +44,7 @@ class Organization extends Admin_Lpmpi_Controller
         $this->set_unit_rules();
         if (!$this->form_validation->run()) { $this->create(); return; }
         $result = $this->organization_service->create_unit($this->unit_input());
-        $this->flash_redirect($result, 'lpmpi/organization');
+        $this->flash_redirect($result, 'lpmpi/organization?tab=structure');
     }
 
     public function edit($id)
@@ -56,13 +61,13 @@ class Organization extends Admin_Lpmpi_Controller
         $this->set_unit_rules();
         if (!$this->form_validation->run()) { $this->edit($id); return; }
         $result = $this->organization_service->update_unit((int) $id, $this->unit_input());
-        $this->flash_redirect($result, 'lpmpi/organization');
+        $this->flash_redirect($result, 'lpmpi/organization?tab=structure');
     }
 
     public function toggle($id)
     {
         $this->require_post_capability('organization.manage');
-        $this->flash_redirect($this->organization_service->toggle_unit((int) $id), 'lpmpi/organization');
+        $this->flash_redirect($this->organization_service->toggle_unit((int) $id), 'lpmpi/organization?tab=structure');
     }
 
     public function assignment_create()
@@ -76,14 +81,14 @@ class Organization extends Admin_Lpmpi_Controller
         $this->require_post_capability('organization.assignment.manage');
         $this->set_assignment_rules();
         if (!$this->form_validation->run()) { $this->assignment_create(); return; }
-        $this->flash_redirect($this->organization_service->create_assignment($this->assignment_input()), 'lpmpi/organization');
+        $this->flash_redirect($this->organization_service->create_assignment($this->assignment_input()), 'lpmpi/organization?tab=assignments');
     }
 
     public function assignment_end($id)
     {
         $this->require_post_capability('organization.assignment.manage');
         $until = $this->input->post('valid_until', TRUE);
-        $this->flash_redirect($this->organization_service->end_assignment((int) $id, $until), 'lpmpi/organization');
+        $this->flash_redirect($this->organization_service->end_assignment((int) $id, $until), 'lpmpi/organization?tab=assignments');
     }
 
     public function capabilities()
@@ -102,7 +107,7 @@ class Organization extends Admin_Lpmpi_Controller
         $this->require_post_capability('organization.capability.manage');
         $role = $this->input->post('role', TRUE);
         $ids = $this->input->post('capability_ids', TRUE);
-        $this->flash_redirect($this->organization_service->update_capabilities($role, $ids), 'lpmpi/organization/capabilities');
+        $this->flash_redirect($this->organization_service->update_capabilities($role, $ids), 'lpmpi/organization?tab=access');
     }
 
     private function can($capability) { return $this->organization_service->can((string) $this->session->userdata('role'), $capability); }

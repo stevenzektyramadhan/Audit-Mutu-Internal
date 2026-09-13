@@ -82,6 +82,54 @@ class User_model extends CI_Model
             ->count_all_results('tugas_audit') > 0;
     }
 
+    public function user_dependency_category($id)
+    {
+        $checks = [
+            ['table' => 'tugas_audit', 'fields' => ['auditor_id', 'auditee_id'], 'category' => 'tugas audit AMI'],
+            ['table' => 'spmi_audit_assignments', 'fields' => ['auditor_id', 'auditee_id', 'created_by'], 'category' => 'penugasan audit SPMI'],
+            ['table' => 'spmi_audit_cycles', 'fields' => ['created_by'], 'category' => 'siklus audit SPMI'],
+            ['table' => 'spmi_versions', 'fields' => ['created_by'], 'category' => 'versi SPMI'],
+            ['table' => 'spmi_reports', 'fields' => ['generated_by'], 'category' => 'laporan SPMI'],
+            ['table' => 'spmi_rtm_meetings', 'fields' => ['created_by', 'resolved_by'], 'category' => 'rapat RTM SPMI'],
+            ['table' => 'spmi_rtm_participants', 'fields' => ['user_id'], 'category' => 'peserta RTM SPMI'],
+            ['table' => 'spmi_rtm_follow_ups', 'fields' => ['responsible_user_id', 'started_by', 'completed_by', 'created_by'], 'category' => 'tindak lanjut RTM SPMI'],
+            ['table' => 'user_unit_assignments', 'fields' => ['user_id'], 'category' => 'penempatan unit organisasi'],
+        ];
+
+        foreach ($checks as $check) {
+            if (!$this->db->table_exists($check['table'])) {
+                continue;
+            }
+
+            $fields = [];
+            foreach ($check['fields'] as $field) {
+                if ($this->db->field_exists($field, $check['table'])) {
+                    $fields[] = $field;
+                }
+            }
+
+            if (!$fields) {
+                continue;
+            }
+
+            $this->db->from($check['table'])->group_start();
+            foreach ($fields as $index => $field) {
+                if ($index === 0) {
+                    $this->db->where($field, (int) $id);
+                } else {
+                    $this->db->or_where($field, (int) $id);
+                }
+            }
+            $count = $this->db->group_end()->count_all_results();
+
+            if ($count > 0) {
+                return $check['category'];
+            }
+        }
+
+        return '';
+    }
+
     public function get_all($filters = [])
     {
         $this->db->from($this->table);
@@ -91,6 +139,7 @@ class User_model extends CI_Model
                 ->group_start()
                     ->like('nama', $filters['q'])
                     ->or_like('email', $filters['q'])
+                    ->or_like('nama_unit', $filters['q'])
                 ->group_end();
         }
 
@@ -104,32 +153,6 @@ class User_model extends CI_Model
     public function get_by_role($role)
     {
         return $this->db->where('role', $role)->get($this->table)->result();
-    }
-
-    public function get_lpmpi_accounts($filters = [])
-    {
-        $this->db
-            ->from($this->table)
-            ->where_in('role', ['auditor', 'auditee']);
-
-        if (!empty($filters['q'])) {
-            $this->db
-                ->group_start()
-                    ->like('nama', $filters['q'])
-                    ->or_like('email', $filters['q'])
-                    ->or_like('nama_unit', $filters['q'])
-                ->group_end();
-        }
-
-        if (!empty($filters['role']) && in_array($filters['role'], ['auditor', 'auditee'], TRUE)) {
-            $this->db->where('role', $filters['role']);
-        }
-
-        return $this->db
-            ->order_by('role', 'ASC')
-            ->order_by('nama', 'ASC')
-            ->get()
-            ->result();
     }
 
     public function count_all()

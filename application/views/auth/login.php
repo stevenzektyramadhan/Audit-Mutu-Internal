@@ -1,585 +1,155 @@
-<!DOCTYPE html>
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+$icon = static function ($name) {
+    $paths = [
+        'mail' => '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+        'lock' => '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+        'eye' => '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+        'eye-off' => '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>',
+        'arrow-right' => '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
+        'alert-circle' => '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+    ];
+    return '<svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['lock']) . '</svg>';
+};
+?><!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - AMI Sistem Penjaminan Mutu Internal</title>
     <meta name="description" content="Login ke Sistem Audit Mutu Internal Perguruan Tinggi">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* ===== CSS Variables ===== */
-        :root {
-            --login-bg: #f3f5f8;
-            --card-bg: #ffffff;
-            --card-border: rgba(0,0,0,0.08);
-            --card-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.1);
-            --text-primary: #1a1a2e;
-            --text-secondary: #555770;
-            --text-muted: #8e90a6;
-            --input-bg: #ffffff;
-            --input-border: #d1d5db;
-            --input-focus-border: #1b5e20;
-            --input-focus-shadow: 0 0 0 3px rgba(27,94,32,0.15);
-            --input-text: #1a1a2e;
-            --input-placeholder: #9ca3af;
-            --btn-bg: #1b5e20;
-            --btn-bg-hover: #145218;
-            --btn-text: #ffffff;
-            --label-color: #374151;
-            --navbar-bg: rgba(27,94,32,0.9);
-            --navbar-text: #ffffff;
-            --footer-bg: rgba(27,94,32,0.92);
-            --footer-text: rgba(255,255,255,0.85);
-            --overlay-color: rgba(0,0,0,0.35);
-            --alert-danger-bg: #fef2f2;
-            --alert-danger-border: #fecaca;
-            --alert-danger-text: #991b1b;
-            --toggle-bg: rgba(255,255,255,0.15);
-            --toggle-border: rgba(255,255,255,0.3);
-            --toggle-text: #ffffff;
-            --icon-color: #9ca3af;
-        }
-
-
-
-        /* ===== Reset & Base ===== */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: var(--login-bg);
-            color: var(--text-primary);
-            overflow-x: hidden;
-        }
-
-        /* ===== Background ===== */
-        .login-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-        }
-
-        .login-bg img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        }
-
-        .login-bg::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: var(--overlay-color);
-        }
-
-        /* ===== Navbar ===== */
-        .login-navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            height: 56px;
-            background: var(--navbar-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        .login-navbar__brand {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--navbar-text);
-            letter-spacing: -0.02em;
-            text-decoration: none;
-        }
-
-        .login-navbar__brand:hover {
-            color: var(--navbar-text);
-            text-decoration: none;
-        }
-
-        /* ===== Theme Toggle ===== */
-        .ami-login-theme {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border: 1px solid var(--toggle-border);
-            border-radius: 8px;
-            background: var(--toggle-bg);
-            color: var(--toggle-text);
-            font-family: 'Inter', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .ami-login-theme:hover,
-        .ami-login-theme:focus {
-            background: rgba(255,255,255,0.25);
-            border-color: rgba(255,255,255,0.5);
-            outline: 0;
-            transform: translateY(-1px);
-        }
-
-        .ami-login-theme i {
-            font-size: 14px;
-        }
-
-        /* ===== Main Content ===== */
-        .login-content {
-            position: relative;
-            z-index: 10;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 80px 20px 60px;
-        }
-
-        /* ===== Login Card ===== */
-        .login-card {
-            width: 100%;
-            max-width: 460px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-            animation: cardSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        @keyframes cardSlideUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ===== Logo Row ===== */
-        .login-logos {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            padding: 28px 24px 0;
-        }
-
-        .login-logos img {
-            height: 60px;
-            width: auto;
-            object-fit: contain;
-            transition: transform 0.3s ease;
-        }
-
-        .login-logos img:hover {
-            transform: scale(1.08);
-        }
-
-        /* ===== Card Body ===== */
-        .login-card__body {
-            padding: 24px 36px 36px;
-        }
-
-        .login-card__title {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--btn-bg);
-            text-align: center;
-            margin-bottom: 4px;
-            letter-spacing: -0.02em;
-        }
-
-        .login-card__subtitle {
-            font-size: 14px;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-bottom: 28px;
-            font-weight: 400;
-        }
-
-        /* ===== Alert ===== */
-        .login-alert {
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 20px;
-            border: 1px solid var(--alert-danger-border);
-            background: var(--alert-danger-bg);
-            color: var(--alert-danger-text);
-            animation: alertFadeIn 0.3s ease;
-        }
-
-        @keyframes alertFadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .login-alert i {
-            margin-right: 8px;
-        }
-
-        /* ===== Form ===== */
-        .login-form-group {
-            margin-bottom: 20px;
-        }
-
-        .login-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--label-color);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 8px;
-        }
-
-        .login-input-wrap {
-            position: relative;
-        }
-
-        .login-input-wrap .form-control {
-            width: 100%;
-            height: 50px;
-            padding: 0 48px 0 16px;
-            font-family: 'Inter', sans-serif;
-            font-size: 15px;
-            color: var(--input-text);
-            background: var(--input-bg);
-            border: 1.5px solid var(--input-border);
-            border-radius: 10px;
-            transition: all 0.25s ease;
-        }
-
-        .login-input-wrap .form-control::placeholder {
-            color: var(--input-placeholder);
-        }
-
-        .login-input-wrap .form-control:focus {
-            border-color: var(--input-focus-border);
-            box-shadow: var(--input-focus-shadow);
-            outline: none;
-            background: var(--input-bg);
-            color: var(--input-text);
-        }
-
-        .login-input-icon {
-            position: absolute;
-            top: 50%;
-            right: 16px;
-            transform: translateY(-50%);
-            color: var(--icon-color);
-            font-size: 16px;
-            pointer-events: none;
-        }
-
-        /* Password toggle overrides pointer-events */
-        .ami-password-toggle {
-            position: absolute;
-            top: 50%;
-            right: 6px;
-            transform: translateY(-50%);
-            width: 38px;
-            height: 38px;
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--icon-color);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            transition: all 0.2s ease;
-        }
-
-        .ami-password-toggle:hover,
-        .ami-password-toggle:focus {
-            color: var(--btn-bg);
-            background: rgba(27,94,32,0.08);
-            outline: 0;
-        }
-
-        html[data-theme="dark"] .ami-password-toggle:hover,
-        html[data-theme="dark"] .ami-password-toggle:focus {
-            color: #4caf50;
-            background: rgba(76,175,80,0.12);
-        }
-
-        .login-error-text {
-            display: block;
-            margin-top: 6px;
-            font-size: 12px;
-            color: #ef4444;
-            font-weight: 500;
-        }
-
-        /* ===== Submit Button ===== */
-        .login-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            height: 52px;
-            margin-top: 28px;
-            padding: 0 24px;
-            font-family: 'Inter', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--btn-text);
-            background: var(--btn-bg);
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .login-btn:hover {
-            background: var(--btn-bg-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(27,94,32,0.35);
-        }
-
-        .login-btn:hover::before {
-            opacity: 1;
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(27,94,32,0.2);
-        }
-
-        .login-btn i {
-            font-size: 14px;
-            transition: transform 0.3s ease;
-        }
-
-        .login-btn:hover i {
-            transform: translateX(4px);
-        }
-
-        /* ===== Lupa Password ===== */
-        .login-forgot {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.2s ease;
-            cursor: default;
-        }
-
-        .login-forgot:hover {
-            color: var(--btn-bg);
-            text-decoration: none;
-        }
-
-        /* ===== Footer ===== */
-        .login-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            height: 44px;
-            background: var(--footer-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .login-footer__copy {
-            color: var(--footer-text);
-        }
-
-        .login-footer__links {
-            display: flex;
-            gap: 24px;
-        }
-
-        .login-footer__links a {
-            color: var(--footer-text);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .login-footer__links a:hover {
-            color: #ffffff;
-            text-decoration: underline;
-        }
-
-        /* ===== Responsive ===== */
-        @media (max-width: 576px) {
-            .login-navbar { padding: 0 16px; }
-            .login-navbar__brand { font-size: 17px; }
-            .login-card { max-width: 100%; border-radius: 12px; }
-            .login-card__body { padding: 20px 24px 28px; }
-            .login-card__title { font-size: 24px; }
-            .login-logos img { height: 45px; }
-            .login-logos { gap: 12px; padding: 20px 16px 0; }
-            .login-footer { 
-                flex-direction: column; 
-                height: auto; 
-                padding: 10px 16px;
-                gap: 4px;
-                text-align: center;
-            }
-            .login-footer__links { gap: 16px; }
-        }
-    </style>
+    <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
+    <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/auth.css')); ?>">
 </head>
-<body>
+<body id="auth-root" class="tw-m-0 tw-min-h-screen tw-bg-slate-50 tw-text-slate-900 tw-font-sans">
+    <main class="auth-shell">
+        <section class="auth-visual" aria-label="Identitas Sistem Penjaminan Mutu Internal">
+            <img src="<?php echo html_escape(base_url('assets/img/login-bg.jpg')); ?>" alt="Lingkungan kampus" class="auth-visual-image">
+            <div class="auth-visual-overlay" aria-hidden="true"></div>
+            <div class="auth-visual-content tw-relative tw-z-10 tw-flex tw-h-full tw-min-h-[220px] tw-flex-col tw-justify-between tw-p-6 sm:tw-p-10 lg:tw-p-14">
+                <div class="tw-flex tw-items-center">
+                    <div class="tw-flex tw-items-center tw-gap-2.5 tw-rounded-xl tw-border tw-border-white/25 tw-bg-white/80 tw-px-3 tw-py-2 tw-shadow-sm tw-backdrop-blur-md">
+                        <img src="<?php echo html_escape(base_url('assets/img/logo-1.png')); ?>" alt="Logo Universitas" class="tw-h-9 tw-w-auto tw-object-contain">
+                        <div class="tw-h-7 tw-w-px tw-bg-slate-200"></div>
+                        <img src="<?php echo html_escape(base_url('assets/img/logo-2.png')); ?>" alt="Logo LPM" class="tw-h-9 tw-w-auto tw-object-contain">
+                    </div>
+                </div>
+                <div class="tw-max-w-xl tw-text-white">
+                    <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100">Audit Mutu Internal</p>
+                    <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl">Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.</h2>
+                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200">Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.</p>
+                </div>
+            </div>
+        </section>
 
-<!-- Background Image -->
-<div class="login-bg">
-    <img src="<?= base_url('assets/img/login-bg.jpg'); ?>" alt="Campus Background">
-</div>
+        <section class="auth-form-side tw-px-5 tw-py-10 sm:tw-px-10 lg:tw-px-14" aria-label="Form login">
+            <div class="auth-panel">
+                <div class="tw-mb-7">
+                    <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.18em] tw-text-blue-700">Selamat datang</p>
+                    <h1 class="tw-m-0 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 sm:tw-text-3xl">
+                    Sistem Penjaminan Mutu Internal
+                </h1>
+                    <p class="tw-mb-0 tw-mt-2 tw-text-sm tw-leading-6 tw-text-slate-500">
+                    Masuk ke akun Anda untuk mengakses instrumen dan penilaian.
+                </p>
+            </div>
 
-<!-- Top Navbar -->
-<nav class="login-navbar">
-    <a href="<?= base_url('auth'); ?>" class="login-navbar__brand">AMI System</a>
-
-</nav>
-
-<!-- Main Content -->
-<main class="login-content">
-    <div class="login-card">
-        <!-- Logos -->
-        <div class="login-logos">
-            <img src="<?= base_url('assets/img/logo-1.png'); ?>" alt="Logo Universitas">
-            <img src="<?= base_url('assets/img/logo-2.png'); ?>" alt="Logo AMI">
-            <img src="<?= base_url('assets/img/logo-3.png'); ?>" alt="Logo Diktisaintek">
-        </div>
-
-        <!-- Card Body -->
-        <div class="login-card__body">
-            <h1 class="login-card__title">Login AMI</h1>
-            <p class="login-card__subtitle">Masuk ke Sistem Penjaminan Mutu Internal</p>
-
-            <!-- Flash Error -->
+            <!-- Flash Error Alert -->
             <?php if ($this->session->flashdata('error')): ?>
-                <div class="login-alert">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <?php echo html_escape($this->session->flashdata('error')); ?>
+                <div class="tw-mb-5 tw-flex tw-items-center tw-gap-2.5 tw-rounded-xl tw-border tw-border-red-200 tw-bg-red-50 tw-p-3.5 tw-text-xs tw-text-red-800" role="alert">
+                    <span class="tw-text-red-600 tw-flex-shrink-0"><?php echo $icon('alert-circle'); ?></span>
+                    <span class="tw-font-medium"><?php echo html_escape($this->session->flashdata('error')); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <!-- Flash Success Alert (e.g. after password reset) -->
+            <?php if ($this->session->flashdata('success')): ?>
+                <div class="tw-mb-5 tw-flex tw-items-center tw-gap-2.5 tw-rounded-xl tw-border tw-border-emerald-200 tw-bg-emerald-50 tw-p-3.5 tw-text-xs tw-text-emerald-800" role="alert">
+                    <span class="tw-text-emerald-600 tw-flex-shrink-0"><?php echo $icon('check-circle'); ?></span>
+                    <span class="tw-font-medium"><?php echo html_escape($this->session->flashdata('success')); ?></span>
                 </div>
             <?php endif; ?>
 
             <!-- Login Form -->
-            <?php echo form_open('auth/login'); ?>
+            <?php echo form_open('auth/login', ['class' => 'tw-space-y-4', 'id' => 'login-form']); ?>
 
-                <!-- Email -->
-                <div class="login-form-group">
-                    <label for="email" class="login-label">Email</label>
-                    <div class="login-input-wrap">
-                        <input type="email" name="email" id="email" class="form-control"
-                               placeholder="nama@universitas.ac.id"
-                               value="<?php echo set_value('email'); ?>" required>
-                        <span class="login-input-icon">
-                            <i class="fas fa-envelope"></i>
+                <!-- Email Field -->
+                <div>
+                    <label for="email" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700 tw-mb-1.5">
+                        Email
+                    </label>
+                    <div class="tw-relative tw-w-full">
+                        <span class="tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400 tw-pointer-events-none">
+                            <?php echo $icon('mail'); ?>
                         </span>
+                        <input type="email" name="email" id="email" value="<?php echo set_value('email'); ?>" required autocomplete="email" placeholder="nama@universitas.ac.id" class="tw-block tw-h-12 tw-w-full tw-min-w-0 tw-rounded-xl tw-border tw-border-slate-300 tw-bg-white tw-pl-10 tw-pr-3.5 tw-text-sm tw-text-slate-900 focus:tw-border-blue-600 focus:tw-outline-none focus:tw-ring-4 focus:tw-ring-blue-100 tw-transition">
                     </div>
-                    <?php echo form_error('email', '<small class="login-error-text">', '</small>'); ?>
+                    <?php echo form_error('email', '<div class="tw-mt-1.5 tw-text-xs tw-text-red-600 tw-font-medium">', '</div>'); ?>
                 </div>
 
-                <!-- Password -->
-                <div class="login-form-group">
-                    <label for="password" class="login-label">Password</label>
-                    <div class="login-input-wrap">
-                        <input type="password" name="password" id="password" class="form-control"
-                               placeholder="••••••••" required>
-                        <button type="button" class="ami-password-toggle"
-                                data-password-toggle="password"
-                                aria-label="Tampilkan password" aria-pressed="false">
-                            <i class="fas fa-eye" aria-hidden="true"></i>
+                <!-- Password Field -->
+                <div>
+                    <div class="tw-flex tw-flex-wrap tw-items-center tw-justify-between tw-gap-x-3 tw-gap-y-1 tw-mb-1.5">
+                        <label for="password" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700">
+                            Password
+                        </label>
+                        <a href="<?php echo site_url('auth/forgot-password'); ?>" class="tw-ml-auto tw-max-w-full tw-text-right tw-text-xs tw-font-semibold tw-leading-5 tw-text-blue-600 hover:tw-underline">
+                            Lupa password?
+                        </a>
+                    </div>
+                    <div class="tw-relative tw-w-full">
+                        <span class="tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400 tw-pointer-events-none">
+                            <?php echo $icon('lock'); ?>
+                        </span>
+                        <input type="password" name="password" id="password" required autocomplete="current-password" placeholder="••••••••" class="tw-block tw-h-12 tw-w-full tw-min-w-0 tw-rounded-xl tw-border tw-border-slate-300 tw-bg-white tw-pl-10 tw-pr-12 tw-text-sm tw-text-slate-900 focus:tw-border-blue-600 focus:tw-outline-none focus:tw-ring-4 focus:tw-ring-blue-100 tw-transition">
+                        <button type="button" id="password-toggle-btn" class="tw-absolute tw-right-0.5 tw-top-1/2 -tw-translate-y-1/2 tw-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-transparent tw-p-0 tw-text-slate-400 tw-transition hover:tw-bg-slate-100/80 hover:tw-text-slate-700 focus:tw-bg-slate-100 focus:tw-text-slate-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-200" aria-label="Tampilkan password" aria-pressed="false">
+                            <span id="icon-eye"><?php echo $icon('eye'); ?></span>
+                            <span id="icon-eye-off" class="tw-hidden"><?php echo $icon('eye-off'); ?></span>
                         </button>
                     </div>
-                    <?php echo form_error('password', '<small class="login-error-text">', '</small>'); ?>
+                    <?php echo form_error('password', '<div class="tw-mt-1.5 tw-text-xs tw-text-red-600 tw-font-medium">', '</div>'); ?>
                 </div>
 
-                <!-- Submit -->
-                <button type="submit" class="login-btn">
-                    Masuk <i class="fas fa-arrow-right"></i>
-                </button>
+                <!-- Submit Button -->
+                <div class="tw-pt-2">
+                    <button type="submit" class="tw-button-primary tw-w-full tw-min-h-[44px] tw-text-sm tw-shadow-md tw-shadow-blue-900/10">
+                        <span>Masuk</span>
+                        <?php echo $icon('arrow-right'); ?>
+                    </button>
+                </div>
 
             <?php echo form_close(); ?>
+                <div class="tw-mt-7 tw-border-t tw-border-slate-200 tw-pt-5 tw-text-center tw-text-xs tw-text-slate-400">
+                    &copy; <?php echo date('Y'); ?> Sistem Penjaminan Mutu Internal. All rights reserved.
+                </div>
+            </div>
+        </section>
+    </main>
 
-            <!-- Lupa Password -->
-            <a href="<?php echo site_url('auth/forgot-password'); ?>" class="login-forgot">Lupa password?</a>
-        </div>
-    </div>
-</main>
+    <!-- Password Visibility Toggle Script (Vanilla JS) -->
+    <script>
+    (function () {
+        'use strict';
+        var passwordInput = document.getElementById('password');
+        var toggleBtn = document.getElementById('password-toggle-btn');
+        var iconEye = document.getElementById('icon-eye');
+        var iconEyeOff = document.getElementById('icon-eye-off');
 
-<!-- Footer -->
-<footer class="login-footer">
-    <span class="login-footer__copy">&copy; <?= date('Y'); ?> University Internal Audit System. All Rights Reserved.</span>
-    <div class="login-footer__links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Help Center</a>
-    </div>
-</footer>
+        if (!passwordInput || !toggleBtn) return;
 
-<!-- Scripts -->
-<script>
-(function () {
-    'use strict';
+        toggleBtn.addEventListener('click', function () {
+            var isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            toggleBtn.setAttribute('aria-label', isPassword ? 'Sembunyikan password' : 'Tampilkan password');
+            toggleBtn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
 
-    // ===== Password Toggle =====
-    var toggle = document.querySelector('[data-password-toggle]');
-    if (!toggle) return;
-
-    toggle.addEventListener('click', function () {
-        var input = document.getElementById(toggle.getAttribute('data-password-toggle'));
-        if (!input) return;
-        var showing = input.type === 'text';
-        input.type = showing ? 'password' : 'text';
-        toggle.setAttribute('aria-label', showing ? 'Tampilkan password' : 'Sembunyikan password');
-        toggle.setAttribute('aria-pressed', showing ? 'false' : 'true');
-        var icon = toggle.querySelector('i');
-        icon.classList.toggle('fa-eye', showing);
-        icon.classList.toggle('fa-eye-slash', !showing);
-    });
-})();
-</script>
-
+            if (iconEye && iconEyeOff) {
+                iconEye.classList.toggle('tw-hidden', isPassword);
+                iconEyeOff.classList.toggle('tw-hidden', !isPassword);
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

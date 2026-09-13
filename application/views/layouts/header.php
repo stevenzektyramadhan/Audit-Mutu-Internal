@@ -12,44 +12,54 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo html_escape($title); ?></title>
     <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
-    <script>
-        (function () {
-            try {
-                var theme = localStorage.getItem('ami-theme');
-                if (theme === 'light' || theme === 'dark') {
-                    document.documentElement.setAttribute('data-theme', theme);
-                }
-            } catch (error) {}
-        })();
-    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <?php if (isset($active_menu) && $active_menu === 'spmi_dashboard'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-dashboard.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'users'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/users-management.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'organization'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/organization.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'spmi_standards'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/standards-management.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'spmi_instruments'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/instruments-management.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'spmi_audits'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-audits.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'spmi_reports'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-reports.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'spmi_rtm'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-rtm.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'spmi_follow_ups'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-follow-ups.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'account'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/account.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'profil'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/institution-profile.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && in_array($active_menu, ['spmi_auditor_dashboard', 'spmi_assessment'], TRUE)): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-auditor-workspace.css')); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && in_array($active_menu, ['spmi_auditee_dashboard', 'spmi_workspace'], TRUE)): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-auditee-workspace.css')); ?>">
+    <?php endif; ?>
     <style>
         :root {
-            --ami-bg: #161616;
-            --ami-panel: #222222;
-            --ami-sidebar: #172033;
-            --ami-sidebar-soft: rgba(255, 255, 255, 0.075);
-            --ami-text: #e1e3e6;
-            --ami-muted: #a1a5ab;
-            --ami-border: #33373e;
-            --ami-blue: #185fa5;
-            --ami-green: #3b6d11;
-            --ami-amber: #854f0b;
-            --ami-rose: #993556;
-            --ami-teal: #0f6e56;
-            --ami-link: #4da3ff;
-            --ami-link-soft: rgba(77, 163, 255, 0.15);
-            --ami-radius-sm: 7px;
-            --ami-space-sm: 8px;
-            --ami-space-md: 16px;
-            --ami-space-lg: 24px;
-        }
-
-        html[data-theme="light"] {
             color-scheme: light;
             --ami-bg: #f3f5f8;
             --ami-panel: #ffffff;
+            --ami-sidebar: #172033;
+            --ami-sidebar-soft: rgba(255, 255, 255, 0.075);
             --ami-text: #202733;
             --ami-muted: #667085;
             --ami-border: #d7dde6;
@@ -58,6 +68,12 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             --ami-amber: #854f0b;
             --ami-rose: #993556;
             --ami-teal: #0f6e56;
+            --ami-link: #185fa5;
+            --ami-link-soft: rgba(24, 95, 165, 0.1);
+            --ami-radius-sm: 7px;
+            --ami-space-sm: 8px;
+            --ami-space-md: 16px;
+            --ami-space-lg: 24px;
         }
 
         * {
@@ -68,11 +84,10 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             margin: 0;
             background: var(--ami-bg);
             color: var(--ami-text);
-            color-scheme: dark;
+            color-scheme: light;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             font-size: 14px;
             letter-spacing: 0;
-            transition: background-color .18s ease, color .18s ease;
         }
 
         a,
@@ -307,29 +322,6 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             align-items: center;
             justify-content: center;
             cursor: pointer;
-        }
-
-        .ami-theme-toggle {
-            min-height: 38px;
-            padding: 7px 11px;
-            border: 1px solid var(--ami-border);
-            border-radius: 7px;
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--ami-text);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .ami-theme-toggle:hover,
-        .ami-theme-toggle:focus {
-            border-color: var(--ami-link);
-            color: var(--ami-link);
-            outline: 0;
         }
 
         .ami-topbar-actions {
@@ -1001,128 +993,123 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             color: #a9d4ff;
         }
 
-        html[data-theme="light"] .ami-stat-card,
-        html[data-theme="light"] .ami-panel,
-        html[data-theme="light"] .ami-task-card,
-        html[data-theme="light"] .admin-summary-card {
+        .ami-stat-card,
+        .ami-panel,
+        .ami-task-card,
+        .admin-summary-card {
             box-shadow: 0 8px 22px rgba(32, 39, 51, 0.07);
         }
 
-        html[data-theme="light"] body {
-            color-scheme: light;
-        }
-
-        html[data-theme="light"] .ami-content a:not(.btn) {
+        .ami-content a:not(.btn) {
             color: var(--ami-blue);
         }
 
-        html[data-theme="light"] .ami-content a:not(.btn):hover {
+        .ami-content a:not(.btn):hover {
             color: #0e4a80;
         }
 
-        html[data-theme="light"] .ami-content .text-primary {
+        .ami-content .text-primary {
             color: var(--ami-blue) !important;
         }
 
-        html[data-theme="light"] .ami-content .text-success {
+        .ami-content .text-success {
             color: var(--ami-green) !important;
         }
 
-        html[data-theme="light"] .ami-content .text-warning {
+        .ami-content .text-warning {
             color: #995c08 !important;
         }
 
-        html[data-theme="light"] .ami-table th {
+        .ami-table th {
             background: #f7f8fa;
         }
 
-        html[data-theme="light"] .ami-table tbody tr:hover {
+        .ami-table tbody tr:hover {
             background: #f6f9fc;
         }
 
-        html[data-theme="light"] .ami-table tbody tr:hover td {
+        .ami-table tbody tr:hover td {
             color: var(--ami-text);
         }
 
-        html[data-theme="light"] .ami-content .form-control,
-        html[data-theme="light"] .ami-content .bg-dark {
+        .ami-content .form-control,
+        .ami-content .bg-dark {
             background-color: #ffffff !important;
             border-color: #bdc6d2 !important;
             color: var(--ami-text) !important;
         }
 
-        html[data-theme="light"] .ami-content .form-control:focus {
+        .ami-content .form-control:focus {
             background-color: #ffffff !important;
             border-color: #4da3ff !important;
             color: var(--ami-text) !important;
         }
 
-        html[data-theme="light"] .ami-content .form-control:disabled,
-        html[data-theme="light"] .ami-content .form-control[readonly] {
+        .ami-content .form-control:disabled,
+        .ami-content .form-control[readonly] {
             background-color: #eef1f5 !important;
             color: #596273 !important;
         }
 
-        html[data-theme="light"] .ami-content select.form-control option {
+        .ami-content select.form-control option {
             background: #ffffff;
             color: var(--ami-text);
         }
 
-        html[data-theme="light"] .ami-content .text-light,
-        html[data-theme="light"] .ami-content h1,
-        html[data-theme="light"] .ami-content h2,
-        html[data-theme="light"] .ami-content h3,
-        html[data-theme="light"] .ami-content h4,
-        html[data-theme="light"] .ami-content h5,
-        html[data-theme="light"] .ami-content h6 {
+        .ami-content .text-light,
+        .ami-content h1,
+        .ami-content h2,
+        .ami-content h3,
+        .ami-content h4,
+        .ami-content h5,
+        .ami-content h6 {
             color: var(--ami-text) !important;
         }
 
-        html[data-theme="light"] .ami-content .btn-secondary.text-light {
+        .ami-content .btn-secondary.text-light {
             color: var(--ami-text) !important;
         }
 
-        html[data-theme="light"] .btn-outline-ami,
-        html[data-theme="light"] .ami-action-btn,
-        html[data-theme="light"] .ami-theme-toggle {
+        .btn-outline-ami,
+        .ami-action-btn {
             background: #ffffff;
             color: #344054;
         }
 
-        html[data-theme="light"] .btn-outline-ami:hover,
-        html[data-theme="light"] .ami-action-btn:hover {
+        .btn-outline-ami:hover,
+        .ami-action-btn:hover {
             background: #edf5fd;
             color: var(--ami-blue);
         }
 
-        html[data-theme="light"] .ami-action-btn.danger {
+        .ami-action-btn.danger {
             color: var(--ami-rose);
         }
 
-        html[data-theme="light"] .ami-password-toggle:hover,
-        html[data-theme="light"] .ami-password-toggle:focus {
+        .ami-password-toggle:hover,
+        .ami-password-toggle:focus {
             color: var(--ami-blue);
             background: #edf5fd;
         }
 
-        html[data-theme="light"] .ami-timeline-marker {
+        .ami-timeline-marker {
             background: #f0f2f5;
         }
 
-        html[data-theme="light"] .ami-timeline-step.is-current {
+        .ami-timeline-step.is-current {
             color: var(--ami-blue);
         }
 
-        html[data-theme="light"] .ami-timeline-step.is-complete {
+        .ami-timeline-step.is-complete {
             color: #397fbf;
         }
 
-        html[data-theme="light"] .ami-flash-success {
+        .ami-flash-success {
             background: #edf8e8;
             color: #315d13;
         }
 
-        html[data-theme="light"] .ami-flash-error {
+        .ami-flash-error {
             background: #fff0f4;
             color: #8c294b;
         }

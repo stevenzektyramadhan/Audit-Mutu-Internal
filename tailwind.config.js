@@ -1,0 +1,31 @@
+module.exports = {
+    content: [
+        './application/views/lpmpi/spmi_management_dashboard/index.php',
+        './application/views/dashboard/**/*.php',
+        './application/views/users/index.php',
+        './application/views/users/create.php',
+        './application/views/users/edit.php',
+        './application/views/lpmpi/organization/**/*.php',
+        './application/views/lpmpi/spmi_standards/**/*.php',
+        './application/views/lpmpi/spmi_indicators/**/*.php',
+        './application/views/lpmpi/spmi_instruments/**/*.php',
+        './application/views/lpmpi/spmi_audits/*.php',
+        './application/views/lpmpi/spmi_reports/**/*.php',
+        './application/views/lpmpi/spmi_rtm/**/*.php',
+        './application/views/lpmpi/spmi_follow_ups/**/*.php',
+        './application/views/account/**/*.php',
+        './application/views/lpmpi/profil/**/*.php',
+        './application/views/spmi_auditor_dashboard/**/*.php',
+        './application/views/spmi_auditor_workspace/**/*.php',
+        './application/views/spmi_auditee_dashboard/**/*.php',
+        './application/views/spmi_auditee_workspace/**/*.php',
+        './application/views/auth/**/*.php',
+    ],
+    prefix: 'tw-',
+    corePlugins: {
+        preflight: false,
+    },
+    theme: {
+        extend: {},
+    },
+};

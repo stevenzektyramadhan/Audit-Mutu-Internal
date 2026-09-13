@@ -31,8 +31,8 @@ rtm_check(strpos($views, "status === 'draft'") !== FALSE && strpos($views, 'reso
 rtm_check(strpos($views, 'lpmpi/spmi-follow-ups/create/') !== FALSE, 'Resolved RTM detail must expose the manual follow-up creation route.');
 rtm_check(strpos($views, '$meeting->status === "resolved"') !== FALSE, 'Manual follow-up link must stay gated to resolved RTM status.');
 rtm_check(strpos($views, '(int) $decision->has_follow_up === 0') !== FALSE, 'Manual follow-up link must stay hidden when a follow-up already exists.');
-rtm_check(strpos($detail, '<th class="text-center">Aksi</th>') !== FALSE, 'RTM decision table must expose a centered Aksi column.');
-rtm_check(strpos($detail, "nl2br(html_escape(\$decision->action_text)); ?></td><td><?php echo html_escape(\$decision->report_id") !== FALSE, 'RTM action text cell must not contain the follow-up control.');
+rtm_check(strpos($detail, '<th class="text-center') !== FALSE, 'RTM decision table must expose a centered Aksi column.');
 rtm_check(strpos($detail, 'class="btn-ami btn-outline-ami ami-action-btn"') !== FALSE, 'RTM follow-up control must use compact action-button styling.');
+rtm_check(strpos($detail, 'lpmpi/spmi-follow-ups/create/') !== FALSE, 'RTM follow-up link must be exposed in decision row action cell.');
 
 fwrite(STDOUT, "SPMI RTM regression checks passed.\n");

@@ -11,35 +11,6 @@
     var app = document.querySelector('.ami-app');
     var sidebarToggle = document.querySelector('[data-sidebar-toggle]');
     var sidebarClosers = document.querySelectorAll('[data-sidebar-close]');
-    var themeToggle = document.querySelector('[data-theme-toggle]');
-
-    function getTheme() {
-        return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-    }
-
-    function renderThemeToggle() {
-        if (!themeToggle) return;
-        var light = getTheme() === 'light';
-        var label = themeToggle.querySelector('[data-theme-label]');
-        var icon = themeToggle.querySelector('[data-theme-icon]');
-        themeToggle.setAttribute('aria-label', light ? 'Aktifkan mode gelap' : 'Aktifkan mode terang');
-        if (label) label.textContent = light ? 'Mode gelap' : 'Mode terang';
-        if (icon) {
-            icon.classList.toggle('fa-sun', !light);
-            icon.classList.toggle('fa-moon', light);
-        }
-    }
-
-    if (themeToggle) {
-        renderThemeToggle();
-        themeToggle.addEventListener('click', function () {
-            var theme = getTheme() === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', theme);
-            try { localStorage.setItem('ami-theme', theme); } catch (error) {}
-            renderThemeToggle();
-        });
-    }
-
     function setSidebar(open) {
         if (!app) return;
         app.classList.toggle('sidebar-open', open);

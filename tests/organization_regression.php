@@ -31,6 +31,11 @@ foreach ([$index, $unit_form, $assignment_form, $capabilities] as $view) organiz
 foreach ([$unit_form, $assignment_form, $capabilities] as $view) organization_check(strpos($view, 'form_open(') !== FALSE, 'Organization mutation view must use form_open().');
 organization_check(substr_count($capabilities, 'Organization_service::ROLES') === 3, 'Capability matrix must use scoped management roles only.');
 organization_check(strpos($capabilities, 'auditor') === FALSE && strpos($capabilities, 'auditee') === FALSE, 'Capability matrix must not expose auditor/auditee controls.');
-organization_check(strpos($sidebar, "'key' => 'dashboard'") !== FALSE && strpos($sidebar, "form_open('auth/logout');") !== FALSE, 'Legacy sidebar hooks changed.');
+organization_check(strpos($sidebar, "'key' => 'spmi_dashboard'") !== FALSE && strpos($sidebar, "form_open('auth/logout');") !== FALSE, 'Sidebar dashboard and logout hooks changed.');
+
+organization_check(strpos($controller, "flash_redirect(\$result, 'lpmpi/organization?tab=structure')") !== FALSE, 'Unit mutation must redirect to structure tab.');
+organization_check(strpos($controller, "flash_redirect(\$this->organization_service->create_assignment(\$this->assignment_input()), 'lpmpi/organization?tab=assignments')") !== FALSE, 'Assignment store must redirect to assignments tab.');
+organization_check(strpos($controller, "flash_redirect(\$this->organization_service->end_assignment((int) \$id, \$until), 'lpmpi/organization?tab=assignments')") !== FALSE, 'Assignment end must redirect to assignments tab.');
+organization_check(strpos($controller, "flash_redirect(\$this->organization_service->update_capabilities(\$role, \$ids), 'lpmpi/organization?tab=access')") !== FALSE, 'Capability update must redirect to access tab.');
 
 fwrite(STDOUT, "Organization regression checks passed.\n");

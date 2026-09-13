@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#reports-root {
+  --reports-blue: #185fa5;
+  --reports-blue-hover: #124e89;
+  --reports-blue-soft: rgba(24, 95, 165, 0.1);
+  --reports-border: #e2e8f0;
+}
+
+@layer components {
+  #reports-root .tw-button-primary {
+    background: var(--reports-blue);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  #reports-root .tw-button-primary:hover {
+    background: var(--reports-blue-hover);
+    color: #fff;
+  }
+  #reports-root .tw-button-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--reports-blue-soft);
+  }
+
+  #reports-root .tw-button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #cbd5e1;
+    background-color: #ffffff;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    color: #334155;
+    transition: all 0.15s ease;
+  }
+  #reports-root .tw-button-secondary:hover {
+    border-color: #0f172a;
+    color: #0f172a;
+    background-color: #f8fafc;
+  }
+  #reports-root .tw-button-secondary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.5);
+  }
+
+  #reports-root .reports-back-link {
+    color: var(--reports-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  #reports-root .reports-back-link:hover {
+    color: var(--reports-blue-hover);
+    text-decoration: underline;
+  }
+
+  #reports-root .reports-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+}
+
+@media print {
+  .ami-sidebar,
+  .ami-topbar,
+  .ami-sidebar-overlay,
+  #reports-root .no-print {
+    display: none !important;
+  }
+
+  body, .ami-app, .ami-main, .ami-content {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+  }
+
+  #reports-root {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  #reports-root .print-table {
+    display: table !important;
+    width: 100% !important;
+  }
+
+  #reports-root .print-cards {
+    display: none !important;
+  }
+}
