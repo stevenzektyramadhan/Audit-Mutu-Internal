@@ -59,7 +59,7 @@ $icon = static function ($name) {
 
             <dl class="row tw-hidden">
                 <dt class="col-sm-3">Siklus</dt><dd class="col-sm-9"><?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?></dd>
-                <dt class="col-sm-3">Sumber</dt><dd class="col-sm-9"><?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot . ' / ' . $report->source_package_code_snapshot); ?></dd>
+                <dt class="col-sm-3">Sumber</dt><dd class="col-sm-9"><?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot); ?></dd>
                 <dt class="col-sm-3">Auditor / Auditee</dt><dd class="col-sm-9"><?php echo html_escape($report->auditor_name_snapshot . ' / ' . $report->auditee_name_snapshot); ?></dd>
                 <dt class="col-sm-3">Finalisasi</dt><dd class="col-sm-9"><?php echo html_escape($report->assessment_finalized_at_snapshot); ?></dd>
             </dl>
@@ -73,9 +73,9 @@ $icon = static function ($name) {
                 </div>
 
                 <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100">
-                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Sumber Paket</span>
+                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Sumber Standar</span>
                     <span class="tw-text-slate-800 tw-font-mono tw-text-xs">
-                        <?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot . ' / ' . $report->source_package_code_snapshot); ?>
+                        <?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot); ?>
                     </span>
                 </div>
 
@@ -100,15 +100,15 @@ $icon = static function ($name) {
             </div>
         </header>
 
-        <!-- Section: Hasil Akhir Butir Instrumen -->
+        <!-- Section: Hasil Akhir Indikator -->
         <section aria-labelledby="final-items-title">
             <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between">
                 <div>
-                    <h2 id="final-items-title" class="tw-text-lg tw-font-bold tw-text-slate-950 tw-m-0">Hasil Evaluasi &amp; Nilai Butir SPMI</h2>
+                    <h2 id="final-items-title" class="tw-text-lg tw-font-bold tw-text-slate-950 tw-m-0">Hasil Evaluasi &amp; Nilai Indikator SPMI</h2>
                     <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Rekap skor, uraian temuan auditor, rekomendasi, dan rencana perbaikan mutu.</p>
                 </div>
                 <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-slate-100 tw-px-3 tw-py-1 tw-text-xs tw-font-bold tw-text-slate-700">
-                    <?php echo count($report_items); ?> Butir Instrumen
+                    <?php echo count($report_items); ?> Indikator
                 </span>
             </div>
 
@@ -119,7 +119,7 @@ $icon = static function ($name) {
                         <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-600">
                             <tr>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-12 tw-text-center">No</th>
-                                <th class="tw-px-4 tw-py-3.5 tw-w-64">Pertanyaan</th>
+                                <th class="tw-px-4 tw-py-3.5 tw-w-64">Indikator</th>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-64">Realisasi &amp; Bukti</th>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-36">Skor</th>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-40">Deskriptor</th>
@@ -136,14 +136,7 @@ $icon = static function ($name) {
                                         <?php echo html_escape($item->display_order); ?>
                                     </td>
                                     <td class="tw-px-4 tw-py-4">
-                                        <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-800 tw-bg-slate-100 tw-px-2 tw-py-0.5 tw-rounded tw-border tw-border-slate-200 tw-inline-block tw-mb-1.5">
-                                            <?php echo html_escape($item->question_code_snapshot); ?>
-                                        </span>
-                                        <div class="tw-text-slate-900 tw-font-medium tw-leading-relaxed tw-mb-2">
-                                            <?php echo nl2br(html_escape($item->question_text_snapshot)); ?>
-                                        </div>
                                         <div class="tw-text-xs tw-text-slate-500 tw-bg-slate-50 tw-p-2 tw-rounded tw-border tw-border-slate-100">
-                                            <strong class="tw-text-slate-600">Indikator:</strong><br>
                                             <?php echo html_escape($item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); ?>
                                         </div>
                                     </td>
@@ -217,7 +210,7 @@ $icon = static function ($name) {
                         <div class="tw-border-b tw-border-slate-100 tw-pb-3">
                             <div class="tw-flex tw-items-center tw-justify-between tw-mb-2">
                                 <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-800 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                                    Butir <?php echo html_escape($item->display_order); ?>: <?php echo html_escape($item->question_code_snapshot); ?>
+                                    Butir <?php echo html_escape($item->display_order); ?>
                                 </span>
                                 <div class="tw-flex tw-items-center tw-gap-1">
                                     <span class="tw-inline-flex tw-h-6 tw-w-6 tw-items-center tw-justify-center tw-rounded tw-bg-blue-600 tw-font-bold tw-text-white tw-text-xs">
@@ -226,11 +219,8 @@ $icon = static function ($name) {
                                     <span class="tw-text-xs tw-text-slate-500">/ 4</span>
                                 </div>
                             </div>
-                            <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-leading-snug tw-m-0">
-                                <?php echo nl2br(html_escape($item->question_text_snapshot)); ?>
-                            </h3>
                             <div class="tw-mt-2 tw-text-xs tw-text-slate-500">
-                                <strong class="tw-text-slate-600">Indikator:</strong> <?php echo html_escape($item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); ?>
+                                <?php echo html_escape($item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); ?>
                             </div>
                         </div>
 

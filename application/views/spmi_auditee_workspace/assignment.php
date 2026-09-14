@@ -38,7 +38,7 @@ $icon = static function ($name) {
                 <div class="tw-min-w-0">
                     <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-2.5 tw-mb-2">
                         <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                            <?php echo html_escape($assignment->source_package_code); ?>
+                            <?php echo html_escape($assignment->source_standard_code); ?>
                         </span>
                         <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-slate-100 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-semibold tw-text-slate-700">
                             Auditor: <?php echo html_escape($assignment->auditor_name); ?>
@@ -57,7 +57,7 @@ $icon = static function ($name) {
                         </span>
                     </div>
                     <h1 class="tw-text-xl sm:tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 tw-m-0">
-                        <?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?>
+                        <?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?>
                     </h1>
                 </div>
 
@@ -76,11 +76,6 @@ $icon = static function ($name) {
                 <?php endif; ?>
             </div>
 
-            <?php if (!empty($assignment->source_package_description)): ?>
-                <p class="tw-mt-3 tw-text-xs tw-leading-relaxed tw-text-slate-500 tw-m-0 tw-border-t tw-border-slate-100 tw-pt-3">
-                    <?php echo nl2br(html_escape($assignment->source_package_description)); ?>
-                </p>
-            <?php endif; ?>
 
             <!-- Status Banner: Returned for Revision Prominence -->
             <?php if ($assignment->submission_status === 'returned_for_revision'): ?>
@@ -135,7 +130,7 @@ $icon = static function ($name) {
                     <div class="tw-border-b tw-border-slate-100 tw-bg-slate-50/70 tw-p-5 tw-flex tw-items-center tw-justify-between tw-gap-3">
                         <div class="tw-flex tw-items-center tw-gap-2.5">
                             <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-white tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                                Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->question_code); ?>
+Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->indicator_code); ?>
                             </span>
                             <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-slate-100 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-medium tw-text-slate-600">
                                 Kebijakan: <?php echo html_escape($clean_policy); ?>
@@ -151,9 +146,8 @@ $icon = static function ($name) {
                                 <span class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-400 tw-mb-1">
                                     Pertanyaan Standar:
                                 </span>
-                                <h3><?php echo html_escape((string) $item->display_order . '. ' . $item->question_code); ?></h3>
+<h3><?php echo html_escape((string) $item->display_order . '. ' . $item->indicator_code . ' — ' . $item->indicator_title); ?></h3>
                                 <p class="tw-text-sm tw-text-slate-800 tw-leading-relaxed tw-mt-1 tw-mb-0">
-                                    <?php echo nl2br(html_escape($item->question_text)); ?>
                                 </p>
                             </div>
 
