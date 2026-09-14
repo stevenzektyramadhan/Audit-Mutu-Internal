@@ -65,7 +65,6 @@ class Users extends Admin_Lpmpi_Controller {
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]');
         $this->form_validation->set_rules('password', 'Password', 'required');
         $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,admin_lpmpi,auditor,auditee]');
-        $this->set_unit_rules();
 
         if ($this->form_validation->run() === FALSE) {
             $this->create();
@@ -75,8 +74,6 @@ class Users extends Admin_Lpmpi_Controller {
                 'email' => $this->input->post('email', TRUE),
                 'password' => $this->input->post('password', TRUE),
                 'role' => $this->input->post('role', TRUE),
-                'nama_unit' => $this->input->post('nama_unit', TRUE),
-                'jenis_unit' => $this->input->post('jenis_unit', TRUE),
                 'actor_role' => $this->session->userdata('role'),
             ];
 
@@ -121,7 +118,6 @@ class Users extends Admin_Lpmpi_Controller {
         $this->form_validation->set_rules('nama', 'Nama', 'required');
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
         $this->form_validation->set_rules('role', 'Role', 'required|in_list[super_admin,admin_lpmpi,auditor,auditee]');
-        $this->set_unit_rules();
 
         if ($this->form_validation->run() === FALSE) {
             $this->edit($id);
@@ -133,8 +129,6 @@ class Users extends Admin_Lpmpi_Controller {
             'email' => $this->input->post('email', TRUE),
             'password' => $this->input->post('password', TRUE),
             'role' => $this->input->post('role', TRUE),
-            'nama_unit' => $this->input->post('nama_unit', TRUE),
-            'jenis_unit' => $this->input->post('jenis_unit', TRUE),
             'actor_role' => $this->session->userdata('role'),
         ]);
 
@@ -148,17 +142,6 @@ class Users extends Admin_Lpmpi_Controller {
         $result = $this->user_service->delete_user((int) $id, (int) $this->session->userdata('user_id'), $this->session->userdata('role'));
         $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
         redirect('users');
-    }
-
-    private function set_unit_rules()
-    {
-        if ($this->input->post('role', TRUE) === 'auditee') {
-            $this->form_validation->set_rules('nama_unit', 'Nama Unit', 'required');
-            $this->form_validation->set_rules('jenis_unit', 'Jenis Unit', 'required|in_list[prodi,unit,lembaga]');
-            return;
-        }
-
-        $this->form_validation->set_rules('jenis_unit', 'Jenis Unit', 'in_list[,prodi,unit,lembaga]');
     }
 
     private function allowed_filter_roles()

@@ -139,7 +139,6 @@ class User_model extends CI_Model
                 ->group_start()
                     ->like('nama', $filters['q'])
                     ->or_like('email', $filters['q'])
-                    ->or_like('nama_unit', $filters['q'])
                 ->group_end();
         }
 
