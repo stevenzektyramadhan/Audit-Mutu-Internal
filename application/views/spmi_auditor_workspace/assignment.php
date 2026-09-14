@@ -40,7 +40,7 @@ $icon = static function ($name) {
                 <div class="tw-min-w-0">
                     <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-2.5 tw-mb-2">
                         <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                            <?php echo html_escape($assignment->source_package_code); ?>
+                            <?php echo html_escape($assignment->source_standard_code); ?>
                         </span>
                         <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-slate-100 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-semibold tw-text-slate-700">
                             Auditee: <?php echo html_escape($assignment->auditee_name); ?>
@@ -60,7 +60,7 @@ $icon = static function ($name) {
                         <?php endif; ?>
                     </div>
                     <h1 class="tw-text-xl sm:tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 tw-m-0">
-                        <?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?>
+                        <?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?>
                     </h1>
                 </div>
 
@@ -79,11 +79,6 @@ $icon = static function ($name) {
                 <?php endif; ?>
             </div>
 
-            <?php if (!empty($assignment->source_package_description)): ?>
-                <p class="tw-mt-3 tw-text-xs tw-leading-relaxed tw-text-slate-500 tw-m-0 tw-border-t tw-border-slate-100 tw-pt-3">
-                    <?php echo nl2br(html_escape($assignment->source_package_description)); ?>
-                </p>
-            <?php endif; ?>
 
             <!-- Status Banner Callouts -->
             <?php if ($assessment && $assessment->status === 'finalized'): ?>
@@ -121,7 +116,7 @@ $icon = static function ($name) {
                     <div class="tw-border-b tw-border-slate-100 tw-bg-slate-50/70 tw-p-5 tw-flex tw-items-center tw-justify-between tw-gap-3">
                         <div class="tw-flex tw-items-center tw-gap-2.5">
                             <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-white tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                                Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->question_code); ?>
+Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->indicator_code); ?>
                             </span>
                             <?php if ($item->assessment && $item->assessment->score): ?>
                                 <span class="tw-inline-flex tw-items-center tw-gap-1 tw-rounded-full tw-bg-blue-50 tw-border tw-border-blue-200 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-blue-800">
@@ -144,13 +139,13 @@ $icon = static function ($name) {
                     <div class="tw-grid tw-gap-6 lg:tw-grid-cols-2 tw-p-6">
                         <!-- LEFT COLUMN: Context & Auditee Evidence (Reference) -->
                         <div class="tw-space-y-4 tw-border-b lg:tw-border-b-0 lg:tw-border-r tw-border-slate-100 tw-pb-6 lg:tw-pb-0 lg:tw-pr-6">
-                            <!-- Pertanyaan & Indikator -->
+                            <!-- Indikator -->
                             <div>
                                 <span class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-400 tw-mb-1">
-                                    Pertanyaan Instrumen:
+                                    Indikator:
                                 </span>
                                 <p class="tw-text-sm tw-font-semibold tw-text-slate-900 tw-leading-relaxed tw-m-0">
-                                    <?php echo nl2br(html_escape($item->question_text)); ?>
+<?php echo html_escape($item->indicator_code . ' — ' . $item->indicator_title); ?>
                                 </p>
                             </div>
 

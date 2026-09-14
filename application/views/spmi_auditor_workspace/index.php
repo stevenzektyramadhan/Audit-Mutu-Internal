@@ -85,7 +85,7 @@ $icon = static function ($name) {
                         <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-500">
                             <tr>
                                 <th class="tw-px-5 tw-py-4">Siklus</th>
-                                <th class="tw-px-5 tw-py-4">Paket</th>
+                                <th class="tw-px-5 tw-py-4">Standar</th>
                                 <th class="tw-px-5 tw-py-4">Status</th>
                                 <th class="tw-px-5 tw-py-4 tw-text-right">Aksi</th>
                             </tr>
@@ -103,7 +103,7 @@ $icon = static function ($name) {
                                     </td>
                                     <td class="tw-px-5 tw-py-4">
                                         <div class="tw-font-semibold tw-text-slate-900">
-                                            <?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?>
+                                            <?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?>
                                         </div>
                                     </td>
                                     <td class="tw-px-5 tw-py-4">
@@ -151,7 +151,7 @@ $icon = static function ($name) {
 
                         <div>
                             <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-m-0">
-                                <?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?>
+                                <?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?>
                             </h3>
                             <p class="tw-text-xs tw-text-slate-500 tw-m-0 tw-mt-0.5">
                                 <?php echo html_escape($assignment->cycle_title); ?>
