@@ -23,6 +23,7 @@ organization_check(strpos($service, "const ROLES = ['super_admin', 'admin_lpmpi'
 organization_check(strpos($service, 'known_ids') !== FALSE && strpos($service, 'array_values($capability_ids)') !== FALSE, 'Capability IDs must be filtered against known capabilities.');
 organization_check(strpos($service, "if (\$role === 'super_admin')") !== FALSE, 'Super admin capability floor missing.');
 organization_check(strpos($service, "!empty(\$data['is_primary']) && \$this->is_current_assignment") !== FALSE, 'Historical primary assignment must not clear current primary.');
+organization_check(strpos($service, "\$until === '' || \$until > \$today") !== FALSE, 'An assignment ending today must not remain current.');
 foreach (['find_user', 'find_active_unit', 'find_assignment'] as $literal) organization_check(strpos($service, $literal . '(') !== FALSE && strpos($routes, 'lpmpi/organization') !== FALSE, 'Organization data lookup contract missing: ' . $literal);
 organization_check(strpos($index, "'root'") !== FALSE && strpos($index, "render_organization_units('root'") !== FALSE, 'Organization root rendering contract missing.');
 foreach (['lpmpi/organization', 'unit/create', 'unit/store', 'unit/edit', 'unit/update', 'unit/toggle', 'assignment/create', 'assignment/store', 'assignment/end', 'capabilities/update'] as $literal) organization_check(strpos($routes, $literal) !== FALSE, 'Route missing: ' . $literal);
@@ -36,6 +37,7 @@ organization_check(strpos($sidebar, "'key' => 'spmi_dashboard'") !== FALSE && st
 organization_check(strpos($controller, "flash_redirect(\$result, 'lpmpi/organization?tab=structure')") !== FALSE, 'Unit mutation must redirect to structure tab.');
 organization_check(strpos($controller, "flash_redirect(\$this->organization_service->create_assignment(\$this->assignment_input()), 'lpmpi/organization?tab=assignments')") !== FALSE, 'Assignment store must redirect to assignments tab.');
 organization_check(strpos($controller, "flash_redirect(\$this->organization_service->end_assignment((int) \$id, \$until), 'lpmpi/organization?tab=assignments')") !== FALSE, 'Assignment end must redirect to assignments tab.');
+organization_check(strpos($index, "\$row->valid_until <= \$today") !== FALSE && strpos($index, "\$can_assign && \$is_current") !== FALSE, 'An assignment ending today must render as completed without another end action.');
 organization_check(strpos($controller, "flash_redirect(\$this->organization_service->update_capabilities(\$role, \$ids), 'lpmpi/organization?tab=access')") !== FALSE, 'Capability update must redirect to access tab.');
 
 fwrite(STDOUT, "Organization regression checks passed.\n");

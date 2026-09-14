@@ -67,8 +67,15 @@ class Spmi_standards_service
         if (!$this->is_mutable($version)) return $this->finish(FALSE, 'Versi ini bersifat hanya-baca.');
         $payload = ['version_id' => (int) $version_id, 'standard_code' => strtoupper(trim((string) (isset($data['standard_code']) ? $data['standard_code'] : ''))), 'display_order' => (int) (isset($data['display_order']) ? $data['display_order'] : 0), 'title' => trim((string) (isset($data['title']) ? $data['title'] : '')), 'description' => trim((string) (isset($data['description']) ? $data['description'] : ''))];
         if (!preg_match('/^[A-Z0-9._-]+$/', $payload['standard_code']) || $payload['display_order'] < 1 || $payload['title'] === '' || strlen($payload['title']) > 200) return $this->finish(FALSE, 'Kode, urutan, dan judul standar wajib valid.');
-        $ok = $this->model->create_standard($payload);
-        return $this->finish($ok, $ok ? 'Standar berhasil ditambahkan.' : 'Kode atau urutan standar sudah digunakan.');
+        $db_debug = $this->ci->db->db_debug;
+        $this->ci->db->db_debug = FALSE;
+        try {
+            $ok = $this->model->create_standard($payload);
+        } finally {
+            $this->ci->db->db_debug = $db_debug;
+        }
+        if (!$ok && $this->is_duplicate_key_error()) return $this->finish(FALSE, 'Kode atau urutan standar sudah digunakan.');
+        return $this->finish($ok, $ok ? 'Standar berhasil ditambahkan.' : 'Standar gagal ditambahkan.');
     }
 
     public function update_standard($id, $data)
@@ -79,15 +86,23 @@ class Spmi_standards_service
         if (!$standard || !$this->is_mutable($version)) return $this->finish(FALSE, 'Standar ini bersifat hanya-baca.');
         $payload = ['standard_code' => strtoupper(trim((string) $data['standard_code'])), 'display_order' => (int) $data['display_order'], 'title' => trim((string) $data['title']), 'description' => trim((string) $data['description'])];
         if (!preg_match('/^[A-Z0-9._-]+$/', $payload['standard_code']) || $payload['display_order'] < 1 || $payload['title'] === '' || strlen($payload['title']) > 200) return $this->finish(FALSE, 'Kode, urutan, dan judul standar wajib valid.');
-        $ok = $this->model->update_standard($id, $payload);
-        return $this->finish($ok, $ok ? 'Standar berhasil diperbarui.' : 'Kode atau urutan standar sudah digunakan.');
+        $db_debug = $this->ci->db->db_debug;
+        $this->ci->db->db_debug = FALSE;
+        try {
+            $ok = $this->model->update_standard($id, $payload);
+        } finally {
+            $this->ci->db->db_debug = $db_debug;
+        }
+        if (!$ok && $this->is_duplicate_key_error()) return $this->finish(FALSE, 'Kode atau urutan standar sudah digunakan.');
+        return $this->finish($ok, $ok ? 'Standar berhasil diperbarui.' : 'Standar gagal diperbarui.');
     }
 
     public function set_source($id, $path) { return $this->guard_mutable_update($id, ['source_file_path' => basename($path)]); }
     public function clear_source($id) { return $this->guard_mutable_update($id, ['source_file_path' => NULL], TRUE); }
     private function guard_mutable_update($id, $data, $require_source = FALSE) { $this->ci->db->trans_start(); $version = $this->model->find_version($id, TRUE); if (!$this->is_mutable($version)) return $this->finish(FALSE, 'Versi ini bersifat hanya-baca.'); if ($require_source && empty($version->source_file_path)) return $this->finish(FALSE, 'Dokumen sumber tidak ditemukan.'); $previous_source_file_path = $version->source_file_path; $ok = $this->model->update_version($id, $data); $result = $this->finish($ok, $ok ? 'Dokumen sumber berhasil diperbarui.' : 'Dokumen sumber gagal diperbarui.'); if ($result['success']) $result['previous_source_file_path'] = $previous_source_file_path; return $result; }
     private function version_data($data) { return ['version_code' => strtoupper(trim((string) (isset($data['version_code']) ? $data['version_code'] : ''))), 'title' => trim((string) (isset($data['title']) ? $data['title'] : '')), 'description' => trim((string) (isset($data['description']) ? $data['description'] : ''))]; }
-    private function is_duplicate_active_error() { $error = $this->ci->db->error(); return isset($error['code']) && (int) $error['code'] === 1062; }
+    private function is_duplicate_active_error() { return $this->is_duplicate_key_error(); }
+    private function is_duplicate_key_error() { $error = $this->ci->db->error(); return isset($error['code']) && (int) $error['code'] === 1062; }
     private function finish($success, $message) { $this->ci->db->trans_complete(); return $success && $this->ci->db->trans_status() ? $this->ok($message) : $this->fail($message); }
     private function ok($message) { return ['success' => TRUE, 'message' => $message]; }
     private function fail($message) { return ['success' => FALSE, 'message' => $message]; }
