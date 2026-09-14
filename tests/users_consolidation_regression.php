@@ -31,7 +31,8 @@ $sidebar_view = users_consolidation_source('application/views/layouts/sidebar.ph
 users_consolidation_check(strpos($users, 'class Users extends Admin_Lpmpi_Controller') !== FALSE, 'Users harus memakai Admin_Lpmpi_Controller.');
 users_consolidation_check(strpos($users, "'actor_role' => \$this->session->userdata('role')") !== FALSE, 'Users harus meneruskan role aktor ke service.');
 users_consolidation_check(strpos($users, "\$data['users'] = \$this->user_service->get_all_users(\$filters);") !== FALSE, 'Users index harus memakai service canonical untuk list.');
-users_consolidation_check(strpos($users, "'nama_unit' => \$this->input->post('nama_unit', TRUE)") !== FALSE && strpos($users, "'jenis_unit' => \$this->input->post('jenis_unit', TRUE)") !== FALSE, 'Users harus meneruskan field unit canonical.');
+users_consolidation_check(strpos($users, "'nama_unit' => \$this->input->post('nama_unit', TRUE)") === FALSE && strpos($users, "'jenis_unit' => \$this->input->post('jenis_unit', TRUE)") === FALSE, 'Users account CRUD tidak boleh menerima field unit organisasi.');
+users_consolidation_check(strpos($users, 'set_unit_rules') === FALSE, 'Users account CRUD tidak boleh memvalidasi penempatan unit.');
 users_consolidation_check(substr_count($users, '$this->require_post();') >= 3, 'Store/update/delete Users harus POST-only.');
 
 users_consolidation_check(strpos($service, 'function allowed_managed_roles') !== FALSE, 'Service harus punya policy role aktor.');
@@ -40,12 +41,14 @@ users_consolidation_check(strpos($service, 'array_filter($users, function ($user
 users_consolidation_check(strpos($service, "'super_admin' => self::ALLOWED_ROLES") !== FALSE, 'Super admin harus boleh mengelola semua role.');
 users_consolidation_check(strpos($service, "'admin_lpmpi' => ['auditor', 'auditee']") !== FALSE, 'Admin LPMPI hanya boleh mengelola auditor/auditee.');
 users_consolidation_check(strpos($service, 'create_lpmpi_account') === FALSE && strpos($service, 'update_lpmpi_account') === FALSE && strpos($service, 'delete_lpmpi_account') === FALSE, 'Method CRUD legacy Akun harus dihapus dari service.');
-users_consolidation_check(strpos($service, 'is_valid_unit_fields') !== FALSE && strpos($service, "in_array(\$data['jenis_unit'], ['prodi', 'unit', 'lembaga'], TRUE)") !== FALSE, 'Validasi unit auditee harus canonical dan terikat jenis yang diizinkan.');
+users_consolidation_check(strpos($service, 'is_valid_unit_fields') === FALSE && strpos($service, 'normalize_unit_fields') === FALSE, 'Service account CRUD tidak boleh mengelola field unit organisasi.');
 users_consolidation_check(strpos($service, 'dependency = $this->user_model->user_dependency_category') !== FALSE, 'Service harus memakai dependency blocker model.');
-users_consolidation_check(strpos($service, 'Super Admin terakhir tidak dapat dihapus.') !== FALSE, 'Delete harus melindungi super admin terakhir.');
+users_consolidation_check(strpos($service, 'if ($user->role === \'super_admin\')') !== FALSE, 'Delete harus menolak semua target super_admin.');
+users_consolidation_check(strpos($service, 'if ($user->role === \'super_admin\' && $this->user_model->count_by_role(\'super_admin\') <= 1)') === FALSE, 'Delete tidak boleh lagi memakai policy Super Admin terakhir.');
+users_consolidation_check(strpos($service, 'Super Admin tidak dapat dihapus.') !== FALSE, 'Delete harus memakai pesan absolute super_admin protection.');
 users_consolidation_check(strpos($service, 'Anda tidak dapat menghapus akun yang sedang digunakan.') !== FALSE, 'Delete harus blok akun sesi sendiri.');
 
-users_consolidation_check(strpos($model, "or_like('nama_unit', \$filters['q'])") !== FALSE, 'Search Users harus mencakup nama_unit.');
+users_consolidation_check(strpos($model, "or_like('nama_unit', \$filters['q'])") === FALSE, 'Search Users account-only tidak boleh mencari nama_unit.');
 users_consolidation_check(strpos($model, 'function user_dependency_category') !== FALSE, 'Model harus punya lookup dependency user.');
 foreach (['tugas_audit', 'spmi_audit_assignments', 'spmi_audit_cycles', 'spmi_versions', 'spmi_reports', 'spmi_rtm_meetings', 'spmi_rtm_participants', 'spmi_rtm_follow_ups', 'user_unit_assignments'] as $table) {
     users_consolidation_check(strpos($model, "'table' => '" . $table . "'") !== FALSE, 'Dependency table wajib dicek: ' . $table);
@@ -55,13 +58,18 @@ foreach (['auditor_id', 'auditee_id', 'created_by', 'generated_by', 'resolved_by
 }
 users_consolidation_check(strpos($model, 'table_exists') !== FALSE && strpos($model, 'field_exists') !== FALSE, 'Dependency lookup harus guard variasi schema test.');
 
-foreach (['Nama', 'Email', 'Role', 'Unit', 'Jenis Unit', 'Dibuat', 'Aksi'] as $column) {
+foreach (['Nama', 'Email', 'Role', 'Dibuat', 'Aksi'] as $column) {
     users_consolidation_check(strpos($index_view, '>' . $column . '<') !== FALSE, 'Users index harus memuat kolom: ' . $column);
 }
-users_consolidation_check(strpos($index_view, "user->role === 'auditee'") !== FALSE, 'Users index harus menampilkan unit hanya untuk auditee.');
+foreach (['>Unit<', '>Jenis Unit<', '$user->nama_unit', '$user->jenis_unit', "user->role === 'auditee'"] as $unit_fragment) {
+    users_consolidation_check(strpos($index_view, $unit_fragment) === FALSE, 'Users index tidak boleh menampilkan field unit: ' . $unit_fragment);
+}
+users_consolidation_check(strpos($index_view, "site_url('lpmpi/organization?tab=assignments')") !== FALSE, 'Users index harus mengarahkan penempatan ke tab organisasi yang ada.');
 users_consolidation_check(strpos($index_view, 'tidak dapat dihapus jika masih memiliki data terkait') !== FALSE, 'Delete copy harus menjelaskan dependency blocker.');
-users_consolidation_check(strpos($create_view, 'data-role-select') !== FALSE && strpos($create_view, 'name="nama_unit"') !== FALSE && strpos($create_view, 'name="jenis_unit"') !== FALSE, 'Create Users harus punya selector role dan field unit canonical.');
-users_consolidation_check(strpos($edit_view, 'data-role-select') !== FALSE && strpos($edit_view, '$user->nama_unit') !== FALSE && strpos($edit_view, '$user->jenis_unit') !== FALSE, 'Edit Users harus mempertahankan nilai unit.');
+users_consolidation_check(strpos($index_view, 'if ($user->role !== \'super_admin\')') !== FALSE, 'Users index tidak boleh menampilkan form hapus untuk super_admin.');
+users_consolidation_check(strpos($create_view, 'name="role"') !== FALSE && strpos($create_view, 'name="nama_unit"') === FALSE && strpos($create_view, 'name="jenis_unit"') === FALSE, 'Create Users harus mengelola role tanpa field unit.');
+users_consolidation_check(strpos($edit_view, 'name="role"') !== FALSE && strpos($edit_view, '$user->nama_unit') === FALSE && strpos($edit_view, '$user->jenis_unit') === FALSE, 'Edit Users harus mengelola role tanpa mempertahankan field unit.');
+users_consolidation_check(strpos($create_view, "site_url('lpmpi/organization?tab=assignments')") !== FALSE && strpos($edit_view, "site_url('lpmpi/organization?tab=assignments')") !== FALSE, 'Create/Edit Users harus memberi tautan aman ke tab Penempatan organisasi.');
 users_consolidation_check(strpos($create_view, 'bg-dark') === FALSE && strpos($edit_view, 'bg-dark') === FALSE, 'Form Users tidak boleh memakai style dark legacy.');
 users_consolidation_check(substr_count($sidebar_view, "['key' => 'akun'") === 0 && substr_count($sidebar_view, "['key' => 'users'") === 2, 'Sidebar harus memakai menu Users canonical tanpa Akun.');
 

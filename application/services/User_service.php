@@ -55,16 +55,11 @@ class User_service
             return $this->fail('Role pengguna tidak boleh dikelola oleh akun ini.');
         }
 
-        if (!$this->is_valid_unit_fields($data)) {
-            return $this->fail('Data unit auditee tidak valid.');
-        }
-
         if ($this->user_model->find_by_email($data['email'])) {
             return $this->fail('Email sudah terdaftar.');
         }
 
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        $data = $this->normalize_unit_fields($data);
 
         if ($this->user_model->create($data)) {
             return ['success' => TRUE, 'message' => 'Pengguna berhasil ditambahkan.'];
@@ -81,7 +76,6 @@ class User_service
             return $this->fail('Pengguna tidak ditemukan.');
         }
 
-        $has_unit_fields = array_key_exists('nama_unit', $data) || array_key_exists('jenis_unit', $data);
         $data = $this->normalize($data);
         if (!$this->is_valid($data, FALSE)) {
             return $this->fail('Data pengguna tidak valid.');
@@ -89,10 +83,6 @@ class User_service
 
         if (!$this->can_manage_role($actor_role, $user->role) || !$this->can_manage_role($actor_role, $data['role'])) {
             return $this->fail('Role pengguna tidak boleh dikelola oleh akun ini.');
-        }
-
-        if (!$this->is_valid_unit_fields($data)) {
-            return $this->fail('Data unit auditee tidak valid.');
         }
 
         if ($this->user_model->email_exists_except($data['email'], $id)) {
@@ -118,12 +108,6 @@ class User_service
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        $data = $this->normalize_unit_fields($data);
-        if (!$has_unit_fields && $data['role'] === 'auditee') {
-            $data['nama_unit'] = $user->nama_unit;
-            $data['jenis_unit'] = $user->jenis_unit;
-        }
-
         if ($this->user_model->update($id, $data)) {
             return ['success' => TRUE, 'message' => 'Pengguna berhasil diperbarui.'];
         }
@@ -146,8 +130,8 @@ class User_service
             return $this->fail('Anda tidak dapat menghapus akun yang sedang digunakan.');
         }
 
-        if ($user->role === 'super_admin' && $this->user_model->count_by_role('super_admin') <= 1) {
-            return $this->fail('Super Admin terakhir tidak dapat dihapus.');
+        if ($user->role === 'super_admin') {
+            return $this->fail('Super Admin tidak dapat dihapus.');
         }
 
         $dependency = $this->user_model->user_dependency_category($id);
@@ -184,8 +168,6 @@ class User_service
             'email' => strtolower(trim(isset($data['email']) ? $data['email'] : '')),
             'password' => isset($data['password']) ? (string) $data['password'] : '',
             'role' => isset($data['role']) ? $data['role'] : '',
-            'nama_unit' => trim(isset($data['nama_unit']) ? $data['nama_unit'] : ''),
-            'jenis_unit' => isset($data['jenis_unit']) ? $data['jenis_unit'] : '',
         ];
     }
 
@@ -195,31 +177,6 @@ class User_service
             && filter_var($data['email'], FILTER_VALIDATE_EMAIL) !== FALSE
             && (!$password_required || $data['password'] !== '')
             && in_array($data['role'], self::ALLOWED_ROLES, TRUE);
-    }
-
-    private function is_valid_unit_fields($data)
-    {
-        if ($data['role'] === 'auditee') {
-            return $data['nama_unit'] !== ''
-                && in_array($data['jenis_unit'], ['prodi', 'unit', 'lembaga'], TRUE);
-        }
-
-        return $data['jenis_unit'] === ''
-            || in_array($data['jenis_unit'], ['prodi', 'unit', 'lembaga'], TRUE);
-    }
-
-    private function normalize_unit_fields($data)
-    {
-        if ($data['role'] !== 'auditee') {
-            $data['nama_unit'] = NULL;
-            $data['jenis_unit'] = NULL;
-            return $data;
-        }
-
-        $data['nama_unit'] = $data['nama_unit'] !== '' ? $data['nama_unit'] : NULL;
-        $data['jenis_unit'] = $data['jenis_unit'] !== '' ? $data['jenis_unit'] : NULL;
-
-        return $data;
     }
 
     private function fail($message)
