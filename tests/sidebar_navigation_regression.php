@@ -69,11 +69,11 @@ foreach ([
 
 check(substr_count($sidebar, "'group' => 'Settings'") === 6, 'Settings group must cover all account and management profile entries.');
 check(substr_count($sidebar, "'key' => 'spmi_workspace', 'label' => 'Workspace SPMI', 'icon' => 'fa-laptop-house', 'url' => 'auditee/spmi', 'group' => 'Work'") === 1, 'SPMI workspace menu must be auditee-only.');
-check(substr_count($sidebar, "'group' => 'Management'") === 10, 'Management group count changed.');
+check(substr_count($sidebar, "'group' => 'Management'") === 8, 'Management group count changed.');
 check(substr_count($sidebar, "'key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization'") === 2, 'Organization menu must be shared by management roles.');
 check(strpos($sidebar, "'key' => 'spmi_indicators'") === FALSE, 'SPMI indicator menu must be removed from sidebar.');
 check(strpos($sidebar, "'key' => 'spmi_master'") === FALSE, 'SPMI master menu must be removed from sidebar.');
-check(substr_count($sidebar, "'key' => 'spmi_instruments', 'label' => 'Instrumen Audit SPMI', 'icon' => 'fa-clipboard-check', 'url' => 'lpmpi/spmi-instruments', 'group' => 'Management'") === 2, 'SPMI instrument menu must be shared by two management roles.');
+check(strpos($sidebar, "'key' => 'spmi_instruments'") === FALSE, 'Retired SPMI instrument menu must not remain in the sidebar.');
 check(substr_count($sidebar, "'key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'") === 2, 'Users menu must be shared by management roles.');
 check(strpos($sidebar, "'key' => 'akun', 'label' => 'Akun Auditor & Auditee'") === FALSE, 'Akun menu must be removed after consolidation.');
 check(substr_count($sidebar, "'group' => 'Insights'") === 6, 'Insights group count changed.');
