@@ -63,7 +63,6 @@ $migration_contract = m17_source('migrations/018_create_spmi_auditee_workspace.s
     . "\n" . m17_optional_source('migrations/025_create_spmi_m17_schema_foundation.sql');
 
 // Given: the canonical schema and additive migration artifacts for M17-01.
-$instrument_questions = m17_table_block($schema, 'spmi_instrument_questions');
 $submission_items = m17_table_block($schema, 'spmi_auditee_submission_items');
 $submissions = m17_table_block($schema, 'spmi_auditee_submissions');
 $assessments = m17_table_block($schema, 'spmi_auditor_assessments');
@@ -80,11 +79,8 @@ $m17_07b_evidence_migration = m17_optional_source('migrations/029_add_spmi_audit
 $m17_07c_migration = m17_optional_source('migrations/030_add_spmi_auditor_assessment_finding_details.sql');
 $m17_drive_evidence_migration = m17_source('migrations/033_add_spmi_drive_evidence_metadata.sql');
 
-// Then: M17-01 provides dormant, backward-compatible schema for M17-02 through M17-06.
-m17_check(
-    m17_has_column($instrument_questions, 'evidence_policy', "ENUM\('none','file','url','either','both'\) NOT NULL DEFAULT 'none'"),
-    'M17-01 instrument-question evidence_policy must be ENUM none/file/url/either/both with backward-compatible default none.'
-);
+// Then: M17-01 workspace schema remains independent of retired instrument questions.
+m17_check(strpos($schema, 'spmi_instrument_questions') === FALSE, 'Bootstrap schema must not retain retired versioned instrument questions.');
 
 m17_check(
     m17_has_column($submission_items, 'evidence_url', 'VARCHAR\(500\) NULL'),

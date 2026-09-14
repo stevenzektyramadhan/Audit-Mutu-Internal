@@ -7,7 +7,6 @@ $header = spmi_ui_source('application/views/layouts/header.php');
 $lists = [
     'application/views/lpmpi/spmi_audits/index.php',
     'application/views/lpmpi/spmi_standards/index.php',
-    'application/views/lpmpi/spmi_instruments/index.php',
     'application/views/lpmpi/spmi_indicators/index.php',
     'application/views/lpmpi/spmi_reports/index.php',
     'application/views/lpmpi/spmi_rtm/index.php',
@@ -19,8 +18,6 @@ $details = [
     'application/views/lpmpi/spmi_rtm/detail.php',
     'application/views/lpmpi/spmi_follow_ups/detail.php',
     'application/views/lpmpi/spmi_standards/version_detail.php',
-    'application/views/lpmpi/spmi_instruments/package_detail.php',
-    'application/views/lpmpi/spmi_instruments/question_detail.php',
 ];
 
 foreach (['.ami-row-actions', '.ami-action-btn', '.btn-ami', '.btn-outline-ami'] as $literal) spmi_ui_check(strpos($header, $literal) !== FALSE, 'SPMI UI header primitive missing: ' . $literal);

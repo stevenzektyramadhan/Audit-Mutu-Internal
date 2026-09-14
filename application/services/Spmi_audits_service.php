@@ -14,7 +14,7 @@ class Spmi_audits_service
     public function assignment($id) { return $this->model->assignment($id); }
     public function items($id) { return $this->model->items($id); }
     public function rubrics($id) { return $this->model->rubrics($id); }
-    public function packages() { return $this->model->packages(); }
+    public function standards() { return $this->model->standards(); }
     public function auditors() { return $this->model->users_by_role('auditor'); }
     public function auditees() { return $this->model->users_by_role('auditee'); }
     public function create_cycle($data, $user_id) { $payload = $this->cycle_data($data); if (!$this->valid_cycle($payload) || $this->model->cycle_by_code($payload['cycle_code'])) return $this->fail('Kode, judul, tanggal, atau rentang siklus tidak valid.'); $payload['created_by'] = (int) $user_id; return $this->model->insert_cycle($payload) ? $this->ok('Siklus SPMI berhasil dibuat.') : $this->fail('Siklus SPMI gagal dibuat.'); }
@@ -29,14 +29,14 @@ class Spmi_audits_service
             $cycle = $this->model->cycle($cycle_id, TRUE);
             if (!$cycle || $cycle->state !== 'draft') return $this->rollback('Penugasan hanya dapat dibuat pada siklus draft.');
 
-            $package = $this->model->package_for_update((int) $data['source_package_id']);
-            if (!$package) return $this->rollback('Paket instrumen tidak ditemukan.');
+            $standard = $this->model->standard_for_update((int) $data['source_standard_id']);
+            if (!$standard) return $this->rollback('Standar SPMI tidak ditemukan.');
 
-            $version = $this->model->version_for_update($package->version_id);
+            $version = $this->model->version_for_update($standard->version_id);
             if (!$version || !in_array($version->status, ['draft', 'review'], TRUE)) return $this->rollback('Versi sumber harus berstatus draft atau review.');
 
-            $questions = $this->model->package_questions($package->id);
-            if (!$questions) return $this->rollback('Paket instrumen belum memiliki pertanyaan.');
+            $indicators = $this->model->standard_indicators($standard->id);
+            if (!$indicators) return $this->rollback('Standar SPMI belum memiliki indikator.');
 
             $rubric_options = skor_audit_options();
             if (array_keys($rubric_options) !== [1, 2, 3, 4]) return $this->rollback('Skala skor audit global tidak valid.');
@@ -44,15 +44,15 @@ class Spmi_audits_service
             $auditor = $this->model->user((int) $data['auditor_id']);
             $auditee = $this->model->user((int) $data['auditee_id']);
             if (!$auditor || $auditor->role !== 'auditor' || !$auditee || $auditee->role !== 'auditee' || (int) $auditor->id === (int) $auditee->id) return $this->rollback('Auditor dan auditee wajib valid, ber-role tepat, dan berbeda.');
-            if ($this->model->assignment_by_tuple($cycle_id, $package->id, $auditor->id, $auditee->id)) return $this->rollback('Tuple penugasan sudah digunakan pada siklus ini.');
+            if ($this->model->assignment_by_tuple($cycle_id, $standard->id, $auditor->id, $auditee->id)) return $this->rollback('Tuple penugasan sudah digunakan pada siklus ini.');
 
-            $assignment = ['cycle_id' => (int) $cycle_id, 'source_package_id' => (int) $package->id, 'auditor_id' => (int) $auditor->id, 'auditee_id' => (int) $auditee->id, 'created_by' => (int) $user_id, 'source_version_id' => (int) $version->id, 'source_version_code' => $version->version_code, 'source_version_title' => $version->title, 'source_standard_id' => (int) $package->standard_id, 'source_standard_code' => $package->standard_code, 'source_standard_title' => $package->standard_title, 'source_package_code' => $package->package_code, 'source_package_title' => $package->title, 'source_package_description' => $package->description, 'auditor_name' => $auditor->nama, 'auditor_email' => $auditor->email, 'auditee_name' => $auditee->nama, 'auditee_email' => $auditee->email];
+            $assignment = ['cycle_id' => (int) $cycle_id, 'auditor_id' => (int) $auditor->id, 'auditee_id' => (int) $auditee->id, 'created_by' => (int) $user_id, 'source_version_id' => (int) $version->id, 'source_version_code' => $version->version_code, 'source_version_title' => $version->title, 'source_standard_id' => (int) $standard->id, 'source_standard_code' => $standard->standard_code, 'source_standard_title' => $standard->title, 'auditor_name' => $auditor->nama, 'auditor_email' => $auditor->email, 'auditee_name' => $auditee->nama, 'auditee_email' => $auditee->email];
             $assignment_id = $this->model->insert_assignment($assignment);
             if (!$assignment_id) return $this->rollback('Penugasan gagal dibuat.');
 
-            foreach ($questions as $question) {
-                $item_id = $this->model->insert_item(['assignment_id' => $assignment_id, 'source_question_id' => (int) $question->id, 'source_indicator_id' => (int) $question->indicator_id, 'indicator_code' => $question->indicator_code, 'indicator_title' => $question->indicator_title, 'question_code' => $question->question_code, 'display_order' => (int) $question->display_order, 'question_text' => $question->question_text, 'evidence_instruction' => $question->evidence_instruction, 'evidence_policy' => $question->evidence_policy ?: 'none']);
-                if (!$item_id) return $this->rollback('Snapshot pertanyaan gagal dibuat.');
+            foreach ($indicators as $order => $indicator) {
+                $item_id = $this->model->insert_item(['assignment_id' => $assignment_id, 'source_indicator_id' => (int) $indicator->id, 'indicator_code' => $indicator->indicator_code, 'indicator_title' => $indicator->title, 'display_order' => $order + 1, 'evidence_instruction' => $indicator->evidence_requirement, 'evidence_policy' => 'none']);
+                if (!$item_id) return $this->rollback('Snapshot indikator gagal dibuat.');
 
                 foreach ($rubric_options as $score => $descriptor) {
                     if (!$this->model->insert_rubric(['assignment_item_id' => $item_id, 'score' => (int) $score, 'descriptor' => $descriptor])) return $this->rollback('Snapshot rubrik gagal dibuat.');

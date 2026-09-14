@@ -40,13 +40,13 @@ Penyebutan status mengikuti keadaan aplikasi yang terverifikasi:
 * Penilaian auditor dapat diedit pada `draft`, lalu terkunci setelah `finalized`.
 * Auditor hanya boleh menilai submission yang berstatus `submitted` atau `resubmitted`.
 
-Kebijakan bukti yang muncul di instrumen memiliki lima nilai yang dipakai aplikasi, yaitu `none`, `file`, `url`, `either`, dan `both`. Bukti tetap dikelola oleh aplikasi dan dibatasi kepemilikan data. Manual ini tidak menampilkan lokasi penyimpanan internal, URL publik, token, kata sandi, ID rahasia, atau proses deployment.
+Penugasan SPMI memilih standar dan membuat snapshot indikator dengan kebutuhan bukti indikator serta rubrik skor global 1–4. Bukti tetap dikelola oleh aplikasi dan dibatasi kepemilikan data. Manual ini tidak menampilkan lokasi penyimpanan internal, URL publik, token, kata sandi, ID rahasia, atau proses deployment.
 
 ## Ikhtisar peran
 
 | Peran | Fokus kerja | Menu utama yang terlihat |
 |---|---|---|
-| Super Admin | Memantau ringkasan SPMI dan mengelola pengguna | `Dashboard SPMI`, `Manajemen Pengguna`, `Akun Auditor & Auditee`, `Struktur Organisasi`, `Standar SPMI`, `Indikator SPMI`, `Import/Export Master SPMI`, `Instrumen Audit SPMI`, `Siklus & Penugasan SPMI`, `Laporan SPMI`, `RTM SPMI`, `Tindak Lanjut RTM`, `Rekap PPEPP SPMI`, `Akun Saya`, `Profil Lembaga` |
+| Super Admin | Memantau ringkasan SPMI dan mengelola pengguna | `Dashboard SPMI`, `Manajemen Pengguna`, `Struktur Organisasi`, `Standar SPMI`, `Siklus & Penugasan SPMI`, `Laporan SPMI`, `RTM SPMI`, `Tindak Lanjut RTM`, `Akun Saya`, `Profil Lembaga` |
 | Admin LPMPI | Mengelola konfigurasi SPMI, laporan, RTM, tindak lanjut, dan arsip legacy | Menu Super Admin tanpa `Manajemen Pengguna`, plus akses ke `Arsip AMI Legacy` |
 | Auditee | Mengisi realisasi dan bukti pada workspace milik sendiri | `Dashboard SPMI`, `Workspace SPMI`, `Akun Saya` |
 | Auditor | Menilai submission milik sendiri, memberi skor, temuan, dan bukti auditor | `Dashboard SPMI`, `Penilaian SPMI`, `Akun Saya` |
@@ -147,7 +147,7 @@ Catatan batas akses: dashboard mengikuti role. Data yang tampil bersifat agregat
 
 ## Super Admin
 
-Super Admin melihat menu administratif paling lengkap, termasuk manajemen pengguna, struktur organisasi, standar, indikator, master SPMI, instrumen, siklus, dan laporan.
+Super Admin melihat menu administratif paling lengkap, termasuk manajemen pengguna, struktur organisasi, standar, indikator, master SPMI, siklus, dan laporan.
 
 ### Manajemen Pengguna
 
@@ -217,7 +217,7 @@ Jalur menu: `Indikator SPMI`.
 
 Aksi utama: kelola indikator dan target tahunan yang masih berada pada versi editable.
 
-Hasil yang diharapkan: indikator dan target yang relevan tersimpan untuk dipakai instrumen.
+Hasil yang diharapkan: indikator dan target yang relevan tersimpan untuk dipakai saat membuat penugasan audit.
 
 Catatan batas akses: indikator dan target mengikuti status versi standar, sehingga tetap hanya baca ketika versi sudah final.
 
@@ -232,22 +232,6 @@ Aksi utama: unduh template, unggah file `.xlsx`, lihat preview, lalu konfirmasi 
 Hasil yang diharapkan: data master masuk ke versi yang sesuai atau file ekspor terunduh.
 
 Catatan batas akses: template hanya tersedia untuk versi `draft` atau `review`. Import memerlukan POST, file valid, dan preview yang masih berlaku. Jika preview tidak valid atau kedaluwarsa, pengguna harus unggah ulang.
-
-### Instrumen Audit SPMI
-
-![Paket instrumen audit dengan lima pertanyaan dan rubrik](assets/manual-pengguna/m-06-instruments.png)
-
-_M-06, `m-06-instruments.png`._
-
-Prasyarat: login sebagai Super Admin atau Admin LPMPI.
-
-Jalur menu: `Instrumen Audit SPMI`.
-
-Aksi utama: buat paket instrumen, susun pertanyaan, atur rubrik, dan unduh lampiran bila tersedia.
-
-Hasil yang diharapkan: paket instrumen terstruktur dan siap dipakai pada siklus audit.
-
-Catatan batas akses: pertanyaan, rubrik, dan paket hanya dapat diubah pada status versi `draft` atau `review`. Saat versi `approved`, `active`, atau `retired`, layar menjadi hanya baca.
 
 ### Siklus & Penugasan SPMI
 
@@ -676,7 +660,6 @@ Itu perilaku yang benar. Arsip AMI Legacy memang hanya untuk baca.
 | SA-02 | `sa-02-user-management.png` | Manajemen pengguna |
 | M-01 | `m-01-organization.png` | Struktur organisasi |
 | M-03 | `m-03-standards.png` | Standar SPMI |
-| M-06 | `m-06-instruments.png` | Instrumen audit SPMI |
 | M-07 | `m-07-cycle-list.png` | Daftar siklus dan penugasan |
 | M-07D | `m-07-cycle-detail.png` | Detail siklus |
 | AU-01 | `au-01-workspace-list.png` | Daftar workspace auditee |
@@ -702,7 +685,6 @@ Itu perilaku yang benar. Arsip AMI Legacy memang hanya untuk baca.
 | `Standar SPMI` | `lpmpi/spmi-standards` |
 | `Indikator SPMI` | `lpmpi/spmi-indicators` |
 | `Import/Export Master SPMI` | `lpmpi/spmi-master` |
-| `Instrumen Audit SPMI` | `lpmpi/spmi-instruments` |
 | `Siklus & Penugasan SPMI` | `lpmpi/spmi-audits` |
 | `Laporan SPMI` | `lpmpi/spmi-reports` |
 | `RTM SPMI` | `lpmpi/spmi-rtm` |

@@ -14,13 +14,13 @@ include APPPATH . 'views/layouts/sidebar.php';
 
     <div class="tw-mb-6">
       <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Immutable snapshot</p>
-      <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950"><?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?></h1>
-      <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Konfigurasi penugasan tersimpan sebagai identitas sumber dan isi instrumen pada saat dibuat.</p>
+      <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950"><?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?></h1>
+      <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Konfigurasi penugasan tersimpan sebagai identitas standar dan indikator pada saat dibuat.</p>
     </div>
 
     <div class="tw-mb-6 tw-grid tw-gap-4 md:tw-grid-cols-2">
       <section class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm">
-        <h2 class="tw-mb-4 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest tw-text-slate-500">Sumber instrumen</h2>
+        <h2 class="tw-mb-4 tw-text-xs tw-font-bold tw-uppercase tw-tracking-widest tw-text-slate-500">Sumber standar</h2>
         <dl class="tw-grid tw-gap-4 tw-text-sm">
           <div>
             <dt class="tw-font-semibold tw-text-slate-500">Versi snapshot</dt>
@@ -49,31 +49,21 @@ include APPPATH . 'views/layouts/sidebar.php';
     </div>
 
     <section class="tw-mb-6 tw-rounded-2xl tw-border tw-border-blue-200 tw-bg-blue-50 tw-p-5 tw-text-sm tw-leading-6 tw-text-blue-800">
-      Snapshot ini read-only. Isi paket, pertanyaan, instruksi bukti, dan rubrik tampil sesuai salinan saat penugasan dibuat.
+      Snapshot ini read-only. Isi indikator, kebutuhan bukti, dan rubrik tampil sesuai salinan saat penugasan dibuat.
     </section>
-
-    <p class="tw-mb-8 tw-whitespace-pre-line tw-text-sm tw-leading-6 tw-text-slate-600"><?php echo nl2br(html_escape($assignment->source_package_description ?: 'Deskripsi paket belum diisi.')); ?></p>
 
     <div class="tw-mb-4">
       <h2 class="tw-text-xl tw-font-bold tw-text-slate-950">Item snapshot</h2>
-      <p class="tw-mt-1 tw-text-sm tw-text-slate-500">Konten instrumen yang dikunci untuk penugasan ini.</p>
+       <p class="tw-mt-1 tw-text-sm tw-text-slate-500">Indikator yang dikunci untuk penugasan ini.</p>
     </div>
 
     <?php if (empty($items)): ?>
       <div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">Snapshot item belum tersedia.</div>
     <?php else: foreach ($items as $item): ?>
       <article class="tw-mb-4 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm">
-        <h3 class="tw-text-base tw-font-bold tw-text-slate-950"><?php echo html_escape((string) $item->display_order . '. ' . $item->question_code . ' — ' . $item->indicator_code . ' ' . $item->indicator_title); ?></h3>
-        <div class="tw-mt-5 tw-grid tw-gap-5 md:tw-grid-cols-2">
-          <div>
-            <h4 class="tw-label">Pertanyaan</h4>
-            <p class="tw-mt-2 tw-whitespace-pre-line tw-text-sm tw-leading-6 tw-text-slate-700"><?php echo nl2br(html_escape($item->question_text)); ?></p>
-          </div>
-          <div>
-            <h4 class="tw-label">Instruksi bukti</h4>
-            <p class="tw-mt-2 tw-whitespace-pre-line tw-text-sm tw-leading-6 tw-text-slate-700"><?php echo nl2br(html_escape($item->evidence_instruction)); ?></p>
-          </div>
-        </div>
+        <h3 class="tw-text-base tw-font-bold tw-text-slate-950"><?php echo html_escape((string) $item->display_order . '. ' . $item->indicator_code . ' — ' . $item->indicator_title); ?></h3>
+        <h4 class="tw-mt-5 tw-label">Kebutuhan bukti</h4>
+        <p class="tw-mt-2 tw-whitespace-pre-line tw-text-sm tw-leading-6 tw-text-slate-700"><?php echo nl2br(html_escape($item->evidence_instruction)); ?></p>
         <h4 class="tw-mt-6 tw-label">Rubrik snapshot</h4>
         <ul class="tw-mt-2 tw-grid tw-gap-2 sm:tw-grid-cols-2">
           <?php foreach (isset($rubrics_by_item[$item->id]) ? $rubrics_by_item[$item->id] : [] as $rubric): ?>
