@@ -133,8 +133,18 @@ $icon = static function ($name) {
                     <div>
                         <label for="evidence_requirement" class="org-label">Deskripsi Bukti Fisik / Portofolio</label>
                         <textarea class="org-control tw-h-24" id="evidence_requirement" name="evidence_requirement"
-                                  placeholder="Contoh: SK penetapan kurikulum, laporan tracer study, data PDDikti..."
-                                  required><?php echo html_escape(set_value('evidence_requirement', $is_edit ? $indicator->evidence_requirement : '')); ?></textarea>
+                                   placeholder="Contoh: SK penetapan kurikulum, laporan tracer study, data PDDikti..."
+                                   required><?php echo html_escape(set_value('evidence_requirement', $is_edit ? $indicator->evidence_requirement : '')); ?></textarea>
+                    </div>
+                    <div class="tw-mt-4">
+                        <label for="evidence_policy" class="org-label">Kebijakan Bukti</label>
+                        <select class="org-control" id="evidence_policy" name="evidence_policy" required>
+                            <option value="none" <?php echo set_select('evidence_policy', 'none', !$is_edit || $indicator->evidence_policy === 'none'); ?>>Tidak wajib</option>
+                            <option value="file" <?php echo set_select('evidence_policy', 'file', $is_edit && $indicator->evidence_policy === 'file'); ?>>File wajib</option>
+                            <option value="url" <?php echo set_select('evidence_policy', 'url', $is_edit && $indicator->evidence_policy === 'url'); ?>>URL wajib</option>
+                            <option value="either" <?php echo set_select('evidence_policy', 'either', $is_edit && $indicator->evidence_policy === 'either'); ?>>File atau URL wajib</option>
+                            <option value="both" <?php echo set_select('evidence_policy', 'both', $is_edit && $indicator->evidence_policy === 'both'); ?>>File dan URL wajib</option>
+                        </select>
                     </div>
                 </div>
 

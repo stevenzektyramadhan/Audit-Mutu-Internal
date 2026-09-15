@@ -51,7 +51,7 @@ class Spmi_audits_service
             if (!$assignment_id) return $this->rollback('Penugasan gagal dibuat.');
 
             foreach ($indicators as $order => $indicator) {
-                $item_id = $this->model->insert_item(['assignment_id' => $assignment_id, 'source_indicator_id' => (int) $indicator->id, 'indicator_code' => $indicator->indicator_code, 'indicator_title' => $indicator->title, 'display_order' => $order + 1, 'evidence_instruction' => $indicator->evidence_requirement, 'evidence_policy' => 'none']);
+                $item_id = $this->model->insert_item(['assignment_id' => $assignment_id, 'source_indicator_id' => (int) $indicator->id, 'indicator_code' => $indicator->indicator_code, 'indicator_title' => $indicator->title, 'display_order' => $order + 1, 'evidence_instruction' => $indicator->evidence_requirement, 'evidence_policy' => $indicator->evidence_policy]);
                 if (!$item_id) return $this->rollback('Snapshot indikator gagal dibuat.');
 
                 foreach ($rubric_options as $score => $descriptor) {

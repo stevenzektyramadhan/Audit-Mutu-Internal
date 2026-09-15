@@ -277,6 +277,7 @@ CREATE TABLE IF NOT EXISTS `spmi_indicators` (
     `responsible_organization_unit_id` INT NOT NULL,
     `responsible_pic_name` VARCHAR(200) NULL,
     `evidence_requirement` TEXT NOT NULL,
+    `evidence_policy` ENUM('none','file','url','either','both') NOT NULL DEFAULT 'none',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_indicators_standard_code` (`standard_id`, `indicator_code`),
@@ -298,7 +299,7 @@ CREATE TABLE IF NOT EXISTS `spmi_indicator_targets` (
     CONSTRAINT `fk_spmi_indicator_targets_indicator` FOREIGN KEY (`indicator_id`) REFERENCES `spmi_indicators` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/* Current parity migration 001-034; versioned SPMI instruments are retired. */
+/* Current parity migration 001-035; versioned SPMI instruments are retired. */
 CREATE TABLE IF NOT EXISTS `spmi_audit_cycles` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `cycle_code` VARCHAR(64) NOT NULL,
