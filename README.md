@@ -258,11 +258,11 @@ php tests/spmi_ui_consistency_regression.php
 
 #### Database baru
 
-Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `034` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
+Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `035` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
 
 #### Database lama, legacy, belum punya table organisasi, capability, atau SPMI
 
-Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan migration `012` sampai `034` secara numerik, satu file tiap langkah, dalam urutan naik. Sebelum menjalankan `034`, pastikan preflight destruktifnya terpenuhi. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
+Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan migration `012` sampai `035` secara numerik, satu file tiap langkah, dalam urutan naik. Sebelum menjalankan `034`, pastikan preflight destruktifnya terpenuhi. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -287,6 +287,7 @@ Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage 
 21. `032_create_password_reset_tokens.sql`
 22. `033_add_spmi_drive_evidence_metadata.sql`
 23. `034_retire_spmi_instruments.sql`
+24. `035_add_indicator_evidence_policy.sql`
 
 Jalankan satu file tiap langkah, satu per satu, memakai klien MySQL yang dipilih tim ke database yang memang dituju. Jangan membatch file. Jangan menambahkan kredensial.
 
@@ -297,6 +298,8 @@ Catatan penting, migration `014` berhenti bila lebih dari satu active version di
 Migration `033` menambahkan metadata backend bukti SPMI baru pada `spmi_auditee_evidence` dan `spmi_auditor_assessment_evidence` secara aditif dan idempotent. Kolom `storage_backend` default ke `local`, sedangkan `drive_file_id` dan `drive_folder_id` nullable. Migration ini tidak melakukan DML, tidak memindahkan file lokal lama, tidak mengubah bukti AMI legacy, dan tidak membuat kredensial Google.
 
 Migration `034` menghapus paket, pertanyaan, dan rubrik instrumen SPMI versioned serta kolom snapshot paket/pertanyaan yang bergantung padanya. Setelah migration ini, penugasan SPMI memilih standar lalu membuat snapshot indikator dan rubrik global 1–4. `034` tidak menyentuh fitur atau data upload instrumen legacy pada `lpmpi/Instrumen`, dan tidak mengubah kolom unit legacy pada `users`.
+
+Migration `035` menambahkan `spmi_indicators.evidence_policy` secara aditif dan idempotent dengan default `none`. Admin LPMPI mengaturnya pada form indikator; hanya item penugasan baru yang menyimpan snapshot policy indikator saat dibuat. Migration ini tidak mengubah item penugasan, submission, atau evidence yang sudah ada.
 
 CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw SQL yang dijalankan manual oleh tim deployment setelah backup database. Untuk database yang sudah masuk jalur legacy di atas, ikuti nomor migration yang sudah ditetapkan, satu file tiap langkah, tanpa melewati urutan atau menjalankan blok `DOWN` historis otomatis. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup.
 

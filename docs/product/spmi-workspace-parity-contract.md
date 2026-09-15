@@ -10,11 +10,11 @@ M17 tidak menghapus legacy AMI, tidak menyembunyikan legacy menu, tidak mengubah
 
 ## 3. Current Architecture Map
 
-Current SPMI surface sudah terpisah jelas, dengan route auditee dan auditor di `application/config/routes.php:185-207`, controller workspace di `application/controllers/Spmi_auditee_workspace.php:4-61` dan `application/controllers/Spmi_auditor_workspace.php:4-15`, service di `application/services/Spmi_auditee_workspace_service.php:4-23` dan `application/services/Spmi_auditor_workspace_service.php:4-76`, model di `application/models/Spmi_auditee_workspace_model.php:4-23` dan `application/models/Spmi_auditor_workspace_model.php:4-38`, report service dan model di `application/services/Spmi_reports_service.php:4-43` dan `application/models/Spmi_reports_model.php:4-74`, RTM service dan model di `application/services/Spmi_rtm_service.php:4-65` dan `application/models/Spmi_rtm_model.php:4-22`, serta instrument authoring di `application/controllers/lpmpi/Spmi_instruments.php:4-34`, `application/services/Spmi_instruments_service.php:4-36`, dan `application/models/Spmi_instruments_model.php:4-30`.
+Current SPMI surface sudah terpisah jelas, dengan route auditee dan auditor di `application/config/routes.php`, controller workspace di `application/controllers/Spmi_auditee_workspace.php` dan `application/controllers/Spmi_auditor_workspace.php`, service di `application/services/Spmi_auditee_workspace_service.php` dan `application/services/Spmi_auditor_workspace_service.php`, model di `application/models/Spmi_auditee_workspace_model.php` dan `application/models/Spmi_auditor_workspace_model.php`, report service/model, RTM service/model, serta authoring indikator di `application/controllers/lpmpi/Spmi_indicators.php`, `application/services/Spmi_indicators_service.php`, dan `application/models/Spmi_indicators_model.php`.
 
 ## 4. Final Workflow
 
-Alur final yang dikunci adalah: Admin LPMPI menyiapkan instrumen dan aturan bukti, Auditee mengisi realisasi dan evidence, Auditor menilai dan dapat meminta revisi sebelum finalisasi, System membuat report snapshot immutable, dan Auditee melihat hasil final assignment miliknya. Alur ini sama dengan product direction di `docs/plan/m17-spmi-workspace-parity-master-plan.md:80-113`.
+Alur final yang dikunci adalah: Admin LPMPI menyiapkan indikator dan aturan bukti, Auditee mengisi realisasi dan evidence, Auditor menilai dan dapat meminta revisi sebelum finalisasi, System membuat report snapshot immutable, dan Auditee melihat hasil final assignment miliknya.
 
 ## 5. Submission State Machine
 
@@ -34,7 +34,7 @@ Target contract untuk M17 menetapkan behavior berikut, dan bukan klaim bahwa cur
 
 ## 8. Evidence Policy Contract
 
-Evidence policy per question memakai nilai `none`, `file`, `url`, `either`, dan `both`, dengan default untuk existing question `none`, sesuai plan di `docs/plan/m17-spmi-workspace-parity-master-plan.md:207-229` dan task requirement di `docs/plan/m17-spmi-workspace-parity-master-plan.md:593-607,680-703`. Current instrument authoring sudah punya input instruksti bukti yang wajib valid di `application/services/Spmi_instruments_service.php:31-33` dan `application/controllers/lpmpi/Spmi_instruments.php:28-31`, jadi M17-00 menetapkan policy sebagai field baru pada instrument question, bukan mengganti legacy `pertanyaan`.
+Evidence policy per indikator memakai nilai `none`, `file`, `url`, `either`, dan `both`, dengan default `none` untuk indikator existing. Admin LPMPI mengatur nilai ini melalui CRUD indikator di `application/controllers/lpmpi/Spmi_indicators.php` dan `application/services/Spmi_indicators_service.php`. Saat penugasan baru dibuat, `application/services/Spmi_audits_service.php` menyimpan nilai indikator tersebut ke `spmi_audit_assignment_items.evidence_policy`; snapshot ini menjadi sumber kebijakan workspace dan tidak berubah ketika indikator sumber diedit kemudian.
 
 Evidence URL disimpan pada submission item sebagai canonical active data, bukan pada report dan bukan pada file table. Ini paling selaras dengan current item based storage untuk realisasi di `application/models/Spmi_auditee_workspace_model.php:8-10`, file evidence child table di `application/models/Spmi_auditee_workspace_model.php:11-21`, dan plan field ownership yang mengizinkan "Submission item atau child metadata sesuai contract" untuk Evidence URL di `docs/plan/m17-spmi-workspace-parity-master-plan.md:471-491`. URL harus nullable, per item, dan hanya aktif untuk policy yang mengizinkannya.
 
@@ -70,7 +70,7 @@ The matrix is anchored to the locked plan at `docs/plan/m17-spmi-workspace-parit
 
 ## 11. Proposed Schema Changes
 
-M17-01 must add backward compatible columns and history tables only, with safe defaults and no destructive legacy changes. Minimum proposed changes are: instrument question evidence policy, submission item evidence URL, revision event or history table, submission version history support, and any report snapshot columns needed to persist final immutable data. This follows the M17-01 capability list in `docs/plan/m17-spmi-workspace-parity-master-plan.md:629-659` and the report snapshot rules in `docs/plan/m17-spmi-workspace-parity-master-plan.md:883-916`.
+Schema changes remain backward compatible, use safe defaults, and make no destructive legacy changes. Evidence policy is owned by `spmi_indicators.evidence_policy` (migration `035_add_indicator_evidence_policy.sql`) and is copied only to new assignment-item snapshots; submission URL, revision, and report fields retain their existing ownership.
 
 The schema must keep existing rows valid, keep legacy audit working, and preserve private file handling. The current private storage pattern already exists in `application/services/Spmi_auditee_workspace_service.php:14-17` and current report generation already treats finalized assessment as source for immutable inserts in `application/services/Spmi_reports_service.php:14-42`.
 
@@ -102,18 +102,11 @@ Private files must remain private. Evidence upload uses `private_storage_dir('au
 
 Existing submissions, evidence files, and finalized reports must remain readable. Existing auditee save and submit flows already use version tokens and draft only mutation checks in `application/services/Spmi_auditee_workspace_service.php:13-19`, while auditor save and finalize only prove submitted plus draft plus version-match gating in `application/services/Spmi_auditor_workspace_service.php:47-69`. That source still does not prove stale revision draft enforcement. Existing report rows are immutable once inserted, so new snapshot fields must default safely and not invalidate prior reports.
 
-Existing instrument questions default to `none` for evidence policy, existing submission item URLs default to NULL, and legacy routes stay live. This is the only backward compatible choice that satisfies the plan requirement for existing questions and keeps current read paths working.
+Existing indicators default to `none` for evidence policy, existing assignment-item snapshots retain their stored values, existing submission item URLs default to NULL, and legacy routes stay live. This preserves existing read paths and immutable assignment behavior.
 
 ## 17. Migration Order
 
-M17 migration order is dependency driven and backward compatible:
-
-1. Add instrument question evidence policy and submission item evidence URL with safe defaults.
-2. Add revision event or history storage plus submission version history support.
-3. Add assessment and report snapshot fields needed for immutable final data.
-4. Add indexes or constraints only after rows and defaults are safe.
-
-This order aligns with the task dependency graph in `docs/plan/m17-spmi-workspace-parity-master-plan.md:495-517` and the schema capability list in `docs/plan/m17-spmi-workspace-parity-master-plan.md:642-659`.
+Migration order remains dependency driven and backward compatible. Migration `026_add_assignment_item_evidence_policy.sql` established the safe assignment-item snapshot column; migration `035_add_indicator_evidence_policy.sql` then additively establishes its manual source on indicators with default `none`. Existing revision, assessment, report, and index migrations remain in their applied numeric order.
 
 ## 18. Test Matrix
 
