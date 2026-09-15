@@ -141,3 +141,9 @@ if ($initial === '') {
                 <span><?php echo html_escape($this->session->flashdata('error')); ?></span>
             </div>
         <?php endif; ?>
+        <?php if ($this->session->flashdata('warning')): ?>
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+                <span><?php echo html_escape($this->session->flashdata('warning')); ?></span>
+            </div>
+        <?php endif; ?>
