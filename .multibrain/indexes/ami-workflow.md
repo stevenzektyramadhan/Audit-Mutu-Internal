@@ -4,6 +4,7 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-15 - Sisyphus-Junior: Implemented Feature B create-only Master Akun XLSX import with private session-bound preview claim, transactional revalidation, temporary-password one-time render, migration 036 parity, and advisory reset-password flag; AMI legacy remains unchanged. -> `.multibrain/context/2026-09-15-sisyphus-junior-master-account-import.md`
 - 2026-09-15 - Sisyphus: Remediated retained Docker schema missing Feature A migration 035: backed up DB/private storage, applied the existing additive migration, and added an escaped detail-view `none` fallback for rollout compatibility; no assignments, legacy AMI, or Feature B data changed. -> `.multibrain/context/2026-09-15-sisyphus-indicator-evidence-policy-schema-remediation.md`
 - 2026-09-15 - Sisyphus-Junior: Implemented Fitur A evidence policy per SPMI indicator: migration 035 adds guarded default `none`, indicator CRUD validates all five policies, and only new assignment items snapshot the source policy; existing item/submission behavior remains unchanged. -> `.multibrain/context/2026-09-15-sisyphus-junior-indicator-evidence-policy.md`
 - 2026-09-14 - Sisyphus: User management now treats super_admin deletion as permanently forbidden: the index view hides delete forms for super_admin rows, `User_service::delete_user()` rejects every super_admin target with the standard result shape, and `tests/users_consolidation_regression.php` guards the UI/backend policy while preserving role-change safeguards.
