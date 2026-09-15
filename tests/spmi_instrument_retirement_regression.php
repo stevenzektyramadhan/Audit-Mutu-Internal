@@ -43,7 +43,7 @@ retirement_check(stripos($migration, 'foreign_key_checks') === FALSE, 'Migration
 foreach (['spmi-instruments', 'Spmi_instruments', 'spmi_instruments'] as $retired) {
     retirement_check(strpos($routes . $sidebar, $retired) === FALSE, 'Route or sidebar still exposes retired instrument surface: ' . $retired);
 }
-foreach (['source_standard_id', 'standards()', 'standard_for_update', 'standard_indicators', "'evidence_policy' => 'none'", 'skor_audit_options()', 'Standar SPMI belum memiliki indikator.'] as $required) {
+foreach (['source_standard_id', 'standards()', 'standard_for_update', 'standard_indicators', "'evidence_policy' => \$indicator->evidence_policy", 'skor_audit_options()', 'Standar SPMI belum memiliki indikator.'] as $required) {
     retirement_check(strpos($controller . $service . $model, $required) !== FALSE, 'Indicator assignment contract missing: ' . $required);
 }
 foreach (['package_for_update', 'package_questions', 'source_package_id', 'source_question_id', 'spmi_instrument_'] as $retired) {

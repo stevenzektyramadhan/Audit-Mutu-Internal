@@ -34,7 +34,7 @@ foreach (['spmi_audit_assignments', 'spmi_audit_assignment_items'] as $table) {
         spmi_audit_check(strpos(spmi_audit_table($schema, $table), '`' . $retired . '`') === FALSE, 'Bootstrap schema retains retired assignment field: ' . $table . '.' . $retired);
     }
 }
-foreach (['trans_begin', 'standard_for_update', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => 'none'", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
+foreach (['trans_begin', 'standard_for_update', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
     spmi_audit_check(strpos($service, $required) !== FALSE, 'Assignment service contract missing: ' . $required);
 }
 foreach (['packages()', 'package_for_update', 'package_questions', 'source_package_id', 'source_question_id'] as $retired) {
