@@ -14,6 +14,7 @@
 -- current parity migration 001-031
 -- current parity migration 001-032
 -- current parity migration 001-033
+-- current parity migration 001-036
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -22,12 +23,15 @@ CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `nama` VARCHAR(100) NOT NULL,
     `email` VARCHAR(100) NOT NULL UNIQUE,
+    `identity_number` VARCHAR(32) NULL,
     `password` VARCHAR(255) NOT NULL,
+    `must_change_password` TINYINT(1) NOT NULL DEFAULT 0,
     `role` ENUM('super_admin','admin_lpmpi','auditor','auditee') NOT NULL,
     `nama_unit` VARCHAR(100) NULL,
     `jenis_unit` ENUM('prodi','unit','lembaga') NULL,
     `profile_photo_path` VARCHAR(255) NULL,
-    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_users_identity_number` (`identity_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
