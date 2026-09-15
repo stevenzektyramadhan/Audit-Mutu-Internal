@@ -71,6 +71,13 @@ $icon = static function ($name) {
                 </div>
             <?php endif; ?>
 
+            <?php if ($this->session->flashdata('warning')): ?>
+                <div class="tw-mb-5 tw-flex tw-items-center tw-gap-2.5 tw-rounded-xl tw-border tw-border-amber-200 tw-bg-amber-50 tw-p-3.5 tw-text-xs tw-text-amber-800" role="alert">
+                    <span class="tw-text-amber-600 tw-flex-shrink-0"><?php echo $icon('alert-circle'); ?></span>
+                    <span class="tw-font-medium"><?php echo html_escape($this->session->flashdata('warning')); ?></span>
+                </div>
+            <?php endif; ?>
+
             <!-- Login Form -->
             <?php echo form_open('auth/login', ['class' => 'tw-space-y-4', 'id' => 'login-form']); ?>
 

@@ -40,6 +40,10 @@ class Auth_service
         $this->ci->session->set_userdata($session_data);
         $this->ci->session->sess_regenerate(TRUE);
 
+        if (!empty($user->must_change_password)) {
+            $this->ci->session->set_flashdata('warning', 'Akun ini dibuat melalui import. Gunakan Lupa Password untuk mengganti kata sandi sementara.');
+        }
+
         return ['success' => true, 'message' => 'Login berhasil.'];
     }
 

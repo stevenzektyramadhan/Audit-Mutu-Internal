@@ -24,7 +24,7 @@ $icon = static function ($name) {
 <div id="users-management-root" class="tw-mx-auto tw-max-w-screen-2xl">
     <section class="users-hero tw-mb-6 tw-flex tw-flex-col tw-items-start tw-justify-between tw-gap-4 tw-rounded-lg tw-border tw-p-5 sm:tw-flex-row sm:tw-items-center">
         <div><p class="users-eyebrow">Direktori akses</p><h2 class="tw-m-0">Manajemen Pengguna</h2><p class="users-muted tw-mb-0 tw-mt-1">Kelola identitas akun dan role pengguna. Penempatan unit organisasi tersedia di tab Penempatan.</p></div>
-        <a class="users-button users-button-primary tw-inline-flex tw-items-center tw-gap-2" href="<?php echo site_url('users/create'); ?>"><?php echo $icon('plus'); ?>Tambah pengguna</a>
+        <div class="tw-flex tw-flex-wrap tw-gap-2"><a class="users-button users-button-secondary tw-inline-flex tw-items-center tw-gap-2" href="<?php echo site_url('lpmpi/akun-import'); ?>">Import Master Akun</a><a class="users-button users-button-primary tw-inline-flex tw-items-center tw-gap-2" href="<?php echo site_url('users/create'); ?>"><?php echo $icon('plus'); ?>Tambah pengguna</a></div>
     </section>
     <section class="users-surface">
         <div class="users-surface-body">

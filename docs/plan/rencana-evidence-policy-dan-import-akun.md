@@ -1,6 +1,6 @@
 # Rencana Teknis: Evidence Policy per Indikator & Import Master Data Akun
 
-Status: Fitur A SELESAI (2026-09-15); Fitur B DRAFT — hasil tindak lanjut rapat tinjauan aplikasi AMI/SPMI
+Status: Fitur A SELESAI (2026-09-15); Fitur B SELESAI (2026-09-15) — hasil tindak lanjut rapat tinjauan aplikasi AMI/SPMI
 Cakupan: dua permintaan tim LPMPI & IT kampus, dikerjakan di branch `dev`
 
 ---
@@ -71,7 +71,7 @@ Tambahan test baru yang disarankan: `tests/spmi_indicator_evidence_policy_regres
 
 ---
 
-## Fitur B — Import Master Data Akun
+## Fitur B — Import Master Data Akun (SELESAI — 2026-09-15)
 
 ### B.1 Alur Pengguna
 

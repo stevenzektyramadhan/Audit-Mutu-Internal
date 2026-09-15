@@ -1,0 +1,9 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); include APPPATH . 'views/layouts/header.php'; include APPPATH . 'views/layouts/sidebar.php'; ?>
+<div class="ami-panel"><div class="ami-panel-body">
+    <h2 class="ami-section-title">Preview Import Master Akun</h2><p>Preview sekali pakai, berlaku 30 menit. Konfirmasi hanya membuat akun baru yang masih valid saat dikonfirmasi.</p>
+    <div class="alert alert-info">Total baris: <?php echo html_escape((string) $total); ?>. Diterima: <?php echo html_escape((string) count($valid)); ?>. Ditolak: <?php echo html_escape((string) count($errors)); ?>.</div>
+    <?php if ($errors): ?><div class="alert alert-danger"><strong>Error baris</strong><ul><?php foreach ($errors as $error): ?><li>Baris <?php echo html_escape((string) $error['row']); ?>: <?php echo html_escape($error['message']); ?></li><?php endforeach; ?></ul></div><?php endif; ?>
+    <div class="table-responsive"><table class="table ami-table"><thead><tr><th>NIP/NIDN</th><th>Nama</th><th>Email</th><th>Role</th></tr></thead><tbody><?php foreach ($valid as $row): ?><tr><td><?php echo html_escape($row['identity_number']); ?></td><td><?php echo html_escape($row['nama']); ?></td><td><?php echo html_escape($row['email']); ?></td><td><?php echo html_escape($row['role']); ?></td></tr><?php endforeach; ?></tbody></table></div>
+    <?php echo form_open('lpmpi/akun-import/confirm'); ?><input type="hidden" name="token" value="<?php echo html_escape($token); ?>"><button class="btn-ami btn-primary" type="submit">Konfirmasi import</button><?php echo form_close(); ?>
+    <?php echo form_open('lpmpi/akun-import/cancel'); ?><button class="btn-ami btn-outline-ami" type="submit">Batal</button><?php echo form_close(); ?>
+</div></div><?php include APPPATH . 'views/layouts/footer.php'; ?>
