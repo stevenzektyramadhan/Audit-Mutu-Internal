@@ -10,9 +10,24 @@ class User_model extends CI_Model
         parent::__construct();
     }
 
-    public function find_by_email($email)
+    public function find_by_email($email, $for_update = FALSE)
     {
-        return $this->db->where('email', $email)->get($this->table)->row();
+        $query = $this->db
+            ->where('email', $email)
+            ->limit(1)
+            ->get_compiled_select($this->table);
+
+        return $this->db->query($query . ($for_update ? ' FOR UPDATE' : ''))->row();
+    }
+
+    public function find_by_identity_number($identity_number, $for_update = FALSE)
+    {
+        $query = $this->db
+            ->where('identity_number', $identity_number)
+            ->limit(1)
+            ->get_compiled_select($this->table);
+
+        return $this->db->query($query . ($for_update ? ' FOR UPDATE' : ''))->row();
     }
 
     public function find($id)
@@ -49,7 +64,7 @@ class User_model extends CI_Model
     {
         return $this->db
             ->where('id', (int) $id)
-            ->update($this->table, ['password' => $password_hash]);
+            ->update($this->table, ['password' => $password_hash, 'must_change_password' => 0]);
     }
 
     public function find_profile_photo_for_update($id)
