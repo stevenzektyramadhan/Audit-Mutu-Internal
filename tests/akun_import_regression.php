@@ -38,6 +38,7 @@ $sidebar = akun_import_source('application/views/layouts/sidebar.php');
 $routes = akun_import_source('application/config/routes.php');
 $index = akun_import_source('application/views/users/index.php');
 $result = akun_import_source('application/views/lpmpi/akun_import/result.php');
+$preview = akun_import_source('application/views/lpmpi/akun_import/preview.php');
 
 $autoload_position = strpos($service, "require_once FCPATH . 'vendor/autoload.php';");
 $filter_position = strpos($service, 'class AkunImportReadFilter implements');
@@ -62,6 +63,10 @@ akun_import_check(strpos($result, "html_escape(\$account['identity_number'])") !
 
 foreach (['extends Admin_Lpmpi_Controller', 'private function require_post()', 'move_uploaded_file', "private_storage_dir('tmp')", "hash_file('sha256'", 'rename($path, $claim)', "time() - (int) (\$meta['created_at'] ?? 0) > 1800"] as $contract) akun_import_check(strpos($controller, $contract) !== FALSE, 'Controller import kehilangan kontrak keamanan: ' . $contract);
 akun_import_check(strpos($controller, "getStyle('A2:A1001')->getNumberFormat()->setFormatCode") !== FALSE && strpos($controller, 'NumberFormat::FORMAT_TEXT') !== FALSE, 'Template harus memformat NIP/NIDN sebagai teks pada range import.');
+akun_import_check(strpos($controller, "if (!\$result['valid']) return \$this->load->view('lpmpi/akun_import/preview'") !== FALSE, 'Preview zero-valid harus merender error parser, bukan redirect generik.');
+akun_import_check(strpos($controller, "'token' => ''") !== FALSE && strpos($controller, "'errors' => \$result['errors']") !== FALSE && strpos($controller, "'total' => \$result['total']") !== FALSE, 'Preview zero-valid harus meneruskan errors dan total tanpa token konfirmasi.');
+akun_import_check(strpos($preview, '<?php if ($valid): ?>') !== FALSE && strpos($preview, 'Konfirmasi import') !== FALSE, 'Preview zero-valid tidak boleh menampilkan konfirmasi import.');
+akun_import_check(strpos($controller, "'message' => \$exception->getMessage()") === FALSE && strpos($controller, "'message' => 'Workbook tidak dapat diproses.'") !== FALSE, 'Preview exception tidak boleh mengekspos detail internal parser.');
 foreach (['lpmpi/akun-import/template', 'lpmpi/akun-import/preview', 'lpmpi/akun-import/confirm', 'lpmpi/akun-import/cancel'] as $route) akun_import_check(strpos($routes, $route) !== FALSE, 'Route import hilang: ' . $route);
 akun_import_check(strpos($index, "site_url('lpmpi/akun-import')") !== FALSE, 'Users index harus memiliki entry import.');
 akun_import_check(strpos($auth, 'must_change_password') !== FALSE && strpos($auth, 'Lupa Password') !== FALSE && strpos($login, "flashdata('warning')") !== FALSE && strpos($sidebar, "flashdata('warning')") !== FALSE, 'Advisory impor harus tampil di redirect login biasa.');
