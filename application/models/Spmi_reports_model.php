@@ -8,6 +8,28 @@ class Spmi_reports_model extends CI_Model
         return $this->db->order_by('generated_at', 'DESC')->order_by('id', 'DESC')->get('spmi_reports')->result();
     }
 
+    public function report_cycles()
+    {
+        return $this->db->select('cycle_code_snapshot, cycle_title_snapshot', FALSE)
+            ->from('spmi_reports')
+            ->group_by('cycle_code_snapshot, cycle_title_snapshot')
+            ->order_by('cycle_code_snapshot', 'DESC')
+            ->get()->result();
+    }
+
+    public function score_recap_per_indicator_per_auditee($cycle_code)
+    {
+        return $this->db
+            ->select('r.auditee_name_snapshot AS auditee_name, r.source_standard_code_snapshot AS standard_code, ri.indicator_code_snapshot AS item_code, ri.indicator_title_snapshot AS item_title, ri.score AS score', FALSE)
+            ->from('spmi_reports r')
+            ->join('spmi_report_items ri', 'ri.report_id = r.id')
+            ->where('r.cycle_code_snapshot', $cycle_code)
+            ->order_by('r.auditee_name_snapshot', 'ASC')
+            ->order_by('r.source_standard_code_snapshot', 'ASC')
+            ->order_by('ri.display_order', 'ASC')
+            ->get()->result();
+    }
+
     public function finalized_assessments()
     {
         return $this->db->select('aa.id, c.cycle_code, c.title AS cycle_title, a.auditee_name, aa.finalized_at')
