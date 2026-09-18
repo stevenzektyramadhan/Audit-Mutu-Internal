@@ -168,6 +168,31 @@ Berlaku hanya untuk bukti SPMI auditee dan auditor baru; file lama, bukti AMI le
 
 Jangan ubah `SPMI_EVIDENCE_STORAGE_BACKEND=local` sampai Shared Drive, service account, credential path, backup, dan rollback sudah siap. Untuk cutover produksi, set `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive`, `GOOGLE_DRIVE_AUTH_MODE=service_account`, isi folder ID dan path service account eksternal, biarkan kedua path OAuth kosong, lalu restart PHP-FPM/Apache. Setelah restart, lakukan uji terkontrol: auditee upload/download/delete, auditor upload/download/delete, dan percobaan download/delete non-owner harus ditolak. Jika harus fallback ke lokal, fallback hanya berlaku untuk upload baru setelah backend dikembalikan; konfigurasi Drive dan akses service account harus tetap tersedia selama masih ada record Drive di database. Retry `spmi_drive_trash_outbox` masih manual: operator memilih row pending/retrying, menjalankan trash file Drive dengan service account, lalu memperbarui status/attempt/error sesuai hasil; belum ada worker otomatis. root `compose.yaml` tidak boleh memuat secret Drive production; pakai secret manager, konfigurasi server, atau override lokal yang diabaikan Git.
 
+Untuk melaporkan metadata Drive historis, DBA boleh menjalankan preflight read-only berikut setelah backup. Query ini hanya `SELECT`; tidak melakukan migration, update, delete, operasi file, atau trash action. Migration `033_add_spmi_drive_evidence_metadata.sql` juga tidak dapat membuktikan bukti yang dibuat sebelum metadata Drive tersedia.
+
+```sql
+SELECT 'spmi_auditee_evidence' AS source_table,
+       COUNT(*) AS total_rows,
+       SUM(storage_backend = 'google_drive') AS drive_rows,
+       SUM(drive_file_id IS NOT NULL AND drive_file_id <> '') AS rows_with_drive_file_id,
+       SUM(storage_backend = 'google_drive' AND (drive_file_id IS NULL OR drive_file_id = '')) AS drive_rows_missing_file_id
+FROM spmi_auditee_evidence
+UNION ALL
+SELECT 'spmi_auditor_assessment_evidence' AS source_table,
+       COUNT(*) AS total_rows,
+       SUM(storage_backend = 'google_drive') AS drive_rows,
+       SUM(drive_file_id IS NOT NULL AND drive_file_id <> '') AS rows_with_drive_file_id,
+       SUM(storage_backend = 'google_drive' AND (drive_file_id IS NULL OR drive_file_id = '')) AS drive_rows_missing_file_id
+FROM spmi_auditor_assessment_evidence
+UNION ALL
+SELECT 'spmi_drive_trash_outbox' AS source_table,
+       COUNT(*) AS total_rows,
+       SUM(status IN ('pending', 'retrying')) AS drive_rows,
+       SUM(drive_file_id IS NOT NULL AND drive_file_id <> '') AS rows_with_drive_file_id,
+       SUM(status IN ('pending', 'retrying') AND (drive_file_id IS NULL OR drive_file_id = '')) AS drive_rows_missing_file_id
+FROM spmi_drive_trash_outbox;
+```
+
 ### Google Drive untuk Development Lokal
 
 Gunakan mode OAuth ini hanya untuk development pribadi dengan folder My Drive milik sendiri. Aktifkan Google Drive API, buat OAuth client tipe Desktop application, lalu set `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive`. Mode ini dilarang di production. Production tetap harus memakai `service_account`, dengan variabel OAuth dikosongkan dan tanpa public Drive links.
