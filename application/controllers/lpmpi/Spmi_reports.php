@@ -15,7 +15,19 @@ class Spmi_reports extends Admin_Lpmpi_Controller
 
     public function index()
     {
-        $this->load->view('lpmpi/spmi_reports/index', ['title' => 'Laporan SPMI', 'page_title' => 'Laporan SPMI', 'page_subtitle' => 'Beranda / Insights / Laporan SPMI', 'active_menu' => 'spmi_reports', 'reports' => $this->service->reports(), 'finalized_assessments' => $this->service->finalized_assessments()]);
+        $radar_cycle = trim((string) $this->input->get('radar_cycle', TRUE));
+
+        $this->load->view('lpmpi/spmi_reports/index', [
+            'title' => 'Laporan SPMI',
+            'page_title' => 'Laporan SPMI',
+            'page_subtitle' => 'Beranda / Insights / Laporan SPMI',
+            'active_menu' => 'spmi_reports',
+            'reports' => $this->service->reports(),
+            'finalized_assessments' => $this->service->finalized_assessments(),
+            'radar_cycles' => $this->service->report_cycles(),
+            'radar_selected_cycle' => $radar_cycle,
+            'radar_recap' => $this->service->score_recap($radar_cycle),
+        ]);
     }
 
     public function create($assessment_id)

@@ -117,6 +117,80 @@ $icon = static function ($name) {
             </section>
         <?php endif; ?>
 
+        <!-- Section: Rekap Skor per Indikator (Radar Chart per Auditee) -->
+        <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm" aria-labelledby="radar-recap-title">
+            <div class="tw-mb-4 tw-flex tw-flex-col tw-gap-3 sm:tw-flex-row sm:tw-items-end sm:tw-justify-between">
+                <div>
+                    <h2 id="radar-recap-title" class="tw-text-base tw-font-bold tw-text-slate-900">Rekap skor per indikator</h2>
+                    <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Skor per indikator (gabungan semua standar) dalam satu siklus, radar terpisah per auditee/unit.</p>
+                </div>
+                <?php echo form_open('lpmpi/spmi-reports', ['method' => 'get', 'class' => 'tw-flex tw-items-center tw-gap-2']); ?>
+                    <label class="tw-sr-only" for="radar_cycle">Pilih siklus</label>
+                    <select id="radar_cycle" name="radar_cycle" class="tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-sm tw-text-slate-900" onchange="this.form.submit()">
+                        <option value="">Pilih siklus…</option>
+                        <?php foreach ($radar_cycles as $c): ?>
+                            <option value="<?php echo html_escape($c->cycle_code_snapshot); ?>" <?php echo $radar_selected_cycle === $c->cycle_code_snapshot ? 'selected' : ''; ?>>
+                                <?php echo html_escape($c->cycle_code_snapshot . ' — ' . $c->cycle_title_snapshot); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php echo form_close(); ?>
+            </div>
+
+            <?php if ($radar_selected_cycle === ''): ?>
+                <div class="tw-rounded-xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">
+                    Pilih siklus audit dulu untuk menampilkan rekap.
+                </div>
+            <?php elseif (empty($radar_recap)): ?>
+                <div class="tw-rounded-xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">
+                    Belum ada laporan SPMI pada siklus ini.
+                </div>
+            <?php else: ?>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <div class="tw-grid tw-gap-6 tw-grid-cols-1 lg:tw-grid-cols-2">
+                    <?php $i = 0; foreach ($radar_recap as $auditee_name => $series): $i++; ?>
+                        <div class="tw-rounded-xl tw-border tw-border-slate-200 tw-p-4">
+                            <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-mb-2"><?php echo html_escape($auditee_name); ?></h3>
+                            <div style="height: 420px;">
+                                <canvas id="radar-recap-<?php echo $i; ?>" aria-label="Radar skor per indikator untuk <?php echo html_escape($auditee_name); ?>"></canvas>
+                            </div>
+                        </div>
+                        <script>
+                        (function () {
+                            if (typeof Chart === 'undefined') return;
+                            var el = document.getElementById('radar-recap-<?php echo $i; ?>');
+                            if (!el) return;
+                            new Chart(el, {
+                                type: 'radar',
+                                data: {
+                                    labels: <?php echo json_encode($series['labels'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
+                                    datasets: [{
+                                        label: 'Skor',
+                                        data: <?php echo json_encode($series['values'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
+                                        backgroundColor: 'rgba(77, 163, 255, 0.20)',
+                                        borderColor: 'rgba(77, 163, 255, 1)',
+                                        borderWidth: 1.5,
+                                        pointRadius: 1.5,
+                                        pointBackgroundColor: 'rgba(77, 163, 255, 1)',
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        r: { min: 0, max: 4, ticks: { stepSize: 1, backdropColor: 'transparent' }, pointLabels: { font: { size: 8 } } }
+                                    },
+                                    plugins: { legend: { display: false } },
+                                    elements: { line: { tension: 0 } }
+                                }
+                            });
+                        })();
+                        </script>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
+
         <!-- Toolbar Filter & Search -->
         <section class="tw-mb-5 tw-grid tw-gap-3 sm:tw-grid-cols-[1fr_220px]" aria-label="Filter laporan">
             <label class="tw-block">

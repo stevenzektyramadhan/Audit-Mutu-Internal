@@ -10,6 +10,25 @@ class Spmi_reports_service
 
     public function __construct() { $this->ci = &get_instance(); $this->ci->load->model('Spmi_reports_model'); $this->model = $this->ci->Spmi_reports_model; }
     public function reports() { return $this->model->reports(); }
+    public function report_cycles() { return $this->model->report_cycles(); }
+    public function score_recap($cycle_code)
+    {
+        $cycle_code = trim((string) $cycle_code);
+        if ($cycle_code === '') return [];
+
+        $rows = $this->model->score_recap_per_indicator_per_auditee($cycle_code);
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $auditee = $row->auditee_name;
+            if (!isset($grouped[$auditee])) {
+                $grouped[$auditee] = ['labels' => [], 'values' => []];
+            }
+            $grouped[$auditee]['labels'][] = $row->item_code;
+            $grouped[$auditee]['values'][] = (int) $row->score;
+        }
+        return $grouped;
+    }
     public function finalized_assessments() { return $this->model->finalized_assessments(); }
     public function report($id) { $report = $this->model->report_by_id($id); return $report ? ['report' => $report, 'items' => $this->model->report_items($report->id)] : NULL; }
 
