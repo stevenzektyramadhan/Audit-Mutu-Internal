@@ -1,6 +1,6 @@
-# Web Audit Mutu Internal (AMI) Perguruan Tinggi
+# Sistem Penjaminan Mutu Internal (SPMI) Perguruan Tinggi
 
-Aplikasi MVP Audit Mutu Internal berbasis CodeIgniter 3 untuk mengelola pengguna, standar, pertanyaan, penugasan audit, bukti auditee, dan penilaian auditor.
+Aplikasi CodeIgniter 3 ini mendukung alur kerja SPMI sebagai satu-satunya alur aktif. AMI legacy tetap dipertahankan sebagai arsip baca-saja melalui URL `lpmpi/legacy-ami-archive`; bukan menu sidebar atau alur operasional aktif.
 
 ## Teknologi
 
@@ -18,6 +18,54 @@ Controller -> Service -> Model -> Database
 
 Business logic, ownership check, dan transaksi database ditempatkan pada service. Controller menangani request/response, sedangkan model hanya mengakses database.
 
+## Alur Kerja SPMI Aktif
+
+1. Manajemen membuat versi standar dan indikator SPMI.
+2. Manajemen membuat siklus draft dan penugasan dari versi sumber serta standar yang dipilih.
+3. Siklus dikonfigurasi agar auditee dapat mengerjakan penugasan.
+4. Auditee mengisi realisasi dan bukti sesuai kebijakan bukti yang tersnapshot, lalu mengirimkannya.
+5. Auditor menilai, dapat mengembalikan untuk revisi, lalu memfinalisasi assessment.
+6. Setelah seluruh penugasan selesai dinilai, manajemen membuat laporan immutable per versi, auditor, dan auditee.
+7. Snapshot laporan digunakan dalam RTM dan tindak lanjut RTM.
+
+### Status dan Transisi
+
+| Entitas | Status dan transisi |
+|---|---|
+| Versi standar | `draft -> review -> approved -> active -> retired`; `review -> draft` juga didukung. |
+| Siklus audit | `draft -> configured -> closed`; `configured -> draft` juga didukung. |
+| Submission auditee | `draft`, `submitted`, `returned_for_revision`, `resubmitted`. |
+| Assessment auditor | `draft -> finalized`. |
+| RTM | `draft -> resolved`; RTM resolved bersifat baca-saja. |
+
+Laporan dibuat hanya ketika seluruh penugasan untuk kombinasi siklus, versi, auditor, dan auditee telah memiliki assessment finalized. Laporan dan itemnya adalah snapshot immutable; laporan historis tetap dapat dibaca.
+
+### Kebijakan Bukti per Indikator
+
+Setiap indikator memakai salah satu nilai `none`, `file`, `url`, `either`, atau `both`. Kebijakan dan petunjuk bukti disalin ke snapshot item penugasan baru, sehingga perubahan indikator berikutnya tidak mengubah penugasan yang sudah ada. File bukti disimpan private dan endpoint unduh memeriksa role serta ownership. Bukti URL hanya divalidasi sebagai URL HTTP/HTTPS; aplikasi tidak mengambil konten URL tersebut.
+
+## Peran dan Menu Aktif
+
+| Peran | Redirect login | Menu sidebar terlihat |
+|---|---|---|
+| `super_admin` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Struktur Organisasi; Standar SPMI; Siklus & Penugasan SPMI; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
+| `admin_lpmpi` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Struktur Organisasi; Standar SPMI; Siklus & Penugasan SPMI; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
+| `auditor` | `auditor/spmi-dashboard` | Dashboard SPMI; Penilaian SPMI; Akun Saya |
+| `auditee` | `auditee/spmi-dashboard` | Dashboard SPMI; Workspace SPMI; Akun Saya |
+
+## Peta Kode SPMI
+
+| Tanggung jawab | Lokasi |
+|---|---|
+| Route | `application/config/routes.php` |
+| Controller manajemen | `application/controllers/lpmpi/Spmi_*.php` |
+| Controller auditee, auditor, dan dashboard | `application/controllers/Spmi_*.php` |
+| Service | `application/services/Spmi_*.php` |
+| Model | `application/models/Spmi_*.php` |
+| View | `application/views/lpmpi/spmi_*`, `application/views/spmi_auditee_workspace`, `application/views/spmi_auditor_workspace` |
+| Regression guard | `tests/*_regression.php` |
+| Upgrade manual | `migrations/` |
+
 ## Setup dan Deployment
 
 Docker bersifat opsional. Pilih satu mode sesuai lingkungan. Compose app sudah set `CI_ENV=development`, jadi jangan tambah mode lain yang mengubah perilaku itu.
@@ -26,7 +74,7 @@ Docker bersifat opsional. Pilih satu mode sesuai lingkungan. Compose app sudah s
 |---|---|---|---|
 | Apache/PHP dan MySQL lokal | Menggunakan XAMPP atau Laragon tanpa Docker | Apache lokal | MySQL/MariaDB lokal |
 | Docker penuh | Ingin aplikasi dan MySQL terisolasi | Container `app` | Container `db` internal |
-| Apache/PHP lokal dan MySQL Docker | Belum didukung oleh konfigurasi aplikasi saat ini | — | Gunakan MySQL lokal atau Docker penuh |
+| Apache/PHP lokal dan MySQL Docker | Belum didukung oleh konfigurasi aplikasi saat ini | - | Gunakan MySQL lokal atau Docker penuh |
 | Produksi non-Docker | Server produksi dikelola langsung oleh tim deployment | Apache atau PHP-FPM | Database produksi terpisah |
 
 ### Prasyarat Lokal
@@ -46,94 +94,43 @@ SetEnv CI_ENV development
 SetEnv APP_BASE_URL http://localhost/AMI/
 ```
 
-Ganti `APP_BASE_URL` dengan URL proyek yang dipakai, selalu dengan garis miring penutup. Pada development, `APP_BASE_URL` dapat dikosongkan dan CodeIgniter mendeteksi URL dari request, tetapi menetapkannya menghindari URL yang salah saat memakai virtual host atau subdirektori.
+Ganti `APP_BASE_URL` dengan URL proyek yang dipakai, selalu dengan garis miring penutup.
 
 ### Apache/PHP dan MySQL Lokal, XAMPP atau Laragon
 
-Pilih mode ini bila Apache dan MySQL/MariaDB sudah tersedia di XAMPP atau Laragon. Contoh lokasi proyek Windows adalah `C:\laragon\www\AMI` atau `C:\xampp\htdocs\AMI`.
-
-1. Jalankan Apache dan MySQL/MariaDB dari Laragon atau XAMPP, lalu pastikan `CI_ENV=development` pada konfigurasi Apache seperti bagian prasyarat.
-2. Untuk database baru, import `database_schema.sql`. Ini membuat struktur database `ami`, bukan akun demo.
-
-   ```powershell
-   mysql -u root -e "source C:/laragon/www/AMI/database_schema.sql"
-   ```
-
-   Shell Unix dapat memakai:
+1. Jalankan Apache dan MySQL/MariaDB, lalu pastikan `CI_ENV=development` pada konfigurasi Apache.
+2. Untuk database baru, import `database_schema.sql`.
 
    ```bash
    mysql -u root < database_schema.sql
    ```
 
-3. Opsional, import seed setelah schema bila memerlukan standar, pertanyaan, tugas, dan jawaban contoh.
-
-   ```powershell
-   mysql -u root -e "source C:/laragon/www/AMI/database_dummy.sql"
-   ```
-
-   ```bash
-   mysql -u root < database_dummy.sql
-   ```
-
-   `database_dummy.sql` tidak membuat pengguna demo. Buat pengguna melalui proses aplikasi atau masukkan data pengguna secara terkontrol sebelum mengharapkan tugas seed terhubung ke auditor dan auditee.
-4. Set variabel database pada Apache atau PHP. Nilai default konfigurasi lokal adalah `DB_HOST=localhost`, `DB_USERNAME=root`, `DB_PASSWORD=` kosong, dan `DB_DATABASE=ami`. Jika instalasi MySQL memakai kredensial lain, set nilai yang sesuai, misalnya:
-
-   ```apache
-   SetEnv DB_HOST localhost
-   SetEnv DB_USERNAME root
-   SetEnv DB_PASSWORD ""
-   SetEnv DB_DATABASE ami
-   ```
-
-5. Buka URL yang memakai `/index.php`, misalnya `http://localhost/AMI/index.php`. Semua URL aplikasi tetap memakai `/index.php` karena konfigurasi saat ini memang begitu.
+   `database_dummy.sql` adalah seed AMI legacy, bukan kebutuhan alur SPMI dan tidak membuat akun SPMI. Jangan import file ini untuk onboarding SPMI.
+3. Set variabel database. Nilai default lokal adalah `DB_HOST=localhost`, `DB_USERNAME=root`, `DB_PASSWORD=` kosong, dan `DB_DATABASE=ami`.
+4. Buka URL yang memakai `/index.php`, misalnya `http://localhost/AMI/index.php`.
 
 ### Docker Penuh
 
-Pilih mode ini bila Docker Desktop dan Compose v2 tersedia dan aplikasi maupun MySQL harus berjalan dalam container. Dari root proyek, jalankan:
+Jalankan dari root proyek:
 
 ```bash
 docker compose up -d --build
-```
-
-Periksa status dengan:
-
-```bash
-docker compose ps
-```
-
-Lihat log app dengan:
-
-```bash
 docker compose logs --tail=100 app
 ```
 
-Pada volume database baru, MySQL menjalankan `database_schema.sql` sebagai `01-schema.sql`, lalu `database_dummy.sql` sebagai `02-demo.sql`. Seed tidak membuat pengguna demo. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
+Pada volume database baru, Compose saat ini menjalankan `database_schema.sql` sebagai `01-schema.sql`, lalu `database_dummy.sql` sebagai `02-demo.sql`. File kedua tersebut hanya seed AMI legacy, tidak membuat pengguna, dan tidak diperlukan oleh alur SPMI. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
 
-Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host yang berbeda. Jika sudah berganti dan login ditolak, tutup tab aplikasi lalu hapus site data untuk kedua host sebelum membuka `127.0.0.1` lagi.
-
-Compose sengaja tidak memublikasikan port MySQL ke host. Sesi, upload, dan data MySQL tersimpan dalam named volume. SPMI bukti lokal juga disimpan di `/srv/ami/private` lewat named volume `private_storage`, jadi rebuild atau recreate container normal tidak menghapusnya. `docker compose down` menghentikan container dan mempertahankan named volume.
-
-```bash
-docker compose down
-```
-
-`docker compose down -v` menghapus named volume, jadi database lokal, sesi, upload, dan `private_storage` hilang.
-
-```bash
-docker compose down -v
-```
+Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host berbeda. Compose tidak memublikasikan port MySQL ke host. Sesi, upload, database, dan private storage berada dalam named volume; `docker compose down` mempertahankannya, sedangkan `docker compose down -v` menghapusnya.
 
 ### Apache/PHP Lokal dan MySQL Docker
 
-Mode ini **belum didukung**. `compose.yaml` sengaja tidak membuka port MySQL ke host, dan konfigurasi CodeIgniter saat ini belum memiliki `DB_PORT` terpisah. Menulis `127.0.0.1:3307` pada `DB_HOST` tidak membuat driver `mysqli` memakai port tersebut.
-
-Untuk development, gunakan salah satu mode yang didukung: Apache/PHP dengan MySQL lokal atau Docker penuh. Jika mode hybrid diperlukan di masa depan, tambahkan konfigurasi `DB_PORT` pada aplikasi terlebih dahulu, kemudian buat override Compose lokal di `test-data/` (direktori yang diabaikan Git), bukan di root proyek.
+Mode ini **belum didukung**. `compose.yaml` sengaja tidak membuka port MySQL ke host dan konfigurasi CodeIgniter belum memiliki `DB_PORT` terpisah. Gunakan Apache/PHP dengan MySQL lokal atau Docker penuh.
 
 ## Deployment Produksi Non-Docker
 
-Pilih mode ini untuk server produksi tanpa container. Deployment dan secret dikelola oleh tim deployment. Gunakan PHP 7.4+ dengan ekstensi `mysqli`, `mbstring`, `xml`, `zip`, `gd`, `curl`, dan `fileinfo`, lalu pasang dependency dengan `composer install --no-dev --prefer-dist --no-interaction`. Repository belum memiliki `composer.lock`; akibatnya `composer install` dapat memilih versi dependency berbeda pada release berikutnya. Buat, review, dan commit lock file sebelum release produksi agar dependency reproducible. Karena `.gitignore` saat ini mengabaikan file itu, gunakan `git add -f composer.lock` saat menambahkan lock file pertama. Document root harus menunjuk ke root aplikasi yang berisi `index.php`; jangan publikasikan direktori private storage atau log melalui web server.
+Gunakan PHP 7.4+ dengan ekstensi `mysqli`, `mbstring`, `xml`, `zip`, `gd`, `curl`, dan `fileinfo`, lalu pasang dependency dengan `composer install --no-dev --prefer-dist --no-interaction`. `composer.lock` tersedia dan terlacak Git; gunakan lock file tersebut agar dependency produksi reproducible. Document root harus menunjuk ke root aplikasi yang berisi `index.php`; jangan publikasikan private storage atau log melalui web server.
 
-Siapkan direktori private storage dan log terlebih dahulu, beri hak baca/tulis hanya kepada user PHP-FPM/Apache, lalu set seluruh environment berikut:
+Siapkan direktori private storage dan log, beri hak baca/tulis hanya kepada user PHP-FPM/Apache, lalu set environment berikut:
 
 ```text
 CI_ENV=production
@@ -158,136 +155,75 @@ DB_PASSWORD=<secret database>
 DB_DATABASE=ami
 ```
 
-`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib sudah ada, writable, dan berada di luar document root. Bukti SPMI baru tetap memakai backend lokal secara default; `SPMI_EVIDENCE_STORAGE_BACKEND` hanya menerima `local` atau `google_drive`, dan nilai lain kembali aman ke `local`. Kolom metadata Google Drive hanya fondasi untuk bukti SPMI auditee dan auditor baru, bukan migrasi file lama. Produksi hanya mendukung mode `service_account`; set `GOOGLE_DRIVE_AUTH_MODE=service_account`, isi `GOOGLE_DRIVE_EVIDENCE_FOLDER_ID` dan `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH` jika perlu Google Drive, lalu biarkan dua variabel OAuth kosong. File kredensial wajib berada di luar `FCPATH`/document root; konfigurasi produksi gagal tertutup bila backend Drive dipilih tanpa config Drive valid, salah satu nilai Drive diisi tanpa pasangan lengkap, atau path kredensial berada di area publik. Jangan commit file kredensial atau nilai secret. Reset password hanya aktif bila `BREVO_API_KEY` dan `MAIL_FROM_ADDRESS` tersedia. Aplikasi mengirim email reset lewat Brevo HTTPS API di `https://api.brevo.com/v3/smtp/email` dengan port 443 dan native HTTPS streams, memakai `BREVO_API_KEY` sebagai satu-satunya API key, serta `MAIL_FROM_ADDRESS` dan opsional `MAIL_FROM_NAME` sebagai sender. Sender harus sudah diverifikasi di Brevo. Tidak ada fallback SMTP, mail, atau sendmail. Jika pengiriman gagal atau API key tidak tersedia, token reset tidak dipakai, token aktif dibatalkan, dan pengguna tetap menerima respons generik yang sama. Konfigurasi produksi gagal tertutup jika setting wajib tersebut hilang atau tidak aman. Jangan menyimpan secret di source. Rotasi `APP_ENCRYPTION_KEY` jika key lama pernah digunakan di luar lingkungan tepercaya.
-
-Jika perlu override lokal yang tidak ikut Git, simpan di `test-data/compose.smtp.yaml` sebagai file override yang diabaikan. Jangan isi contoh itu dengan secret apa pun, dan jangan jadikan file itu sumber konfigurasi produksi.
+`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib berada di luar document root. Bukti SPMI baru memakai backend lokal secara default; `SPMI_EVIDENCE_STORAGE_BACKEND` hanya menerima `local` atau `google_drive`, dan nilai lain kembali aman ke `local`. Produksi hanya mendukung `service_account`. File kredensial Drive wajib di luar `FCPATH`/document root dan konfigurasi Drive yang tidak lengkap gagal tertutup. Jangan commit secret. Reset password hanya aktif bila `BREVO_API_KEY` dan `MAIL_FROM_ADDRESS` tersedia; pengiriman memakai Brevo HTTPS API tanpa fallback SMTP, `mail`, atau `sendmail`.
 
 ### Handover Google Shared Drive Bukti SPMI
 
-Berlaku hanya untuk bukti SPMI auditee dan auditor baru; file lama, bukti AMI legacy, dan bukti lokal yang sudah ada tetap lokal. Akses tetap lewat endpoint aplikasi dengan pemeriksaan role dan ownership, tanpa URL publik, ID Drive pada UI, atau permission publik di Google Drive. Sebelum produksi berpindah ke Drive, tim IT harus menyiapkan campus Shared Drive, mengaktifkan Drive API, membuat service account, memberi akses service account ke folder bukti dalam Shared Drive, dan menetapkan minimal dua administrator pemulihan manusia pada Shared Drive atau proses Google Workspace terkait. Simpan folder ID dan JSON service account di secret manager atau path server eksternal yang berada di luar repository dan document root; file itu hanya boleh readable oleh runtime PHP, bukan oleh web publik atau user lain. Unduhan Drive membaca konten ke buffer dulu, lalu baru mengirim header attachment jika retrieval berhasil, jadi kegagalan tetap kembali sebagai HTML 404 terkontrol, bukan attachment yang menyesatkan. Ambil backup dulu lalu jalankan migration `033_add_spmi_drive_evidence_metadata.sql` satu kali; backup harus mencakup database serta `APP_PRIVATE_STORAGE_PATH`. Migration ini hanya menambah metadata Drive dan `spmi_drive_trash_outbox`, tidak memigrasikan file legacy atau lokal.
+Berlaku hanya untuk bukti SPMI auditee dan auditor baru; file lama, bukti AMI legacy, dan bukti lokal yang sudah ada tetap lokal. Akses tetap lewat endpoint aplikasi dengan pemeriksaan role dan ownership, tanpa URL publik, ID Drive pada UI, atau permission publik di Google Drive. Sebelum cutover, siapkan Shared Drive, Drive API, service account, akses folder bukti, dan minimal dua administrator pemulihan manusia. Simpan folder ID serta JSON service account di secret manager atau path server eksternal di luar repository dan document root. Ambil backup dulu lalu jalankan migration `033_add_spmi_drive_evidence_metadata.sql` satu kali; backup harus mencakup database serta `APP_PRIVATE_STORAGE_PATH`.
 
-Jangan ubah `SPMI_EVIDENCE_STORAGE_BACKEND=local` sampai Shared Drive, service account, credential path, backup, dan rollback sudah siap. Untuk cutover produksi, set `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive`, `GOOGLE_DRIVE_AUTH_MODE=service_account`, isi folder ID dan path service account eksternal, biarkan kedua path OAuth kosong, lalu restart PHP-FPM/Apache. Setelah restart, lakukan uji terkontrol: auditee upload/download/delete, auditor upload/download/delete, dan percobaan download/delete non-owner harus ditolak. Jika harus fallback ke lokal, fallback hanya berlaku untuk upload baru setelah backend dikembalikan; konfigurasi Drive dan akses service account harus tetap tersedia selama masih ada record Drive di database. Retry `spmi_drive_trash_outbox` masih manual: operator memilih row pending/retrying, menjalankan trash file Drive dengan service account, lalu memperbarui status/attempt/error sesuai hasil; belum ada worker otomatis. root `compose.yaml` tidak boleh memuat secret Drive production; pakai secret manager, konfigurasi server, atau override lokal yang diabaikan Git.
+Jangan ubah `SPMI_EVIDENCE_STORAGE_BACKEND=local` sampai Shared Drive, service account, credential path, backup, dan rollback siap. Untuk cutover, gunakan `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive` dan `GOOGLE_DRIVE_AUTH_MODE=service_account`, lalu lakukan uji upload/download/delete auditee dan auditor termasuk percobaan non-owner. Retry `spmi_drive_trash_outbox` masih manual: operator menangani row pending/retrying, menjalankan trash dengan service account, lalu memperbarui status, attempt, dan error. root `compose.yaml` tidak boleh memuat secret Drive production.
 
-Untuk melaporkan metadata Drive historis, DBA boleh menjalankan preflight read-only berikut setelah backup. Query ini hanya `SELECT`; tidak melakukan migration, update, delete, operasi file, atau trash action. Migration `033_add_spmi_drive_evidence_metadata.sql` juga tidak dapat membuktikan bukti yang dibuat sebelum metadata Drive tersedia.
+Untuk melaporkan metadata Drive historis, DBA boleh menjalankan preflight read-only berikut setelah backup. Query ini hanya `SELECT`; tidak melakukan migration, update, delete, operasi file, atau trash action.
 
 ```sql
-SELECT 'spmi_auditee_evidence' AS source_table,
-       COUNT(*) AS total_rows,
-       SUM(storage_backend = 'google_drive') AS drive_rows,
-       SUM(drive_file_id IS NOT NULL AND drive_file_id <> '') AS rows_with_drive_file_id,
-       SUM(storage_backend = 'google_drive' AND (drive_file_id IS NULL OR drive_file_id = '')) AS drive_rows_missing_file_id
-FROM spmi_auditee_evidence
+SELECT 'spmi_auditee_evidence' AS source_table, COUNT(*) AS total_rows FROM spmi_auditee_evidence
 UNION ALL
-SELECT 'spmi_auditor_assessment_evidence' AS source_table,
-       COUNT(*) AS total_rows,
-       SUM(storage_backend = 'google_drive') AS drive_rows,
-       SUM(drive_file_id IS NOT NULL AND drive_file_id <> '') AS rows_with_drive_file_id,
-       SUM(storage_backend = 'google_drive' AND (drive_file_id IS NULL OR drive_file_id = '')) AS drive_rows_missing_file_id
-FROM spmi_auditor_assessment_evidence
+SELECT 'spmi_auditor_assessment_evidence' AS source_table, COUNT(*) AS total_rows FROM spmi_auditor_assessment_evidence
 UNION ALL
-SELECT 'spmi_drive_trash_outbox' AS source_table,
-       COUNT(*) AS total_rows,
-       SUM(status IN ('pending', 'retrying')) AS drive_rows,
-       SUM(drive_file_id IS NOT NULL AND drive_file_id <> '') AS rows_with_drive_file_id,
-       SUM(status IN ('pending', 'retrying') AND (drive_file_id IS NULL OR drive_file_id = '')) AS drive_rows_missing_file_id
-FROM spmi_drive_trash_outbox;
+SELECT 'spmi_drive_trash_outbox' AS source_table, COUNT(*) AS total_rows FROM spmi_drive_trash_outbox;
 ```
+
+Migration `033_add_spmi_drive_evidence_metadata.sql` juga tidak dapat membuktikan bukti yang dibuat sebelum metadata Drive tersedia.
 
 ### Google Drive untuk Development Lokal
 
-Gunakan mode OAuth ini hanya untuk development pribadi dengan folder My Drive milik sendiri. Aktifkan Google Drive API, buat OAuth client tipe Desktop application, lalu set `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive`. Mode ini dilarang di production. Production tetap harus memakai `service_account`, dengan variabel OAuth dikosongkan dan tanpa public Drive links.
+Gunakan OAuth hanya untuk development pribadi dengan folder My Drive sendiri. Aktifkan Google Drive API, buat OAuth client tipe Desktop application, lalu set `SPMI_EVIDENCE_STORAGE_BACKEND=google_drive`. Mode ini dilarang di production; production tetap memakai `service_account` dan tanpa public Drive links.
 
-Untuk development lokal, siapkan dua file secret eksternal yang hanya bisa dibaca container, lalu mount keduanya read-only dari luar repo dan di luar document root:
-
-1. Google OAuth Desktop client secret JSON.
-2. Refresh token JSON hasil bootstrap CLI.
-
-Simpan kedua file di luar repository dan di luar document root, lalu mount dengan path absolut. Jalankan bootstrap sekali untuk menulis refresh token pertama kali:
+Simpan client secret dan refresh token di luar repository serta document root, mount read-only, lalu bootstrap sekali:
 
 ```bash
 php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/refresh-token.json
 ```
 
-Setelah itu, gunakan environment berikut pada development lokal:
-
-```text
-SPMI_EVIDENCE_STORAGE_BACKEND=google_drive
-GOOGLE_DRIVE_AUTH_MODE=oauth_refresh_token
-GOOGLE_DRIVE_EVIDENCE_FOLDER_ID=<private My Drive folder ID>
-GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH=
-GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH=<absolute path ke client secret JSON di luar repo>
-GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH=<absolute path ke refresh token JSON di luar repo>
-```
-
-Kedua path wajib berada di luar repo dan document root, serta hanya dipasang read-only. Jangan pernah menyalin file itu ke dalam tree aplikasi. Untuk production, tetap set `GOOGLE_DRIVE_AUTH_MODE=service_account`, kosongkan dua variabel OAuth, dan jangan pakai link Drive publik.
-
 ### Panduan Uji Lokal Reset Password
 
-Pakai bagian ini untuk menyiapkan branch ini di mesin lokal lalu menguji alur `Lupa Password` sampai email reset terkirim lewat Brevo.
-
-1. Pull branch ini, lalu pastikan dependency sudah terpasang. Jika memakai Docker Compose, rebuild container setelah environment berubah.
-2. Untuk database lokal yang sudah ada, backup dulu lalu jalankan migration `032_create_password_reset_tokens.sql` dan `033_add_spmi_drive_evidence_metadata.sql` satu kali sesuai urutan bila belum diterapkan. Untuk database baru, import `database_schema.sql` dulu, lalu buat user uji yang terkontrol. Jangan pakai akun produksi atau isi data rahasia di database lokal.
-3. Set environment lokal berikut lewat VirtualHost, file env Compose yang diabaikan Git, atau compose override lokal yang juga diabaikan Git:
-
-   ```text
-   CI_ENV=development
-   APP_BASE_URL=http://127.0.0.1:8081/
-   BREVO_API_KEY=<secret lokal yang tidak dikomit>
-   MAIL_FROM_ADDRESS=<verified sender di Brevo>
-   MAIL_FROM_NAME=<opsional>
-   ```
-
-   Simpan nilai rahasia hanya di file lokal yang diabaikan Git. Jangan commit file yang berisi secret.
-4. Pastikan `MAIL_FROM_ADDRESS` sudah diverifikasi di Brevo. Jika sender belum verified, email reset tidak akan keluar.
-5. Jalankan ulang Compose dengan override lokal yang berisi nilai secret di file yang diabaikan Git, lalu cek container dan log aplikasi:
-
-   ```bash
-   docker compose -f compose.yaml -f test-data/compose.smtp.yaml up -d --build
-   docker compose ps
-   docker compose logs --tail=100 app
-   ```
-
-   Jika memakai Apache lokal, restart Apache setelah environment berubah.
-6. Buat satu user uji secara terkontrol, lalu buka halaman login dan kirim permintaan dari alur `Lupa Password`. Ambil email reset dari inbox uji, set password baru, lalu login ulang untuk memastikan token dan sesi bekerja.
-7. Jalankan regresi terarah berikut setelah perubahan lokal selesai:
-
-   ```bash
-   php tests/password_reset_regression.php
-   php tests/auth_login_regression.php
-   php tests/account_settings_regression.php
-   ```
-
-   Jika kamu baru memasang database dari schema kosong, tambah juga:
-
-   ```bash
-   php tests/m17_schema_regression.php
-   ```
-
-File instrumen, lampiran penetapan, bukti auditor, dan import Excel sementara disimpan di private storage dan hanya diunduh melalui endpoint dengan pemeriksaan role/ownership. Logo profil tetap publik di `uploads/profil`. Record lama yang hanya berisi nama file tetap dibaca dari `uploads/<kategori>`; jangan hapus file lama sebelum proses pemindahan dan verifikasi selesai.
+1. Pull branch, pasang dependency, dan rebuild Compose bila environment berubah.
+2. Untuk database lokal yang sudah ada, backup lalu jalankan migration `032_create_password_reset_tokens.sql` dan `033_add_spmi_drive_evidence_metadata.sql` jika belum diterapkan. Untuk database baru, import `database_schema.sql` dan buat user uji terkontrol.
+3. Set `CI_ENV=development`, `APP_BASE_URL`, `BREVO_API_KEY`, dan `MAIL_FROM_ADDRESS` hanya di konfigurasi lokal yang diabaikan Git.
+4. Pastikan sender Brevo sudah diverifikasi, buat user uji, gunakan alur Lupa Password, lalu login ulang dengan password baru.
+5. Jalankan `php tests/password_reset_regression.php`, `php tests/auth_login_regression.php`, dan `php tests/account_settings_regression.php`.
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema-only untuk database baru. Jangan import `database_dummy.sql` atau memakai akun demo di produksi. Buat administrator awal melalui proses terkontrol tim deployment.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-037`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi.
+
+#### Akun Administrator Pertama
+
+Masukkan akun administrator pertama melalui proses deployment terkontrol. Contoh SQL hanya memakai placeholder:
+
+```sql
+INSERT INTO users (nama, email, password, role)
+VALUES (
+  '<administrator name>',
+  '<administrator email>',
+  '<password_hash() output>',
+  'super_admin'
+);
+```
+
+Kolom `password` wajib berisi output PHP `password_hash()` dan tidak boleh berisi password plaintext.
 
 #### Setelah pull perubahan database
 
-Periksa apakah pull membawa file baru di `migrations/`. Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration baru satu kali secara berurutan. Setelah upgrade, jalankan pemeriksaan terarah berikut dari root proyek:
-
-```bash
-php tests/sidebar_navigation_regression.php
-php tests/spmi_instrument_retirement_regression.php
-php tests/spmi_rtm_regression.php
-php tests/spmi_audits_regression.php
-php tests/spmi_ui_consistency_regression.php
-```
+Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration baru satu kali secara berurutan. Jangan memakai `--force`, jangan menonaktifkan foreign key checks, hentikan pada error pertama, dan jangan menjalankan blok `DOWN` historis.
 
 #### Database baru
 
-Untuk database baru, import `database_schema.sql` dulu. Jangan lanjutkan dengan migration `001` sampai `036` pada database baru, karena schema bootstrap sudah memuat struktur awal yang dibutuhkan.
+Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `037` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
 
-#### Database lama, legacy, belum punya table organisasi, capability, atau SPMI
+#### Database lama yang perlu di-upgrade
 
-Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage private plus upload yang terkait. Setelah itu, pilih database yang memang ingin di-upgrade, lalu jalankan migration `012` sampai `036` secara numerik, satu file tiap langkah, dalam urutan naik. Sebelum menjalankan `034`, pastikan preflight destruktifnya terpenuhi. Jangan jalankan `001` sampai `011` pada database legacy lama ini.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `037` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -314,127 +250,45 @@ Ambil backup penuh dulu, termasuk data, triggers, routines, events, dan storage 
 23. `034_retire_spmi_instruments.sql`
 24. `035_add_indicator_evidence_policy.sql`
 25. `036_add_users_import_support.sql`
+26. `037_add_spmi_version_report_scope.sql`
 
-Jalankan satu file tiap langkah, satu per satu, memakai klien MySQL yang dipilih tim ke database yang memang dituju. Jangan membatch file. Jangan menambahkan kredensial.
+Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
-Jangan pakai `--force`. Jangan matikan foreign key checks. Hentikan di error pertama. Jangan jalankan blok `DOWN` historis.
+CodeIgniter migrations tetap nonaktif. Direktori `migrations/` berisi raw SQL manual yang dijalankan tim deployment setelah backup. Setelah upgrade, lakukan smoke test login, upload/download sesuai role, import, dan laporan sebelum membuka traffic.
 
-Catatan penting, migration `014` berhenti bila lebih dari satu active version ditemukan. Migration `028` membuat index composite `(assignment_id, source_submission_version)` dulu, baru menghapus unique index lama, supaya aman untuk FK. Migration `029` menambahkan bukti assessment auditor dan snapshot metadata laporan secara aditif. Migration `030` menambahkan detail temuan dan snapshot laporan secara aditif. Migration `031` menambahkan `academic_year` dan `semester` nullable pada `spmi_audit_cycles` secara aditif dan idempotent. Migration ini tidak melakukan backfill; isi periode akademik untuk siklus draft melalui menu Siklus & Penugasan SPMI setelah upgrade.
+## Keamanan dan Batasan Operasional
 
-Migration `033` menambahkan metadata backend bukti SPMI baru pada `spmi_auditee_evidence` dan `spmi_auditor_assessment_evidence` secara aditif dan idempotent. Kolom `storage_backend` default ke `local`, sedangkan `drive_file_id` dan `drive_folder_id` nullable. Migration ini tidak melakukan DML, tidak memindahkan file lokal lama, tidak mengubah bukti AMI legacy, dan tidak membuat kredensial Google.
+- Route memakai role guard; seluruh mutasi wajib POST dengan CSRF aktif.
+- Service menjalankan ownership check, business rule, dan transaksi yang diperlukan.
+- Output dinamis di-escape dengan `html_escape()`.
+- Bukti disimpan private dan unduhan memvalidasi role serta ownership.
+- Audit log mencatat login, logout, dan percobaan mutasi POST; web server produksi harus menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, dan private storage.
+- SPMI adalah satu-satunya workflow aktif yang direpresentasikan oleh login redirect dan sidebar. Artefak AMI legacy serta route `lpmpi/legacy-ami-archive` tetap di luar lingkup operasional README ini.
 
-Migration `034` menghapus paket, pertanyaan, dan rubrik instrumen SPMI versioned serta kolom snapshot paket/pertanyaan yang bergantung padanya. Setelah migration ini, penugasan SPMI memilih standar lalu membuat snapshot indikator dan rubrik global 1–4. `034` tidak menyentuh fitur atau data upload instrumen legacy pada `lpmpi/Instrumen`, dan tidak mengubah kolom unit legacy pada `users`.
+## Batasan Saat Ini
 
-Migration `035` menambahkan `spmi_indicators.evidence_policy` secara aditif dan idempotent dengan default `none`. Admin LPMPI mengaturnya pada form indikator; hanya item penugasan baru yang menyimpan snapshot policy indikator saat dibuat. Migration ini tidak mengubah item penugasan, submission, atau evidence yang sudah ada.
-
-Migration `036` menambahkan `users.identity_number` nullable dan unik untuk NIP/NIDN, serta `users.must_change_password` dengan default `0`. Migration ini aditif dan idempotent; tidak mengubah akun lama atau kata sandi yang ada.
-
-Migration `037_add_spmi_version_report_scope.sql` menambahkan scope laporan per versi dan identitas standar pada item snapshot. Jalankan setelah backup database dan `APP_PRIVATE_STORAGE_PATH`; laporan standar lama tetap terbaca dan tidak dimigrasikan ulang.
-
-CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw SQL yang dijalankan manual oleh tim deployment setelah backup database. Untuk database yang sudah masuk jalur legacy di atas, ikuti nomor migration yang sudah ditetapkan, satu file tiap langkah, tanpa melewati urutan atau menjalankan blok `DOWN` historis otomatis. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup.
-
-`tests/fixtures/m17_07_demo_ui_seed.sql` bukan setup normal. Jangan import file itu ke database shared atau production selama hardening safety masih berlangsung.
-
-Konfigurasi web server wajib menerapkan HTTPS dan HSTS, menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, serta private storage, dan menonaktifkan directory listing. Pantau kapasitas disk serta rotasi log. Error detail hanya masuk log private; browser produksi tidak menampilkan error PHP atau debug database.
-
-## Akun Demo
-
-`database_schema.sql` dan `database_dummy.sql` tidak membuat akun di bawah ini. Gunakan hanya jika akun tersebut telah dibuat secara terkontrol pada database lokal.
-
-| Role | Email | Password |
-|---|---|---|
-| Super Admin | `admin@ami.test` | `admin123` |
-| Auditor | `auditor@ami.test` | `auditor123` |
-| Auditee | `auditee@ami.test` | `auditee123` |
-
-Password tersimpan menggunakan `password_hash()` dan diverifikasi dengan `password_verify()`.
-
-## Fitur MVP
-
-### Super Admin
-
-- Dashboard statistik
-- CRUD pengguna, standar, dan pertanyaan
-- Membuat, melihat detail, dan menghapus tugas audit
-- Melihat hasil audit
-
-### Admin LPMPI
-
-- Mengelola profil, periode, instrumen, penetapan, penugasan, dan laporan
-- Import pertanyaan serta export laporan Excel
-
-### Auditee
-
-- Melihat tugas miliknya
-- Mengisi jawaban singkat dan link bukti
-- Melihat status, skor, dan catatan auditor
-
-### Auditor
-
-- Melihat tugas yang ditugaskan kepadanya
-- Membuka jawaban dan link bukti
-- Memberikan skor 1–4 dan catatan
-- Melihat riwayat penilaian
-
-## Alur Demo
-
-1. Login sebagai Super Admin.
-2. Tambah auditor dan auditee bila diperlukan.
-3. Tambah standar serta pertanyaan.
-4. Buat tugas audit.
-5. Login sebagai Auditee dan kirim jawaban beserta link bukti.
-6. Login sebagai Auditor dan simpan skor serta catatan.
-7. Login kembali sebagai Super Admin dan buka Hasil Audit.
-
-## Keamanan Dasar
-
-- Role-based access melalui `Auth_guard`
-- Ownership check tugas auditor dan auditee
-- CSRF aktif untuk seluruh form POST, termasuk login
-- Output dinamis menggunakan `html_escape()`
-- Validasi input melalui Form Validation dan service
-- Penghapusan data hanya melalui POST
-- Transaksi database saat membuat tugas, menyimpan jawaban, dan menyimpan penilaian
-- Header respons global no-store/security dan audit log append-only untuk login, logout, dan percobaan mutasi POST
-
-## Batasan MVP
-
-Export PDF, email, notifikasi, MFA, rate limit login, dan approval bertingkat belum disediakan. Kebijakan MFA/rate limit untuk akun istimewa harus diterapkan pada lapisan identitas atau reverse proxy sampai tersedia di aplikasi.
-
-## Data Demo
-
-`database_dummy.sql` aman dijalankan ulang dan menyediakan:
-
-- 3 standar audit
-- 12 pertanyaan
-- tugas dengan status `belum_diisi`, `diisi`, dan `dinilai`
-- jawaban, skor, serta catatan contoh
+Export PDF, email/notifikasi workflow, MFA, rate limit login, dan approval bertingkat belum tersedia. Terapkan MFA atau rate limit akun istimewa pada identity layer atau reverse proxy hingga tersedia di aplikasi.
 
 ## Post-pull Check
 
-Jalankan cek berikut setelah pull dan sebelum handoff:
-
-### Semua mode
-
 ```bash
 php tests/auth_login_regression.php
+php tests/sidebar_navigation_regression.php
+php tests/spmi_audits_regression.php
 php tests/spmi_auditee_workspace_regression.php
+php tests/spmi_auditor_workspace_regression.php
+php tests/spmi_reports_regression.php
 php tests/m17_schema_regression.php
+php tests/hardening_regression.php
 ```
 
-### Docker
+Untuk Docker, jalankan `docker compose config --quiet` dan `curl -i http://127.0.0.1:8081/index.php/auth/login`. Untuk Apache/PHP lokal, jalankan `curl -i "${APP_BASE_URL}index.php/auth/login"` dengan `APP_BASE_URL` yang berakhiran `/`.
 
-```bash
-docker compose config --quiet
-curl -i http://127.0.0.1:8081/index.php/auth/login
-```
+## Dokumentasi Terkait
 
-### Apache/PHP lokal
-
-```bash
-curl -i "${APP_BASE_URL}index.php/auth/login"
-```
-
-Pakai `APP_BASE_URL` lokal yang sudah berakhiran `/`, lalu tambahkan `index.php/auth/login` satu kali.
-
-Verifikasi browser yang terautentikasi tetap manual.
+- `AGENTS.md`
+- `docs/plan/rencana-evidence-policy-dan-import-akun.md`
+- `docs/plan/m17-spmi-workspace-parity-master-plan.md`
+- `docs/product/spmi-workspace-parity-contract.md`
+- `.multibrain/session.md`
+- `.multibrain/indexes/ami-workflow.md`
