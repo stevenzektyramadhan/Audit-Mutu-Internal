@@ -4,6 +4,7 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-19 - Sisyphus: Aligned README with the active SPMI workflow, verified SPMI-only redirects/sidebar facts, migration 037, and deployment corrections while retaining the URL-only AMI legacy archive. -> `.multibrain/context/2026-09-19-sisyphus-readme-spmi-alignment.md`
 - 2026-09-19 - Sisyphus: Laporan SPMI now selects a snapshot cycle then one validated version-report group (version/auditor/auditee) before offering its existing detail, print, and XLSX actions. Selector queries only `spmi_reports`; historical standard reports and direct routes remain compatible. -> `.multibrain/context/2026-09-19-sisyphus-spmi-report-cycle-group-export.md`
 - 2026-09-19 - Sisyphus: Remediated local Docker database drift after reports index failed on missing `source_cycle_id`: backed up the database, applied idempotent migration 037, verified all new report/item columns and five ready version groups, then reran report/schema/RTM regressions. -> `.multibrain/context/2026-09-19-sisyphus-spmi-report-migration-037-remediation.md`
 - 2026-09-19 - Sisyphus: SPMI reports now generate one immutable snapshot per cycle/version/auditor/auditee only after all assigned standards have finalized with matching submissions. Migration 037 preserves old standard reports, while new detail, print, and XLSX output group immutable items into separate standard tables. -> `.multibrain/context/2026-09-19-sisyphus-spmi-version-level-reports.md`
