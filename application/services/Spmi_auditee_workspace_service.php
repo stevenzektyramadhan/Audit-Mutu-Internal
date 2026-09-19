@@ -84,6 +84,7 @@ class Spmi_auditee_workspace_service
             $value = array_key_exists($item->assignment_item_id, $realizations) ? trim((string) $realizations[$item->assignment_item_id]) : '';
             $url = array_key_exists($item->assignment_item_id, $evidence_urls) ? trim((string) $evidence_urls[$item->assignment_item_id]) : '';
             if ($submit && $value === '') return $this->rollback('Semua realisasi wajib diisi sebelum submit.');
+            if ($url !== '' && !$this->validate_evidence_url($url)) return $this->rollback('URL bukti harus menggunakan HTTP atau HTTPS yang valid.');
             if ($submit && !$this->evidence_policy_ok($item, $url)) return $this->rollback('Bukti wajib sesuai kebijakan sebelum submit.');
             if (!$this->model->update_realization($assignment->submission_id, $item->assignment_item_id, $value, $url)) return $this->rollback('Realisasi gagal disimpan.');
         }

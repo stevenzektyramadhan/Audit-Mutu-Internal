@@ -15,6 +15,7 @@
 -- current parity migration 001-032
 -- current parity migration 001-033
 -- current parity migration 001-036
+-- current parity migration 001-037
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -510,23 +511,29 @@ CREATE TABLE IF NOT EXISTS `spmi_drive_trash_outbox` (
 
 CREATE TABLE IF NOT EXISTS `spmi_reports` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `assessment_id` INT NOT NULL,
+    `assessment_id` INT NULL,
     `report_number` VARCHAR(128) NOT NULL,
+    `report_scope` ENUM('standard','version') NOT NULL DEFAULT 'standard',
+    `source_cycle_id` INT NULL,
     `cycle_code_snapshot` VARCHAR(64) NOT NULL,
     `cycle_title_snapshot` VARCHAR(200) NOT NULL,
     `cycle_start_date_snapshot` DATE NOT NULL,
     `cycle_end_date_snapshot` DATE NOT NULL,
     `source_version_code_snapshot` VARCHAR(64) NOT NULL,
     `source_version_title_snapshot` VARCHAR(200) NOT NULL,
-    `source_standard_code_snapshot` VARCHAR(64) NOT NULL,
-    `source_standard_title_snapshot` VARCHAR(200) NOT NULL,
+    `source_version_id` INT NULL,
+    `source_standard_code_snapshot` VARCHAR(64) NULL,
+    `source_standard_title_snapshot` VARCHAR(200) NULL,
     `auditor_name_snapshot` VARCHAR(200) NOT NULL,
+    `auditor_id_snapshot` INT NULL,
     `auditee_name_snapshot` VARCHAR(200) NOT NULL,
+    `auditee_id_snapshot` INT NULL,
     `assessment_finalized_at_snapshot` DATETIME NOT NULL,
     `generated_by` INT NOT NULL,
     `generated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_reports_assessment` (`assessment_id`),
     UNIQUE KEY `uq_spmi_reports_report_number` (`report_number`),
+    UNIQUE KEY `uq_spmi_reports_version_tuple` (`source_cycle_id`, `source_version_id`, `auditor_id_snapshot`, `auditee_id_snapshot`, `report_scope`),
     CONSTRAINT `fk_spmi_reports_assessment` FOREIGN KEY (`assessment_id`) REFERENCES `spmi_auditor_assessments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_reports_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -534,7 +541,12 @@ CREATE TABLE IF NOT EXISTS `spmi_reports` (
 CREATE TABLE IF NOT EXISTS `spmi_report_items` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `report_id` INT NOT NULL,
+    `source_standard_id` INT NULL,
+    `source_standard_code_snapshot` VARCHAR(64) NULL,
+    `source_standard_title_snapshot` VARCHAR(200) NULL,
+    `source_standard_display_order` INT NULL,
     `display_order` INT NOT NULL,
+    `standard_item_display_order` INT NULL,
     `indicator_code_snapshot` VARCHAR(64) NOT NULL,
     `indicator_title_snapshot` VARCHAR(200) NOT NULL,
     `realization_snapshot` TEXT NOT NULL,

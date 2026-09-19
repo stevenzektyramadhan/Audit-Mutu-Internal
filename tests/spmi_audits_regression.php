@@ -34,16 +34,22 @@ foreach (['spmi_audit_assignments', 'spmi_audit_assignment_items'] as $table) {
         spmi_audit_check(strpos(spmi_audit_table($schema, $table), '`' . $retired . '`') === FALSE, 'Bootstrap schema retains retired assignment field: ' . $table . '.' . $retired);
     }
 }
-foreach (['trans_begin', 'standard_for_update', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
+foreach (['trans_begin', 'version_for_update', 'standards_for_version_for_update', 'source_standard_ids', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
     spmi_audit_check(strpos($service, $required) !== FALSE, 'Assignment service contract missing: ' . $required);
 }
 foreach (['packages()', 'package_for_update', 'package_questions', 'source_package_id', 'source_question_id'] as $retired) {
     spmi_audit_check(strpos($service . $model . $controller, $retired) === FALSE, 'Assignment flow retains package dependency: ' . $retired);
 }
-foreach (['source_standard_id', 'standards()', 'required|integer', "method(TRUE) !== 'POST'"] as $required) {
+foreach (['source_version_id', 'versions()', 'standards_by_version()', 'required|integer', "method(TRUE) !== 'POST'"] as $required) {
     spmi_audit_check(strpos($controller, $required) !== FALSE, 'Assignment controller contract missing: ' . $required);
 }
-spmi_audit_check(strpos($form, 'name="source_standard_id"') !== FALSE && strpos($form, '$standards') !== FALSE, 'Assignment form must select a standard.');
+spmi_audit_check(strpos($controller, "set_rules('source_standard_id'") === FALSE, 'Assignment controller must not require one authoritative standard ID.');
+foreach (['versions()', 'standards_by_version()', 'standards_for_version_for_update'] as $required) {
+    spmi_audit_check(strpos($model, $required) !== FALSE, 'Assignment model version scope contract missing: ' . $required);
+}
+spmi_audit_check(strpos($model, 'ORDER BY s.display_order ASC FOR UPDATE') !== FALSE, 'Locked version standard resolver must preserve standard display order.');
+spmi_audit_check(strpos($form, 'name="source_version_id"') !== FALSE && strpos($form, "checkbox.name = 'source_standard_ids[]'") !== FALSE, 'Assignment form must select a version and submit an optional standard subset.');
+spmi_audit_check(strpos($form, '$versions') !== FALSE && strpos($form, '$standards_by_version') !== FALSE, 'Assignment form must receive version-scoped standard data.');
 spmi_audit_check(strpos($form, 'source_package') === FALSE, 'Assignment form must not expose a retired package picker.');
 spmi_audit_check(strpos($detail, 'source_standard_code') !== FALSE && strpos($detail, 'evidence_instruction') !== FALSE, 'Assignment detail must render standard and indicator evidence snapshots.');
 spmi_audit_check(strpos($detail, 'source_package') === FALSE && strpos($detail, 'question_text') === FALSE, 'Assignment detail must not render package/question snapshots.');

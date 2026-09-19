@@ -329,6 +329,8 @@ Migration `035` menambahkan `spmi_indicators.evidence_policy` secara aditif dan 
 
 Migration `036` menambahkan `users.identity_number` nullable dan unik untuk NIP/NIDN, serta `users.must_change_password` dengan default `0`. Migration ini aditif dan idempotent; tidak mengubah akun lama atau kata sandi yang ada.
 
+Migration `037_add_spmi_version_report_scope.sql` menambahkan scope laporan per versi dan identitas standar pada item snapshot. Jalankan setelah backup database dan `APP_PRIVATE_STORAGE_PATH`; laporan standar lama tetap terbaca dan tidak dimigrasikan ulang.
+
 CodeIgniter migrations tetap nonaktif. Direktori root `migrations/` berisi raw SQL yang dijalankan manual oleh tim deployment setelah backup database. Untuk database yang sudah masuk jalur legacy di atas, ikuti nomor migration yang sudah ditetapkan, satu file tiap langkah, tanpa melewati urutan atau menjalankan blok `DOWN` historis otomatis. Backup database dan `APP_PRIVATE_STORAGE_PATH` sebagai satu set, uji restore, lalu lakukan smoke test login, upload/download sesuai role, import pertanyaan, dan laporan sebelum membuka traffic. Rollback aplikasi harus mempertahankan database dan file hasil backup.
 
 `tests/fixtures/m17_07_demo_ui_seed.sql` bukan setup normal. Jangan import file itu ke database shared atau production selama hardening safety masih berlangsung.
