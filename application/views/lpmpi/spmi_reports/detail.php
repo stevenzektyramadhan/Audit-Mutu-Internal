@@ -107,9 +107,9 @@ $icon = static function ($name) {
                 </div>
 
                 <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100">
-                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Sumber Dokumen & Standar</span>
+                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Sumber Dokumen</span>
                     <span class="tw-text-slate-800 tw-font-mono tw-text-xs">
-                        <?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot); ?>
+                        <?php echo html_escape($report->source_version_code_snapshot); ?>
                     </span>
                 </div>
 
@@ -155,7 +155,11 @@ $icon = static function ($name) {
             </div>
 
             <!-- Desktop View: Structured Report Table -->
-            <div class="tw-hidden md:tw-block tw-overflow-hidden tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm print-table">
+            <?php foreach ($standards as $standard): $items = $standard['items']; ?>
+            <div class="tw-mb-5 tw-hidden md:tw-block tw-overflow-hidden tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm print-table">
+                <div class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-px-4 tw-py-3 tw-text-sm tw-font-bold tw-text-slate-900">
+                    <?php echo html_escape($standard['source_standard_code_snapshot'] . ' — ' . $standard['source_standard_title_snapshot']); ?>
+                </div>
                 <div class="tw-overflow-x-auto">
                     <table class="tw-w-full tw-text-left tw-text-sm">
                         <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-600">
@@ -173,13 +177,15 @@ $icon = static function ($name) {
                         <tbody class="tw-divide-y tw-divide-slate-200">
                             <?php foreach ($items as $item):
                                 $url = isset($item->evidence_url_snapshot) ? trim((string) $item->evidence_url_snapshot) : '';
+                                $url_scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+                                $url_is_safe = $url !== '' && filter_var($url, FILTER_VALIDATE_URL) !== FALSE && in_array($url_scheme, ['http', 'https'], TRUE);
                                 $file_name = isset($item->evidence_file_original_name_snapshot) ? trim((string) $item->evidence_file_original_name_snapshot) : '';
                                 $has_file = $file_name !== '';
                                 $auditor_evidences = spmi_report_auditor_evidence(isset($item->auditor_evidence_snapshot) ? $item->auditor_evidence_snapshot : NULL);
                             ?>
                                 <tr class="hover:tw-bg-slate-50/70 tw-align-top">
                                     <td class="tw-px-4 tw-py-4 tw-text-center tw-font-bold tw-text-slate-500 tw-text-xs">
-                                        <?php echo html_escape($item->display_order); ?>
+                                        <?php echo html_escape($item->standard_item_display_order ?: $item->display_order); ?>
                                     </td>
 
                                     <!-- Pertanyaan & Indikator -->
@@ -205,10 +211,14 @@ $icon = static function ($name) {
                                                 <!-- URL Bukti -->
                                                 <?php if ($url !== ''): ?>
                                                     <div class="tw-flex tw-items-start tw-gap-1.5 tw-text-xs">
-                                                        <span class="tw-text-blue-600 tw-mt-0.5"><?php echo $icon('external-link'); ?></span>
-                                                        <a href="<?php echo html_escape($url); ?>" target="_blank" rel="noopener noreferrer" class="tw-text-blue-600 hover:tw-underline tw-break-all tw-font-medium">
-                                                            <?php echo html_escape($item->evidence_url_snapshot); ?>
-                                                        </a>
+                                                        <?php if ($url_is_safe): ?>
+                                                            <span class="tw-text-blue-600 tw-mt-0.5"><?php echo $icon('external-link'); ?></span>
+                                                            <a href="<?php echo html_escape($url); ?>" target="_blank" rel="noopener noreferrer" class="tw-text-blue-600 hover:tw-underline tw-break-all tw-font-medium">
+                                                                <?php echo html_escape($item->evidence_url_snapshot); ?>
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span class="tw-break-all tw-text-slate-700"><?php echo html_escape($item->evidence_url_snapshot); ?></span>
+                                                        <?php endif; ?>
                                                     </div>
                                                 <?php endif; ?>
 
@@ -345,11 +355,17 @@ $icon = static function ($name) {
                     </table>
                 </div>
             </div>
+            <?php endforeach; ?>
 
             <!-- Mobile View: Stacked Cards Per Item -->
-            <div class="tw-grid tw-gap-4 md:tw-hidden print-cards">
+            <?php foreach ($standards as $standard): $items = $standard['items']; ?>
+            <div class="tw-mb-5 md:tw-hidden">
+                <h3 class="tw-mb-3 tw-text-sm tw-font-bold tw-text-slate-900"><?php echo html_escape($standard['source_standard_code_snapshot'] . ' — ' . $standard['source_standard_title_snapshot']); ?></h3>
+            <div class="tw-grid tw-gap-4 print-cards">
                 <?php foreach ($items as $item):
                     $url = isset($item->evidence_url_snapshot) ? trim((string) $item->evidence_url_snapshot) : '';
+                    $url_scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+                    $url_is_safe = $url !== '' && filter_var($url, FILTER_VALIDATE_URL) !== FALSE && in_array($url_scheme, ['http', 'https'], TRUE);
                     $file_name = isset($item->evidence_file_original_name_snapshot) ? trim((string) $item->evidence_file_original_name_snapshot) : '';
                     $has_file = $file_name !== '';
                     $auditor_evidences = spmi_report_auditor_evidence(isset($item->auditor_evidence_snapshot) ? $item->auditor_evidence_snapshot : NULL);
@@ -359,7 +375,7 @@ $icon = static function ($name) {
                         <div class="tw-border-b tw-border-slate-100 tw-pb-3">
                             <div class="tw-flex tw-items-center tw-justify-between tw-mb-2">
                                 <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-800 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                                    Butir <?php echo html_escape($item->display_order); ?>
+                                    Butir <?php echo html_escape($item->standard_item_display_order ?: $item->display_order); ?>
                                 </span>
                                 <div class="tw-flex tw-items-center tw-gap-1">
                                     <span class="tw-inline-flex tw-h-6 tw-w-6 tw-items-center tw-justify-center tw-rounded tw-bg-blue-600 tw-font-bold tw-text-white tw-text-xs">
@@ -388,10 +404,14 @@ $icon = static function ($name) {
                                     <!-- URL Bukti -->
                                     <?php if ($url !== ''): ?>
                                         <div class="tw-flex tw-items-start tw-gap-1.5 tw-text-xs">
-                                            <span class="tw-text-blue-600 tw-mt-0.5"><?php echo $icon('external-link'); ?></span>
-                                            <a href="<?php echo html_escape($url); ?>" target="_blank" rel="noopener noreferrer" class="tw-text-blue-600 hover:tw-underline tw-break-all tw-font-medium">
-                                                <?php echo html_escape($item->evidence_url_snapshot); ?>
-                                            </a>
+                                            <?php if ($url_is_safe): ?>
+                                                <span class="tw-text-blue-600 tw-mt-0.5"><?php echo $icon('external-link'); ?></span>
+                                                <a href="<?php echo html_escape($url); ?>" target="_blank" rel="noopener noreferrer" class="tw-text-blue-600 hover:tw-underline tw-break-all tw-font-medium">
+                                                    <?php echo html_escape($item->evidence_url_snapshot); ?>
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="tw-break-all tw-text-slate-700"><?php echo html_escape($item->evidence_url_snapshot); ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
 
@@ -528,6 +548,8 @@ $icon = static function ($name) {
                     </article>
                 <?php endforeach; ?>
             </div>
+            </div>
+            <?php endforeach; ?>
         </section>
     </div>
 </main>
