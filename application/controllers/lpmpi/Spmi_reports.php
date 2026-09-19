@@ -16,6 +16,7 @@ class Spmi_reports extends Admin_Lpmpi_Controller
     public function index()
     {
         $radar_cycle = trim((string) $this->input->get('radar_cycle', TRUE));
+        $selector = $this->service->version_report_selector($this->input->get('report_cycle_id', TRUE), $this->input->get('report_id', TRUE));
 
         $this->load->view('lpmpi/spmi_reports/index', [
             'title' => 'Laporan SPMI',
@@ -23,10 +24,14 @@ class Spmi_reports extends Admin_Lpmpi_Controller
             'page_subtitle' => 'Beranda / Insights / Laporan SPMI',
             'active_menu' => 'spmi_reports',
             'reports' => $this->service->reports(),
-            'finalized_assessments' => $this->service->finalized_assessments(),
+            'finalized_assessments' => $this->service->finalized_versions(),
             'radar_cycles' => $this->service->report_cycles(),
             'radar_selected_cycle' => $radar_cycle,
             'radar_recap' => $this->service->score_recap($radar_cycle),
+            'version_report_cycles' => $selector['version_report_cycles'],
+            'selected_report_cycle_id' => $selector['selected_report_cycle_id'],
+            'version_reports' => $selector['version_reports'],
+            'selected_version_report' => $selector['selected_version_report'],
         ]);
     }
 
@@ -42,14 +47,14 @@ class Spmi_reports extends Admin_Lpmpi_Controller
     {
         $data = $this->service->report((int) $id);
         if (!$data) { show_error('Laporan SPMI tidak ditemukan.', 404, 'Not Found'); return; }
-        $this->load->view('lpmpi/spmi_reports/detail', ['title' => 'Detail Laporan SPMI', 'page_title' => 'Detail Laporan SPMI', 'page_subtitle' => 'Beranda / Insights / Laporan SPMI / Detail', 'active_menu' => 'spmi_reports', 'report' => $data['report'], 'items' => $data['items']]);
+        $this->load->view('lpmpi/spmi_reports/detail', ['title' => 'Detail Laporan SPMI', 'page_title' => 'Detail Laporan SPMI', 'page_subtitle' => 'Beranda / Insights / Laporan SPMI / Detail', 'active_menu' => 'spmi_reports', 'report' => $data['report'], 'items' => $data['items'], 'standards' => $data['standards']]);
     }
 
     public function print_report($id)
     {
         $data = $this->service->report((int) $id);
         if (!$data) { show_error('Laporan SPMI tidak ditemukan.', 404, 'Not Found'); return; }
-        $this->load->view('lpmpi/spmi_reports/print', ['title' => 'Cetak Laporan SPMI', 'report' => $data['report'], 'items' => $data['items']]);
+        $this->load->view('lpmpi/spmi_reports/print', ['title' => 'Cetak Laporan SPMI', 'report' => $data['report'], 'items' => $data['items'], 'standards' => $data['standards']]);
     }
 
     public function export($id)
@@ -67,7 +72,7 @@ class Spmi_reports extends Admin_Lpmpi_Controller
         $headers = ['A' => 'No', 'B' => 'Indikator', 'C' => 'Realisasi', 'D' => 'URL Bukti', 'E' => 'File Bukti', 'F' => 'MIME Bukti', 'G' => 'Ukuran Bukti', 'H' => 'SHA-256 Bukti', 'I' => 'Bukti Auditor', 'J' => 'Skor', 'K' => 'Deskriptor', 'L' => 'Jenis Temuan', 'M' => 'Temuan', 'N' => 'Rekomendasi', 'O' => 'Rencana perbaikan', 'P' => 'Tanggal bukti'];
         foreach ($headers as $column => $label) $this->set_text($sheet, $column . '1', $label);
         $row = 2;
-        foreach ($data['items'] as $item) { $this->set_text($sheet, 'A' . $row, $item->display_order); $this->set_text($sheet, 'B' . $row, $item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); $this->set_text($sheet, 'C' . $row, $item->realization_snapshot); $this->set_text($sheet, 'D' . $row, isset($item->evidence_url_snapshot) ? $item->evidence_url_snapshot : NULL); $this->set_text($sheet, 'E' . $row, isset($item->evidence_file_original_name_snapshot) ? $item->evidence_file_original_name_snapshot : NULL); $this->set_text($sheet, 'F' . $row, isset($item->evidence_file_mime_type_snapshot) ? $item->evidence_file_mime_type_snapshot : NULL); $this->set_text($sheet, 'G' . $row, isset($item->evidence_file_size_bytes_snapshot) ? $item->evidence_file_size_bytes_snapshot : NULL); $this->set_text($sheet, 'H' . $row, isset($item->evidence_file_sha256_snapshot) ? $item->evidence_file_sha256_snapshot : NULL); $this->set_text($sheet, 'I' . $row, $this->auditor_evidence_text(isset($item->auditor_evidence_snapshot) ? $item->auditor_evidence_snapshot : NULL)); $sheet->setCellValue('J' . $row, (int) $item->score); $this->set_text($sheet, 'K' . $row, $item->descriptor_snapshot); $this->set_text($sheet, 'L' . $row, isset($item->finding_type_snapshot) ? $item->finding_type_snapshot : NULL); $this->set_text($sheet, 'M' . $row, $item->finding_snapshot); $this->set_text($sheet, 'N' . $row, $item->recommendation_snapshot); $this->set_text($sheet, 'O' . $row, isset($item->improvement_plan_snapshot) ? $item->improvement_plan_snapshot : NULL); $this->set_text($sheet, 'P' . $row, isset($item->evidence_date_snapshot) ? $item->evidence_date_snapshot : NULL); $row++; }
+        foreach ($data['standards'] as $standard) { $this->set_text($sheet, 'A' . $row, $standard['source_standard_code_snapshot'] . ' — ' . $standard['source_standard_title_snapshot']); $sheet->mergeCells('A' . $row . ':P' . $row); $sheet->getStyle('A' . $row)->getFont()->setBold(TRUE); $row++; foreach ($standard['items'] as $item) { $this->set_text($sheet, 'A' . $row, $item->standard_item_display_order ?: $item->display_order); $this->set_text($sheet, 'B' . $row, $item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); $this->set_text($sheet, 'C' . $row, $item->realization_snapshot); $this->set_text($sheet, 'D' . $row, isset($item->evidence_url_snapshot) ? $item->evidence_url_snapshot : NULL); $this->set_text($sheet, 'E' . $row, isset($item->evidence_file_original_name_snapshot) ? $item->evidence_file_original_name_snapshot : NULL); $this->set_text($sheet, 'F' . $row, isset($item->evidence_file_mime_type_snapshot) ? $item->evidence_file_mime_type_snapshot : NULL); $this->set_text($sheet, 'G' . $row, isset($item->evidence_file_size_bytes_snapshot) ? $item->evidence_file_size_bytes_snapshot : NULL); $this->set_text($sheet, 'H' . $row, isset($item->evidence_file_sha256_snapshot) ? $item->evidence_file_sha256_snapshot : NULL); $this->set_text($sheet, 'I' . $row, $this->auditor_evidence_text(isset($item->auditor_evidence_snapshot) ? $item->auditor_evidence_snapshot : NULL)); $sheet->setCellValue('J' . $row, (int) $item->score); $this->set_text($sheet, 'K' . $row, $item->descriptor_snapshot); $this->set_text($sheet, 'L' . $row, isset($item->finding_type_snapshot) ? $item->finding_type_snapshot : NULL); $this->set_text($sheet, 'M' . $row, $item->finding_snapshot); $this->set_text($sheet, 'N' . $row, $item->recommendation_snapshot); $this->set_text($sheet, 'O' . $row, isset($item->improvement_plan_snapshot) ? $item->improvement_plan_snapshot : NULL); $this->set_text($sheet, 'P' . $row, isset($item->evidence_date_snapshot) ? $item->evidence_date_snapshot : NULL); $row++; } }
         $sheet->getStyle('A1:P' . max(1, $row - 1))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP)->setWrapText(TRUE);
         $sheet->getStyle('A1:P1')->getFont()->setBold(TRUE);
         $sheet->freezePane('A2');
