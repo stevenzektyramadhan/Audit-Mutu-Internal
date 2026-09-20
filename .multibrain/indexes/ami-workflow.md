@@ -4,6 +4,7 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-20 - Sisyphus: Added management-only configurable upload limits for six active categories via migration 039; consumers retain existing MIME, storage, ownership, and legacy boundaries. -> `.multibrain/context/2026-09-20-sisyphus-upload-size-settings.md`
 - 2026-09-20 - Sisyphus: Recorded PPEPP QA handoff: requirement and code-quality reviews passed; anonymous runtime redirects plus PHP limits/extensions were observed; authenticated coverage is unavailable without credentials; OOXML ZIP metadata resource-exhaustion risk remains nonblocking MEDIUM. -> `.multibrain/context/2026-09-20-sisyphus-ppepp-qa-handoff.md`
 - 2026-09-20 - Sisyphus-Junior: Completed PPEPP deployment/docs/memory/hardening slice: Docker PHP upload overhead config, README migration 038/private storage/runtime notes, and hardening guard for private-only `ppepp_documents`; no PPEPP implementation/routes/views changed. -> `.multibrain/context/2026-09-20-sisyphus-junior-ppepp-deployment-docs-hardening.md`
 - 2026-09-20 - Sisyphus-Junior: Implemented PPEPP document model/service lifecycle only: persistence-only model, service-owned config validation, private upload storage, replacement/delete cleanup ordering, and file-first download resolution; focused PPEPP document regression and PHP lint passed.
