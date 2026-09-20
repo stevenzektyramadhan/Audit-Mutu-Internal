@@ -24,6 +24,8 @@ $config = ppepp_source('application/config/spmi_ppepp.php');
 $helper = ppepp_source('application/helpers/app_helper.php');
 $model = ppepp_source('application/models/Spmi_ppepp_documents_model.php');
 $service = ppepp_source('application/services/Spmi_ppepp_documents_service.php');
+$controller = ppepp_source('application/controllers/lpmpi/Spmi_ppepp_documents.php');
+$routes = ppepp_source('application/config/routes.php');
 
 $table_contract = [
     'CREATE TABLE IF NOT EXISTS `spmi_ppepp_documents`',
@@ -90,6 +92,7 @@ ppepp_check(strpos($helper, "FCPATH . 'uploads'") !== FALSE, 'Legacy public uplo
 foreach (['Penetapan_model', 'ppepp_recap', "'penetapan' table", 'get_penilaian_by_category'] as $legacy) {
     ppepp_check(strpos($model, $legacy) === FALSE, 'PPEPP document model must not reference legacy workflow: ' . $legacy);
     ppepp_check(strpos($service, $legacy) === FALSE, 'PPEPP document service must not reference legacy workflow: ' . $legacy);
+    ppepp_check(strpos($controller, $legacy) === FALSE, 'PPEPP document controller must not reference legacy workflow: ' . $legacy);
 }
 ppepp_check(strpos($model, 'private_storage_') === FALSE && strpos($model, 'is_uploaded_file') === FALSE && strpos($model, 'finfo_') === FALSE, 'PPEPP document model must stay persistence-only.');
 foreach (['documents($stage, $year)', 'years()', 'document($id, $for_update = FALSE)', 'penetapan_core_counts($year, $categories)', 'insert_document($data)', 'update_document($id, $data)', 'delete_document($id)'] as $literal) {
@@ -166,6 +169,52 @@ $stored_branch = strpos($service, 'if ($document->stored_name)', $download_fn);
 $path_lookup = strpos($service, 'private_storage_path(\'ppepp_documents\', $document->stored_name)', $download_fn);
 $url_fallback = strpos($service, "['backend' => 'url'", $download_fn);
 ppepp_check($download_fn !== FALSE && $stored_branch !== FALSE && $path_lookup !== FALSE && $url_fallback !== FALSE && $stored_branch < $path_lookup && $path_lookup < $url_fallback, 'PPEPP download must resolve stored file first and only use URL for URL-only records.');
+
+ppepp_check(strpos($controller, 'class Spmi_ppepp_documents extends Admin_Lpmpi_Controller') !== FALSE, 'PPEPP document controller must extend Admin_Lpmpi_Controller exactly.');
+ppepp_check(strpos($controller, "require_once APPPATH . 'services/Spmi_ppepp_documents_service.php'") !== FALSE, 'PPEPP document controller must consume existing PPEPP service.');
+ppepp_check(strpos($controller, 'new Spmi_ppepp_documents_service()') !== FALSE, 'PPEPP document controller must instantiate existing PPEPP service.');
+ppepp_check(strpos($controller, "'active_menu' => 'spmi_ppepp_documents'") !== FALSE, 'PPEPP document controller must expose active menu key for eventual views.');
+ppepp_check(strpos($controller, "?: 'penetapan'") !== FALSE && strpos($controller, "?: date('Y')") !== FALSE, 'PPEPP index must default filters to penetapan/current year.');
+foreach (['documents($stage, $year)', 'years()', 'penetapan_core_counts($year)'] as $literal) {
+    ppepp_check(strpos($controller, '$this->service->' . $literal) !== FALSE, 'PPEPP index must expose service data: ' . $literal);
+}
+foreach (["config->item('spmi_ppepp_stages'", "config->item('spmi_ppepp_categories'", "config->item('spmi_ppepp_penetapan_core_categories'"] as $literal) {
+    ppepp_check(strpos($controller, $literal) !== FALSE, 'PPEPP controller must expose config to eventual views: ' . $literal);
+}
+ppepp_check(strpos($controller, 'load->view(\'lpmpi/spmi_ppepp_documents/\' . $view') !== FALSE, 'PPEPP controller must render expected view path.');
+ppepp_check(strpos($controller, "show_error('Dokumen PPEPP tidak ditemukan.', 404, 'Not Found')") !== FALSE, 'PPEPP controller must 404 missing edit/download documents.');
+foreach (['public function store()', 'public function update($id)', 'public function delete($id)'] as $method) {
+    $pos = strpos($controller, $method);
+    ppepp_check($pos !== FALSE, 'PPEPP mutation method missing: ' . $method);
+    $next_public = strpos($controller, 'public function ', $pos + 1);
+    $body = $next_public === FALSE ? substr($controller, $pos) : substr($controller, $pos, $next_public - $pos);
+    ppepp_check(strpos($body, '$this->require_post();') !== FALSE, 'PPEPP mutation must require POST: ' . $method);
+}
+ppepp_check(strpos($controller, "show_error('Method tidak diizinkan.', 405, 'Method Not Allowed')") !== FALSE, 'PPEPP require_post must use RTM-style 405 helper.');
+ppepp_check(strpos($controller, "input->post(NULL, TRUE)") !== FALSE && strpos($controller, '$_FILES[\'document_file\']') !== FALSE, 'PPEPP controller must pass post array and document_file to service.');
+ppepp_check(strpos($controller, 'service->download($id)') !== FALSE, 'PPEPP download endpoint must delegate lookup to service download.');
+$local_branch = strpos($controller, 'if ($download[\'backend\'] === \'url\'');
+$local_guard = strpos($controller, 'if ($download[\'backend\'] !== \'local\'', $local_branch);
+$readfile = strpos($controller, 'readfile($download[\'path\'])', $local_guard);
+ppepp_check($local_branch !== FALSE && $local_guard !== FALSE && $readfile !== FALSE && $local_branch < $local_guard && $local_guard < $readfile, 'PPEPP download controller must redirect URL-only documents and stream local files only after local guard.');
+foreach (["Content-Type: ", "Content-Length: ", "Content-Disposition: attachment; filename=\"", "Cache-Control: private, no-store", 'basename((string) $download[\'name\'])'] as $literal) {
+    ppepp_check(strpos($controller, $literal) !== FALSE, 'PPEPP local download header/sanitization contract missing: ' . $literal);
+}
+ppepp_check(strpos($controller, 'private_storage_path') === FALSE && strpos($controller, 'stored_name') === FALSE, 'PPEPP controller must not expose or resolve private stored paths directly.');
+
+$expected_routes = [
+    "\$route['lpmpi/spmi-ppepp-documents'] = 'lpmpi/Spmi_ppepp_documents/index';",
+    "\$route['lpmpi/spmi-ppepp-documents/create'] = 'lpmpi/Spmi_ppepp_documents/create';",
+    "\$route['lpmpi/spmi-ppepp-documents/store'] = 'lpmpi/Spmi_ppepp_documents/store';",
+    "\$route['lpmpi/spmi-ppepp-documents/edit/(:num)'] = 'lpmpi/Spmi_ppepp_documents/edit/\$1';",
+    "\$route['lpmpi/spmi-ppepp-documents/update/(:num)'] = 'lpmpi/Spmi_ppepp_documents/update/\$1';",
+    "\$route['lpmpi/spmi-ppepp-documents/delete/(:num)'] = 'lpmpi/Spmi_ppepp_documents/delete/\$1';",
+    "\$route['lpmpi/spmi-ppepp-documents/download/(:num)'] = 'lpmpi/Spmi_ppepp_documents/download/\$1';",
+];
+foreach ($expected_routes as $literal) {
+    ppepp_check(strpos($routes, $literal) !== FALSE, 'PPEPP route missing: ' . $literal);
+}
+ppepp_check(substr_count($routes, 'spmi-ppepp-documents') === 7, 'PPEPP routes must be exactly seven mappings.');
 
 if (!defined('BASEPATH')) {
     define('BASEPATH', $root . DIRECTORY_SEPARATOR . 'system' . DIRECTORY_SEPARATOR);
