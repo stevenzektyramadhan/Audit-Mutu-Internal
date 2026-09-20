@@ -22,6 +22,8 @@ $migration = ppepp_source('migrations/038_create_spmi_ppepp_documents.sql');
 $schema = ppepp_source('database_schema.sql');
 $config = ppepp_source('application/config/spmi_ppepp.php');
 $helper = ppepp_source('application/helpers/app_helper.php');
+$model = ppepp_source('application/models/Spmi_ppepp_documents_model.php');
+$service = ppepp_source('application/services/Spmi_ppepp_documents_service.php');
 
 $table_contract = [
     'CREATE TABLE IF NOT EXISTS `spmi_ppepp_documents`',
@@ -84,6 +86,86 @@ foreach (['kebijakan_spmi', 'manual_spmi', 'formulir_spmi', 'standar_spmi', 'mek
 ppepp_check(strpos($helper, "'ppepp_documents'") !== FALSE, 'Private storage helper must accept ppepp_documents category.');
 ppepp_check(strpos($helper, "['user_photos', 'spmi_source', 'ppepp_documents']") !== FALSE, 'ppepp_documents must be private-only with no public uploads fallback.');
 ppepp_check(strpos($helper, "FCPATH . 'uploads'") !== FALSE, 'Legacy public uploads fallback must remain for existing categories.');
+
+foreach (['Penetapan_model', 'ppepp_recap', "'penetapan' table", 'get_penilaian_by_category'] as $legacy) {
+    ppepp_check(strpos($model, $legacy) === FALSE, 'PPEPP document model must not reference legacy workflow: ' . $legacy);
+    ppepp_check(strpos($service, $legacy) === FALSE, 'PPEPP document service must not reference legacy workflow: ' . $legacy);
+}
+ppepp_check(strpos($model, 'private_storage_') === FALSE && strpos($model, 'is_uploaded_file') === FALSE && strpos($model, 'finfo_') === FALSE, 'PPEPP document model must stay persistence-only.');
+foreach (['documents($stage, $year)', 'years()', 'document($id, $for_update = FALSE)', 'penetapan_core_counts($year, $categories)', 'insert_document($data)', 'update_document($id, $data)', 'delete_document($id)'] as $literal) {
+    ppepp_check(strpos($model, $literal) !== FALSE, 'PPEPP document model API missing: ' . $literal);
+}
+foreach (['u.nama AS uploader_name', 'uu.nama AS updater_name', 'WHERE id = ? FOR UPDATE', "where('stage', 'penetapan')", 'group_by(\'category\')'] as $literal) {
+    ppepp_check(strpos($model, $literal) !== FALSE, 'PPEPP document model query invariant missing: ' . $literal);
+}
+
+foreach ([
+    'config->load(\'spmi_ppepp\', TRUE)',
+    'valid_stage($stage)',
+    'valid_category($stage, $category)',
+    'FILTER_VALIDATE_URL',
+    'parse_url($url, PHP_URL_SCHEME)',
+    'in_array($scheme, [\'http\', \'https\'], TRUE)',
+    'DateTime::createFromFormat(\'!Y-m-d\'',
+    '$value >= 2000 && $value <= ((int) date(\'Y\') + 1)',
+    'has_document_source($data)',
+    'has_document_source($candidate)',
+] as $literal) {
+    ppepp_check(strpos($service, $literal) !== FALSE, 'PPEPP document service validation invariant missing: ' . $literal);
+}
+foreach (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'] as $extension) {
+    ppepp_check(strpos($service, "'" . $extension . "' =>") !== FALSE, 'PPEPP MIME extension missing: ' . $extension);
+}
+foreach ([
+    'const MAX_FILE_SIZE = 10485760',
+    'UPLOAD_ERR_OK',
+    'is_uploaded_file',
+    'finfo_open(FILEINFO_MIME_TYPE)',
+    'bin2hex(random_bytes(24))',
+    'basename($file[\'name\'])',
+    "private_storage_dir('ppepp_documents')",
+    'mkdir($dir, 0700, TRUE)',
+    '@chmod($path, 0600)',
+    'move_uploaded_file',
+] as $literal) {
+    ppepp_check(strpos($service, $literal) !== FALSE, 'PPEPP upload invariant missing: ' . $literal);
+}
+foreach ([
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/zip',
+    'application/msword',
+    'application/vnd.ms-excel',
+    'application/vnd.ms-powerpoint',
+    'application/octet-stream',
+    'application/CDFV2',
+] as $mime) {
+    ppepp_check(strpos($service, "'" . $mime . "'") !== FALSE, 'PPEPP MIME allowlist missing: ' . $mime);
+}
+ppepp_check(strpos($service, 'return TRUE') === FALSE || strpos($service, 'allowed_mimes') < strpos($service, 'return TRUE'), 'PPEPP MIME validation must not accept generic catch-all types.');
+
+$create_save = strpos($service, '$saved = $this->save_upload($file);');
+$create_trans = strpos($service, '$this->ci->db->trans_begin();', $create_save);
+$create_insert = strpos($service, '$id = $this->model->insert_document($data);');
+ppepp_check($create_save !== FALSE && $create_trans !== FALSE && $create_insert !== FALSE && $create_save < $create_trans && $create_trans < $create_insert, 'PPEPP create must save file before DB transaction/insert.');
+ppepp_check(strpos($service, '$this->cleanup_saved($saved);') !== FALSE, 'PPEPP DB failure must clean newly saved file.');
+$update_save = strpos($service, 'protected function persist_update');
+$update_saved_call = strpos($service, '$saved = $this->save_upload($file);', $update_save);
+$update_document_lock = strpos($service, '$document = $this->model->document($id, TRUE);', $update_save);
+$old_delete = strpos($service, 'delete_private_file(\'ppepp_documents\', $old_stored_name)', $update_save);
+ppepp_check($update_saved_call !== FALSE && $update_document_lock !== FALSE && $old_delete !== FALSE && $update_saved_call < $update_document_lock && $update_document_lock < $old_delete, 'PPEPP replacement must save new, lock/update DB, then remove old file only after success.');
+$delete_lock = strpos($service, '$document = $this->model->document($id, TRUE);', strpos($service, 'public function delete'));
+$delete_row = strpos($service, '$this->model->delete_document($id)', strpos($service, 'public function delete'));
+$delete_commit = strpos($service, '$result = $this->finish', strpos($service, 'public function delete'));
+$delete_file = strpos($service, 'delete_private_file(\'ppepp_documents\', $stored_name)', strpos($service, 'public function delete'));
+ppepp_check($delete_lock !== FALSE && $delete_row !== FALSE && $delete_commit !== FALSE && $delete_file !== FALSE && $delete_lock < $delete_row && $delete_row < $delete_commit && $delete_commit < $delete_file, 'PPEPP delete must lock/delete row, commit, then delete backing file.');
+$download_fn = strpos($service, 'public function download($id)');
+$stored_branch = strpos($service, 'if ($document->stored_name)', $download_fn);
+$path_lookup = strpos($service, 'private_storage_path(\'ppepp_documents\', $document->stored_name)', $download_fn);
+$url_fallback = strpos($service, "['backend' => 'url'", $download_fn);
+ppepp_check($download_fn !== FALSE && $stored_branch !== FALSE && $path_lookup !== FALSE && $url_fallback !== FALSE && $stored_branch < $path_lookup && $path_lookup < $url_fallback, 'PPEPP download must resolve stored file first and only use URL for URL-only records.');
 
 if (!defined('BASEPATH')) {
     define('BASEPATH', $root . DIRECTORY_SEPARATOR . 'system' . DIRECTORY_SEPARATOR);
