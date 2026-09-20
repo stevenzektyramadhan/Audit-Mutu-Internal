@@ -15,7 +15,7 @@
 -- current parity migration 001-032
 -- current parity migration 001-033
 -- current parity migration 001-036
--- current parity migration 001-038
+-- current parity migration 001-039
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -676,6 +676,23 @@ CREATE TABLE IF NOT EXISTS `spmi_ppepp_documents` (
     CONSTRAINT `fk_spmi_ppepp_documents_uploaded_by` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_ppepp_documents_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `spmi_upload_size_settings` (
+    `category` VARCHAR(64) NOT NULL PRIMARY KEY,
+    `label` VARCHAR(100) NOT NULL,
+    `limit_mib` TINYINT UNSIGNED NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `chk_spmi_upload_size_settings_limit` CHECK (`limit_mib` BETWEEN 1 AND 10)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `spmi_upload_size_settings` (`category`, `label`, `limit_mib`) VALUES
+('spmi_evidence', 'Bukti SPMI', 5),
+('ppepp_documents', 'Dokumen PPEPP', 10),
+('profile_photos', 'Foto Profil', 2),
+('spreadsheet_imports', 'Import Spreadsheet', 2),
+('spmi_source_pdf', 'PDF Sumber SPMI', 5),
+('institution_logo', 'Logo Lembaga', 4);
 
 CREATE TABLE IF NOT EXISTS `legacy_ami_archive_runs` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
