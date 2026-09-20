@@ -232,6 +232,20 @@ class Spmi_ppepp_documents_service
         if ($finfo) finfo_close($finfo);
         if ($mime === FALSE || !in_array($mime, $allowed[$extension], TRUE)) return ['success' => FALSE, 'message' => 'Tipe file dokumen PPEPP tidak valid.'];
 
+        // OOXML structure validation: ZIP-reported files must contain Office package markers
+        if (in_array($extension, ['docx', 'xlsx', 'pptx'], TRUE) && in_array($mime, ['application/zip'], TRUE)) {
+            if (!$this->validate_ooxml_structure($file['tmp_name'], $extension)) {
+                return ['success' => FALSE, 'message' => 'File OOXML tidak valid: struktur dokumen Office tidak ditemukan.'];
+            }
+        }
+
+        // Legacy OLE validation: CDFV2-reported files must have OLE magic bytes
+        if (in_array($extension, ['doc', 'xls', 'ppt'], TRUE) && $mime === 'application/CDFV2') {
+            if (!$this->validate_ole_magic($file['tmp_name'])) {
+                return ['success' => FALSE, 'message' => 'File Office lama tidak valid.'];
+            }
+        }
+
         return ['success' => TRUE, 'mime' => $mime, 'extension' => $extension];
     }
 
@@ -239,9 +253,9 @@ class Spmi_ppepp_documents_service
     {
         return [
             'pdf' => ['application/pdf'],
-            'doc' => ['application/msword', 'application/vnd.ms-word', 'application/x-msword', 'application/octet-stream', 'application/CDFV2'],
-            'xls' => ['application/vnd.ms-excel', 'application/msexcel', 'application/x-msexcel', 'application/x-ms-excel', 'application/octet-stream', 'application/CDFV2'],
-            'ppt' => ['application/vnd.ms-powerpoint', 'application/mspowerpoint', 'application/x-mspowerpoint', 'application/octet-stream', 'application/CDFV2'],
+            'doc' => ['application/msword', 'application/vnd.ms-word', 'application/x-msword', 'application/CDFV2'],
+            'xls' => ['application/vnd.ms-excel', 'application/msexcel', 'application/x-msexcel', 'application/x-ms-excel', 'application/CDFV2'],
+            'ppt' => ['application/vnd.ms-powerpoint', 'application/mspowerpoint', 'application/x-mspowerpoint', 'application/CDFV2'],
             'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],
             'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
             'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip'],
@@ -335,5 +349,40 @@ class Spmi_ppepp_documents_service
     {
         $this->ci->db->trans_complete();
         return $this->ci->db->trans_status() ? $result : ['success' => FALSE, 'message' => 'Dokumen PPEPP gagal disimpan.'];
+    }
+
+    /**
+     * Validate OOXML ZIP structure contains the expected Office package root.
+     */
+    protected function validate_ooxml_structure($tmp_path, $extension)
+    {
+        $required = [
+            'docx' => 'word/document.xml',
+            'xlsx' => 'xl/workbook.xml',
+            'pptx' => 'ppt/presentation.xml',
+        ];
+        $marker = isset($required[$extension]) ? $required[$extension] : NULL;
+        if ($marker === NULL) return FALSE;
+
+        $zip = new ZipArchive();
+        if ($zip->open($tmp_path) !== TRUE) return FALSE;
+        $has_content_types = ($zip->locateName('[Content_Types].xml') !== FALSE);
+        $has_marker = ($zip->locateName($marker) !== FALSE);
+        $zip->close();
+
+        return $has_content_types && $has_marker;
+    }
+
+    /**
+     * Validate legacy Office OLE Compound File magic bytes (D0 CF 11 E0 A1 B1 1A E1).
+     */
+    protected function validate_ole_magic($tmp_path)
+    {
+        $handle = fopen($tmp_path, 'rb');
+        if (!$handle) return FALSE;
+        $header = fread($handle, 8);
+        fclose($handle);
+        // OLE2 Compound Document magic: D0 CF 11 E0 A1 B1 1A E1
+        return $header !== FALSE && substr($header, 0, 8) === "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1";
     }
 }

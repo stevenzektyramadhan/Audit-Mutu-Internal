@@ -142,12 +142,25 @@ foreach ([
     'application/msword',
     'application/vnd.ms-excel',
     'application/vnd.ms-powerpoint',
-    'application/octet-stream',
     'application/CDFV2',
 ] as $mime) {
     ppepp_check(strpos($service, "'" . $mime . "'") !== FALSE, 'PPEPP MIME allowlist missing: ' . $mime);
 }
-ppepp_check(strpos($service, 'return TRUE') === FALSE || strpos($service, 'allowed_mimes') < strpos($service, 'return TRUE'), 'PPEPP MIME validation must not accept generic catch-all types.');
+
+// --- application/octet-stream must NOT be in MIME allowlist (security hardening) ---
+ppepp_check(strpos($service, "'application/octet-stream'") === FALSE, 'PPEPP MIME allowlist must not accept application/octet-stream for legacy Office files.');
+
+// --- OOXML structure validation: ZipArchive must check internal Office markers ---
+ppepp_check(strpos($service, 'validate_ooxml_structure') !== FALSE, 'PPEPP must validate OOXML ZIP structure for docx/xlsx/pptx.');
+ppepp_check(strpos($service, "new ZipArchive()") !== FALSE, 'PPEPP OOXML validation must use ZipArchive.');
+ppepp_check(strpos($service, "'[Content_Types].xml'") !== FALSE, 'PPEPP OOXML validation must check [Content_Types].xml.');
+foreach (['word/document.xml', 'xl/workbook.xml', 'ppt/presentation.xml'] as $marker) {
+    ppepp_check(strpos($service, "'" . $marker . "'") !== FALSE, 'PPEPP OOXML marker missing: ' . $marker);
+}
+
+// --- OLE magic byte validation for legacy Office formats ---
+ppepp_check(strpos($service, 'validate_ole_magic') !== FALSE, 'PPEPP must validate OLE magic bytes for doc/xls/ppt.');
+ppepp_check(strpos($service, "\\xD0\\xCF\\x11\\xE0") !== FALSE, 'PPEPP OLE validation must check OLE2 Compound Document magic bytes.');
 
 $create_save = strpos($service, '$saved = $this->save_upload($file);');
 $create_trans = strpos($service, '$this->ci->db->trans_begin();', $create_save);
