@@ -325,7 +325,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                     Bukti auditor:
                                 </span>
                                 <?php if (empty($item->auditor_evidence)): ?>
-                                    <p class="tw-text-xs tw-text-slate-400 tw-italic tw-mb-3">Belum ada bukti tambahan auditor.</p>
+                                    <p class="tw-text-xs tw-text-slate-400 tw-italic tw-mb-3">Belum ada bukti tambahan auditor. PDF, JPG, PNG maksimal <?php echo html_escape((string) $upload_limit_mib); ?> MiB.</p>
                                 <?php else: ?>
                                     <ul class="tw-space-y-2 tw-p-0 tw-mb-3 tw-list-none">
                                         <?php foreach ($item->auditor_evidence as $evidence): ?>
@@ -371,6 +371,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                             <span>Upload bukti auditor</span>
                                         </button>
                                     </div>
+                                    <p class="tw-text-[11px] tw-text-slate-400 tw-mt-1 tw-mb-0">PDF, JPG, PNG maksimal <?php echo html_escape((string) $upload_limit_mib); ?> MiB; maks 5 file.</p>
                                 <?php endif; ?>
                             </div>
                         </div>
