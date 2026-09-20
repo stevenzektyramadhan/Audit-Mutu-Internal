@@ -69,7 +69,17 @@ foreach ([
 
 check(substr_count($sidebar, "'group' => 'Settings'") === 6, 'Settings group must cover all account and management profile entries.');
 check(substr_count($sidebar, "'key' => 'spmi_workspace', 'label' => 'Workspace SPMI', 'icon' => 'fa-laptop-house', 'url' => 'auditee/spmi', 'group' => 'Work'") === 1, 'SPMI workspace menu must be auditee-only.');
-check(substr_count($sidebar, "'group' => 'Management'") === 8, 'Management group count changed.');
+check(substr_count($sidebar, "'group' => 'Management'") === 10, 'Management group count changed.');
+$ppepp_contract = "['key' => 'spmi_ppepp_documents', 'label' => 'Dokumen PPEPP', 'icon' => 'fa-folder-open', 'url' => 'lpmpi/spmi-ppepp-documents', 'group' => 'Management']";
+check(substr_count($sidebar, $ppepp_contract) === 2, 'PPEPP documents menu must appear once in each management role.');
+$super_admin_start = strpos($sidebar, "'super_admin' => [");
+$admin_lpmpi_start = strpos($sidebar, "'admin_lpmpi' => [");
+$auditor_start = strpos($sidebar, "'auditor' => [");
+$auditee_start = strpos($sidebar, "'auditee' => [");
+check($super_admin_start !== FALSE && strpos($sidebar, $ppepp_contract, $super_admin_start) !== FALSE && strpos($sidebar, $ppepp_contract, $super_admin_start) < $admin_lpmpi_start, 'PPEPP menu must be inside super_admin Management menu.');
+check($admin_lpmpi_start !== FALSE && strpos($sidebar, $ppepp_contract, $admin_lpmpi_start) !== FALSE && strpos($sidebar, $ppepp_contract, $admin_lpmpi_start) < $auditor_start, 'PPEPP menu must be inside admin_lpmpi Management menu.');
+check($auditor_start !== FALSE && strpos($sidebar, $ppepp_contract, $auditor_start) === FALSE, 'PPEPP menu must not be available to auditor.');
+check($auditee_start !== FALSE && strpos($sidebar, $ppepp_contract, $auditee_start) === FALSE, 'PPEPP menu must not be available to auditee.');
 check(substr_count($sidebar, "'key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization'") === 2, 'Organization menu must be shared by management roles.');
 check(strpos($sidebar, "'key' => 'spmi_indicators'") === FALSE, 'SPMI indicator menu must be removed from sidebar.');
 check(strpos($sidebar, "'key' => 'spmi_master'") === FALSE, 'SPMI master menu must be removed from sidebar.');
