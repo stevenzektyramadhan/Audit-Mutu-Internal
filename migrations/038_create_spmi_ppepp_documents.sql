@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS `spmi_ppepp_documents` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `stage` ENUM('penetapan','pelaksanaan','pengendalian','peningkatan') NOT NULL,
+    `category` VARCHAR(64) NOT NULL,
+    `period_year` SMALLINT UNSIGNED NOT NULL,
+    `title` VARCHAR(200) NOT NULL,
+    `description` TEXT NULL,
+    `document_date` DATE NULL,
+    `stored_name` VARCHAR(255) NULL,
+    `original_name` VARCHAR(255) NULL,
+    `mime_type` VARCHAR(127) NULL,
+    `file_size` INT UNSIGNED NULL,
+    `external_url` VARCHAR(500) NULL,
+    `uploaded_by` INT NOT NULL,
+    `updated_by` INT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_spmi_ppepp_documents_stage_year` (`stage`, `period_year`),
+    KEY `idx_spmi_ppepp_documents_category` (`category`),
+    UNIQUE KEY `uq_spmi_ppepp_documents_stored_name` (`stored_name`),
+    CONSTRAINT `fk_spmi_ppepp_documents_uploaded_by` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `fk_spmi_ppepp_documents_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
