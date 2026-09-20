@@ -96,4 +96,25 @@ $return_query = '?stage=' . rawurlencode($selected_stage) . '&year=' . rawurlenc
     </div>
 </div>
 
+<script>
+(function() {
+    var allCategories = <?php echo json_encode($categories, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+    var stageSelect = document.getElementById('ppepp-stage');
+    var categorySelect = document.getElementById('ppepp-category');
+    if (!stageSelect || !categorySelect) return;
+
+    stageSelect.addEventListener('change', function() {
+        var cats = allCategories[this.value] || {};
+        categorySelect.innerHTML = '<option value="">Pilih kategori...</option>';
+        for (var key in cats) {
+            if (cats.hasOwnProperty(key)) {
+                var opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = cats[key];
+                categorySelect.appendChild(opt);
+            }
+        }
+    });
+})();
+</script>
 <?php include APPPATH . 'views/layouts/footer.php'; ?>

@@ -202,6 +202,23 @@ foreach (["Content-Type: ", "Content-Length: ", "Content-Disposition: attachment
 }
 ppepp_check(strpos($controller, 'private_storage_path') === FALSE && strpos($controller, 'stored_name') === FALSE, 'PPEPP controller must not expose or resolve private stored paths directly.');
 
+// --- Create stage passthrough: controller must read query stage and validate against config ---
+ppepp_check(strpos($controller, "input->get('stage', TRUE)") !== FALSE, 'PPEPP create must read stage from query parameter.');
+ppepp_check(strpos($controller, "in_array(\$stage, \$valid_stages, TRUE)") !== FALSE, 'PPEPP create must validate stage against config keys.');
+foreach (['penetapan', 'pelaksanaan', 'pengendalian', 'peningkatan'] as $stage_code) {
+    ppepp_check(
+        strpos($controller, "'spmi_ppepp_stages'") !== FALSE,
+        'PPEPP create must validate stage against spmi_ppepp_stages config.'
+    );
+}
+
+// --- Form view: dynamic category update when stage changes ---
+$form_view = ppepp_source('application/views/lpmpi/spmi_ppepp_documents/form.php');
+ppepp_check(strpos($form_view, "json_encode(\$categories") !== FALSE, 'PPEPP form must render categories JSON for dynamic stage-category binding.');
+ppepp_check(strpos($form_view, "getElementById('ppepp-stage')") !== FALSE, 'PPEPP form must bind change listener to stage select.');
+ppepp_check(strpos($form_view, "getElementById('ppepp-category')") !== FALSE, 'PPEPP form must update category select on stage change.');
+ppepp_check(strpos($form_view, "addEventListener('change'") !== FALSE, 'PPEPP form must listen for stage change events.');
+
 $expected_routes = [
     "\$route['lpmpi/spmi-ppepp-documents'] = 'lpmpi/Spmi_ppepp_documents/index';",
     "\$route['lpmpi/spmi-ppepp-documents/create'] = 'lpmpi/Spmi_ppepp_documents/create';",

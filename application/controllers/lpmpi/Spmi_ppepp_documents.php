@@ -33,7 +33,13 @@ class Spmi_ppepp_documents extends Admin_Lpmpi_Controller
 
     public function create()
     {
-        $this->render('form', $this->form_data('Tambah Dokumen PPEPP', 'lpmpi/spmi-ppepp-documents/store', NULL));
+        $valid_stages = array_keys((array) $this->config->item('spmi_ppepp_stages', 'spmi_ppepp'));
+        $stage = $this->input->get('stage', TRUE);
+        $stage = in_array($stage, $valid_stages, TRUE) ? $stage : 'penetapan';
+        $year  = (int) ($this->input->get('year', TRUE) ?: date('Y'));
+
+        $defaults = (object) ['stage' => $stage, 'period_year' => $year];
+        $this->render('form', $this->form_data('Tambah Dokumen PPEPP', 'lpmpi/spmi-ppepp-documents/store', $defaults));
     }
 
     public function store()
