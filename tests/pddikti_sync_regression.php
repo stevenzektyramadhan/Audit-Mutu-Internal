@@ -78,6 +78,7 @@ foreach (['/search/pt/', '/pt/detail/', '/pt/prodi/', '/pt/rasio/', '/pt/mahasis
 }
 
 $profil = source($root, 'application/controllers/Profil.php');
+$profil_form = source($root, 'application/views/lpmpi/profil/form_edit.php');
 $sinkronisasi_start = strpos($profil, 'public function sinkronisasi()');
 $upload_logo_start = strpos($profil, 'public function upload_logo()');
 check($sinkronisasi_start !== FALSE && $upload_logo_start !== FALSE && $upload_logo_start > $sinkronisasi_start, 'Method sinkronisasi Profil harus tetap ada.');
@@ -107,6 +108,21 @@ $upsert_pos = strpos($sinkronisasi, '$this->Profil_model->upsert_profil');
 check($catch_pos !== FALSE && $trans_pos !== FALSE && $upsert_pos !== FALSE && $catch_pos < $trans_pos && $catch_pos < $upsert_pos, 'Total remote failure harus berhenti sebelum transaksi dan write DB.');
 check(strpos(substr($sinkronisasi, $catch_pos, $trans_pos - $catch_pos), 'last_sync_at') === FALSE, 'last_sync_at tidak boleh disentuh pada total remote failure.');
 check(strpos($service_source, "\$profil['last_sync_at'] = date('Y-m-d H:i:s');") !== FALSE, 'last_sync_at harus diset hanya setelah profil remote dimap untuk upsert sukses.');
+
+check(strpos($profil, "require_once APPPATH . 'services/Upload_size_settings_service.php';") !== FALSE
+    && strpos($profil, "Upload_size_settings_service::limit_bytes('institution_logo')") !== FALSE
+    && strpos($profil, "'institution_logo_limit_mib' => $" . "this->upload_limit_mib('institution_logo')") !== FALSE,
+    'Upload logo institusi harus memakai batas dinamis kategori institution_logo.');
+check(strpos($profil, "'upload_path' => $" . "upload_dir") !== FALSE
+    && strpos($profil, "'allowed_types' => 'jpg|jpeg|png|gif'") !== FALSE
+    && strpos($profil, "'max_size' => (int) floor(Upload_size_settings_service::limit_bytes('institution_logo') / 1024)") !== FALSE,
+    'Upload logo harus tetap public uploads/profil dengan tipe gambar legacy dan max_size dinamis.');
+check(strpos($profil, "return FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'profil' . DIRECTORY_SEPARATOR;") !== FALSE,
+    'Logo institusi harus tetap disimpan pada uploads/profil untuk kompatibilitas legacy.');
+check(strpos($profil_form, 'html_escape($institution_logo_limit_mib)') !== FALSE
+    && strpos($profil_form, 'Maksimal <?php echo html_escape($institution_logo_limit_mib); ?> MiB') !== FALSE
+    && strpos($profil_form, 'name="logo_url"') !== FALSE,
+    'Help text logo harus menampilkan batas MiB dinamis yang di-escape dan URL PDDikti tetap tersedia.');
 
 check(strpos($sinkronisasi, '$replace_prodi = isset($result[\'prodi\']) && is_array($result[\'prodi\']) && !empty($result[\'prodi\']);') !== FALSE, 'replace_prodi harus hanya true saat data remote non-empty.');
 check(strpos($sinkronisasi, '$replace_mahasiswa_stats = isset($result[\'mahasiswa_stats\']) && is_array($result[\'mahasiswa_stats\']) && !empty($result[\'mahasiswa_stats\']);') !== FALSE, 'replace_mahasiswa_stats harus hanya true saat data remote non-empty.');

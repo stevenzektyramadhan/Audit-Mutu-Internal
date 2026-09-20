@@ -12,6 +12,7 @@ class Profil extends MY_Controller
         $this->_check_login();
         $this->load->helper(['form', 'url']);
         $this->load->model('Profil_model');
+        require_once APPPATH . 'services/Upload_size_settings_service.php';
     }
 
     public function index()
@@ -62,6 +63,7 @@ class Profil extends MY_Controller
             'page_subtitle' => 'Beranda / Profil Lembaga / Edit',
             'active_menu' => 'profil',
             'profil' => $this->Profil_model->get_profil(),
+            'institution_logo_limit_mib' => $this->upload_limit_mib('institution_logo'),
         ];
 
         $this->load->view('lpmpi/profil/form_edit', $data);
@@ -307,7 +309,7 @@ class Profil extends MY_Controller
         $config = [
             'upload_path' => $upload_dir,
             'allowed_types' => 'jpg|jpeg|png|gif',
-            'max_size' => 4096,
+            'max_size' => (int) floor(Upload_size_settings_service::limit_bytes('institution_logo') / 1024),
             'file_name' => 'logo_lembaga_' . date('YmdHis'),
             'overwrite' => FALSE,
             'remove_spaces' => TRUE,
@@ -361,6 +363,11 @@ class Profil extends MY_Controller
     private function can_manage()
     {
         return in_array($this->session->userdata('role'), ['super_admin', 'admin_lpmpi'], TRUE);
+    }
+
+    private function upload_limit_mib($category)
+    {
+        return (int) floor(Upload_size_settings_service::limit_bytes($category) / 1024 / 1024);
     }
 
     private function pddikti_sync_error_message(Exception $exception)
