@@ -200,7 +200,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-038`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-039`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
 
 #### Akun Administrator Pertama
 
@@ -224,11 +224,11 @@ Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration ba
 
 #### Database baru
 
-Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `038` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
+Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `039` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `038` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `039` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -257,10 +257,15 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 25. `036_add_users_import_support.sql`
 26. `037_add_spmi_version_report_scope.sql`
 27. `038_create_spmi_ppepp_documents.sql`
+28. `039_create_upload_size_settings.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
 Migration `038_create_spmi_ppepp_documents.sql` bersifat aditif: menambahkan tabel metadata arsip dokumen PPEPP manajemen-only. File fisik PPEPP tetap berada di private storage kategori `ppepp_documents`; backup upgrade harus mencakup database dan `APP_PRIVATE_STORAGE_PATH`.
+
+Migration `039_create_upload_size_settings.sql` bersifat aditif: menambahkan pengaturan batas upload per kategori. Halaman `Pengaturan Upload` hanya tersedia untuk `super_admin` dan `admin_lpmpi`. Nilai awalnya adalah bukti SPMI 5 MiB, dokumen PPEPP 10 MiB, foto profil akun 2 MiB, import spreadsheet 2 MiB, PDF sumber SPMI 5 MiB, dan logo lembaga 4 MiB. Pengaturan berlaku pada uploader aktif terkait; validasi tipe file, private storage, ownership, serta alur Google Drive tidak berubah. Upload AMI legacy tidak termasuk cakupan ini, dan penyimpanan logo lembaga yang kompatibel dengan legacy tetap berada di lokasi semula.
+
+Batas aplikasi maksimum 10 MiB. Nilai pengaturan tidak dapat melampaui batas efektif PHP: `upload_max_filesize` dan `post_max_size` dikurangi cadangan 1 MiB untuk multipart. Operator deployment tetap harus mengatur PHP/web server dengan ruang di atas batas file terbesar; halaman aplikasi tidak dapat menaikkan batas PHP yang sudah menolak request sebelum CodeIgniter berjalan.
 
 CodeIgniter migrations tetap nonaktif. Direktori `migrations/` berisi raw SQL manual yang dijalankan tim deployment setelah backup. Setelah upgrade, lakukan smoke test login, upload/download sesuai role, import, dan laporan sebelum membuka traffic.
 

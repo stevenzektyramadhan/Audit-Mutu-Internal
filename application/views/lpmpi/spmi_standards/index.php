@@ -155,7 +155,7 @@ $icon = static function ($name) {
                         </div>
                         <div class="tw-mt-3 tw-bg-slate-50 tw-p-3 tw-rounded tw-border tw-border-slate-200">
                             <ul class="tw-text-[11px] std-muted tw-space-y-1 tw-pl-4 tw-list-disc tw-m-0">
-                                <li>Hanya berkas format <strong>.xlsx</strong> (Maksimal 2 MiB).</li>
+                                <li>Hanya berkas format <strong>.xlsx</strong> (Maksimal <?php echo html_escape((string) $upload_limit_mib); ?> MiB).</li>
                                 <li>Harus menggunakan template resmi Master SPMI.</li>
                                 <li>Import bersifat <strong>additive / no-delete</strong>: data lama tidak terhapus.</li>
                             </ul>

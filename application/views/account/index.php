@@ -19,6 +19,7 @@ $role_labels = [
     'auditee' => 'Auditee',
 ];
 $clean_role = isset($role_labels[$account->role]) ? $role_labels[$account->role] : ucfirst(str_replace('_', ' ', (string) $account->role));
+$profile_photo_limit_mib = isset($profile_photo_limit_mib) ? (int) $profile_photo_limit_mib : 2;
 
 $icon = static function ($name) {
     $paths = [
@@ -200,7 +201,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                         Klik atau seret berkas foto ke sini
                                     </div>
                                     <div class="tw-text-[11px] tw-text-slate-500 tw-mt-0.5">
-                                        Format JPEG atau PNG, ukuran maksimal 2 MiB.
+                                        Format JPEG atau PNG, ukuran maksimal <?php echo html_escape($profile_photo_limit_mib); ?> MiB.
                                     </div>
                                 </div>
                                 <span class="tw-button-secondary tw-text-xs tw-pointer-events-none">

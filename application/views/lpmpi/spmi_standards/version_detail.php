@@ -90,7 +90,7 @@ if (!empty($standards)) {
             <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center sm:tw-justify-between tw-gap-3">
                 <div>
                     <h4 class="tw-text-sm tw-font-bold tw-m-0 tw-text-slate-800">Dokumen Sumber PDF</h4>
-                    <p class="std-muted tw-text-xs tw-mt-0.5">Berkas dokumen SK / Standar resmi yang disahkan universitas.</p>
+                    <p class="std-muted tw-text-xs tw-mt-0.5">Berkas dokumen SK / Standar resmi yang disahkan universitas. PDF maksimal <?php echo html_escape((string) $source_pdf_limit_mib); ?> MiB.</p>
                 </div>
                 <div class="tw-flex tw-items-center tw-gap-2">
                     <?php if ($version->source_file_path): ?>

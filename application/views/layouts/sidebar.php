@@ -18,6 +18,7 @@ $menus = [
         ['key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'],
         ['key' => 'spmi_follow_ups', 'label' => 'Tindak Lanjut RTM', 'icon' => 'fa-tasks', 'url' => 'lpmpi/spmi-follow-ups', 'group' => 'Insights'],
         ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'group' => 'Settings'],
+        ['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings'],
         ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Settings'],
     ],
     'admin_lpmpi' => [
@@ -31,6 +32,7 @@ $menus = [
         ['key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'],
         ['key' => 'spmi_follow_ups', 'label' => 'Tindak Lanjut RTM', 'icon' => 'fa-tasks', 'url' => 'lpmpi/spmi-follow-ups', 'group' => 'Insights'],
         ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'group' => 'Settings'],
+        ['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings'],
         ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Settings'],
     ],
     'auditor' => [

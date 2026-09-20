@@ -31,15 +31,16 @@ spmi_check(substr_count($migration, "CONCAT('Standar SPMI ', LPAD(numbers.n, 2, 
 spmi_check(substr_count($schema, "CONCAT('Standar SPMI ', LPAD(numbers.n, 2, '0'))") === 1, 'Schema placeholder titles must be generated exactly once.');
 spmi_check(strpos($migration, "VALUES ('M3-INITIAL', 'Katalog Standar SPMI M3', NULL, 'draft', NULL)") !== FALSE, 'Migration must seed system version without users.');
 spmi_check(strpos($schema, "VALUES ('M3-INITIAL', 'Katalog Standar SPMI M3', NULL, 'draft', NULL)") !== FALSE, 'Schema must seed system version without users.');
-spmi_check(strpos($helper, "'spmi_source'") !== FALSE && strpos($helper, "in_array(\$category, ['user_photos', 'spmi_source']") !== FALSE, 'Private storage category contract missing.');
+spmi_check(strpos($helper, "'spmi_source'") !== FALSE && strpos($helper, "in_array(\$category, ['user_photos', 'spmi_source', 'ppepp_documents'], TRUE) || \$category === 'audit_evidence'") !== FALSE, 'Private storage category contract missing.');
 foreach (['extends Admin_Lpmpi_Controller', "method(TRUE) !== 'POST'", 'allowed_types', "private_storage_dir('spmi_source')", "private_storage_path('spmi_source'", 'force_download', 'random_bytes', 'delete_private_file', 'Spmi_standards_service::TRANSITIONS', 'is_mutable($version)', 'Versi ini bersifat hanya-baca.'] as $literal) spmi_check(strpos($controller, $literal) !== FALSE, 'Controller security contract missing: ' . $literal);
+spmi_check(strpos($controller, "upload_limit_bytes('spmi_source_pdf')") !== FALSE && strpos($controller, 'Upload_size_settings_service::limit_bytes($category)') !== FALSE, 'SPMI source PDF upload must use dynamic category limit.');
 foreach (['lpmpi/spmi-standards', 'version/create', 'version/store', 'version/detail', 'version/edit', 'version/update', 'version/transition', 'source/upload', 'source/download', 'source/delete', 'standard/create', 'standard/store', 'standard/edit', 'standard/update'] as $literal) spmi_check(strpos($routes, $literal) !== FALSE, 'Route missing: ' . $literal);
 spmi_check(substr_count($sidebar, "'key' => 'spmi_standards', 'label' => 'Standar SPMI', 'icon' => 'fa-layer-group', 'url' => 'lpmpi/spmi-standards', 'group' => 'Management'") === 2, 'SPMI sidebar entry must exist only for two management roles.');
 foreach ($views as $view) { spmi_check(strpos($view, 'html_escape') !== FALSE, 'SPMI view must escape output.'); spmi_check(strpos($view, 'include APPPATH . \'views/layouts/header.php\'') !== FALSE, 'SPMI view header missing.'); }
 spmi_check(strpos($views[1], 'form_open(') !== FALSE && strpos($views[2], 'form_open(') !== FALSE && strpos($views[2], 'form_open_multipart(') !== FALSE && strpos($views[3], 'maxlength="200"') !== FALSE, 'SPMI forms missing.');
-spmi_check(strpos($views[2], 'Versi approved, active, dan retired bersifat hanya-baca.') !== FALSE, 'Exact read-only notice missing.');
+spmi_check(strpos($views[2], 'Versi ini bersifat hanya-baca') !== FALSE, 'Exact read-only notice missing.');
 spmi_check(strpos($views[2], 'foreach ($transitions as $next_status)') !== FALSE && strpos($views[2], "form_open('lpmpi/spmi-standards/version/transition/") !== FALSE && strpos($views[2], 'html_escape($next_status)') !== FALSE, 'Legal lifecycle transition controls missing.');
 spmi_check(strpos($controller, "public function standard_create(\$version_id)") !== FALSE && strpos($controller, "if (!\$version)") !== FALSE && strpos($controller, "if (!\$this->service->is_mutable(\$version))") !== FALSE, 'Standard create immutable-version guard missing.');
-spmi_check(strpos($sidebar, "'key' => 'dashboard'") !== FALSE && strpos($sidebar, "form_open('auth/logout');") !== FALSE, 'Legacy sidebar hooks changed.');
+spmi_check(strpos($sidebar, "'key' => 'spmi_dashboard'") !== FALSE && strpos($sidebar, "form_open('auth/logout'") !== FALSE, 'Legacy sidebar hooks changed.');
 
 fwrite(STDOUT, "SPMI standards regression checks passed.\n");

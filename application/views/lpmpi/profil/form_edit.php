@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $profil = isset($profil) ? $profil : NULL;
+$institution_logo_limit_mib = isset($institution_logo_limit_mib) ? (int) $institution_logo_limit_mib : 4;
 
 if (!function_exists('profil_value')) {
     function profil_value($profil, $field)
@@ -271,7 +272,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                         Klik atau seret logo institusi ke sini
                                     </div>
                                     <div class="tw-text-[11px] tw-text-slate-500 tw-mt-0.5">
-                                        Format JPG, JPEG, PNG, atau GIF (Maksimal 4 MiB).
+                                        Format JPG, JPEG, PNG, atau GIF (Maksimal <?php echo html_escape($institution_logo_limit_mib); ?> MiB).
                                     </div>
                                 </div>
                                 <span class="tw-button-secondary tw-text-xs tw-pointer-events-none">

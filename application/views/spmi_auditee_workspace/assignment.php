@@ -201,7 +201,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                         <label for="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700">
                                             File bukti
                                         </label>
-                                        <span class="tw-text-[11px] tw-text-slate-400">PDF, JPG, PNG (Maks 5 MiB, maks 5 file)</span>
+                                        <span class="tw-text-[11px] tw-text-slate-400">PDF, JPG, PNG (Maks <?php echo html_escape((string) $upload_limit_mib); ?> MiB, maks 5 file)</span>
                                     </div>
 
                                     <!-- Upload Form Trigger -->

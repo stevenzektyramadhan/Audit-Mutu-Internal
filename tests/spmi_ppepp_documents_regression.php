@@ -59,7 +59,7 @@ ppepp_check(substr_count($migration, 'CREATE TABLE IF NOT EXISTS `spmi_ppepp_doc
 ppepp_check(!preg_match('/(^|;|\R)\s*(INSERT|UPDATE|DELETE)\s+/i', $migration), 'Migration PPEPP must not seed or mutate data.');
 ppepp_check(strpos($migration, "'evaluasi'") === FALSE, 'Migration PPEPP must exclude Evaluasi stage.');
 ppepp_check(strpos($migration, '`penetapan`') === FALSE, 'Migration PPEPP must not reuse legacy penetapan table.');
-ppepp_check(strpos($schema, 'current parity migration 001-038') !== FALSE, 'Schema parity comment must indicate 001-038.');
+ppepp_check(strpos($schema, 'current parity migration 001-039') !== FALSE, 'Schema parity comment must indicate 001-039.');
 
 $ordered_stages = "'penetapan' => 'Penetapan',\n    'pelaksanaan' => 'Pelaksanaan',\n    'pengendalian' => 'Pengendalian',\n    'peningkatan' => 'Peningkatan'";
 ppepp_check(strpos($config, $ordered_stages) !== FALSE, 'PPEPP stages must stay ordered and limited to four non-Evaluasi stages.');
@@ -120,7 +120,8 @@ foreach (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'] as $extension) {
     ppepp_check(strpos($service, "'" . $extension . "' =>") !== FALSE, 'PPEPP MIME extension missing: ' . $extension);
 }
 foreach ([
-    'const MAX_FILE_SIZE = 10485760',
+    "upload_limit_bytes('ppepp_documents')",
+    'Upload_size_settings_service::limit_bytes($category)',
     'UPLOAD_ERR_OK',
     'is_uploaded_file',
     'finfo_open(FILEINFO_MIME_TYPE)',

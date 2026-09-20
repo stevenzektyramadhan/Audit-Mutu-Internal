@@ -30,7 +30,7 @@ spmi_master_check(strpos($service, "'evidence_policy' => \$row['evidence_policy'
 spmi_master_check(strpos($model, 'i.evidence_policy') !== FALSE, 'M5 export must include evidence policy.');
 spmi_master_check(strpos($controller, "'evidence_policy'") !== FALSE, 'M5 export row order must include evidence policy.');
 spmi_master_check(strpos($preview, 'Kebijakan Bukti') !== FALSE && strpos($preview, "html_escape(\$row['evidence_policy'])") !== FALSE, 'M5 preview must render escaped evidence policy.');
-foreach (['TYPE_STRING', 'is_uploaded_file', 'UPLOAD_ERR_OK', '2 * 1024 * 1024', 'sha256', '1800', 'rename', 'log_message', 'Import Master SPMI gagal', 'clear_preview', '0700'] as $literal) spmi_master_check(stripos($controller, $literal) !== FALSE, 'M5 controller contract missing: ' . $literal);
+foreach (['TYPE_STRING', 'is_uploaded_file', 'UPLOAD_ERR_OK', "upload_limit_bytes('spreadsheet_imports')", 'Upload_size_settings_service::limit_bytes($category)', 'sha256', '1800', 'rename', 'log_message', 'Import Master SPMI gagal', 'clear_preview', '0700'] as $literal) spmi_master_check(stripos($controller, $literal) !== FALSE, 'M5 controller contract missing: ' . $literal);
 foreach (['purge_expired_artifacts', 'spmi_master_preview_*.json', 'spmi_master_claim_*.json', 'filemtime', 'GLOB_NOSORT', 'basename($current[\'basename\'])', 'time() - 1800'] as $literal) spmi_master_check(stripos($controller, $literal) !== FALSE, 'M5 artifact cleanup contract missing: ' . $literal);
 spmi_master_check(substr_count($controller, '$this->purge_expired_artifacts();') === 3, 'M5 cleanup must run before preview, confirm, and cancel.');
 spmi_master_check(strpos($controller, 'extends Admin_Lpmpi_Controller') !== FALSE, 'M5 controller base class missing.');
