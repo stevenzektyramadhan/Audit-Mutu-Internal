@@ -15,7 +15,7 @@
 -- current parity migration 001-032
 -- current parity migration 001-033
 -- current parity migration 001-036
--- current parity migration 001-037
+-- current parity migration 001-038
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -651,6 +651,30 @@ CREATE TABLE IF NOT EXISTS `spmi_rtm_follow_ups` (
     CONSTRAINT `fk_spmi_rtm_follow_ups_started_by` FOREIGN KEY (`started_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_rtm_follow_ups_completed_by` FOREIGN KEY (`completed_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_rtm_follow_ups_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `spmi_ppepp_documents` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `stage` ENUM('penetapan','pelaksanaan','pengendalian','peningkatan') NOT NULL,
+    `category` VARCHAR(64) NOT NULL,
+    `period_year` SMALLINT UNSIGNED NOT NULL,
+    `title` VARCHAR(200) NOT NULL,
+    `description` TEXT NULL,
+    `document_date` DATE NULL,
+    `stored_name` VARCHAR(255) NULL,
+    `original_name` VARCHAR(255) NULL,
+    `mime_type` VARCHAR(127) NULL,
+    `file_size` INT UNSIGNED NULL,
+    `external_url` VARCHAR(500) NULL,
+    `uploaded_by` INT NOT NULL,
+    `updated_by` INT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_spmi_ppepp_documents_stage_year` (`stage`, `period_year`),
+    KEY `idx_spmi_ppepp_documents_category` (`category`),
+    UNIQUE KEY `uq_spmi_ppepp_documents_stored_name` (`stored_name`),
+    CONSTRAINT `fk_spmi_ppepp_documents_uploaded_by` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `fk_spmi_ppepp_documents_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `legacy_ami_archive_runs` (

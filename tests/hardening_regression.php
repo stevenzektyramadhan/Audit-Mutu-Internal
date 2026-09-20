@@ -64,9 +64,10 @@ check(strpos($migration, 'INFORMATION_SCHEMA.COLUMNS') !== FALSE, 'Migration 010
 check(substr_count($migration, "CALL `ami_add_pertanyaan_column`") === 10, 'Migration 010 harus merekonsiliasi sepuluh kolom.');
 
 $helper = source($root, 'application/helpers/app_helper.php');
-check(strpos($helper, "['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos', 'spmi_source']") !== FALSE, 'Resolver harus membatasi kategori private.');
+check(strpos($helper, "['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos', 'spmi_source', 'ppepp_documents']") !== FALSE, 'Resolver harus membatasi kategori private termasuk PPEPP.');
 check(strpos($helper, 'basename($stored_name) !== $stored_name') !== FALSE, 'Resolver harus menolak path traversal.');
 check(strpos($helper, "FCPATH . 'uploads'") !== FALSE, 'Resolver harus mempertahankan fallback file lama.');
+check(strpos($helper, "['user_photos', 'spmi_source', 'ppepp_documents']") !== FALSE, 'Dokumen PPEPP tidak boleh fallback ke public uploads.');
 check(strpos(source($root, 'application/views/lpmpi/instrumen/index.php'), "base_url('uploads/instrumen/") === FALSE, 'View instrumen tidak boleh mengekspos URL private.');
 check(strpos(source($root, 'application/views/lpmpi/penetapan/index.php'), "base_url('uploads/penetapan/") === FALSE, 'View penetapan tidak boleh mengekspos URL private.');
 $apache_deny = "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n    Deny from all\n</IfModule>\n";
