@@ -44,12 +44,16 @@ Laporan dibuat hanya ketika seluruh penugasan untuk kombinasi siklus, versi, aud
 
 Setiap indikator memakai salah satu nilai `none`, `file`, `url`, `either`, atau `both`. Kebijakan dan petunjuk bukti disalin ke snapshot item penugasan baru, sehingga perubahan indikator berikutnya tidak mengubah penugasan yang sudah ada. File bukti disimpan private dan endpoint unduh memeriksa role serta ownership. Bukti URL hanya divalidasi sebagai URL HTTP/HTTPS; aplikasi tidak mengambil konten URL tersebut.
 
+### Dokumen PPEPP SPMI
+
+Dokumen PPEPP adalah arsip manajemen-only untuk tahap `Penetapan`, `Pelaksanaan`, `Pengendalian`, dan `Peningkatan`. Tidak ada tahap upload `Evaluasi`, tidak menjadi workspace auditor/auditee, dan aksesnya berada di menu manajemen `Dokumen PPEPP`. File PPEPP disimpan pada kategori private `ppepp_documents` di bawah `APP_PRIVATE_STORAGE_PATH`, tanpa fallback ke `public/uploads`; dokumen URL hanya diarahkan ke URL HTTP/HTTPS yang tersimpan. File upload dibatasi aplikasi tepat 10 MiB, sedangkan Docker menaikkan kapasitas request PHP ke `upload_max_filesize = 11M` dan `post_max_size = 12M` agar overhead multipart tidak menggagalkan file 10 MiB yang valid.
+
 ## Peran dan Menu Aktif
 
 | Peran | Redirect login | Menu sidebar terlihat |
 |---|---|---|
-| `super_admin` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Struktur Organisasi; Standar SPMI; Siklus & Penugasan SPMI; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
-| `admin_lpmpi` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Struktur Organisasi; Standar SPMI; Siklus & Penugasan SPMI; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
+| `super_admin` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Struktur Organisasi; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
+| `admin_lpmpi` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Struktur Organisasi; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
 | `auditor` | `auditor/spmi-dashboard` | Dashboard SPMI; Penilaian SPMI; Akun Saya |
 | `auditee` | `auditee/spmi-dashboard` | Dashboard SPMI; Workspace SPMI; Akun Saya |
 
@@ -62,6 +66,7 @@ Setiap indikator memakai salah satu nilai `none`, `file`, `url`, `either`, atau 
 | Controller auditee, auditor, dan dashboard | `application/controllers/Spmi_*.php` |
 | Service | `application/services/Spmi_*.php` |
 | Model | `application/models/Spmi_*.php` |
+| Dokumen PPEPP | `application/controllers/lpmpi/Spmi_ppepp_documents.php`, `application/services/Spmi_ppepp_documents_service.php`, `application/models/Spmi_ppepp_documents_model.php`, `application/views/lpmpi/spmi_ppepp_documents` |
 | View | `application/views/lpmpi/spmi_*`, `application/views/spmi_auditee_workspace`, `application/views/spmi_auditor_workspace` |
 | Regression guard | `tests/*_regression.php` |
 | Upgrade manual | `migrations/` |
@@ -120,7 +125,7 @@ docker compose logs --tail=100 app
 
 Pada volume database baru, Compose saat ini menjalankan `database_schema.sql` sebagai `01-schema.sql`, lalu `database_dummy.sql` sebagai `02-demo.sql`. File kedua tersebut hanya seed AMI legacy, tidak membuat pengguna, dan tidak diperlukan oleh alur SPMI. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
 
-Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host berbeda. Compose tidak memublikasikan port MySQL ke host. Sesi, upload, database, dan private storage berada dalam named volume; `docker compose down` mempertahankannya, sedangkan `docker compose down -v` menghapusnya.
+Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host berbeda. Compose tidak memublikasikan port MySQL ke host. Sesi, upload, database, dan private storage berada dalam named volume; `docker compose down` mempertahankannya, sedangkan `docker compose down -v` menghapusnya. Image Docker menyalin `docker/php-upload.ini` ke `$PHP_INI_DIR/conf.d/99-upload.ini`; nilai `upload_max_filesize = 11M` dan `post_max_size = 12M` hanya memberi ruang overhead request PHP, bukan menaikkan batas aplikasi PPEPP yang tetap tepat 10 MiB.
 
 ### Apache/PHP Lokal dan MySQL Docker
 
@@ -155,7 +160,7 @@ DB_PASSWORD=<secret database>
 DB_DATABASE=ami
 ```
 
-`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib berada di luar document root. Bukti SPMI baru memakai backend lokal secara default; `SPMI_EVIDENCE_STORAGE_BACKEND` hanya menerima `local` atau `google_drive`, dan nilai lain kembali aman ke `local`. Produksi hanya mendukung `service_account`. File kredensial Drive wajib di luar `FCPATH`/document root dan konfigurasi Drive yang tidak lengkap gagal tertutup. Jangan commit secret. Reset password hanya aktif bila `BREVO_API_KEY` dan `MAIL_FROM_ADDRESS` tersedia; pengiriman memakai Brevo HTTPS API tanpa fallback SMTP, `mail`, atau `sendmail`.
+`APP_BASE_URL` wajib HTTPS. `APP_LOG_PATH` dan `APP_PRIVATE_STORAGE_PATH` wajib berada di luar document root. Bukti SPMI baru memakai backend lokal secara default; `SPMI_EVIDENCE_STORAGE_BACKEND` hanya menerima `local` atau `google_drive`, dan nilai lain kembali aman ke `local`. Dokumen PPEPP selalu memakai private storage lokal kategori `ppepp_documents`, tanpa URL publik atau fallback public uploads untuk file lokalnya. Produksi hanya mendukung `service_account`. File kredensial Drive wajib di luar `FCPATH`/document root dan konfigurasi Drive yang tidak lengkap gagal tertutup. Jangan commit secret. Reset password hanya aktif bila `BREVO_API_KEY` dan `MAIL_FROM_ADDRESS` tersedia; pengiriman memakai Brevo HTTPS API tanpa fallback SMTP, `mail`, atau `sendmail`.
 
 ### Handover Google Shared Drive Bukti SPMI
 
@@ -195,7 +200,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-037`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-038`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
 
 #### Akun Administrator Pertama
 
@@ -219,11 +224,11 @@ Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration ba
 
 #### Database baru
 
-Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `037` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
+Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `038` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `037` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `038` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -251,8 +256,11 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 24. `035_add_indicator_evidence_policy.sql`
 25. `036_add_users_import_support.sql`
 26. `037_add_spmi_version_report_scope.sql`
+27. `038_create_spmi_ppepp_documents.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
+
+Migration `038_create_spmi_ppepp_documents.sql` bersifat aditif: menambahkan tabel metadata arsip dokumen PPEPP manajemen-only. File fisik PPEPP tetap berada di private storage kategori `ppepp_documents`; backup upgrade harus mencakup database dan `APP_PRIVATE_STORAGE_PATH`.
 
 CodeIgniter migrations tetap nonaktif. Direktori `migrations/` berisi raw SQL manual yang dijalankan tim deployment setelah backup. Setelah upgrade, lakukan smoke test login, upload/download sesuai role, import, dan laporan sebelum membuka traffic.
 
@@ -278,6 +286,7 @@ php tests/spmi_audits_regression.php
 php tests/spmi_auditee_workspace_regression.php
 php tests/spmi_auditor_workspace_regression.php
 php tests/spmi_reports_regression.php
+php tests/spmi_ppepp_documents_regression.php
 php tests/m17_schema_regression.php
 php tests/hardening_regression.php
 ```
