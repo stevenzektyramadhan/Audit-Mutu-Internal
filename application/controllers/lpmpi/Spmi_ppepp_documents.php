@@ -118,6 +118,7 @@ class Spmi_ppepp_documents extends Admin_Lpmpi_Controller
             'stages' => (array) $this->config->item('spmi_ppepp_stages', 'spmi_ppepp'),
             'categories' => (array) $this->config->item('spmi_ppepp_categories', 'spmi_ppepp'),
             'penetapan_core_categories' => (array) $this->config->item('spmi_ppepp_penetapan_core_categories', 'spmi_ppepp'),
+            'upload_limit_mib' => $this->service->upload_limit_mib(),
         ], $data);
     }
 

@@ -68,7 +68,7 @@ $return_query = '?stage=' . rawurlencode($selected_stage) . '&year=' . rawurlenc
                 <div class="form-group col-md-4">
                     <label for="ppepp-document-file">File dokumen</label>
                     <input class="form-control-file" id="ppepp-document-file" name="document_file" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
-                    <small class="form-text text-muted">PDF, Word, Excel, atau PowerPoint; maksimal 10 MiB.</small>
+                    <small class="form-text text-muted">PDF, Word, Excel, atau PowerPoint; maksimal <?php echo html_escape((string) $upload_limit_mib); ?> MiB.</small>
                 </div>
             </div>
 

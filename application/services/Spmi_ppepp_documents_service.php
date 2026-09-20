@@ -3,8 +3,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Spmi_ppepp_documents_service
 {
-    const MAX_FILE_SIZE = 10485760;
-
     protected $ci;
     protected $model;
 
@@ -219,13 +217,16 @@ class Spmi_ppepp_documents_service
 
     protected function validate_file($file)
     {
-        if (!is_array($file) || !isset($file['error'], $file['tmp_name'], $file['size'], $file['name']) || $file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name']) || (int) $file['size'] > self::MAX_FILE_SIZE) {
-            return ['success' => FALSE, 'message' => 'File dokumen PPEPP harus PDF, Word, Excel, atau PowerPoint maksimal 10 MiB.'];
+        $limit_bytes = $this->upload_limit_bytes('ppepp_documents');
+        $limit_mib = $this->limit_mib($limit_bytes);
+        $message = 'File dokumen PPEPP harus PDF, Word, Excel, atau PowerPoint maksimal ' . $limit_mib . ' MiB.';
+        if (!is_array($file) || !isset($file['error'], $file['tmp_name'], $file['size'], $file['name']) || $file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name']) || (int) $file['size'] > $limit_bytes) {
+            return ['success' => FALSE, 'message' => $message];
         }
 
         $extension = strtolower(pathinfo((string) $file['name'], PATHINFO_EXTENSION));
         $allowed = $this->allowed_mimes();
-        if (!isset($allowed[$extension])) return ['success' => FALSE, 'message' => 'File dokumen PPEPP harus PDF, Word, Excel, atau PowerPoint maksimal 10 MiB.'];
+        if (!isset($allowed[$extension])) return ['success' => FALSE, 'message' => $message];
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : FALSE;
@@ -265,6 +266,22 @@ class Spmi_ppepp_documents_service
     protected function has_upload($file)
     {
         return is_array($file) && isset($file['error']) && (int) $file['error'] !== UPLOAD_ERR_NO_FILE;
+    }
+
+    public function upload_limit_mib()
+    {
+        return $this->limit_mib($this->upload_limit_bytes('ppepp_documents'));
+    }
+
+    protected function upload_limit_bytes($category)
+    {
+        require_once APPPATH . 'services/Upload_size_settings_service.php';
+        return (int) Upload_size_settings_service::limit_bytes($category);
+    }
+
+    protected function limit_mib($bytes)
+    {
+        return (int) ($bytes / 1024 / 1024);
     }
 
     protected function has_document_source($data)
