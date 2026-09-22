@@ -9,5 +9,5 @@ Rules:
 
 ## Buckets
 
-- `ami-workflow` - SPMI/AMI workflow decisions, changes, and runtime verification. Last updated: 2026-09-20 (PPEPP QA handoff) -> `.multibrain/indexes/ami-workflow.md`
+- `ami-workflow` - SPMI/AMI workflow decisions, changes, and runtime verification. Last updated: 2026-09-22 (SPMI cycle annual-only) -> `.multibrain/indexes/ami-workflow.md`
 - `agents` - Cross-agent handoffs and repository memory. Last updated: 2026-09-09 11:09 WIB -> `.multibrain/indexes/agents.md`

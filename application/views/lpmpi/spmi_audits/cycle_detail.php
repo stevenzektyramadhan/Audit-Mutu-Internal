@@ -3,8 +3,6 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
 $academic_year = isset($cycle->academic_year) ? trim((string) $cycle->academic_year) : '';
-$semester = isset($cycle->semester) ? strtolower(trim((string) $cycle->semester)) : '';
-$academic_period = ($academic_year !== '' && in_array($semester, ['ganjil', 'genap'], TRUE)) ? $academic_year . ' — ' . ucfirst($semester) : 'Periode akademik belum dicatat';
 $mutable = $cycle->state === 'draft';
 ?>
 <main id="audits-root" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
@@ -13,7 +11,7 @@ $mutable = $cycle->state === 'draft';
       <div>
         <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Siklus SPMI</p>
         <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950"><?php echo html_escape($cycle->cycle_code . ' — ' . $cycle->title); ?></h1>
-        <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Periode akademik: <?php echo html_escape($academic_year !== '' && in_array($semester, ['ganjil', 'genap'], TRUE) ? $academic_year . ' — ' . ucfirst($semester) : ($academic_period ?? 'Periode akademik belum dicatat')); ?></p>
+        <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Periode akademik: <?php echo html_escape($academic_year !== '' ? $academic_year : 'Periode akademik belum dicatat'); ?></p>
       </div>
       <?php if ($mutable): ?>
         <div class="tw-flex tw-flex-wrap tw-gap-2">

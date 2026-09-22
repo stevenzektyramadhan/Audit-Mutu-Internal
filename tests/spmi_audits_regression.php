@@ -25,6 +25,9 @@ $service = spmi_audit_source('application/services/Spmi_audits_service.php');
 $controller = spmi_audit_source('application/controllers/lpmpi/Spmi_audits.php');
 $form = spmi_audit_source('application/views/lpmpi/spmi_audits/assignment_form.php');
 $detail = spmi_audit_source('application/views/lpmpi/spmi_audits/assignment_detail.php');
+$cycle_form = spmi_audit_source('application/views/lpmpi/spmi_audits/cycle_form.php');
+$cycle_index = spmi_audit_source('application/views/lpmpi/spmi_audits/index.php');
+$cycle_detail = spmi_audit_source('application/views/lpmpi/spmi_audits/cycle_detail.php');
 
 foreach (['spmi_audit_cycles', 'spmi_audit_assignments', 'spmi_audit_assignment_items', 'spmi_audit_assignment_item_rubrics', 'source_standard_id', 'source_indicator_id', 'evidence_policy'] as $required) {
     spmi_audit_check(strpos($schema, $required) !== FALSE, 'Indicator assignment schema missing: ' . $required);
@@ -54,5 +57,12 @@ spmi_audit_check(strpos($form, 'source_package') === FALSE, 'Assignment form mus
 spmi_audit_check(strpos($detail, 'source_standard_code') !== FALSE && strpos($detail, 'evidence_instruction') !== FALSE, 'Assignment detail must render standard and indicator evidence snapshots.');
 spmi_audit_check(strpos($detail, 'source_package') === FALSE && strpos($detail, 'question_text') === FALSE, 'Assignment detail must not render package/question snapshots.');
 spmi_audit_check(strpos($migration, 'DROP FOREIGN KEY `fk_spmi_audit_assignments_package`') !== FALSE && strpos($migration, 'DROP FOREIGN KEY `fk_spmi_audit_assignment_items_question`') !== FALSE, 'Migration 034 must remove assignment package/question FKs.');
+spmi_audit_check(strpos($controller, "set_rules('academic_year'") !== FALSE, 'Annual cycle controller must retain required academic year validation.');
+spmi_audit_check(strpos($controller, "set_rules('semester'") === FALSE, 'Annual cycle controller must not require semester.');
+spmi_audit_check(strpos($service, "'semester' =>") === FALSE && strpos($service, "in_array(\$data['semester']") === FALSE, 'Annual cycle service must not persist or validate semester.');
+spmi_audit_check(strpos($cycle_form, 'name="academic_year"') !== FALSE, 'Annual cycle form must retain academic year input.');
+spmi_audit_check(strpos($cycle_form, 'name="semester"') === FALSE && strpos($cycle_form, '>Semester<') === FALSE, 'Annual cycle form must not render semester input.');
+spmi_audit_check(strpos($cycle_index, '$academic_year') !== FALSE && strpos($cycle_index, '$semester') === FALSE && strpos($cycle_index, 'Semester') === FALSE, 'Annual cycle index must render academic year without semester.');
+spmi_audit_check(strpos($cycle_detail, '$academic_year') !== FALSE && strpos($cycle_detail, '$semester') === FALSE && strpos($cycle_detail, 'Semester') === FALSE, 'Annual cycle detail must render academic year without semester.');
 
 fwrite(STDOUT, "SPMI audits regression checks passed.\n");
