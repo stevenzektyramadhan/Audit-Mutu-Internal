@@ -92,27 +92,23 @@ foreach ([$auditor_model, $auditee_model] as $model) {
 foreach ([$management_view, $auditor_view, $auditee_view] as $view) {
     check(strpos($view, 'layouts/header.php') !== FALSE && strpos($view, 'layouts/sidebar.php') !== FALSE, 'AMI shell missing from dashboard view.');
     check(strpos($view, 'html_escape(') !== FALSE, 'Escaped dashboard output missing.');
+    check(strpos($view, 'Belum ada') !== FALSE, 'Dashboard zero state missing.');
     check(strpos($view, '<form') === FALSE && strpos($view, 'form_open') === FALSE, 'Dashboard view must remain read-only.');
 }
-$notification_position = strpos($management_view, 'aria-labelledby="');
-$metric_position = strpos($management_view, 'ami-stat-grid');
-check(strpos($management_view, 'ami-dashboard-logo-banner') !== FALSE, 'Management dashboard identity banner missing.');
-check($notification_position !== FALSE && $metric_position !== FALSE && $notification_position < $metric_position, 'Management notifications must precede metrics.');
-check(strpos($management_view, 'ami-stat-grid') !== FALSE && strpos($management_view, 'ami-stat-icon') !== FALSE, 'Management dashboard must reuse AMI stat primitives.');
-check(strpos($management_view, 'ami-task-card') !== FALSE && strpos($management_view, 'ami-task-icon') !== FALSE, 'Management notifications must reuse AMI task cards.');
-check(strpos($management_view, 'list-group') === FALSE, 'Management notifications must not use Bootstrap list groups.');
-check(strpos($management_view, "'danger' ? 'tone-rose'") !== FALSE && strpos($management_view, "'warning' ? 'tone-amber'") !== FALSE, 'Management notification severity tone mapping changed.');
+foreach ([$management_view, $auditor_view, $auditee_view] as $view) {
+    $notification_position = strpos($view, 'aria-labelledby="');
+    $metric_position = strpos($view, 'ami-stat-grid');
+    check(strpos($view, 'ami-dashboard-logo-banner') !== FALSE, 'SPMI dashboard identity banner missing.');
+    check($notification_position !== FALSE && $metric_position !== FALSE && $notification_position < $metric_position, 'SPMI notifications must precede metrics.');
+    check(strpos($view, 'ami-stat-grid') !== FALSE && strpos($view, 'ami-stat-icon') !== FALSE, 'SPMI dashboard must reuse AMI stat primitives.');
+    check(strpos($view, 'ami-task-card') !== FALSE && strpos($view, 'ami-task-icon') !== FALSE, 'SPMI notifications must reuse AMI task cards.');
+    check(strpos($view, 'list-group') === FALSE, 'SPMI notifications must not use Bootstrap list groups.');
+    check(strpos($view, "'danger' ? 'tone-rose'") !== FALSE && strpos($view, "'warning' ? 'tone-amber'") !== FALSE, 'SPMI notification severity tone mapping changed.');
+}
 check(strpos($management_view, "site_url('lpmpi/spmi-dashboard/export?year=' . date('Y'))") !== FALSE, 'Management export action changed.');
 check(strpos($management_view, 'ami-empty') !== FALSE || strpos($management_view, 'Belum ada data') !== FALSE, 'Management zero state must remain present.');
-foreach (['Belum ada data penetapan SPMI.', 'Belum ada data pelaksanaan SPMI.', 'Belum ada data pengendalian SPMI.', 'Belum ada data peningkatan SPMI.'] as $empty_text) check(strpos($management_view, $empty_text) !== FALSE, 'Management stage zero state missing: ' . $empty_text);
-check(preg_match('/\$stage_details\s*=\s*\[(.*?)\];/s', $management_view, $stage_details_match) === 1, 'Management PPEPP stage details declaration missing.');
-preg_match_all("/'([a-z_]+)'\s*=>\s*\[/", $stage_details_match[1], $stage_key_matches);
-check($stage_key_matches[1] === ['penetapan', 'pelaksanaan', 'pengendalian', 'peningkatan'], 'Management PPEPP visual stages must be four ordered stages without Evaluasi.');
-check(strpos($management_view, '4 tahap terhubung') !== FALSE && strpos($management_view, '5 tahap terhubung') === FALSE, 'Management PPEPP flow stage label must state four connected stages.');
-check(strpos($management_view, '4 tahap mutu') !== FALSE && strpos($management_view, '5 tahap mutu') === FALSE, 'Management PPEPP summary stage label must state four quality stages.');
-check(strpos($management_view, 'spmi-stage-evaluasi') === FALSE, 'Management PPEPP view must not retain an Evaluasi stage anchor.');
-check(strpos($management_view, "\$metrics['evaluasi']['reports']") !== FALSE, 'Management reports KPI must retain evaluasi metrics.');
-check(strpos($management_view, "\$metrics['evaluasi']['assessments_draft']") !== FALSE, 'Management draft-assessment attention item must retain evaluasi metrics.');
+foreach (['Belum ada data penetapan SPMI.', 'Belum ada data pelaksanaan SPMI.', 'Belum ada data evaluasi SPMI.', 'Belum ada data pengendalian SPMI.', 'Belum ada data peningkatan SPMI.'] as $empty_text) check(strpos($management_view, $empty_text) !== FALSE, 'Management stage zero state missing: ' . $empty_text);
+check(strpos($auditor_view, 'Belum ada penugasan SPMI untuk Anda.') !== FALSE && strpos($auditee_view, 'Belum ada penugasan SPMI untuk Anda.') !== FALSE, 'Role empty state missing.');
 check(strpos($auditor_view, 'print') === FALSE && strpos($auditor_view, 'export') === FALSE, 'Auditor dashboard must not expose print/export.');
 check(strpos($auditee_view, 'print') === FALSE && strpos($auditee_view, 'export') === FALSE, 'Auditee dashboard must not expose print/export.');
 check(strpos($management_controller, "in_array(") !== FALSE && strpos($management_controller, "['=', '+', '-', '@']") !== FALSE, 'Export formula safety missing.');
