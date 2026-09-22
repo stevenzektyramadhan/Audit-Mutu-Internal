@@ -4,6 +4,7 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-22 - Sisyphus: Aligned Dashboard SPMI visual Alur PPEPP/Ringkasan PPEPP to four stages while retaining evaluasi metrics, KPI/attention references, and export rows. -> `.multibrain/context/2026-09-22-sisyphus-spmi-dashboard-ppepp-4-stage.md`
 - 2026-09-22 - Sisyphus: Made SPMI audit cycles annual-only by removing active semester input, validation, persistence, and rendering while retaining the nullable schema field and AMI legacy boundary. -> `.multibrain/context/2026-09-22-sisyphus-spmi-cycle-annual-only.md`
 - 2026-09-20 - Sisyphus: Added management-only configurable upload limits for six active categories via migration 039; consumers retain existing MIME, storage, ownership, and legacy boundaries. -> `.multibrain/context/2026-09-20-sisyphus-upload-size-settings.md`
 - 2026-09-20 - Sisyphus: Recorded PPEPP QA handoff: requirement and code-quality reviews passed; anonymous runtime redirects plus PHP limits/extensions were observed; authenticated coverage is unavailable without credentials; OOXML ZIP metadata resource-exhaustion risk remains nonblocking MEDIUM. -> `.multibrain/context/2026-09-20-sisyphus-ppepp-qa-handoff.md`
