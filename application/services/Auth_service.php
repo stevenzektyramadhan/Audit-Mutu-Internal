@@ -6,26 +6,74 @@ class Auth_service
     protected $ci;
     protected $user_model;
     protected $password_reset_token_model;
+    protected $login_rate_limit_model;
 
     public function __construct()
     {
         $this->ci = &get_instance();
         $this->ci->load->model('User_model');
         $this->ci->load->model('Password_reset_token_model');
+        $this->ci->load->model('Login_rate_limit_model');
         $this->user_model = $this->ci->User_model;
         $this->password_reset_token_model = $this->ci->Password_reset_token_model;
+        $this->login_rate_limit_model = $this->ci->Login_rate_limit_model;
     }
 
-    public function login($email, $password)
+    public function login($email, $password, $client_ip)
     {
-        $user = $this->user_model->find_by_email($email);
-
-        if (!$user) {
-            return ['success' => false, 'message' => 'Email atau password salah.'];
+        $identity = strtolower(trim($email));
+        $key = (string) $this->ci->config->item('encryption_key');
+        if ($key === '') {
+            log_message('error', 'Login rate limit key is unavailable.');
+            return ['success' => FALSE, 'message' => 'Email atau password salah.'];
         }
 
-        if (!password_verify($password, $user->password)) {
-            return ['success' => false, 'message' => 'Email atau password salah.'];
+        $identity_hash = hash_hmac('sha256', 'identity:' . $identity, $key);
+        $ip_hash = hash_hmac('sha256', 'ip:' . $client_ip, $key);
+        $transaction_started = FALSE;
+
+        try {
+            $retry_after = $this->login_rate_limit_model->is_blocked($identity_hash, $ip_hash);
+            if ($retry_after > 0) {
+                return ['success' => FALSE, 'rate_limited' => TRUE, 'retry_after' => $retry_after, 'message' => 'Too many sign-in attempts. Please try again later.'];
+            }
+
+            $user = $this->user_model->find_by_email($email);
+            $password_hash = $user ? $user->password : '$2y$10$Z3bncUreMOqYwOLbUm.wveJauqstP.qZTxl.bf4ZyUK6CNkaPTUau';
+            if (!password_verify($password, $password_hash)) {
+                $this->ci->db->trans_begin();
+                $transaction_started = TRUE;
+                if (!$this->login_rate_limit_model->record_failure('identity', $identity_hash, 5)
+                    || !$this->login_rate_limit_model->record_failure('ip', $ip_hash, 30)
+                    || !$this->ci->db->trans_status()
+                    || !$this->ci->db->trans_commit()) {
+                    throw new RuntimeException('Unable to record login failure.');
+                }
+                $transaction_started = FALSE;
+                $this->login_rate_limit_model->clear_expired();
+                $retry_after = $this->login_rate_limit_model->is_blocked($identity_hash, $ip_hash);
+                if ($retry_after > 0) {
+                    return ['success' => FALSE, 'rate_limited' => TRUE, 'retry_after' => $retry_after, 'message' => 'Too many sign-in attempts. Please try again later.'];
+                }
+                return ['success' => FALSE, 'message' => 'Email atau password salah.'];
+            }
+
+            $this->ci->db->trans_begin();
+            $transaction_started = TRUE;
+            $retry_after = $this->login_rate_limit_model->is_blocked($identity_hash, $ip_hash);
+            if ($retry_after > 0
+                || !$this->login_rate_limit_model->clear_identity($identity_hash)
+                || !$this->ci->db->trans_status()
+                || !$this->ci->db->trans_commit()) {
+                throw new RuntimeException('Unable to complete successful login rate-limit operation.');
+            }
+            $transaction_started = FALSE;
+        } catch (Throwable $exception) {
+            if ($transaction_started) {
+                $this->ci->db->trans_rollback();
+            }
+            log_message('error', 'Login rate limit operation failed.');
+            return ['success' => FALSE, 'message' => 'Email atau password salah.'];
         }
 
         $session_data = [

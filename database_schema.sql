@@ -16,6 +16,7 @@
 -- current parity migration 001-033
 -- current parity migration 001-036
 -- current parity migration 001-039
+-- current parity migration 001-040
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -45,6 +46,17 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
     UNIQUE KEY `uq_password_reset_tokens_hash` (`token_hash`),
     KEY `idx_password_reset_tokens_user_active` (`user_id`, `consumed_at`, `expires_at`),
     CONSTRAINT `fk_password_reset_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `login_rate_limit_buckets` (
+    `scope` ENUM('identity','ip') NOT NULL,
+    `key_hash` CHAR(64) NOT NULL,
+    `window_started_at` DATETIME NOT NULL,
+    `failure_count` SMALLINT UNSIGNED NOT NULL,
+    `blocked_until` DATETIME NULL DEFAULT NULL,
+    `updated_at` DATETIME NOT NULL,
+    PRIMARY KEY (`scope`, `key_hash`),
+    KEY `idx_login_rate_limit_buckets_window` (`window_started_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `periode_audit` (
