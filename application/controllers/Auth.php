@@ -24,6 +24,10 @@ class Auth extends CI_Controller {
 
     public function login()
     {
+        if (!$this->require_post()) {
+            return;
+        }
+
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
         $this->form_validation->set_rules('password', 'Password', 'required');
 
@@ -35,12 +39,22 @@ class Auth extends CI_Controller {
 
         $email = $this->input->post('email', TRUE);
         $password = $this->input->post('password', TRUE);
+        $client_ip = $this->input->ip_address();
 
-        $result = $this->auth_service->login($email, $password);
+        $result = $this->auth_service->login($email, $password, $client_ip);
 
         if ($result['success']) {
             $this->audit_logger->log('auth.login', 'success', 'auth', 'login');
             redirect($this->login_redirect());
+        }
+
+        if (!empty($result['rate_limited'])) {
+            $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'rate_limited']);
+            set_status_header(429);
+            header('Retry-After: ' . max(1, (int) $result['retry_after']));
+            header('Cache-Control: no-store');
+            $this->load->view('auth/login', ['login_error' => 'Too many sign-in attempts. Please try again later.']);
+            return;
         }
 
         $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'credentials']);

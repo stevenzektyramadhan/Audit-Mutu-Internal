@@ -12,6 +12,7 @@ $icon = static function ($name) {
     ];
     return '<svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['lock']) . '</svg>';
 };
+$login_error = isset($login_error) ? (string) $login_error : '';
 ?><!DOCTYPE html>
 <html lang="id">
 <head>
@@ -56,6 +57,12 @@ $icon = static function ($name) {
             </div>
 
             <!-- Flash Error Alert -->
+            <?php if ($login_error !== ''): ?>
+                <div class="tw-mb-5 tw-flex tw-items-center tw-gap-2.5 tw-rounded-xl tw-border tw-border-red-200 tw-bg-red-50 tw-p-3.5 tw-text-xs tw-text-red-800" role="alert">
+                    <span class="tw-text-red-600 tw-flex-shrink-0"><?php echo $icon('alert-circle'); ?></span>
+                    <span class="tw-font-medium"><?php echo html_escape($login_error); ?></span>
+                </div>
+            <?php endif; ?>
             <?php if ($this->session->flashdata('error')): ?>
                 <div class="tw-mb-5 tw-flex tw-items-center tw-gap-2.5 tw-rounded-xl tw-border tw-border-red-200 tw-bg-red-50 tw-p-3.5 tw-text-xs tw-text-red-800" role="alert">
                     <span class="tw-text-red-600 tw-flex-shrink-0"><?php echo $icon('alert-circle'); ?></span>
