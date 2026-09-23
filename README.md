@@ -258,12 +258,17 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 26. `037_add_spmi_version_report_scope.sql`
 27. `038_create_spmi_ppepp_documents.sql`
 28. `039_create_upload_size_settings.sql`
+29. `040_create_login_rate_limit_buckets.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
 Migration `038_create_spmi_ppepp_documents.sql` bersifat aditif: menambahkan tabel metadata arsip dokumen PPEPP manajemen-only. File fisik PPEPP tetap berada di private storage kategori `ppepp_documents`; backup upgrade harus mencakup database dan `APP_PRIVATE_STORAGE_PATH`.
 
 Migration `039_create_upload_size_settings.sql` bersifat aditif: menambahkan pengaturan batas upload per kategori. Halaman `Pengaturan Upload` hanya tersedia untuk `super_admin` dan `admin_lpmpi`. Nilai awalnya adalah bukti SPMI 5 MiB, dokumen PPEPP 10 MiB, foto profil akun 2 MiB, import spreadsheet 2 MiB, PDF sumber SPMI 5 MiB, dan logo lembaga 4 MiB. Pengaturan berlaku pada uploader aktif terkait; validasi tipe file, private storage, ownership, serta alur Google Drive tidak berubah. Upload AMI legacy tidak termasuk cakupan ini, dan penyimpanan logo lembaga yang kompatibel dengan legacy tetap berada di lokasi semula.
+
+Migration `040_create_login_rate_limit_buckets.sql` bersifat aditif: menambahkan bucket kegagalan login yang menyimpan HMAC identitas dan IP, bukan email atau IP mentah. Terapkan migration ini sekali setelah backup database, lalu smoke test login sebelum membuka traffic.
+
+Docker lokal memakai nilai `APP_ENCRYPTION_KEY` development yang dapat dioverride melalui environment. Deployment harus selalu menyediakan nilai acak dan rahasia sendiri; jangan gunakan nilai default Docker lokal di luar development.
 
 Batas aplikasi maksimum 10 MiB. Nilai pengaturan tidak dapat melampaui batas efektif PHP: `upload_max_filesize` dan `post_max_size` dikurangi cadangan 1 MiB untuk multipart. Operator deployment tetap harus mengatur PHP/web server dengan ruang di atas batas file terbesar; halaman aplikasi tidak dapat menaikkan batas PHP yang sudah menolak request sebelum CodeIgniter berjalan.
 
@@ -276,16 +281,18 @@ CodeIgniter migrations tetap nonaktif. Direktori `migrations/` berisi raw SQL ma
 - Output dinamis di-escape dengan `html_escape()`.
 - Bukti disimpan private dan unduhan memvalidasi role serta ownership.
 - Audit log mencatat login, logout, dan percobaan mutasi POST; web server produksi harus menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, dan private storage.
+- Login `POST` dibatasi pada kegagalan kredensial tervalidasi: 5 percobaan per identitas dan 30 per IP dalam jendela 15 menit. Blokir mengembalikan respons generik HTTP 429 dengan `Retry-After`; bucket hanya menyimpan HMAC berbasis `APP_ENCRYPTION_KEY`. Saat berada di belakang reverse proxy, isi `proxy_ips` hanya dengan alamat/subnet proxy tepercaya agar IP klien dapat dikenali dengan benar. Rate limit aplikasi melengkapi, bukan menggantikan, WAF atau rate limit reverse proxy.
 - SPMI adalah satu-satunya workflow aktif yang direpresentasikan oleh login redirect dan sidebar. Artefak AMI legacy serta route `lpmpi/legacy-ami-archive` tetap di luar lingkup operasional README ini.
 
 ## Batasan Saat Ini
 
-Export PDF, email/notifikasi workflow, MFA, rate limit login, dan approval bertingkat belum tersedia. Terapkan MFA atau rate limit akun istimewa pada identity layer atau reverse proxy hingga tersedia di aplikasi.
+Export PDF, email/notifikasi workflow, MFA, dan approval bertingkat belum tersedia. Terapkan MFA untuk akun istimewa pada identity layer; rate limit reverse proxy/WAF tetap dianjurkan sebagai lapisan tambahan.
 
 ## Post-pull Check
 
 ```bash
 php tests/auth_login_regression.php
+php tests/login_rate_limit_regression.php
 php tests/sidebar_navigation_regression.php
 php tests/spmi_audits_regression.php
 php tests/spmi_auditee_workspace_regression.php
@@ -296,7 +303,7 @@ php tests/m17_schema_regression.php
 php tests/hardening_regression.php
 ```
 
-Untuk Docker, jalankan `docker compose config --quiet` dan `curl -i http://127.0.0.1:8081/index.php/auth/login`. Untuk Apache/PHP lokal, jalankan `curl -i "${APP_BASE_URL}index.php/auth/login"` dengan `APP_BASE_URL` yang berakhiran `/`.
+Untuk Docker, jalankan `docker compose config --quiet` dan `curl -i http://127.0.0.1:8081/index.php/auth`. Untuk Apache/PHP lokal, jalankan `curl -i "${APP_BASE_URL}index.php/auth"` dengan `APP_BASE_URL` yang berakhiran `/`.
 
 ## Dokumentasi Terkait
 
