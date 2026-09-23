@@ -68,7 +68,7 @@ $icon = static function ($name) {
                             <?php echo $icon('save'); ?>
                             <span>Simpan draft</span>
                         </button>
-                        <button type="button" id="spmi-final-submit" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>" class="tw-button-primary tw-text-xs">
+                        <button type="button" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>" class="spmi-final-submit tw-button-primary tw-text-xs">
                             <?php echo $icon('check'); ?>
                             <span><?php echo $assignment->submission_status === 'returned_for_revision' ? 'Kirim ulang revisi' : 'Submit sekali'; ?></span>
                         </button>
@@ -213,9 +213,10 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
 
                                         <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center tw-gap-2 tw-mb-3">
                                             <input class="form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-2.5 tw-py-1.5 tw-text-xs tw-text-slate-700" type="file" id="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>">
-                                            <button type="submit" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>" class="tw-button-secondary tw-text-xs tw-whitespace-nowrap">
-                                                <?php echo $icon('upload-cloud'); ?>
-                                                <span>Upload bukti item <?php echo html_escape((string) $item->display_order); ?></span>
+                                            <span data-evidence-selection-status role="status" aria-live="polite" class="tw-text-xs tw-text-slate-500">Belum ada file dipilih.</span>
+                                             <button type="submit" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>" class="tw-button-secondary tw-text-xs tw-whitespace-nowrap">
+                                                 <?php echo $icon('upload-cloud'); ?>
+                                                 <span>Upload bukti item <?php echo html_escape((string) $item->display_order); ?></span>
                                             </button>
                                         </div>
                                         <span role="alert" data-evidence-upload-error class="tw-block tw-text-xs tw-text-red-600 tw-mb-2"></span>
@@ -265,7 +266,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                     <?php echo $icon('save'); ?>
                     <span>Simpan draft</span>
                 </button>
-                <button type="button" id="spmi-final-submit" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>" class="tw-button-primary">
+                <button type="button" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>" class="spmi-final-submit tw-button-primary">
                     <?php echo $icon('check'); ?>
                     <span><?php echo $assignment->submission_status === 'returned_for_revision' ? 'Kirim ulang revisi' : 'Submit sekali'; ?></span>
                 </button>
@@ -273,15 +274,17 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
             <?php echo form_close(); ?><script>
             (function () {
                 var form = document.getElementById('spmi-realization-form');
-                var finalButton = document.getElementById('spmi-final-submit');
-                if (!form || !finalButton) return;
-                finalButton.addEventListener('click', function () {
-                    var query = new URLSearchParams();
-                    query.append('version', form.elements.version.value);
-                    form.querySelectorAll('[name^="realization["], [name^="evidence_url["]').forEach(function (field) {
-                        query.append(field.name, field.value);
+                var finalButtons = document.querySelectorAll('.spmi-final-submit');
+                if (!form || !finalButtons.length) return;
+                finalButtons.forEach(function (finalButton) {
+                    finalButton.addEventListener('click', function () {
+                        var query = new URLSearchParams();
+                        query.append('version', form.elements.version.value);
+                        form.querySelectorAll('[name^="realization["], [name^="evidence_url["]').forEach(function (field) {
+                            query.append(field.name, field.value);
+                        });
+                        window.location.href = finalButton.getAttribute('data-confirm-url') + '?' + query.toString();
                     });
-                    window.location.href = finalButton.getAttribute('data-confirm-url') + '?' + query.toString();
                 });
             }());
             </script>
@@ -302,11 +305,17 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
             (function () {
                 var forms = document.querySelectorAll('form[id^="spmi-evidence-upload-"]');
                 forms.forEach(function (uploadForm) {
+                    var fileInput = document.querySelector('input[type="file"][form="' + uploadForm.id + '"]');
+                    var item = fileInput ? fileInput.closest('article') : null;
+                    var selectionStatus = item ? item.querySelector('[data-evidence-selection-status]') : null;
+                    if (fileInput) {
+                        fileInput.addEventListener('change', function () {
+                            if (selectionStatus) selectionStatus.textContent = fileInput.files.length ? fileInput.files[0].name : 'Belum ada file dipilih.';
+                        });
+                    }
                     uploadForm.addEventListener('submit', function (event) {
                         event.preventDefault();
                         var button = document.querySelector('button[form="' + uploadForm.id + '"]');
-                        var fileInput = document.querySelector('input[type="file"][form="' + uploadForm.id + '"]');
-                        var item = fileInput ? fileInput.closest('article') : null;
                         var error = item ? item.querySelector('[data-evidence-upload-error]') : null;
                         if (!fileInput || !fileInput.files.length) return;
                         if (button) button.disabled = true;
@@ -357,6 +366,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                 var evidenceList = item ? item.querySelector('ul') : null;
                                 if (evidenceList) evidenceList.appendChild(entry);
                                 fileInput.value = '';
+                                if (selectionStatus) selectionStatus.textContent = 'Bukti berhasil diunggah: ' + evidence.original_name;
                             })
                             .catch(function (uploadError) { if (error) error.textContent = uploadError.message; })
                             .finally(function () { if (button) button.disabled = false; });
