@@ -20,21 +20,15 @@ $icon = static function ($name) {
     <title>Login - AMI Sistem Penjaminan Mutu Internal</title>
     <meta name="description" content="Login ke Sistem Audit Mutu Internal Perguruan Tinggi">
     <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
-    <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/auth.css')); ?>">
+    <?php $auth_css_ver = file_exists(FCPATH . 'assets/css/auth.css') ? filemtime(FCPATH . 'assets/css/auth.css') : time(); ?>
+    <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/auth.css?v=' . $auth_css_ver)); ?>">
 </head>
 <body id="auth-root" class="tw-m-0 tw-min-h-screen tw-bg-slate-50 tw-text-slate-900 tw-font-sans">
     <main class="auth-shell">
         <section class="auth-visual" aria-label="Identitas Sistem Penjaminan Mutu Internal">
             <img src="<?php echo html_escape(base_url('assets/img/login-bg.jpg')); ?>" alt="Lingkungan kampus" class="auth-visual-image">
             <div class="auth-visual-overlay" aria-hidden="true"></div>
-            <div class="auth-visual-content tw-relative tw-z-10 tw-flex tw-h-full tw-min-h-[220px] tw-flex-col tw-justify-between tw-p-6 sm:tw-p-10 lg:tw-p-14">
-                <div class="tw-flex tw-items-center">
-                    <div class="tw-flex tw-items-center tw-gap-2.5 tw-rounded-xl tw-border tw-border-white/25 tw-bg-white/80 tw-px-3 tw-py-2 tw-shadow-sm tw-backdrop-blur-md">
-                        <img src="<?php echo html_escape(base_url('assets/img/logo-1.png')); ?>" alt="Logo Universitas" class="tw-h-9 tw-w-auto tw-object-contain">
-                        <div class="tw-h-7 tw-w-px tw-bg-slate-200"></div>
-                        <img src="<?php echo html_escape(base_url('assets/img/logo-2.png')); ?>" alt="Logo LPM" class="tw-h-9 tw-w-auto tw-object-contain">
-                    </div>
-                </div>
+            <div class="auth-visual-content tw-relative tw-z-10 tw-flex tw-h-full tw-min-h-[220px] tw-flex-col tw-justify-end tw-p-6 sm:tw-p-10 lg:tw-p-14">
                 <div class="tw-max-w-xl tw-text-white">
                     <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100">Audit Mutu Internal</p>
                     <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl">Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.</h2>
@@ -45,8 +39,13 @@ $icon = static function ($name) {
 
         <section class="auth-form-side tw-px-5 tw-py-10 sm:tw-px-10 lg:tw-px-14" aria-label="Form login">
             <div class="auth-panel">
-                <div class="tw-mb-7">
-                    <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.18em] tw-text-blue-700">Selamat datang</p>
+                <div class="tw-mb-6">
+                    <div class="auth-brand-row tw-mb-5 tw-flex tw-items-center tw-gap-3 sm:tw-gap-3.5">
+                        <img src="<?php echo html_escape(base_url('assets/img/Logo-UNMUH-BABEL-Web.png')); ?>" alt="Logo Universitas Muhammadiyah Bangka Belitung" class="auth-brand-unmuh">
+                        <div class="auth-brand-sep" aria-hidden="true"></div>
+                        <img src="<?php echo html_escape(base_url('assets/img/logo-2.png')); ?>" alt="Logo LPM" class="auth-brand-lpm">
+                    </div>
+                    <p class="tw-mb-1.5 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.18em] tw-text-blue-700">Selamat datang</p>
                     <h1 class="tw-m-0 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 sm:tw-text-3xl">
                     Sistem Penjaminan Mutu Internal
                 </h1>
