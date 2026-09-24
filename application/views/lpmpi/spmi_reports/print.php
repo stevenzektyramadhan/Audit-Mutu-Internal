@@ -336,8 +336,8 @@ function spmi_report_print_auditor_evidence($value) {
             <span class="meta-value"><?php echo html_escape($report->auditee_name_snapshot); ?></span>
         </div>
         <div class="meta-item">
-            <span class="meta-label">Sumber Versi / Standar / Paket</span>
-            <span class="meta-value" style="font-family: monospace; font-size: 10px;"><?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot . ' / ' . $report->source_package_code_snapshot); ?></span>
+            <span class="meta-label">Sumber Versi</span>
+            <span class="meta-value" style="font-family: monospace; font-size: 10px;"><?php echo html_escape($report->source_version_code_snapshot); ?></span>
         </div>
         <div class="meta-item">
             <span class="meta-label">Finalisasi M9</span>
@@ -348,11 +348,13 @@ function spmi_report_print_auditor_evidence($value) {
 
 <div class="section-heading">Hasil Audit Mutu</div>
 
+<?php foreach ($standards as $standard): $items = $standard['items']; ?>
+<h2 style="font-size: 13px; margin: 14px 0 8px;"><?php echo html_escape($standard['source_standard_code_snapshot'] . ' — ' . $standard['source_standard_title_snapshot']); ?></h2>
 <table class="report-table">
     <thead>
         <tr>
             <th class="col-no">No</th>
-            <th class="col-question">Pertanyaan &amp; Indikator</th>
+            <th class="col-question">Indikator</th>
             <th class="col-evidence">Realisasi &amp; Bukti</th>
             <th class="col-score">Skor</th>
             <th class="col-desc">Deskriptor</th>
@@ -371,10 +373,8 @@ function spmi_report_print_auditor_evidence($value) {
             $finding_type = spmi_report_print_value(isset($item->finding_type_snapshot) ? $item->finding_type_snapshot : NULL);
         ?>
             <tr>
-                <td class="col-no"><?php echo html_escape($item->display_order); ?></td>
+                <td class="col-no"><?php echo html_escape($item->standard_item_display_order ?: $item->display_order); ?></td>
                 <td class="col-question">
-                    <strong><?php echo html_escape($item->question_code_snapshot); ?></strong><br>
-                    <?php echo nl2br(html_escape($item->question_text_snapshot)); ?><br>
                     <small style="color: #64748b;"><?php echo html_escape($item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); ?></small>
                 </td>
                 <td class="col-evidence">
@@ -433,6 +433,7 @@ function spmi_report_print_auditor_evidence($value) {
         <?php endforeach; ?>
     </tbody>
 </table>
+<?php endforeach; ?>
 
 </body>
 </html>

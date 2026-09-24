@@ -28,18 +28,18 @@ $icon = static function ($name) {
                 <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Hasil Audit Mutu</p>
                 <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950">Laporan SPMI</h1>
                 <p class="tw-mt-2 tw-max-w-2xl tw-text-sm tw-text-slate-500">
-                    <?php echo nl2br(html_escape('Snapshot immutable dari assessment M9 yang telah difinalisasi.')); ?>
+                    <?php echo nl2br(html_escape('Snapshot immutable per versi SPMI setelah seluruh standar penugasannya difinalisasi.')); ?>
                 </p>
             </div>
         </div>
 
         <?php if (!empty($finalized_assessments)): ?>
-            <!-- Section: Assessment Finalized Pending Generation -->
+            <!-- Section: Version Finalized Pending Generation -->
             <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm" aria-labelledby="pending-assessments-title">
                 <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between">
                     <div>
-                        <h2 id="pending-assessments-title" class="tw-text-base tw-font-bold tw-text-slate-900">Assessment finalized belum dilaporkan</h2>
-                        <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Assessment berikut telah difinalisasi dan siap dibuatkan dokumen snapshot laporan resmi.</p>
+                        <h2 id="pending-assessments-title" class="tw-text-base tw-font-bold tw-text-slate-900">Versi SPMI siap dilaporkan</h2>
+                        <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Seluruh standar pada versi berikut telah difinalisasi dan siap dibuatkan satu dokumen snapshot laporan resmi.</p>
                     </div>
                     <span class="tw-inline-flex tw-items-center tw-gap-1.5 tw-rounded-full tw-bg-amber-50 tw-px-3 tw-py-1 tw-text-xs tw-font-semibold tw-text-amber-800 tw-border tw-border-amber-200">
                         <?php echo count($finalized_assessments); ?> Menunggu
@@ -51,8 +51,9 @@ $icon = static function ($name) {
                     <table class="tw-w-full tw-text-left tw-text-sm">
                         <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-500">
                             <tr>
-                                <th class="tw-px-4 tw-py-3">Siklus</th>
-                                <th class="tw-px-4 tw-py-3">Auditee</th>
+                                 <th class="tw-px-4 tw-py-3">Siklus</th>
+                                 <th class="tw-px-4 tw-py-3">Versi / Standar</th>
+                                 <th class="tw-px-4 tw-py-3">Auditee</th>
                                 <th class="tw-px-4 tw-py-3">Finalisasi</th>
                                 <th class="tw-px-4 tw-py-3 tw-text-right">Aksi</th>
                             </tr>
@@ -60,9 +61,13 @@ $icon = static function ($name) {
                         <tbody class="tw-divide-y tw-divide-slate-100">
                             <?php foreach ($finalized_assessments as $assessment): ?>
                                 <tr class="hover:tw-bg-slate-50">
-                                    <td class="tw-px-4 tw-py-3 tw-font-medium tw-text-slate-900">
-                                        <?php echo html_escape($assessment->cycle_code . ' — ' . $assessment->cycle_title); ?>
-                                    </td>
+                                     <td class="tw-px-4 tw-py-3 tw-font-medium tw-text-slate-900">
+                                         <?php echo html_escape($assessment->cycle_code . ' — ' . $assessment->cycle_title); ?>
+                                     </td>
+                                     <td class="tw-px-4 tw-py-3 tw-text-slate-700">
+                                         <div class="tw-font-medium"><?php echo html_escape($assessment->source_version_code . ' — ' . $assessment->source_version_title); ?></div>
+                                         <div class="tw-mt-0.5 tw-text-xs tw-text-slate-500"><?php echo (int) $assessment->standard_count; ?> standar</div>
+                                     </td>
                                     <td class="tw-px-4 tw-py-3 tw-text-slate-700">
                                         <?php echo html_escape($assessment->auditee_name); ?>
                                     </td>
@@ -71,7 +76,7 @@ $icon = static function ($name) {
                                     </td>
                                     <td class="tw-px-4 tw-py-3 tw-text-right">
                                         <div class="ami-row-actions tw-inline-flex tw-justify-end">
-                                            <?php echo form_open('lpmpi/spmi-reports/assessment/create/' . (int) $assessment->id, ['class' => 'tw-m-0']); ?>
+                                            <?php echo form_open('lpmpi/spmi-reports/assessment/create/' . (int) $assessment->anchor_assessment_id, ['class' => 'tw-m-0']); ?>
                                                 <button class="btn-ami ami-action-btn tw-button-primary tw-text-xs tw-py-1.5 tw-px-3" type="submit">
                                                     <?php echo $icon('sparkles'); ?>
                                                     <span>Generate laporan</span>
@@ -93,17 +98,20 @@ $icon = static function ($name) {
                             <div class="tw-text-sm tw-font-bold tw-text-slate-900 tw-mt-0.5">
                                 <?php echo html_escape($assessment->cycle_code . ' — ' . $assessment->cycle_title); ?>
                             </div>
-                            <div class="tw-mt-2.5 tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-slate-700">
-                                <?php echo $icon('user'); ?>
-                                <span><?php echo html_escape($assessment->auditee_name); ?></span>
-                            </div>
+                             <div class="tw-mt-2.5 tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-slate-700">
+                                 <?php echo $icon('user'); ?>
+                                 <span><?php echo html_escape($assessment->auditee_name); ?></span>
+                             </div>
+                             <div class="tw-mt-1 tw-text-xs tw-text-slate-600">
+                                 <?php echo html_escape($assessment->source_version_code . ' — ' . $assessment->source_version_title); ?> · <?php echo (int) $assessment->standard_count; ?> standar
+                             </div>
                             <div class="tw-mt-1 tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-slate-500">
                                 <?php echo $icon('clock'); ?>
                                 <span><?php echo html_escape($assessment->finalized_at); ?></span>
                             </div>
                             <div class="tw-mt-3 tw-pt-3 tw-border-t tw-border-slate-200">
                                 <div class="ami-row-actions">
-                                    <?php echo form_open('lpmpi/spmi-reports/assessment/create/' . (int) $assessment->id, ['class' => 'tw-w-full']); ?>
+                                    <?php echo form_open('lpmpi/spmi-reports/assessment/create/' . (int) $assessment->anchor_assessment_id, ['class' => 'tw-w-full']); ?>
                                         <button class="btn-ami ami-action-btn tw-button-primary tw-w-full tw-min-h-[44px] tw-text-sm" type="submit">
                                             <?php echo $icon('sparkles'); ?>
                                             <span>Generate laporan</span>
@@ -116,6 +124,117 @@ $icon = static function ($name) {
                 </div>
             </section>
         <?php endif; ?>
+
+        <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm" aria-labelledby="version-export-title">
+            <div class="tw-mb-4">
+                <h2 id="version-export-title" class="tw-text-base tw-font-bold tw-text-slate-900">Ekspor laporan per kelompok penugasan</h2>
+                <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Pilih siklus lalu satu kelompok versi, auditor, dan auditee. Ekspor hanya memakai snapshot laporan kelompok tersebut.</p>
+            </div>
+            <?php echo form_open('lpmpi/spmi-reports', ['method' => 'get', 'class' => 'tw-grid tw-gap-3 md:tw-grid-cols-[1fr_2fr_auto] md:tw-items-end']); ?>
+                <input type="hidden" name="radar_cycle" value="<?php echo html_escape($radar_selected_cycle); ?>">
+                <label class="tw-block">
+                    <span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Siklus</span>
+                    <select id="report_cycle_id" name="report_cycle_id" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900" onchange="this.form.submit()">
+                        <option value="">Pilih siklus…</option>
+                        <?php foreach ($version_report_cycles as $cycle): ?>
+                            <option value="<?php echo (int) $cycle->source_cycle_id; ?>" <?php echo (int) $selected_report_cycle_id === (int) $cycle->source_cycle_id ? 'selected' : ''; ?>><?php echo html_escape($cycle->cycle_code_snapshot . ' — ' . $cycle->cycle_title_snapshot); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+                <label class="tw-block">
+                    <span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Kelompok penugasan</span>
+                    <select id="report_id" name="report_id" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900" <?php echo empty($version_reports) ? 'disabled' : ''; ?> onchange="this.form.submit()">
+                        <option value="">Pilih versi, auditor, dan auditee…</option>
+                        <?php foreach ($version_reports as $version_report): ?>
+                            <option value="<?php echo (int) $version_report->id; ?>" <?php echo $selected_version_report && (int) $selected_version_report->id === (int) $version_report->id ? 'selected' : ''; ?>><?php echo html_escape($version_report->source_version_code_snapshot . ' — ' . $version_report->source_version_title_snapshot . ' | Auditor: ' . $version_report->auditor_name_snapshot . ' | Auditee: ' . $version_report->auditee_name_snapshot); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+                <button class="btn-ami tw-button-secondary tw-px-4 tw-py-2.5 tw-text-sm" type="submit">Tampilkan</button>
+            <?php echo form_close(); ?>
+            <?php if ($selected_report_cycle_id && empty($version_reports)): ?>
+                <p class="tw-mt-4 tw-text-sm tw-text-slate-500">Belum ada snapshot laporan per versi pada siklus ini.</p>
+            <?php elseif ($selected_version_report): ?>
+                <div class="tw-mt-4 tw-flex tw-flex-col tw-gap-3 tw-rounded-xl tw-border tw-border-emerald-200 tw-bg-emerald-50 tw-p-4 sm:tw-flex-row sm:tw-items-center sm:tw-justify-between">
+                    <div class="tw-text-sm tw-text-emerald-950"><strong><?php echo html_escape($selected_version_report->source_version_code_snapshot . ' — ' . $selected_version_report->source_version_title_snapshot); ?></strong><br><span class="tw-text-xs">Auditor: <?php echo html_escape($selected_version_report->auditor_name_snapshot); ?> · Auditee: <?php echo html_escape($selected_version_report->auditee_name_snapshot); ?></span></div>
+                    <div class="ami-row-actions tw-flex tw-gap-2"><a class="btn-ami ami-action-btn tw-button-secondary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/detail/' . (int) $selected_version_report->id); ?>">Detail</a><a class="btn-ami ami-action-btn tw-button-secondary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/print/' . (int) $selected_version_report->id); ?>" target="_blank" rel="noopener">Print</a><a class="btn-ami ami-action-btn tw-button-primary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/export/' . (int) $selected_version_report->id); ?>">Ekspor XLSX</a></div>
+                </div>
+            <?php endif; ?>
+        </section>
+
+        <!-- Section: Rekap Skor per Indikator (Radar Chart per Auditee) -->
+        <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm" aria-labelledby="radar-recap-title">
+            <div class="tw-mb-4 tw-flex tw-flex-col tw-gap-3 sm:tw-flex-row sm:tw-items-end sm:tw-justify-between">
+                <div>
+                    <h2 id="radar-recap-title" class="tw-text-base tw-font-bold tw-text-slate-900">Rekap skor per indikator</h2>
+                    <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Skor per indikator (gabungan semua standar) dalam satu siklus, radar terpisah per auditee/unit.</p>
+                </div>
+                <?php echo form_open('lpmpi/spmi-reports', ['method' => 'get', 'class' => 'tw-flex tw-items-center tw-gap-2']); ?>
+                    <label class="tw-sr-only" for="radar_cycle">Pilih siklus</label>
+                    <select id="radar_cycle" name="radar_cycle" class="tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-sm tw-text-slate-900" onchange="this.form.submit()">
+                        <option value="">Pilih siklus…</option>
+                        <?php foreach ($radar_cycles as $c): ?>
+                            <option value="<?php echo html_escape($c->cycle_code_snapshot); ?>" <?php echo $radar_selected_cycle === $c->cycle_code_snapshot ? 'selected' : ''; ?>>
+                                <?php echo html_escape($c->cycle_code_snapshot . ' — ' . $c->cycle_title_snapshot); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php echo form_close(); ?>
+            </div>
+
+            <?php if ($radar_selected_cycle === ''): ?>
+                <div class="tw-rounded-xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">
+                    Pilih siklus audit dulu untuk menampilkan rekap.
+                </div>
+            <?php elseif (empty($radar_recap)): ?>
+                <div class="tw-rounded-xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">
+                    Belum ada laporan SPMI pada siklus ini.
+                </div>
+            <?php else: ?>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <div class="tw-grid tw-gap-6 tw-grid-cols-1 lg:tw-grid-cols-2">
+                    <?php $i = 0; foreach ($radar_recap as $auditee_name => $series): $i++; ?>
+                        <div class="tw-rounded-xl tw-border tw-border-slate-200 tw-p-4">
+                            <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-mb-2"><?php echo html_escape($auditee_name); ?></h3>
+                            <div style="height: 420px;">
+                                <canvas id="radar-recap-<?php echo $i; ?>" aria-label="Radar skor per indikator untuk <?php echo html_escape($auditee_name); ?>"></canvas>
+                            </div>
+                        </div>
+                        <script>
+                        (function () {
+                            if (typeof Chart === 'undefined') return;
+                            var el = document.getElementById('radar-recap-<?php echo $i; ?>');
+                            if (!el) return;
+                            new Chart(el, {
+                                type: 'radar',
+                                data: {
+                                    labels: <?php echo json_encode($series['labels'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
+                                    datasets: [{
+                                        label: 'Skor',
+                                        data: <?php echo json_encode($series['values'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
+                                        backgroundColor: 'rgba(77, 163, 255, 0.20)',
+                                        borderColor: 'rgba(77, 163, 255, 1)',
+                                        borderWidth: 1.5,
+                                        pointRadius: 1.5,
+                                        pointBackgroundColor: 'rgba(77, 163, 255, 1)',
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        r: { min: 0, max: 4, ticks: { stepSize: 1, backdropColor: 'transparent' }, pointLabels: { font: { size: 8 } } }
+                                    },
+                                    plugins: { legend: { display: false } },
+                                    elements: { line: { tension: 0 } }
+                                }
+                            });
+                        })();
+                        </script>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
 
         <!-- Toolbar Filter & Search -->
         <section class="tw-mb-5 tw-grid tw-gap-3 sm:tw-grid-cols-[1fr_220px]" aria-label="Filter laporan">
@@ -158,9 +277,10 @@ $icon = static function ($name) {
                     <table class="tw-w-full tw-text-left tw-text-sm">
                         <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-500">
                             <tr>
-                                <th class="tw-px-5 tw-py-4">Nomor Laporan</th>
-                                <th class="tw-px-5 tw-py-4">Siklus</th>
-                                <th class="tw-px-5 tw-py-4">Auditee</th>
+                                 <th class="tw-px-5 tw-py-4">Nomor Laporan</th>
+                                 <th class="tw-px-5 tw-py-4">Siklus</th>
+                                 <th class="tw-px-5 tw-py-4">Versi</th>
+                                 <th class="tw-px-5 tw-py-4">Auditee</th>
                                 <th class="tw-px-5 tw-py-4">Finalisasi</th>
                                 <th class="tw-px-5 tw-py-4 tw-text-right">Aksi</th>
                             </tr>
@@ -175,10 +295,14 @@ $icon = static function ($name) {
                                             <?php echo html_escape($report->report_number); ?>
                                         </span>
                                     </td>
-                                    <td class="tw-px-5 tw-py-4 tw-text-slate-700">
-                                        <div class="tw-font-medium tw-text-slate-900"><?php echo html_escape($report->cycle_code_snapshot); ?></div>
-                                        <div class="tw-text-xs tw-text-slate-500"><?php echo html_escape($report->cycle_title_snapshot); ?></div>
-                                    </td>
+                                     <td class="tw-px-5 tw-py-4 tw-text-slate-700">
+                                         <div class="tw-font-medium tw-text-slate-900"><?php echo html_escape($report->cycle_code_snapshot); ?></div>
+                                         <div class="tw-text-xs tw-text-slate-500"><?php echo html_escape($report->cycle_title_snapshot); ?></div>
+                                     </td>
+                                     <td class="tw-px-5 tw-py-4 tw-text-slate-700">
+                                         <div class="tw-font-medium tw-text-slate-900"><?php echo html_escape($report->source_version_code_snapshot); ?></div>
+                                         <div class="tw-text-xs tw-text-slate-500"><?php echo html_escape($report->source_version_title_snapshot); ?></div>
+                                     </td>
                                     <td class="tw-px-5 tw-py-4 tw-font-medium tw-text-slate-800">
                                         <?php echo html_escape($report->auditee_name_snapshot); ?>
                                     </td>
@@ -215,9 +339,12 @@ $icon = static function ($name) {
                             </span>
                         </div>
 
-                        <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-m-0">
-                            <?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?>
-                        </h3>
+                         <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-m-0">
+                             <?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?>
+                         </h3>
+                         <div class="tw-mt-1 tw-text-xs tw-text-slate-600">
+                             <?php echo html_escape($report->source_version_code_snapshot . ' — ' . $report->source_version_title_snapshot); ?>
+                         </div>
 
                         <div class="tw-mt-2 tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-slate-600">
                             <?php echo $icon('user'); ?>

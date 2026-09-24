@@ -1,0 +1,105 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Akun_import extends Admin_Lpmpi_Controller
+{
+    protected $service;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->helper(['form', 'url']);
+        require_once APPPATH . 'services/Akun_import_service.php';
+        $this->service = new Akun_import_service();
+    }
+
+    public function index()
+    {
+        $this->purge();
+        $this->load->view('lpmpi/akun_import/index', [
+            'title' => 'Import Master Akun - AMI',
+            'page_title' => 'Import Master Akun',
+            'page_subtitle' => 'Data Pengguna / Import',
+            'active_menu' => 'users',
+            'error' => $this->session->flashdata('error'),
+            'upload_limit_mib' => $this->limit_mib($this->upload_limit_bytes('spreadsheet_imports')),
+        ]);
+    }
+
+    public function template()
+    {
+        $this->load_library();
+        $sheet = (new \PhpOffice\PhpSpreadsheet\Spreadsheet())->getActiveSheet();
+        $sheet->setTitle('Master Akun');
+        foreach (Akun_import_service::HEADERS as $index => $header) $sheet->setCellValueExplicitByColumnAndRow($index + 1, 1, $header, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $sheet->getStyle('A2:A1001')->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
+        while (ob_get_level() > 0) @ob_end_clean();
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="import_master_akun.xlsx"');
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($sheet->getParent()))->save('php://output');
+        exit;
+    }
+
+    public function preview()
+    {
+        $this->require_post();
+        $this->purge();
+        if (!isset($_FILES['account_file']) || !is_uploaded_file($_FILES['account_file']['tmp_name'])) return $this->fail('File upload tidak valid.');
+        $file = $_FILES['account_file'];
+        $limit_bytes = $this->upload_limit_bytes('spreadsheet_imports');
+        $limit_mib = $this->limit_mib($limit_bytes);
+        if ((int) $file['error'] !== UPLOAD_ERR_OK || strtolower(pathinfo($file['name'], PATHINFO_EXTENSION)) !== 'xlsx' || (int) $file['size'] > $limit_bytes) return $this->fail('File wajib .xlsx dan maksimal ' . $limit_mib . ' MiB.');
+        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+        if (!in_array($mime, ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'], TRUE)) return $this->fail('MIME file tidak didukung.');
+        $path = $this->tmp() . 'akun_import_upload_' . bin2hex(random_bytes(12)) . '.xlsx';
+        if (!move_uploaded_file($file['tmp_name'], $path)) return $this->fail('File upload tidak dapat disimpan.');
+        try {
+            $result = $this->service->parse($path);
+        } catch (Throwable $exception) {
+            log_message('error', 'Akun import preview failed: ' . $exception->getMessage());
+            $result = ['valid' => [], 'errors' => [['row' => 0, 'message' => 'Workbook tidak dapat diproses.']], 'total' => 0];
+        } finally {
+            if (is_file($path)) unlink($path);
+        }
+        if (!$result['valid']) return $this->load->view('lpmpi/akun_import/preview', ['title' => 'Preview Import Master Akun - AMI', 'page_title' => 'Preview Import Master Akun', 'page_subtitle' => 'Data Pengguna / Import / Preview', 'active_menu' => 'users', 'token' => '', 'valid' => $result['valid'], 'errors' => $result['errors'], 'total' => $result['total']]);
+        $this->clear();
+        $basename = 'akun_import_preview_' . bin2hex(random_bytes(12)) . '.json';
+        $preview = $this->tmp() . $basename;
+        file_put_contents($preview, json_encode($result, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), LOCK_EX);
+        $token = bin2hex(random_bytes(16));
+        $this->session->set_userdata('akun_import_preview', ['user_id' => $this->_user_id(), 'basename' => $basename, 'sha256' => hash_file('sha256', $preview), 'created_at' => time(), 'token' => $token]);
+        $this->load->view('lpmpi/akun_import/preview', ['title' => 'Preview Import Master Akun - AMI', 'page_title' => 'Preview Import Master Akun', 'page_subtitle' => 'Data Pengguna / Import / Preview', 'active_menu' => 'users', 'token' => $token] + $result);
+    }
+
+    public function confirm()
+    {
+        $this->require_post();
+        $this->purge();
+        $meta = $this->session->userdata('akun_import_preview');
+        $path = is_array($meta) && isset($meta['basename']) ? $this->tmp() . basename($meta['basename']) : '';
+        if (!is_array($meta) || !hash_equals((string) ($meta['token'] ?? ''), (string) $this->input->post('token', TRUE)) || (int) ($meta['user_id'] ?? 0) !== $this->_user_id() || time() - (int) ($meta['created_at'] ?? 0) > 1800 || !is_file($path) || !hash_equals((string) $meta['sha256'], hash_file('sha256', $path))) return $this->fail('Preview tidak valid atau sudah kedaluwarsa.');
+        $claim = $this->tmp() . 'akun_import_claim_' . bin2hex(random_bytes(12)) . '.json';
+        if (!rename($path, $claim)) return $this->fail('Preview sedang tidak tersedia.');
+        $this->session->unset_userdata('akun_import_preview');
+        try {
+            $payload = json_decode(file_get_contents($claim), TRUE, 512, JSON_THROW_ON_ERROR);
+            $result = $this->service->confirm($payload['valid'] ?? []);
+        } catch (Throwable $exception) {
+            $result = ['success' => FALSE, 'message' => 'Import akun gagal diproses. Silakan unggah ulang preview.'];
+        } finally {
+            if (is_file($claim)) unlink($claim);
+        }
+        if (!$result['success']) return $this->fail($result['message']);
+        $this->load->view('lpmpi/akun_import/result', ['title' => 'Hasil Import Master Akun - AMI', 'page_title' => 'Hasil Import Master Akun', 'page_subtitle' => 'Data Pengguna / Import / Hasil', 'active_menu' => 'users', 'message' => $result['message'], 'created' => $result['created']]);
+    }
+
+    public function cancel() { $this->require_post(); $this->clear(); redirect('lpmpi/akun-import'); }
+    private function tmp() { $dir = private_storage_dir('tmp'); if (!is_dir($dir)) mkdir($dir, 0700, TRUE); return $dir; }
+    private function clear() { $meta = $this->session->userdata('akun_import_preview'); if (is_array($meta) && isset($meta['basename'])) { $path = $this->tmp() . basename($meta['basename']); if (is_file($path)) unlink($path); } $this->session->unset_userdata('akun_import_preview'); }
+    private function purge() { $dir = $this->tmp(); $cutoff = time() - 1800; foreach (['akun_import_preview_*.json', 'akun_import_claim_*.json'] as $pattern) foreach (glob($dir . $pattern, GLOB_NOSORT) ?: [] as $path) if (is_file($path) && filemtime($path) < $cutoff) unlink($path); }
+    private function fail($message) { $this->session->set_flashdata('error', $message); redirect('lpmpi/akun-import'); }
+    private function require_post() { if ($this->input->method(TRUE) !== 'POST') { show_error('Method tidak diizinkan.', 405, 'Method Not Allowed'); exit; } }
+    private function load_library() { require_once FCPATH . 'vendor/autoload.php'; }
+    private function upload_limit_bytes($category) { require_once APPPATH . 'services/Upload_size_settings_service.php'; return (int) Upload_size_settings_service::limit_bytes($category); }
+    private function limit_mib($bytes) { return (int) ($bytes / 1024 / 1024); }
+}

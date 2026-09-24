@@ -38,7 +38,7 @@ $icon = static function ($name) {
                 <div class="tw-min-w-0">
                     <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-2.5 tw-mb-2">
                         <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                            <?php echo html_escape($assignment->source_package_code); ?>
+                            <?php echo html_escape($assignment->source_standard_code); ?>
                         </span>
                         <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-slate-100 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-semibold tw-text-slate-700">
                             Auditor: <?php echo html_escape($assignment->auditor_name); ?>
@@ -57,7 +57,7 @@ $icon = static function ($name) {
                         </span>
                     </div>
                     <h1 class="tw-text-xl sm:tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 tw-m-0">
-                        <?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?>
+                        <?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?>
                     </h1>
                 </div>
 
@@ -68,7 +68,7 @@ $icon = static function ($name) {
                             <?php echo $icon('save'); ?>
                             <span>Simpan draft</span>
                         </button>
-                        <button type="button" id="spmi-final-submit" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>" class="tw-button-primary tw-text-xs">
+                        <button type="button" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>" class="spmi-final-submit tw-button-primary tw-text-xs">
                             <?php echo $icon('check'); ?>
                             <span><?php echo $assignment->submission_status === 'returned_for_revision' ? 'Kirim ulang revisi' : 'Submit sekali'; ?></span>
                         </button>
@@ -76,11 +76,6 @@ $icon = static function ($name) {
                 <?php endif; ?>
             </div>
 
-            <?php if (!empty($assignment->source_package_description)): ?>
-                <p class="tw-mt-3 tw-text-xs tw-leading-relaxed tw-text-slate-500 tw-m-0 tw-border-t tw-border-slate-100 tw-pt-3">
-                    <?php echo nl2br(html_escape($assignment->source_package_description)); ?>
-                </p>
-            <?php endif; ?>
 
             <!-- Status Banner: Returned for Revision Prominence -->
             <?php if ($assignment->submission_status === 'returned_for_revision'): ?>
@@ -135,7 +130,7 @@ $icon = static function ($name) {
                     <div class="tw-border-b tw-border-slate-100 tw-bg-slate-50/70 tw-p-5 tw-flex tw-items-center tw-justify-between tw-gap-3">
                         <div class="tw-flex tw-items-center tw-gap-2.5">
                             <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-white tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                                Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->question_code); ?>
+Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->indicator_code); ?>
                             </span>
                             <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-slate-100 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-medium tw-text-slate-600">
                                 Kebijakan: <?php echo html_escape($clean_policy); ?>
@@ -151,9 +146,8 @@ $icon = static function ($name) {
                                 <span class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-400 tw-mb-1">
                                     Pertanyaan Standar:
                                 </span>
-                                <h3><?php echo html_escape((string) $item->display_order . '. ' . $item->question_code); ?></h3>
+<h3><?php echo html_escape((string) $item->display_order . '. ' . $item->indicator_code . ' — ' . $item->indicator_title); ?></h3>
                                 <p class="tw-text-sm tw-text-slate-800 tw-leading-relaxed tw-mt-1 tw-mb-0">
-                                    <?php echo nl2br(html_escape($item->question_text)); ?>
                                 </p>
                             </div>
 
@@ -207,7 +201,7 @@ $icon = static function ($name) {
                                         <label for="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700">
                                             File bukti
                                         </label>
-                                        <span class="tw-text-[11px] tw-text-slate-400">PDF, JPG, PNG (Maks 5 MiB, maks 5 file)</span>
+                                        <span class="tw-text-[11px] tw-text-slate-400">PDF, JPG, PNG (Maks <?php echo html_escape((string) $upload_limit_mib); ?> MiB, maks 5 file)</span>
                                     </div>
 
                                     <!-- Upload Form Trigger -->
@@ -219,9 +213,10 @@ $icon = static function ($name) {
 
                                         <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center tw-gap-2 tw-mb-3">
                                             <input class="form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-2.5 tw-py-1.5 tw-text-xs tw-text-slate-700" type="file" id="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>">
-                                            <button type="submit" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>" class="tw-button-secondary tw-text-xs tw-whitespace-nowrap">
-                                                <?php echo $icon('upload-cloud'); ?>
-                                                <span>Upload bukti item <?php echo html_escape((string) $item->display_order); ?></span>
+                                            <span data-evidence-selection-status role="status" aria-live="polite" class="tw-text-xs tw-text-slate-500">Belum ada file dipilih.</span>
+                                             <button type="submit" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>" class="tw-button-secondary tw-text-xs tw-whitespace-nowrap">
+                                                 <?php echo $icon('upload-cloud'); ?>
+                                                 <span>Upload bukti item <?php echo html_escape((string) $item->display_order); ?></span>
                                             </button>
                                         </div>
                                         <span role="alert" data-evidence-upload-error class="tw-block tw-text-xs tw-text-red-600 tw-mb-2"></span>
@@ -271,7 +266,7 @@ $icon = static function ($name) {
                     <?php echo $icon('save'); ?>
                     <span>Simpan draft</span>
                 </button>
-                <button type="button" id="spmi-final-submit" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>" class="tw-button-primary">
+                <button type="button" data-confirm-url="<?php echo html_escape(site_url('auditee/spmi/assignment/' . (int) $assignment->id . '/confirm')); ?>" class="spmi-final-submit tw-button-primary">
                     <?php echo $icon('check'); ?>
                     <span><?php echo $assignment->submission_status === 'returned_for_revision' ? 'Kirim ulang revisi' : 'Submit sekali'; ?></span>
                 </button>
@@ -279,15 +274,17 @@ $icon = static function ($name) {
             <?php echo form_close(); ?><script>
             (function () {
                 var form = document.getElementById('spmi-realization-form');
-                var finalButton = document.getElementById('spmi-final-submit');
-                if (!form || !finalButton) return;
-                finalButton.addEventListener('click', function () {
-                    var query = new URLSearchParams();
-                    query.append('version', form.elements.version.value);
-                    form.querySelectorAll('[name^="realization["], [name^="evidence_url["]').forEach(function (field) {
-                        query.append(field.name, field.value);
+                var finalButtons = document.querySelectorAll('.spmi-final-submit');
+                if (!form || !finalButtons.length) return;
+                finalButtons.forEach(function (finalButton) {
+                    finalButton.addEventListener('click', function () {
+                        var query = new URLSearchParams();
+                        query.append('version', form.elements.version.value);
+                        form.querySelectorAll('[name^="realization["], [name^="evidence_url["]').forEach(function (field) {
+                            query.append(field.name, field.value);
+                        });
+                        window.location.href = finalButton.getAttribute('data-confirm-url') + '?' + query.toString();
                     });
-                    window.location.href = finalButton.getAttribute('data-confirm-url') + '?' + query.toString();
                 });
             }());
             </script>
@@ -308,11 +305,17 @@ $icon = static function ($name) {
             (function () {
                 var forms = document.querySelectorAll('form[id^="spmi-evidence-upload-"]');
                 forms.forEach(function (uploadForm) {
+                    var fileInput = document.querySelector('input[type="file"][form="' + uploadForm.id + '"]');
+                    var item = fileInput ? fileInput.closest('article') : null;
+                    var selectionStatus = item ? item.querySelector('[data-evidence-selection-status]') : null;
+                    if (fileInput) {
+                        fileInput.addEventListener('change', function () {
+                            if (selectionStatus) selectionStatus.textContent = fileInput.files.length ? fileInput.files[0].name : 'Belum ada file dipilih.';
+                        });
+                    }
                     uploadForm.addEventListener('submit', function (event) {
                         event.preventDefault();
                         var button = document.querySelector('button[form="' + uploadForm.id + '"]');
-                        var fileInput = document.querySelector('input[type="file"][form="' + uploadForm.id + '"]');
-                        var item = fileInput ? fileInput.closest('article') : null;
                         var error = item ? item.querySelector('[data-evidence-upload-error]') : null;
                         if (!fileInput || !fileInput.files.length) return;
                         if (button) button.disabled = true;
@@ -363,6 +366,7 @@ $icon = static function ($name) {
                                 var evidenceList = item ? item.querySelector('ul') : null;
                                 if (evidenceList) evidenceList.appendChild(entry);
                                 fileInput.value = '';
+                                if (selectionStatus) selectionStatus.textContent = 'Bukti berhasil diunggah: ' + evidence.original_name;
                             })
                             .catch(function (uploadError) { if (error) error.textContent = uploadError.message; })
                             .finally(function () { if (button) button.disabled = false; });

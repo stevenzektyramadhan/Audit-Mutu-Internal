@@ -64,9 +64,10 @@ check(strpos($migration, 'INFORMATION_SCHEMA.COLUMNS') !== FALSE, 'Migration 010
 check(substr_count($migration, "CALL `ami_add_pertanyaan_column`") === 10, 'Migration 010 harus merekonsiliasi sepuluh kolom.');
 
 $helper = source($root, 'application/helpers/app_helper.php');
-check(strpos($helper, "['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos', 'spmi_source']") !== FALSE, 'Resolver harus membatasi kategori private.');
+check(strpos($helper, "['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos', 'spmi_source', 'ppepp_documents']") !== FALSE, 'Resolver harus membatasi kategori private termasuk PPEPP.');
 check(strpos($helper, 'basename($stored_name) !== $stored_name') !== FALSE, 'Resolver harus menolak path traversal.');
 check(strpos($helper, "FCPATH . 'uploads'") !== FALSE, 'Resolver harus mempertahankan fallback file lama.');
+check(strpos($helper, "['user_photos', 'spmi_source', 'ppepp_documents']") !== FALSE, 'Dokumen PPEPP tidak boleh fallback ke public uploads.');
 check(strpos(source($root, 'application/views/lpmpi/instrumen/index.php'), "base_url('uploads/instrumen/") === FALSE, 'View instrumen tidak boleh mengekspos URL private.');
 check(strpos(source($root, 'application/views/lpmpi/penetapan/index.php'), "base_url('uploads/penetapan/") === FALSE, 'View penetapan tidak boleh mengekspos URL private.');
 $apache_deny = "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n    Deny from all\n</IfModule>\n";
@@ -81,12 +82,14 @@ check(strpos(source($root, 'application/controllers/lpmpi/Penetapan.php'), 'exte
 
 $config = source($root, 'application/config/config.php');
 $readme = source($root, 'README.md');
+$env_example = source($root, '.env.example');
 check(strpos($config, "getenv('GOOGLE_DRIVE_EVIDENCE_FOLDER_ID')") !== FALSE, 'Config harus membaca folder Google Drive dari environment.');
 check(strpos($config, "getenv('GOOGLE_DRIVE_AUTH_MODE')") !== FALSE, 'Config harus membaca mode auth Google Drive dari environment.');
 check(strpos($config, "getenv('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH')") !== FALSE, 'Config harus membaca path service account Google Drive dari environment.');
 check(strpos($config, "getenv('GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH')") !== FALSE, 'Config harus membaca path OAuth client secret Google Drive dari environment.');
 check(strpos($config, "getenv('GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH')") !== FALSE, 'Config harus membaca path OAuth refresh token Google Drive dari environment.');
 check(strpos($config, "getenv('SPMI_EVIDENCE_STORAGE_BACKEND')") !== FALSE, 'Config harus membaca backend bukti SPMI dari environment.');
+check(strpos($config, "? trim($" . "spmi_evidence_storage_backend) : 'local'") !== FALSE, 'Config harus default ke local saat backend bukti SPMI tidak diset.');
 check(strpos($config, "in_array($" . "spmi_evidence_storage_backend, ['local', 'google_drive'], TRUE)") !== FALSE && strpos($config, ": 'local';") !== FALSE, 'Config harus allowlist backend bukti SPMI dan default aman ke lokal.');
 check(strpos($config, 'realpath($config[\'google_drive_service_account_json_path\'])') !== FALSE, 'Config produksi harus resolve path kredensial Google Drive.');
 check(strpos($config, 'strpos($google_drive_config_path . DIRECTORY_SEPARATOR, $google_drive_web_root . DIRECTORY_SEPARATOR) === 0') !== FALSE, 'Config produksi harus menolak kredensial Google Drive di bawah FCPATH.');
@@ -105,5 +108,15 @@ check(strpos($readme, 'minimal dua administrator pemulihan manusia') !== FALSE, 
 check(strpos($readme, 'backup dulu lalu jalankan migration `033_add_spmi_drive_evidence_metadata.sql` satu kali') !== FALSE, 'README handover harus meminta backup dan migration 033 sekali.');
 check(strpos($readme, '`spmi_drive_trash_outbox` masih manual') !== FALSE, 'README handover harus menjelaskan retry trash outbox manual.');
 check(strpos($readme, 'root `compose.yaml` tidak boleh memuat secret Drive production') !== FALSE, 'README handover harus melarang secret Drive produksi di compose root.');
+check(trim(strtok($env_example, "\n")) === 'SPMI_EVIDENCE_STORAGE_BACKEND=local', '.env.example harus menetapkan backend bukti SPMI local secara eksplisit.');
+foreach (['GOOGLE_DRIVE_AUTH_MODE', 'GOOGLE_DRIVE_EVIDENCE_FOLDER_ID', 'GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH', 'GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH', 'GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH'] as $env_key) {
+    check(strpos($env_example, '# ' . $env_key . '=') !== FALSE, '.env.example harus mengomentari optional ' . $env_key . '.');
+    check(strpos($env_example, "\n" . $env_key . '=') === FALSE, '.env.example tidak boleh mengaktifkan ' . $env_key . ' secara default.');
+}
+check(strpos($readme, 'Query ini hanya `SELECT`; tidak melakukan migration, update, delete, operasi file, atau trash action.') !== FALSE, 'README harus menyatakan preflight Drive metadata bersifat read-only tanpa mutasi atau operasi file/trash.');
+check(strpos($readme, "SELECT 'spmi_auditee_evidence' AS source_table") !== FALSE, 'README preflight harus melaporkan metadata Drive auditee.');
+check(strpos($readme, "SELECT 'spmi_auditor_assessment_evidence' AS source_table") !== FALSE, 'README preflight harus melaporkan metadata Drive auditor.');
+check(strpos($readme, "SELECT 'spmi_drive_trash_outbox' AS source_table") !== FALSE, 'README preflight harus melaporkan outbox trash Drive.');
+check(strpos($readme, 'Migration `033_add_spmi_drive_evidence_metadata.sql` juga tidak dapat membuktikan bukti yang dibuat sebelum metadata Drive tersedia.') !== FALSE, 'README harus menyatakan migration 033 tidak membuktikan bukti sebelum metadata.');
 
 fwrite(STDOUT, "Hardening regression checks passed.\n");

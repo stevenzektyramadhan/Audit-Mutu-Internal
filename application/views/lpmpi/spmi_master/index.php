@@ -134,6 +134,7 @@
                     <input class="spmi-master-actions__file-input" id="master-file-<?php echo (int) $version->id; ?>" type="file" name="master_file" accept=".xlsx" required aria-describedby="master-file-name-<?php echo (int) $version->id; ?>">
                     <label class="spmi-master-actions__file-label" for="master-file-<?php echo (int) $version->id; ?>">Pilih File</label>
                     <span class="spmi-master-actions__filename" id="master-file-name-<?php echo (int) $version->id; ?>" aria-live="polite">Belum ada file dipilih</span>
+                    <span class="spmi-master-actions__filename">Maks <?php echo html_escape((string) $upload_limit_mib); ?> MiB</span>
                     <button class="btn-ami btn-sm btn-primary spmi-master-actions__submit" type="submit" disabled>Unggah &amp; Preview</button>
                 </div>
             <?php echo form_close(); ?>

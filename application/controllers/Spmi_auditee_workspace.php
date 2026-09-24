@@ -40,6 +40,7 @@ class Spmi_auditee_workspace extends CI_Controller
         if (!$workspace) { show_error('Penugasan tidak ditemukan.', 404, 'Not Found'); return; }
         $attention_count = $this->service->attention_count($user_id);
         $workspace['title'] = 'Workspace SPMI'; $workspace['page_title'] = 'Workspace SPMI'; $workspace['page_subtitle'] = 'Beranda / Workspace SPMI / Penugasan'; $workspace['active_menu'] = 'spmi_workspace';
+        $workspace['upload_limit_mib'] = $this->service->upload_limit_mib();
         $workspace['menu_badges'] = ['spmi_workspace' => $attention_count, 'spmi_auditee_dashboard' => $attention_count];
         $this->load->view('spmi_auditee_workspace/assignment', $workspace);
     }

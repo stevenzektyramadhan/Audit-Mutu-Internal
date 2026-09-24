@@ -16,6 +16,7 @@ $views = [
     spmi_indicator_source('application/views/lpmpi/spmi_indicators/indicator_detail.php'),
     spmi_indicator_source('application/views/lpmpi/spmi_indicators/target_form.php'),
 ];
+$indicator_form = $views[1];
 
 foreach (['spmi_indicators', 'spmi_indicator_targets', "ENUM('IKU','IKT')", 'VARCHAR(64)', 'VARCHAR(200)', 'TEXT NOT NULL', 'UNIQUE KEY', 'ON DELETE RESTRICT', 'scope_organization_unit_id', 'responsible_organization_unit_id'] as $literal) spmi_indicator_check(strpos($migration, $literal) !== FALSE, 'Migration contract missing: ' . $literal);
 foreach (['current parity migration 001-018', 'spmi_indicators', 'spmi_indicator_targets', 'uq_spmi_indicators_standard_code', 'uq_spmi_indicator_targets_indicator_year'] as $literal) spmi_indicator_check(strpos($schema, $literal) !== FALSE, 'Schema parity missing: ' . $literal);
@@ -33,5 +34,12 @@ spmi_indicator_check(strpos($controller, "redirect('lpmpi/spmi-standards')") !==
 spmi_indicator_check(strpos($routes, '$route[\'lpmpi/spmi-indicators\'] = \'lpmpi/Spmi_indicators/index\';') !== FALSE, 'Route missing.');
 spmi_indicator_check(strpos($sidebar, "'key' => 'spmi_indicators'") === FALSE, 'M4 sidebar entry must be removed.');
 spmi_indicator_check(strpos($views[2], 'html_escape') !== FALSE, 'M4 view must escape output.');
+foreach (['form_open($action)', 'name="indicator_code"', 'name="indicator_type"', 'name="title"', 'name="scope_organization_unit_id"', 'name="responsible_organization_unit_id"', 'name="responsible_pic_name"', 'name="evidence_requirement"', 'name="evidence_policy"'] as $literal) spmi_indicator_check(strpos($indicator_form, $literal) !== FALSE, 'Indicator form protocol missing: ' . $literal);
+foreach (["html_escape(set_value('indicator_code'", "html_escape(set_value('title'", "html_escape(set_value('responsible_pic_name'", "html_escape(set_value('evidence_requirement'"] as $literal) spmi_indicator_check(strpos($indicator_form, $literal) !== FALSE, 'Indicator form sticky value escaping missing: ' . $literal);
+foreach (['value="none"', 'value="file"', 'value="url"', 'value="either"', 'value="both"'] as $literal) spmi_indicator_check(strpos($indicator_form, $literal) !== FALSE, 'Indicator form evidence policy option missing: ' . $literal);
+foreach (['lpmpi/spmi-indicators/indicator/detail/', 'lpmpi/spmi-standards', '$is_edit', '$indicator->indicator_code', '$indicator->evidence_policy', 'Batal', 'Simpan Indikator', 'type="submit"'] as $literal) spmi_indicator_check(strpos($indicator_form, $literal) !== FALSE, 'Indicator form action semantics missing: ' . $literal);
+foreach (['maxlength="64"', 'maxlength="200"', 'name="indicator_code"', 'name="indicator_type"', 'name="title"', 'name="scope_organization_unit_id"', 'name="responsible_organization_unit_id"', 'name="evidence_requirement"', 'name="evidence_policy"', 'required'] as $literal) spmi_indicator_check(strpos($indicator_form, $literal) !== FALSE, 'Indicator form validation attribute missing: ' . $literal);
+foreach (['std-form-shell', 'std-form-header', 'std-back-link', 'std-error', 'std-form-section', 'std-form-section-heading', 'std-form-grid', 'std-form-grid-compact', 'std-form-field', 'std-label', 'std-control', 'std-control-textarea', 'std-form-actions', 'aria-labelledby="indicator-information-heading"', 'aria-labelledby="scope-responsibility-heading"', 'aria-labelledby="evidence-requirements-heading"', 'role="alert"', 'aria-live="polite"'] as $literal) spmi_indicator_check(strpos($indicator_form, $literal) !== FALSE, 'Indicator form standards primitive missing: ' . $literal);
+foreach (['class="form-shell"', 'class="form-header"', 'class="form-section"', 'class="form-section-heading"', 'class="form-subtitle"', 'class="org-', 'style='] as $literal) spmi_indicator_check(strpos($indicator_form, $literal) === FALSE, 'Indicator form retains mismatched styling hook: ' . $literal);
 
 fwrite(STDOUT, "SPMI indicators regression checks passed.\n");

@@ -29,7 +29,7 @@ class Spmi_standards extends Admin_Lpmpi_Controller
     {
         $version = $this->service->version($id);
         if (!$version) show_error('Versi tidak ditemukan.', 404, 'Not Found');
-        $this->render('version_detail', ['title' => 'Detail Versi SPMI', 'page_title' => 'Versi Standar SPMI', 'page_subtitle' => 'Beranda / Standar SPMI / Detail', 'active_menu' => 'spmi_standards', 'version' => $version, 'standards' => $this->service->standards($id), 'mutable' => $this->service->is_mutable($version), 'transitions' => isset(Spmi_standards_service::TRANSITIONS[$version->status]) ? Spmi_standards_service::TRANSITIONS[$version->status] : []]);
+        $this->render('version_detail', ['title' => 'Detail Versi SPMI', 'page_title' => 'Versi Standar SPMI', 'page_subtitle' => 'Beranda / Standar SPMI / Detail', 'active_menu' => 'spmi_standards', 'version' => $version, 'standards' => $this->service->standards($id), 'mutable' => $this->service->is_mutable($version), 'transitions' => isset(Spmi_standards_service::TRANSITIONS[$version->status]) ? Spmi_standards_service::TRANSITIONS[$version->status] : [], 'source_pdf_limit_mib' => $this->limit_mib($this->upload_limit_bytes('spmi_source_pdf'))]);
     }
     public function version_edit($id)
     {
@@ -58,7 +58,7 @@ class Spmi_standards extends Admin_Lpmpi_Controller
         $dir = private_storage_dir('spmi_source');
         if (!is_dir($dir) && !mkdir($dir, 0755, TRUE)) { $this->flash_redirect(['success' => FALSE, 'message' => 'Folder sumber tidak dapat dibuat.'], 'lpmpi/spmi-standards/version/detail/' . (int) $id); return; }
         $this->load->library('upload');
-        $this->upload->initialize(['upload_path' => $dir, 'allowed_types' => 'pdf', 'max_size' => 5120, 'file_name' => 'spmi_' . (int) $id . '_' . bin2hex(random_bytes(8)), 'overwrite' => FALSE, 'remove_spaces' => TRUE]);
+        $this->upload->initialize(['upload_path' => $dir, 'allowed_types' => 'pdf', 'max_size' => (int) ($this->upload_limit_bytes('spmi_source_pdf') / 1024), 'file_name' => 'spmi_' . (int) $id . '_' . bin2hex(random_bytes(8)), 'overwrite' => FALSE, 'remove_spaces' => TRUE]);
         if (!$this->upload->do_upload('source_pdf')) { $this->flash_redirect(['success' => FALSE, 'message' => strip_tags($this->upload->display_errors('', ''))], 'lpmpi/spmi-standards/version/detail/' . (int) $id); return; }
         $new_file = $this->upload->data('file_name');
         $result = $this->service->set_source($id, $new_file);
@@ -114,4 +114,6 @@ class Spmi_standards extends Admin_Lpmpi_Controller
     private function flash_redirect($result, $uri) { $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']); redirect($uri); }
     private function readonly_error() { $this->session->set_flashdata('error', 'Versi approved, active, dan retired bersifat hanya-baca.'); redirect('lpmpi/spmi-standards'); }
     private function require_post() { if ($this->input->method(TRUE) !== 'POST') { show_error('Method tidak diizinkan.', 405, 'Method Not Allowed'); exit; } }
+    private function upload_limit_bytes($category) { require_once APPPATH . 'services/Upload_size_settings_service.php'; return (int) Upload_size_settings_service::limit_bytes($category); }
+    private function limit_mib($bytes) { return (int) ($bytes / 1024 / 1024); }
 }

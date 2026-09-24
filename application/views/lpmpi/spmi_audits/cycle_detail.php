@@ -3,8 +3,6 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
 $academic_year = isset($cycle->academic_year) ? trim((string) $cycle->academic_year) : '';
-$semester = isset($cycle->semester) ? strtolower(trim((string) $cycle->semester)) : '';
-$academic_period = ($academic_year !== '' && in_array($semester, ['ganjil', 'genap'], TRUE)) ? $academic_year . ' — ' . ucfirst($semester) : 'Periode akademik belum dicatat';
 $mutable = $cycle->state === 'draft';
 ?>
 <main id="audits-root" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
@@ -13,7 +11,7 @@ $mutable = $cycle->state === 'draft';
       <div>
         <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Siklus SPMI</p>
         <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950"><?php echo html_escape($cycle->cycle_code . ' — ' . $cycle->title); ?></h1>
-        <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Periode akademik: <?php echo html_escape($academic_year !== '' && in_array($semester, ['ganjil', 'genap'], TRUE) ? $academic_year . ' — ' . ucfirst($semester) : ($academic_period ?? 'Periode akademik belum dicatat')); ?></p>
+        <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Periode akademik: <?php echo html_escape($academic_year !== '' ? $academic_year : 'Periode akademik belum dicatat'); ?></p>
       </div>
       <?php if ($mutable): ?>
         <div class="tw-flex tw-flex-wrap tw-gap-2">
@@ -99,7 +97,7 @@ $mutable = $cycle->state === 'draft';
       <section id="assignments" class="tw-mt-0">
         <div class="tw-mb-4">
           <h2 class="tw-text-xl tw-font-bold tw-text-slate-950">Assignments</h2>
-          <p class="tw-mt-1 tw-text-sm tw-text-slate-500">Identity snapshot dari paket, auditor, dan auditee.</p>
+          <p class="tw-mt-1 tw-text-sm tw-text-slate-500">Identity snapshot dari standar, auditor, dan auditee.</p>
         </div>
         <?php if (empty($assignments)): ?>
           <div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">Belum ada snapshot penugasan.</div>
@@ -109,8 +107,8 @@ $mutable = $cycle->state === 'draft';
               <article class="tw-rounded-xl tw-border tw-border-slate-200 tw-bg-white tw-p-5">
                 <div class="tw-flex tw-flex-col tw-gap-3 md:tw-flex-row md:tw-items-start md:tw-justify-between">
                   <div>
-                    <p class="tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Paket snapshot</p>
-                    <h3 class="tw-mt-1 tw-font-bold tw-text-slate-950"><?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?></h3>
+                    <p class="tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Standar snapshot</p>
+                    <h3 class="tw-mt-1 tw-font-bold tw-text-slate-950"><?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?></h3>
                     <p class="tw-mt-3 tw-text-sm tw-text-slate-600">Auditor: <?php echo html_escape($assignment->auditor_name); ?> · Auditee: <?php echo html_escape($assignment->auditee_name); ?></p>
                   </div>
                   <div class="tw-flex tw-flex-wrap tw-gap-3">

@@ -14,6 +14,9 @@
 -- current parity migration 001-031
 -- current parity migration 001-032
 -- current parity migration 001-033
+-- current parity migration 001-036
+-- current parity migration 001-039
+-- current parity migration 001-040
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -22,12 +25,15 @@ CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `nama` VARCHAR(100) NOT NULL,
     `email` VARCHAR(100) NOT NULL UNIQUE,
+    `identity_number` VARCHAR(32) NULL,
     `password` VARCHAR(255) NOT NULL,
+    `must_change_password` TINYINT(1) NOT NULL DEFAULT 0,
     `role` ENUM('super_admin','admin_lpmpi','auditor','auditee') NOT NULL,
     `nama_unit` VARCHAR(100) NULL,
     `jenis_unit` ENUM('prodi','unit','lembaga') NULL,
     `profile_photo_path` VARCHAR(255) NULL,
-    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_users_identity_number` (`identity_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
@@ -40,6 +46,17 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
     UNIQUE KEY `uq_password_reset_tokens_hash` (`token_hash`),
     KEY `idx_password_reset_tokens_user_active` (`user_id`, `consumed_at`, `expires_at`),
     CONSTRAINT `fk_password_reset_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `login_rate_limit_buckets` (
+    `scope` ENUM('identity','ip') NOT NULL,
+    `key_hash` CHAR(64) NOT NULL,
+    `window_started_at` DATETIME NOT NULL,
+    `failure_count` SMALLINT UNSIGNED NOT NULL,
+    `blocked_until` DATETIME NULL DEFAULT NULL,
+    `updated_at` DATETIME NOT NULL,
+    PRIMARY KEY (`scope`, `key_hash`),
+    KEY `idx_login_rate_limit_buckets_window` (`window_started_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `periode_audit` (
@@ -277,6 +294,7 @@ CREATE TABLE IF NOT EXISTS `spmi_indicators` (
     `responsible_organization_unit_id` INT NOT NULL,
     `responsible_pic_name` VARCHAR(200) NULL,
     `evidence_requirement` TEXT NOT NULL,
+    `evidence_policy` ENUM('none','file','url','either','both') NOT NULL DEFAULT 'none',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_indicators_standard_code` (`standard_id`, `indicator_code`),
@@ -298,49 +316,7 @@ CREATE TABLE IF NOT EXISTS `spmi_indicator_targets` (
     CONSTRAINT `fk_spmi_indicator_targets_indicator` FOREIGN KEY (`indicator_id`) REFERENCES `spmi_indicators` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `spmi_instrument_packages` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `standard_id` INT NOT NULL,
-    `package_code` VARCHAR(64) NOT NULL,
-    `display_order` INT NOT NULL,
-    `title` VARCHAR(200) NOT NULL,
-    `description` TEXT NULL,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY `uq_spmi_instrument_packages_standard_code` (`standard_id`, `package_code`),
-    UNIQUE KEY `uq_spmi_instrument_packages_standard_order` (`standard_id`, `display_order`),
-    CONSTRAINT `fk_spmi_instrument_packages_standard` FOREIGN KEY (`standard_id`) REFERENCES `spmi_standards` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `spmi_instrument_questions` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `package_id` INT NOT NULL,
-    `indicator_id` INT NOT NULL,
-    `question_code` VARCHAR(64) NOT NULL,
-    `display_order` INT NOT NULL,
-    `question_text` TEXT NOT NULL,
-    `evidence_instruction` TEXT NOT NULL,
-    `evidence_policy` ENUM('none','file','url','either','both') NOT NULL DEFAULT 'none',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY `uq_spmi_instrument_questions_package_code` (`package_id`, `question_code`),
-    UNIQUE KEY `uq_spmi_instrument_questions_package_order` (`package_id`, `display_order`),
-    CONSTRAINT `fk_spmi_instrument_questions_package` FOREIGN KEY (`package_id`) REFERENCES `spmi_instrument_packages` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT `fk_spmi_instrument_questions_indicator` FOREIGN KEY (`indicator_id`) REFERENCES `spmi_indicators` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `spmi_instrument_rubrics` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `question_id` INT NOT NULL,
-    `score` TINYINT UNSIGNED NOT NULL,
-    `descriptor` TEXT NOT NULL,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY `uq_spmi_instrument_rubrics_question_score` (`question_id`, `score`),
-    CONSTRAINT `fk_spmi_instrument_rubrics_question` FOREIGN KEY (`question_id`) REFERENCES `spmi_instrument_questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-/* Migrations 001-019 parity retained; Migrations 017-019 add isolated SPMI workspaces. */
+/* Current parity migration 001-035; versioned SPMI instruments are retired. */
 CREATE TABLE IF NOT EXISTS `spmi_audit_cycles` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `cycle_code` VARCHAR(64) NOT NULL,
@@ -362,7 +338,6 @@ CREATE TABLE IF NOT EXISTS `spmi_audit_cycles` (
 CREATE TABLE IF NOT EXISTS `spmi_audit_assignments` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `cycle_id` INT NOT NULL,
-    `source_package_id` INT NOT NULL,
     `auditor_id` INT NOT NULL,
     `auditee_id` INT NOT NULL,
     `created_by` INT NOT NULL,
@@ -372,20 +347,16 @@ CREATE TABLE IF NOT EXISTS `spmi_audit_assignments` (
     `source_standard_id` INT NOT NULL,
     `source_standard_code` VARCHAR(64) NOT NULL,
     `source_standard_title` VARCHAR(200) NOT NULL,
-    `source_package_code` VARCHAR(64) NOT NULL,
-    `source_package_title` VARCHAR(200) NOT NULL,
-    `source_package_description` TEXT NULL,
     `auditor_name` VARCHAR(200) NOT NULL,
     `auditor_email` VARCHAR(255) NOT NULL,
     `auditee_name` VARCHAR(200) NOT NULL,
     `auditee_email` VARCHAR(255) NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY `uq_spmi_audit_assignments_tuple` (`cycle_id`, `source_package_id`, `auditor_id`, `auditee_id`),
+    UNIQUE KEY `uq_spmi_audit_assignments_tuple` (`cycle_id`, `source_standard_id`, `auditor_id`, `auditee_id`),
     KEY `idx_spmi_audit_assignments_cycle` (`cycle_id`),
     KEY `idx_spmi_audit_assignments_auditor` (`auditor_id`),
     KEY `idx_spmi_audit_assignments_auditee` (`auditee_id`),
     CONSTRAINT `fk_spmi_audit_assignments_cycle` FOREIGN KEY (`cycle_id`) REFERENCES `spmi_audit_cycles` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT `fk_spmi_audit_assignments_package` FOREIGN KEY (`source_package_id`) REFERENCES `spmi_instrument_packages` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_audit_assignments_auditor` FOREIGN KEY (`auditor_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_audit_assignments_auditee` FOREIGN KEY (`auditee_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_audit_assignments_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -396,20 +367,15 @@ CREATE TABLE IF NOT EXISTS `spmi_audit_assignments` (
 CREATE TABLE IF NOT EXISTS `spmi_audit_assignment_items` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `assignment_id` INT NOT NULL,
-    `source_question_id` INT NOT NULL,
     `source_indicator_id` INT NOT NULL,
     `display_order` INT NOT NULL,
-    `question_code` VARCHAR(64) NOT NULL,
-    `question_text` TEXT NOT NULL,
     `evidence_instruction` TEXT NOT NULL,
     `evidence_policy` ENUM('none','file','url','either','both') NOT NULL DEFAULT 'none',
     `indicator_code` VARCHAR(64) NOT NULL,
     `indicator_title` VARCHAR(200) NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_audit_assignment_items_order` (`assignment_id`, `display_order`),
-    UNIQUE KEY `uq_spmi_audit_assignment_items_question` (`assignment_id`, `source_question_id`),
     CONSTRAINT `fk_spmi_audit_assignment_items_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `spmi_audit_assignments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT `fk_spmi_audit_assignment_items_question` FOREIGN KEY (`source_question_id`) REFERENCES `spmi_instrument_questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_audit_assignment_items_indicator` FOREIGN KEY (`source_indicator_id`) REFERENCES `spmi_indicators` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -557,25 +523,29 @@ CREATE TABLE IF NOT EXISTS `spmi_drive_trash_outbox` (
 
 CREATE TABLE IF NOT EXISTS `spmi_reports` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `assessment_id` INT NOT NULL,
+    `assessment_id` INT NULL,
     `report_number` VARCHAR(128) NOT NULL,
+    `report_scope` ENUM('standard','version') NOT NULL DEFAULT 'standard',
+    `source_cycle_id` INT NULL,
     `cycle_code_snapshot` VARCHAR(64) NOT NULL,
     `cycle_title_snapshot` VARCHAR(200) NOT NULL,
     `cycle_start_date_snapshot` DATE NOT NULL,
     `cycle_end_date_snapshot` DATE NOT NULL,
     `source_version_code_snapshot` VARCHAR(64) NOT NULL,
     `source_version_title_snapshot` VARCHAR(200) NOT NULL,
-    `source_standard_code_snapshot` VARCHAR(64) NOT NULL,
-    `source_standard_title_snapshot` VARCHAR(200) NOT NULL,
-    `source_package_code_snapshot` VARCHAR(64) NOT NULL,
-    `source_package_title_snapshot` VARCHAR(200) NOT NULL,
+    `source_version_id` INT NULL,
+    `source_standard_code_snapshot` VARCHAR(64) NULL,
+    `source_standard_title_snapshot` VARCHAR(200) NULL,
     `auditor_name_snapshot` VARCHAR(200) NOT NULL,
+    `auditor_id_snapshot` INT NULL,
     `auditee_name_snapshot` VARCHAR(200) NOT NULL,
+    `auditee_id_snapshot` INT NULL,
     `assessment_finalized_at_snapshot` DATETIME NOT NULL,
     `generated_by` INT NOT NULL,
     `generated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_reports_assessment` (`assessment_id`),
     UNIQUE KEY `uq_spmi_reports_report_number` (`report_number`),
+    UNIQUE KEY `uq_spmi_reports_version_tuple` (`source_cycle_id`, `source_version_id`, `auditor_id_snapshot`, `auditee_id_snapshot`, `report_scope`),
     CONSTRAINT `fk_spmi_reports_assessment` FOREIGN KEY (`assessment_id`) REFERENCES `spmi_auditor_assessments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_reports_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -583,9 +553,12 @@ CREATE TABLE IF NOT EXISTS `spmi_reports` (
 CREATE TABLE IF NOT EXISTS `spmi_report_items` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `report_id` INT NOT NULL,
+    `source_standard_id` INT NULL,
+    `source_standard_code_snapshot` VARCHAR(64) NULL,
+    `source_standard_title_snapshot` VARCHAR(200) NULL,
+    `source_standard_display_order` INT NULL,
     `display_order` INT NOT NULL,
-    `question_code_snapshot` VARCHAR(64) NOT NULL,
-    `question_text_snapshot` TEXT NOT NULL,
+    `standard_item_display_order` INT NULL,
     `indicator_code_snapshot` VARCHAR(64) NOT NULL,
     `indicator_title_snapshot` VARCHAR(200) NOT NULL,
     `realization_snapshot` TEXT NOT NULL,
@@ -691,6 +664,47 @@ CREATE TABLE IF NOT EXISTS `spmi_rtm_follow_ups` (
     CONSTRAINT `fk_spmi_rtm_follow_ups_completed_by` FOREIGN KEY (`completed_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_rtm_follow_ups_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `spmi_ppepp_documents` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `stage` ENUM('penetapan','pelaksanaan','pengendalian','peningkatan') NOT NULL,
+    `category` VARCHAR(64) NOT NULL,
+    `period_year` SMALLINT UNSIGNED NOT NULL,
+    `title` VARCHAR(200) NOT NULL,
+    `description` TEXT NULL,
+    `document_date` DATE NULL,
+    `stored_name` VARCHAR(255) NULL,
+    `original_name` VARCHAR(255) NULL,
+    `mime_type` VARCHAR(127) NULL,
+    `file_size` INT UNSIGNED NULL,
+    `external_url` VARCHAR(500) NULL,
+    `uploaded_by` INT NOT NULL,
+    `updated_by` INT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_spmi_ppepp_documents_stage_year` (`stage`, `period_year`),
+    KEY `idx_spmi_ppepp_documents_category` (`category`),
+    UNIQUE KEY `uq_spmi_ppepp_documents_stored_name` (`stored_name`),
+    CONSTRAINT `fk_spmi_ppepp_documents_uploaded_by` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `fk_spmi_ppepp_documents_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `spmi_upload_size_settings` (
+    `category` VARCHAR(64) NOT NULL PRIMARY KEY,
+    `label` VARCHAR(100) NOT NULL,
+    `limit_mib` TINYINT UNSIGNED NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `chk_spmi_upload_size_settings_limit` CHECK (`limit_mib` BETWEEN 1 AND 10)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `spmi_upload_size_settings` (`category`, `label`, `limit_mib`) VALUES
+('spmi_evidence', 'Bukti SPMI', 5),
+('ppepp_documents', 'Dokumen PPEPP', 10),
+('profile_photos', 'Foto Profil', 2),
+('spreadsheet_imports', 'Import Spreadsheet', 2),
+('spmi_source_pdf', 'PDF Sumber SPMI', 5),
+('institution_logo', 'Logo Lembaga', 4);
 
 CREATE TABLE IF NOT EXISTS `legacy_ami_archive_runs` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,

@@ -22,7 +22,7 @@ $role_options = $actor_role === 'super_admin'
                 </a>
                 <p class="users-eyebrow">Direktori akses</p>
                 <h1 class="users-heading">Tambah Pengguna Baru</h1>
-                <p class="form-subtitle">Buat akun untuk mengatur akses ke sistem Audit Mutu Internal.</p>
+                <p class="form-subtitle">Buat akun untuk mengatur akses ke sistem Audit Mutu Internal. Penempatan unit organisasi dilakukan setelah akun dibuat melalui tab Penempatan.</p>
             </div>
 
             <?php if (validation_errors()): ?>
@@ -66,32 +66,22 @@ $role_options = $actor_role === 'super_admin'
                         <svg class="users-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M12 3 4 7v5c0 4.4 3.4 7.7 8 9 4.6-1.3 8-4.6 8-9V7l-8-4Z"/><path d="m9 12 2 2 4-4"/>
                         </svg>
-                        <span><strong>Hak Akses</strong><small>Tentukan peran dan unit kerja pengguna.</small></span>
+                        <span><strong>Hak Akses</strong><small>Tentukan peran akun pengguna.</small></span>
                     </div>
                     <div class="users-form-grid">
                         <div class="form-field">
                             <label for="role" class="users-label">Role Pengguna</label>
-                            <select class="users-control" id="role" name="role" required data-role-select>
+                            <select class="users-control" id="role" name="role" required>
                                 <option value="">Pilih role...</option>
                                 <?php foreach ($role_options as $value => $label): ?>
                                     <option value="<?php echo html_escape($value); ?>" <?php echo set_select('role', $value); ?>><?php echo html_escape($label); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div data-unit-fields class="form-field-group tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
-                            <div>
-                                <label for="nama_unit" class="users-label">Unit</label>
-                                <input type="text" class="users-control" id="nama_unit" name="nama_unit" value="<?php echo html_escape(set_value('nama_unit')); ?>" placeholder="Contoh: Program Studi Informatika">
-                            </div>
-                            <div>
-                                <label for="jenis_unit" class="users-label">Jenis Unit</label>
-                                <select class="users-control" id="jenis_unit" name="jenis_unit">
-                                    <option value="">Pilih jenis unit...</option>
-                                    <option value="prodi" <?php echo set_select('jenis_unit', 'prodi'); ?>>Prodi</option>
-                                    <option value="unit" <?php echo set_select('jenis_unit', 'unit'); ?>>Unit</option>
-                                    <option value="lembaga" <?php echo set_select('jenis_unit', 'lembaga'); ?>>Lembaga</option>
-                                </select>
-                            </div>
+                        <div class="form-field">
+                            <label class="users-label">Penempatan Organisasi</label>
+                            <p class="users-muted tw-mb-2">Simpan akun terlebih dahulu, lalu kelola unit organisasi pengguna pada workflow terpisah.</p>
+                            <a href="<?php echo site_url('lpmpi/organization?tab=assignments'); ?>" class="users-button users-button-secondary tw-inline-flex tw-justify-center">Buka tab Penempatan</a>
                         </div>
                     </div>
                 </div>
@@ -104,25 +94,5 @@ $role_options = $actor_role === 'super_admin'
         </div>
     </section>
 </div>
-
-<script>
-(function () {
-    var roleSelect = document.querySelector('[data-role-select]');
-    var unitFields = document.querySelector('[data-unit-fields]');
-    var namaUnit = document.getElementById('nama_unit');
-    var jenisUnit = document.getElementById('jenis_unit');
-    if (!roleSelect || !unitFields || !namaUnit || !jenisUnit) return;
-    function syncUnitFields() {
-        var isAuditee = roleSelect.value === 'auditee';
-        unitFields.style.display = isAuditee ? '' : 'none';
-        namaUnit.required = isAuditee;
-        jenisUnit.required = isAuditee;
-        namaUnit.disabled = !isAuditee;
-        jenisUnit.disabled = !isAuditee;
-    }
-    roleSelect.addEventListener('change', syncUnitFields);
-    syncUnitFields();
-}());
-</script>
 
 <?php include APPPATH . 'views/layouts/footer.php'; ?>

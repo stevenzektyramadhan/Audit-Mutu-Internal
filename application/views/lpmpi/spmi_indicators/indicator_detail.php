@@ -17,6 +17,7 @@ $icon = static function ($name) {
 
 $type = strtoupper($indicator->indicator_type);
 $is_iku = $type === 'IKU';
+$evidence_policy = isset($indicator->evidence_policy) ? $indicator->evidence_policy : 'none';
 ?>
 
 <div id="standards-root" class="tw-mx-auto tw-max-w-screen-2xl">
@@ -79,6 +80,7 @@ $is_iku = $type === 'IKU';
             <div class="tw-bg-white tw-border tw-border-slate-200 tw-rounded-lg tw-p-3.5">
                 <span class="std-muted tw-text-xs tw-block tw-mb-1 tw-font-bold tw-uppercase tw-tracking-wider">Kebutuhan Bukti</span>
                 <p class="tw-text-xs tw-text-slate-700 tw-m-0 tw-leading-relaxed"><?php echo nl2br(html_escape($indicator->evidence_requirement)); ?></p>
+                <span class="std-muted tw-text-xs tw-block tw-mt-2">Kebijakan: <?php echo html_escape($evidence_policy); ?></span>
             </div>
         </div>
     </section>

@@ -107,7 +107,7 @@ class Organization_service
     private function is_current_assignment($from, $until)
     {
         $today = date('Y-m-d');
-        return $from <= $today && ($until === '' || $until >= $today);
+        return $from <= $today && ($until === '' || $until > $today);
     }
 
     public function update_capabilities($role, $ids)

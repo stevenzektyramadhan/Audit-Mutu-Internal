@@ -22,6 +22,7 @@ services:
     environment:
       CI_ENV: development
       APP_LOG_THRESHOLD: 1
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-local-development-only-key}
       DB_HOST: db
       DB_USERNAME: ami_local
       DB_PASSWORD: ami_local_password

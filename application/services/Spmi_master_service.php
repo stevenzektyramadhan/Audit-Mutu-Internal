@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Spmi_master_service
 {
-    const HEADERS = ['Standard Code', 'Standard Order', 'Standard Title', 'Standard Description', 'Indicator Code', 'Indicator Type', 'Indicator Title', 'Scope Unit Code', 'Responsible Unit Code', 'Responsible PIC', 'Evidence Requirement', 'Target Year', 'Target Value'];
+    const HEADERS = ['Standard Code', 'Standard Order', 'Standard Title', 'Standard Description', 'Indicator Code', 'Indicator Type', 'Indicator Title', 'Scope Unit Code', 'Responsible Unit Code', 'Responsible PIC', 'Evidence Requirement', 'Target Year', 'Target Value', 'Evidence Policy'];
     protected $ci;
     protected $standards;
     protected $indicators;
@@ -31,20 +31,21 @@ class Spmi_master_service
             $sheet = $spreadsheet->getSheetByName('SPMI Master');
             if (!$sheet) throw new RuntimeException('Sheet SPMI Master wajib tersedia.');
             $max_rows = 10000;
-            if ($sheet->getHighestColumn() !== 'M' || $sheet->getHighestRow() > $max_rows + 1) throw new RuntimeException('Workbook maksimal 10.000 baris dan 13 kolom.');
-            $header = $sheet->rangeToArray('A1:M1', NULL, TRUE, FALSE)[0];
+            if ($sheet->getHighestColumn() !== 'N' || $sheet->getHighestRow() > $max_rows + 1) throw new RuntimeException('Workbook maksimal 10.000 baris dan 14 kolom.');
+            $header = $sheet->rangeToArray('A1:N1', NULL, TRUE, FALSE)[0];
             if ($header !== self::HEADERS) throw new RuntimeException('Header workbook tidak sesuai template Master SPMI.');
-            $valid = []; $errors = []; $seen = []; $standards_seen = [];
+            $valid = []; $errors = []; $seen = []; $standards_seen = []; $standard_orders_seen = []; $active_unit_codes = $this->active_unit_codes();
             for ($row_number = 2; $row_number <= $sheet->getHighestRow(); $row_number++) {
                 $has_value = FALSE;
                 $has_formula = FALSE;
-                for ($column = 1; $column <= 13; $column++) { $cell = $sheet->getCellByColumnAndRow($column, $row_number); if ($cell->getDataType() === 'f') $has_formula = TRUE; if (trim((string) $cell->getValue()) !== '') $has_value = TRUE; }
+                for ($column = 1; $column <= 14; $column++) { $cell = $sheet->getCellByColumnAndRow($column, $row_number); if ($cell->getDataType() === 'f') $has_formula = TRUE; if (trim((string) $cell->getValue()) !== '') $has_value = TRUE; }
                 if (!$has_value) continue;
                 if ($has_formula) { $errors[] = ['row' => $row_number, 'message' => 'Formula tidak diizinkan.']; continue; }
-                $values = array_map(function ($value) { return trim((string) $value); }, $sheet->rangeToArray('A' . $row_number . ':M' . $row_number, NULL, TRUE, FALSE)[0]);
-                $standard_error = $this->validate_standard_metadata($values, $row_number, $standards_seen);
+                $values = array_map(function ($value) { return trim((string) $value); }, $sheet->rangeToArray('A' . $row_number . ':N' . $row_number, NULL, TRUE, FALSE)[0]);
+                $standard_error = $this->validate_standard_metadata($values, $row_number, $standards_seen, $standard_orders_seen);
                 if ($standard_error) { $errors[] = ['row' => $row_number, 'message' => $standard_error]; continue; }
                 $error = $this->validate_row($values, $row_number, $seen);
+                if (!$error) $error = $this->validate_units($values, $active_unit_codes);
                 if ($error) $errors[] = ['row' => $row_number, 'message' => $error]; else { $valid[] = $this->normalize_row($values); $seen[strtoupper($values[0]) . '|' . strtoupper($values[4])] = $values; }
             }
             return ['valid' => $valid, 'errors' => $errors, 'total' => max(0, $sheet->getHighestRow() - 1)];
@@ -61,11 +62,17 @@ class Spmi_master_service
                 $unit_scope = $this->unit($row['scope_unit_code']); $unit_responsible = $this->unit($row['responsible_unit_code']);
                 if (!$unit_scope || !$unit_responsible) return $this->rollback_result('Unit organisasi aktif tidak ditemukan.');
                 $standard = $this->standards->find_standard_by_version_code($version_id, $row['standard_code'], TRUE);
+                $standard_with_order = $this->standards->find_standard_by_version_order($version_id, $row['standard_order'], TRUE);
+                if ($standard_with_order && (!$standard || (int) $standard_with_order->id !== (int) $standard->id)) return $this->rollback_result('Urutan standar digunakan oleh Standard Code lain.');
                 $standard_data = ['version_id' => (int) $version_id, 'standard_code' => $row['standard_code'], 'display_order' => $row['standard_order'], 'title' => $row['standard_title'], 'description' => $row['standard_description'] ?: NULL];
-                if (!$this->standards->upsert_standard($standard_data, $standard ? $standard->id : 0)) return $this->rollback_result('Standar gagal disimpan.');
+                $db_debug = $this->ci->db->db_debug;
+                $this->ci->db->db_debug = FALSE;
+                try { $standard_saved = $this->standards->upsert_standard($standard_data, $standard ? $standard->id : 0); } finally { $this->ci->db->db_debug = $db_debug; }
+                if (!$standard_saved && $this->is_duplicate_key_error()) return $this->rollback_result('Kode atau urutan standar sudah digunakan.');
+                if (!$standard_saved) return $this->rollback_result('Standar gagal disimpan.');
                 $standard_id = $standard ? (int) $standard->id : (int) $this->ci->db->insert_id();
                 $indicator = $this->indicators->find_indicator_by_standard_code($standard_id, $row['indicator_code'], TRUE);
-                $indicator_data = ['standard_id' => $standard_id, 'indicator_code' => $row['indicator_code'], 'indicator_type' => $row['indicator_type'], 'title' => $row['indicator_title'], 'scope_organization_unit_id' => (int) $unit_scope->id, 'responsible_organization_unit_id' => (int) $unit_responsible->id, 'responsible_pic_name' => $row['responsible_pic'] ?: NULL, 'evidence_requirement' => $row['evidence_requirement']];
+                $indicator_data = ['standard_id' => $standard_id, 'indicator_code' => $row['indicator_code'], 'indicator_type' => $row['indicator_type'], 'title' => $row['indicator_title'], 'scope_organization_unit_id' => (int) $unit_scope->id, 'responsible_organization_unit_id' => (int) $unit_responsible->id, 'responsible_pic_name' => $row['responsible_pic'] ?: NULL, 'evidence_requirement' => $row['evidence_requirement'], 'evidence_policy' => $row['evidence_policy']];
                 if (!$this->indicators->upsert_indicator($indicator_data, $indicator ? $indicator->id : 0)) return $this->rollback_result('Indikator gagal disimpan.');
                 $indicator_id = $indicator ? (int) $indicator->id : (int) $this->ci->db->insert_id();
                 if ($row['target_year'] !== NULL && !$this->indicators->upsert_target(['indicator_id' => $indicator_id, 'target_year' => $row['target_year'], 'target_value' => $row['target_value']], ($target = $this->indicators->find_target_by_indicator_year($indicator_id, $row['target_year'], TRUE)) ? $target->id : 0)) return $this->rollback_result('Target gagal disimpan.');
@@ -90,20 +97,27 @@ class Spmi_master_service
         if (!in_array(strtoupper($v[5]), ['IKU', 'IKT'], TRUE) || $v[6] === '' || $v[7] === '' || $v[8] === '' || $v[10] === '') return 'Data indikator wajib valid.';
         if (($v[11] === '') !== ($v[12] === '')) return 'Target Year dan Target Value harus diisi bersama.';
         if ($v[11] !== '' && ((int) $v[11] < 2000 || (int) $v[11] > 2100 || (string) (int) $v[11] !== $v[11])) return 'Target Year harus 2000-2100.';
+        if (!in_array(strtolower($v[13]), ['none', 'file', 'url', 'either', 'both'], TRUE)) return 'Kebijakan bukti tidak valid.';
         $key = strtoupper($v[0]) . '|' . strtoupper($v[4]);
-        if (isset($seen[$key])) { for ($i = 0; $i < 11; $i++) if ($seen[$key][$i] !== $v[$i]) return 'Data berulang bertentangan pada baris ' . $number . '.'; }
+        if (isset($seen[$key])) { foreach (array_merge(range(0, 10), [13]) as $i) if (($i === 13 ? strtolower($seen[$key][$i]) : $seen[$key][$i]) !== ($i === 13 ? strtolower($v[$i]) : $v[$i])) return 'Data berulang bertentangan pada baris ' . $number . '.'; }
         return NULL;
     }
-    private function validate_standard_metadata($v, $number, &$seen)
+    private function validate_standard_metadata($v, $number, &$seen, &$standard_orders_seen)
     {
         $key = strtoupper($v[0]);
         $metadata = [(int) $v[1], $v[2], $v[3]];
         if (isset($seen[$key]) && $seen[$key] !== $metadata) return 'Data standar berulang bertentangan pada baris ' . $number . '.';
+        $order = (int) $v[1];
+        if (isset($standard_orders_seen[$order]) && $standard_orders_seen[$order] !== $key) return 'Urutan standar digunakan oleh Standard Code lain pada baris ' . $number . '.';
         $seen[$key] = $metadata;
+        $standard_orders_seen[$order] = $key;
         return NULL;
     }
-    private function normalize_row($v) { $v[0] = strtoupper($v[0]); $v[4] = strtoupper($v[4]); $v[5] = strtoupper($v[5]); $v[1] = (int) $v[1]; $v[11] = $v[11] === '' ? NULL : (int) $v[11]; return ['standard_code' => $v[0], 'standard_order' => $v[1], 'standard_title' => $v[2], 'standard_description' => $v[3], 'indicator_code' => $v[4], 'indicator_type' => $v[5], 'indicator_title' => $v[6], 'scope_unit_code' => strtoupper($v[7]), 'responsible_unit_code' => strtoupper($v[8]), 'responsible_pic' => $v[9], 'evidence_requirement' => $v[10], 'target_year' => $v[11], 'target_value' => $v[12]]; }
+    private function normalize_row($v) { $v[0] = strtoupper($v[0]); $v[4] = strtoupper($v[4]); $v[5] = strtoupper($v[5]); $v[1] = (int) $v[1]; $v[11] = $v[11] === '' ? NULL : (int) $v[11]; $v[13] = strtolower($v[13]); return ['standard_code' => $v[0], 'standard_order' => $v[1], 'standard_title' => $v[2], 'standard_description' => $v[3], 'indicator_code' => $v[4], 'indicator_type' => $v[5], 'indicator_title' => $v[6], 'scope_unit_code' => strtoupper($v[7]), 'responsible_unit_code' => strtoupper($v[8]), 'responsible_pic' => $v[9], 'evidence_requirement' => $v[10], 'target_year' => $v[11], 'target_value' => $v[12], 'evidence_policy' => $v[13]]; }
+    private function active_unit_codes() { return array_flip(array_column($this->ci->db->select('code')->where('is_active', 1)->get('organization_units')->result_array(), 'code')); }
+    private function validate_units($v, $active_unit_codes) { foreach ([$v[7], $v[8]] as $code) if (!isset($active_unit_codes[strtoupper($code)])) return 'Kode unit organisasi aktif tidak ditemukan: ' . strtoupper($code) . '.'; return NULL; }
     private function unit($code) { return $this->ci->db->where(['code' => strtoupper($code), 'is_active' => 1])->get('organization_units')->row(); }
+    private function is_duplicate_key_error() { $error = $this->ci->db->error(); return isset($error['code']) && (int) $error['code'] === 1062; }
     private function load_library() { $autoload = FCPATH . 'vendor/autoload.php'; if (!is_file($autoload)) throw new RuntimeException('Library PhpSpreadsheet belum terpasang.'); require_once $autoload; if (!class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) throw new RuntimeException('Library PhpSpreadsheet tidak dapat dimuat.'); }
     private function finish($success, $message) { $this->ci->db->trans_complete(); return ['success' => $success && $this->ci->db->trans_status(), 'message' => $message]; }
     private function rollback_result($message) { $this->ci->db->trans_rollback(); return ['success' => FALSE, 'message' => $message]; }

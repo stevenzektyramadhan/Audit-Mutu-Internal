@@ -228,8 +228,8 @@ $current_tab = isset($active_tab) && in_array($active_tab, ['structure', 'assign
                                 <?php
                                 $today = date('Y-m-d');
                                 foreach ($assignments as $row):
-                                    $is_ended = !empty($row->valid_until) && $row->valid_until < $today;
-                                    $is_current = $row->valid_from <= $today && (empty($row->valid_until) || $row->valid_until >= $today);
+                                    $is_ended = !empty($row->valid_until) && $row->valid_until <= $today;
+                                    $is_current = $row->valid_from <= $today && (empty($row->valid_until) || $row->valid_until > $today);
                                 ?>
                                     <tr>
                                         <td data-label="Pegawai">
@@ -262,7 +262,7 @@ $current_tab = isset($active_tab) && in_array($active_tab, ['structure', 'assign
                                             <?php endif; ?>
                                         </td>
                                         <td data-label="Aksi">
-                                            <?php if ($can_assign && !$is_ended): ?>
+                                            <?php if ($can_assign && $is_current): ?>
                                                 <?php echo form_open('lpmpi/organization/assignment/end/' . (int) $row->id, ['class' => 'tw-flex tw-items-center tw-gap-1 tw-flex-wrap', 'onsubmit' => "return confirm('Akhiri penempatan untuk " . html_escape($row->nama) . "?');"]); ?>
                                                     <input type="date" name="valid_until" value="<?php echo date('Y-m-d'); ?>" required class="tw-text-xs tw-border tw-rounded tw-px-2 tw-py-1 tw-border-slate-300">
                                                     <button type="submit" class="org-action-btn danger tw-text-xs">

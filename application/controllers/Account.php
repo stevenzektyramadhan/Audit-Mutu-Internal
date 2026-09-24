@@ -12,6 +12,7 @@ class Account extends MY_Controller
         $this->load->helper(['form', 'url', 'app']);
         $this->load->library('form_validation');
         require_once APPPATH . 'services/Account_service.php';
+        require_once APPPATH . 'services/Upload_size_settings_service.php';
         $this->account_service = new Account_service();
     }
 
@@ -29,6 +30,7 @@ class Account extends MY_Controller
             'page_subtitle' => 'Perbarui nama dan foto profil Anda',
             'active_menu' => 'account',
             'account' => $account,
+            'profile_photo_limit_mib' => $this->upload_limit_mib('profile_photos'),
         ]);
     }
 
@@ -118,11 +120,13 @@ class Account extends MY_Controller
         }
 
         $file = $_FILES['profile_photo'];
+        $limit_bytes = Upload_size_settings_service::limit_bytes('profile_photos');
+        $limit_mib = $this->upload_limit_mib('profile_photos');
         if (!isset($file['error'], $file['tmp_name'], $file['size'])
             || $file['error'] !== UPLOAD_ERR_OK
             || !is_uploaded_file($file['tmp_name'])
-            || (int) $file['size'] > 2 * 1024 * 1024) {
-            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Foto harus berupa JPEG atau PNG maksimal 2 MiB.'];
+            || (int) $file['size'] > $limit_bytes) {
+            return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Foto harus berupa JPEG atau PNG maksimal ' . $limit_mib . ' MiB.'];
         }
 
         $mime = $this->image_mime($file['tmp_name']);
@@ -171,5 +175,10 @@ class Account extends MY_Controller
             show_error('Method tidak diizinkan.', 405, 'Method Not Allowed');
             exit;
         }
+    }
+
+    private function upload_limit_mib($category)
+    {
+        return (int) floor(Upload_size_settings_service::limit_bytes($category) / 1024 / 1024);
     }
 }

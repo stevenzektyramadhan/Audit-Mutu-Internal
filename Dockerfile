@@ -1,5 +1,7 @@
 FROM php:8.3-apache
 
+COPY docker/php-upload.ini $PHP_INI_DIR/conf.d/99-upload.ini
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libcurl4-openssl-dev \

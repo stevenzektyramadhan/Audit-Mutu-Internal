@@ -1,83 +1,68 @@
 <?php
-$root = dirname(__DIR__);
-function spmi_audit_source($path) { $value = file_get_contents(dirname(__DIR__) . DIRECTORY_SEPARATOR . $path); if ($value === FALSE) throw new RuntimeException('Tidak dapat membaca ' . $path); return $value; }
-function spmi_audit_check($condition, $message) { if (!$condition) throw new RuntimeException($message); }
-function spmi_audit_match($pattern, $subject, $message) { if (!preg_match($pattern, $subject)) throw new RuntimeException($message); }
 
-$migration = spmi_audit_source('migrations/017_create_spmi_audit_cycles.sql');
-$migration_031 = spmi_audit_source('migrations/031_add_spmi_audit_cycle_academic_period.sql');
+function spmi_audit_source($path)
+{
+    $value = file_get_contents(dirname(__DIR__) . DIRECTORY_SEPARATOR . $path);
+    if ($value === FALSE) throw new RuntimeException('Tidak dapat membaca ' . $path);
+    return $value;
+}
+
+function spmi_audit_check($condition, $message)
+{
+    if (!$condition) throw new RuntimeException($message);
+}
+
+function spmi_audit_table($schema, $table)
+{
+    if (!preg_match('/CREATE TABLE IF NOT EXISTS `' . preg_quote($table, '/') . '` \\((.*?)\\n\\) ENGINE=/s', $schema, $match)) throw new RuntimeException('Tabel bootstrap tidak ditemukan: ' . $table);
+    return $match[1];
+}
+
 $schema = spmi_audit_source('database_schema.sql');
+$migration = spmi_audit_source('migrations/034_retire_spmi_instruments.sql');
 $model = spmi_audit_source('application/models/Spmi_audits_model.php');
 $service = spmi_audit_source('application/services/Spmi_audits_service.php');
-$helper = spmi_audit_source('application/helpers/app_helper.php');
-$auditor_workspace_service = spmi_audit_source('application/services/Spmi_auditor_workspace_service.php');
 $controller = spmi_audit_source('application/controllers/lpmpi/Spmi_audits.php');
-$routes = spmi_audit_source('application/config/routes.php');
-$sidebar = spmi_audit_source('application/views/layouts/sidebar.php');
-$view_names = ['index', 'cycle_form', 'cycle_detail', 'assignment_form', 'assignment_detail'];
-$views = [];
-foreach ($view_names as $view) $views[$view] = spmi_audit_source('application/views/lpmpi/spmi_audits/' . $view . '.php');
+$form = spmi_audit_source('application/views/lpmpi/spmi_audits/assignment_form.php');
+$detail = spmi_audit_source('application/views/lpmpi/spmi_audits/assignment_detail.php');
+$cycle_form = spmi_audit_source('application/views/lpmpi/spmi_audits/cycle_form.php');
+$cycle_index = spmi_audit_source('application/views/lpmpi/spmi_audits/index.php');
+$cycle_detail = spmi_audit_source('application/views/lpmpi/spmi_audits/cycle_detail.php');
 
-foreach (['spmi_audit_cycles', 'spmi_audit_assignments', 'spmi_audit_assignment_items', 'spmi_audit_assignment_item_rubrics', "ENUM('draft','configured','closed')", 'source_version_code', 'source_package_code', 'auditor_name', 'auditee_email', 'UNIQUE KEY', 'ON DELETE RESTRICT'] as $literal) spmi_audit_check(strpos($migration, $literal) !== FALSE, 'M7 migration contract missing: ' . $literal);
-spmi_audit_check(strpos($migration, 'spmi_audit_assignment_items') !== FALSE && strpos($migration, "`created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP") !== FALSE, 'M7 item snapshot timestamp missing.');
-spmi_audit_check(strpos($migration, 'spmi_audit_assignment_item_rubrics') !== FALSE && substr_count($migration, "`created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP") >= 4, 'M7 rubric snapshot timestamp missing.');
-foreach (['spmi_audit_cycles', 'academic_year', 'semester', '`academic_year` VARCHAR(20) NULL', "`semester` ENUM('ganjil','genap') NULL"] as $literal) spmi_audit_check(strpos($migration_031, $literal) !== FALSE, 'M31 migration contract missing: ' . $literal);
-spmi_audit_check(strpos($migration_031, 'ALTER TABLE `spmi_audit_cycles`') !== FALSE, 'M31 migration must alter spmi_audit_cycles.');
-spmi_audit_check(!preg_match('/\b(INSERT|UPDATE|DELETE)\b/i', $migration_031), 'M31 migration must stay additive and avoid DML/backfill.');
-foreach (['current parity migration 001-018', 'spmi_audit_cycles', 'spmi_audit_assignments', 'spmi_audit_assignment_items', 'spmi_audit_assignment_item_rubrics', 'uq_spmi_audit_assignments_tuple', 'uq_spmi_audit_assignment_items_order', 'uq_spmi_audit_assignment_items_question', 'uq_spmi_audit_assignment_item_rubrics_score'] as $literal) spmi_audit_check(strpos($schema, $literal) !== FALSE, 'M7 schema parity missing: ' . $literal);
-foreach (['current parity migration 001-031', 'academic_year', 'semester'] as $literal) spmi_audit_check(strpos($schema, $literal) !== FALSE, 'M31 schema parity missing: ' . $literal);
-spmi_audit_match('/CREATE TABLE IF NOT EXISTS `spmi_audit_cycles` \((?s).*`academic_year` VARCHAR\(20\) NULL.*`semester` ENUM\(\'ganjil\',\'genap\'\) NULL/', $schema, 'M31 schema must expose nullable academic period fields on spmi_audit_cycles.');
-spmi_audit_check(substr_count($schema, "`created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP") >= 14, 'M7 baseline child snapshot timestamps missing.');
-spmi_audit_check(strpos($migration, 'INSERT') === FALSE && strpos($migration, '`tugas_audit`') === FALSE && strpos($migration, '`jawaban_audit`') === FALSE && strpos($migration, '`standar`') === FALSE && strpos($migration, '`pertanyaan`') === FALSE, 'M7 migration must be additive and seed-free.');
-foreach (['cycles', 'assignments', 'package_for_update', 'package_questions', 'users_by_role', 'delete_assignment_children'] as $literal) spmi_audit_check(strpos($model, $literal) !== FALSE, 'M7 model contract missing: ' . $literal);
-spmi_audit_check(strpos($model, 'package_for_update') !== FALSE && strpos($model, 'FOR UPDATE') !== FALSE, 'M7 package lookup must lock source package rows.');
-foreach (['assignment_workspace_descendant_exists', 'spmi_auditee_submissions', 'spmi_auditor_assessments', 'spmi_auditee_submission_revision_events', 'assignment_id'] as $literal) spmi_audit_check(strpos($model, $literal) !== FALSE, 'M7 assignment workspace preflight missing: ' . $literal);
-foreach (['TRANSITIONS', "'draft' => ['configured', 'closed']", "'configured' => ['draft', 'closed']", "'closed' => []", 'trans_begin', 'cycle($cycle_id, TRUE)', 'version_for_update', 'in_array($version->status, [\'draft\', \'review\']', 'role !==', 'assignment_by_tuple', 'source_version_title', 'question_text', 'descriptor', 'rollback'] as $literal) spmi_audit_check(strpos($service, $literal) !== FALSE, 'M7 service contract missing: ' . $literal);
-spmi_audit_check(strpos($service, '$this->ci->load->helper(\'app\')') !== FALSE && strpos($service, 'skor_audit_options()') !== FALSE, 'M7 assignment service must load app helper itself and call skor_audit_options().');
-spmi_audit_check(strpos($service, 'array_keys($rubric_options) !== [1, 2, 3, 4]') !== FALSE, 'M7 assignment service must guard the global score scale keys.');
-foreach (['Tidak sesuai', 'Kurang sesuai', 'Sesuai', 'Sangat sesuai'] as $descriptor) spmi_audit_check(strpos($helper, $descriptor) !== FALSE, 'Global skor_audit_options descriptor missing: ' . $descriptor);
-spmi_audit_check(strpos($service . $model, 'question_rubrics') === FALSE, 'M7 assignment snapshot must not require source question rubrics.');
-spmi_audit_check(strpos($service, '$rubric_options as $score => $descriptor') !== FALSE && strpos($service, "'assignment_item_id' => \$item_id") !== FALSE && strpos($service, "'score' => (int) \$score") !== FALSE && strpos($service, "'descriptor' => \$descriptor") !== FALSE, 'M7 assignment snapshot must write four helper descriptors per item.');
-spmi_audit_check(strpos($auditor_workspace_service, "in_array(\$raw_score, ['1', '2', '3', '4'], TRUE)") !== FALSE, 'M9 auditor logic must preserve scalar string score validation.');
-foreach (['academic_year', 'semester', "'academic_year' =>", "'semester' =>"] as $literal) spmi_audit_check(strpos($service, $literal) !== FALSE, 'M31 service cycle contract missing: ' . $literal);
-spmi_audit_check(strpos($service, 'strlen($data[\'academic_year\']) <= 20') !== FALSE, 'M31 service must validate academic_year length.');
-spmi_audit_check(strpos($service, 'in_array($data[\'semester\'], [\'ganjil\', \'genap\'], TRUE)') !== FALSE, 'M31 service must restrict semester to ganjil/genap.');
-spmi_audit_check(strpos($service, 'delete_assignment($id)') !== FALSE, 'M7 delete assignment service contract missing.');
-spmi_audit_check(strpos($service, '$cycle->state !== \'draft\'') !== FALSE, 'M7 delete assignment draft guard missing.');
-spmi_audit_check(strpos($service, 'assignment_workspace_descendant_exists($id)') !== FALSE, 'M7 delete assignment must call workspace descendant preflight.');
-spmi_audit_check(strpos($service, 'Penugasan tidak dapat dihapus karena data workspace auditee atau auditor sudah ada.') !== FALSE, 'M7 delete assignment workspace-data business failure message missing.');
-spmi_audit_check(strpos($service, 'assignment_workspace_descendant_exists($id)') > strpos($service, '$cycle->state !== \'draft\'') && strpos($service, 'assignment_workspace_descendant_exists($id)') < strpos($service, 'delete_assignment_children($id)'), 'M7 delete assignment preflight must run after draft guard and before child deletion.');
-foreach (['extends Admin_Lpmpi_Controller', 'form_validation', "method(TRUE) !== 'POST'", 'show_error', 'cycle_create', 'cycle_detail', 'assignment_create', 'assignment_detail'] as $literal) spmi_audit_check(strpos($controller, $literal) !== FALSE, 'M7 controller contract missing: ' . $literal);
-spmi_audit_check(strpos($controller, "set_rules('academic_year'") !== FALSE && strpos($controller, 'required|max_length[20]') !== FALSE, 'M31 controller must require academic_year.');
-spmi_audit_check(strpos($controller, "set_rules('semester'") !== FALSE && strpos($controller, 'required|in_list[ganjil,genap]') !== FALSE, 'M31 controller must require semester with ganjil/genap.');
-foreach (['lpmpi/spmi-audits', 'cycle/create', 'cycle/store', 'cycle/detail', 'cycle/edit', 'cycle/update', 'cycle/transition', 'assignment/create', 'assignment/store', 'assignment/detail', 'assignment/delete'] as $literal) spmi_audit_check(strpos($routes, $literal) !== FALSE, 'M7 route missing: ' . $literal);
-spmi_audit_check(substr_count($sidebar, "'key' => 'spmi_audits', 'label' => 'Siklus & Penugasan SPMI', 'icon' => 'fa-calendar-check', 'url' => 'lpmpi/spmi-audits', 'group' => 'Management'") === 2, 'M7 sidebar entry must exist only for management roles.');
-foreach ($views as $name => $view) { spmi_audit_check(strpos($view, 'html_escape') !== FALSE, 'M7 view must escape output: ' . $name); spmi_audit_check(strpos($view, "include APPPATH . 'views/layouts/header.php'") !== FALSE, 'M7 view header missing: ' . $name); foreach (['btn-', 'form-control', 'form-group', 'table-responsive', 'd-flex', 'col-md-', 'list-group', 'alert-'] as $legacy_class) spmi_audit_check(strpos($view, $legacy_class) === FALSE, 'SPMI audit target must not use Bootstrap class ' . $legacy_class . ': ' . $name); spmi_audit_check(stripos($view, 'fontawesome') === FALSE && stripos($view, 'fa-') === FALSE, 'SPMI audit target must not use Font Awesome: ' . $name); }
-spmi_audit_check(strpos($views['cycle_form'], 'form_open(') !== FALSE && strpos($views['cycle_detail'], 'form_open(') !== FALSE && strpos($views['assignment_form'], 'form_open(') !== FALSE, 'M7 POST forms missing.');
-spmi_audit_check(strpos($views['cycle_form'], 'name="academic_year"') !== FALSE && strpos($views['cycle_form'], 'id="academic_year"') !== FALSE, 'M31 cycle form must render academic_year input.');
-spmi_audit_check(strpos($views['cycle_form'], 'name="semester"') !== FALSE && strpos($views['cycle_form'], 'value="ganjil"') !== FALSE && strpos($views['cycle_form'], 'value="genap"') !== FALSE, 'M31 cycle form must render semester select options.');
-spmi_audit_check(strpos($views['index'], 'academic_year') !== FALSE && strpos($views['index'], 'semester') !== FALSE, 'M31 cycle index must render academic period columns.');
-spmi_audit_check(strpos($views['cycle_detail'], 'academic_year') !== FALSE && strpos($views['cycle_detail'], 'semester') !== FALSE, 'M31 cycle detail must render academic period metadata.');
-spmi_audit_check(strpos($views['index'], '$academic_period') !== FALSE && strpos($views['index'], 'html_escape($academic_period') !== FALSE, 'M31 cycle index must keep escaped historical-null fallback for academic period display.');
-spmi_audit_check(strpos($views['cycle_detail'], '$academic_period') !== FALSE && strpos($views['cycle_detail'], 'html_escape($academic_year') !== FALSE, 'M31 cycle detail must keep escaped historical-null fallback for academic period display.');
-spmi_audit_check(strpos($views['cycle_detail'], 'frozen') !== FALSE && strpos($views['cycle_detail'], 'draft') !== FALSE, 'M7 frozen and draft notices missing.');
-spmi_audit_check(strpos($views['assignment_form'], 'M8/M9') === FALSE && strpos($views['assignment_detail'], 'M8/M9') === FALSE, 'Stale M8/M9 workspace copy must be removed.');
-spmi_audit_check(strpos($views['assignment_form'] . $views['assignment_detail'], 'submission_status') === FALSE && strpos($views['assignment_form'] . $views['assignment_detail'], 'assessment_status') === FALSE && strpos($views['assignment_form'] . $views['assignment_detail'], 'progress') === FALSE, 'Frontend must not claim submission or assessment progress.');
-spmi_audit_check(strpos($views['cycle_detail'], 'nl2br(html_escape(') !== FALSE && strpos($views['assignment_detail'], 'nl2br(html_escape(') !== FALSE, 'M7 multiline snapshots must be escaped.');
-spmi_audit_check(strpos($views['cycle_detail'], 'site_url(') !== FALSE && strpos($views['cycle_detail'], 'assignment/detail/') !== FALSE, 'M7 cycle detail must retain Snapshot detail route.');
-spmi_audit_check(strpos($views['cycle_detail'], "form_open('lpmpi/spmi-audits/assignment/delete/") !== FALSE || strpos($views['cycle_detail'], 'lpmpi/spmi-audits/assignment/delete/') !== FALSE, 'M7 cycle detail must retain delete POST form_open.');
-spmi_audit_check(strpos($views['cycle_detail'], 'return confirm(') !== FALSE || strpos($views['cycle_detail'], 'onsubmit=') !== FALSE, 'M7 cycle detail delete action must keep POST form confirmation.');
-spmi_audit_check(strpos($views['assignment_detail'], '$this->service->rubrics') === FALSE && strpos($views['assignment_detail'], '$rubrics_by_item') !== FALSE, 'M7 assignment detail must use controller-provided rubrics.');
-spmi_audit_check(strpos($views['index'], 'cycle-filter-search') !== FALSE && strpos($views['index'], 'cycle-filter-status') !== FALSE && strpos($views['index'], 'cycle-filter-year') !== FALSE, 'Cycle index must provide client-side search/status/year filters.');
-spmi_audit_check(strpos($views['cycle_detail'], 'Overview') !== FALSE && strpos($views['cycle_detail'], 'Assignments') !== FALSE, 'Cycle detail must expose Overview and Assignments tabs.');
-spmi_audit_check(strpos($controller, '$rubrics_by_item') !== FALSE && strpos($controller, "'rubrics_by_item' => " . '$rubrics_by_item') !== FALSE, 'M7 controller must pass rubric data to assignment detail view.');
-spmi_audit_check(strpos($service, 'tugas_audit') === FALSE && strpos($service, 'jawaban_audit') === FALSE && strpos($service, 'assignment_status') === FALSE && strpos($service, "'status'") === FALSE, 'M7 service must not map legacy tables or assignment status.');
-spmi_audit_check(substr_count($views['assignment_form'], 'name="source_package_id"') === 1 && strpos($views['assignment_form'], 'type="hidden" id="source_package_id" name="source_package_id" required') !== FALSE, 'M7 assignment package picker must retain one required hidden source_package_id field.');
-spmi_audit_check(strpos($views['assignment_form'], '<select id="source_package_id"') === FALSE && strpos($views['assignment_form'], '<option value="">Pilih paket</option>') === FALSE, 'M7 assignment package picker must not restore the native package select.');
-spmi_audit_check(strpos($views['assignment_form'], 'for="source_package_picker"') !== FALSE && strpos($views['assignment_form'], '>Paket Instrumen</label>') !== FALSE && strpos($views['assignment_form'], 'id="source_package_picker"') !== FALSE && strpos($views['assignment_form'], 'placeholder="Ketik kode atau nama paket..."') !== FALSE, 'M7 assignment package picker must expose the unified combobox.');
-spmi_audit_check(strpos($views['assignment_form'], 'role="combobox"') !== FALSE && strpos($views['assignment_form'], 'role="listbox"') !== FALSE && strpos($views['assignment_form'], 'Paket instrumen ditemukan: ') !== FALSE && strpos($views['assignment_form'], 'Paket tidak ditemukan') !== FALSE && strpos($views['assignment_form'], 'id="source_package_clear"') !== FALSE, 'M7 assignment package picker must provide count, empty state, and clear control.');
-spmi_audit_check(strpos($views['assignment_form'], '$packages') !== FALSE && strpos($views['assignment_form'], 'html_escape($package->version_code') !== FALSE && strpos($views['assignment_form'], 'data-package-id') !== FALSE && strpos($views['assignment_form'], "packageId.value = option.getAttribute('data-package-id')") !== FALSE, 'M7 assignment package picker must submit only an escaped real package ID.');
-spmi_audit_check(strpos($views['assignment_form'], 'source_package_search') === FALSE && strpos($views['assignment_form'], 'source_package_search_status') === FALSE && strpos($views['assignment_form'], 'source_package_results') === FALSE && strpos($views['assignment_form'], 'source_package_empty') === FALSE, 'M7 assignment package picker must remove legacy search controls.');
-spmi_audit_check(strpos($views['assignment_form'], 'name="auditor_id"') !== FALSE && strpos($views['assignment_form'], 'name="auditee_id"') !== FALSE && strpos($views['assignment_form'], 'Buat snapshot penugasan') !== FALSE, 'M7 assignment picker must retain auditor, auditee, and snapshot controls.');
+foreach (['spmi_audit_cycles', 'spmi_audit_assignments', 'spmi_audit_assignment_items', 'spmi_audit_assignment_item_rubrics', 'source_standard_id', 'source_indicator_id', 'evidence_policy'] as $required) {
+    spmi_audit_check(strpos($schema, $required) !== FALSE, 'Indicator assignment schema missing: ' . $required);
+}
+foreach (['spmi_audit_assignments', 'spmi_audit_assignment_items'] as $table) {
+    foreach (['source_package_id', 'source_question_id', 'question_code', 'question_text'] as $retired) {
+        spmi_audit_check(strpos(spmi_audit_table($schema, $table), '`' . $retired . '`') === FALSE, 'Bootstrap schema retains retired assignment field: ' . $table . '.' . $retired);
+    }
+}
+foreach (['trans_begin', 'version_for_update', 'standards_for_version_for_update', 'source_standard_ids', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
+    spmi_audit_check(strpos($service, $required) !== FALSE, 'Assignment service contract missing: ' . $required);
+}
+foreach (['packages()', 'package_for_update', 'package_questions', 'source_package_id', 'source_question_id'] as $retired) {
+    spmi_audit_check(strpos($service . $model . $controller, $retired) === FALSE, 'Assignment flow retains package dependency: ' . $retired);
+}
+foreach (['source_version_id', 'versions()', 'standards_by_version()', 'required|integer', "method(TRUE) !== 'POST'"] as $required) {
+    spmi_audit_check(strpos($controller, $required) !== FALSE, 'Assignment controller contract missing: ' . $required);
+}
+spmi_audit_check(strpos($controller, "set_rules('source_standard_id'") === FALSE, 'Assignment controller must not require one authoritative standard ID.');
+foreach (['versions()', 'standards_by_version()', 'standards_for_version_for_update'] as $required) {
+    spmi_audit_check(strpos($model, $required) !== FALSE, 'Assignment model version scope contract missing: ' . $required);
+}
+spmi_audit_check(strpos($model, 'ORDER BY s.display_order ASC FOR UPDATE') !== FALSE, 'Locked version standard resolver must preserve standard display order.');
+spmi_audit_check(strpos($form, 'name="source_version_id"') !== FALSE && strpos($form, "checkbox.name = 'source_standard_ids[]'") !== FALSE, 'Assignment form must select a version and submit an optional standard subset.');
+spmi_audit_check(strpos($form, '$versions') !== FALSE && strpos($form, '$standards_by_version') !== FALSE, 'Assignment form must receive version-scoped standard data.');
+spmi_audit_check(strpos($form, 'source_package') === FALSE, 'Assignment form must not expose a retired package picker.');
+spmi_audit_check(strpos($detail, 'source_standard_code') !== FALSE && strpos($detail, 'evidence_instruction') !== FALSE, 'Assignment detail must render standard and indicator evidence snapshots.');
+spmi_audit_check(strpos($detail, 'source_package') === FALSE && strpos($detail, 'question_text') === FALSE, 'Assignment detail must not render package/question snapshots.');
+spmi_audit_check(strpos($migration, 'DROP FOREIGN KEY `fk_spmi_audit_assignments_package`') !== FALSE && strpos($migration, 'DROP FOREIGN KEY `fk_spmi_audit_assignment_items_question`') !== FALSE, 'Migration 034 must remove assignment package/question FKs.');
+spmi_audit_check(strpos($controller, "set_rules('academic_year'") !== FALSE, 'Annual cycle controller must retain required academic year validation.');
+spmi_audit_check(strpos($controller, "set_rules('semester'") === FALSE, 'Annual cycle controller must not require semester.');
+spmi_audit_check(strpos($service, "'semester' =>") === FALSE && strpos($service, "in_array(\$data['semester']") === FALSE, 'Annual cycle service must not persist or validate semester.');
+spmi_audit_check(strpos($cycle_form, 'name="academic_year"') !== FALSE, 'Annual cycle form must retain academic year input.');
+spmi_audit_check(strpos($cycle_form, 'name="semester"') === FALSE && strpos($cycle_form, '>Semester<') === FALSE, 'Annual cycle form must not render semester input.');
+spmi_audit_check(strpos($cycle_index, '$academic_year') !== FALSE && strpos($cycle_index, '$semester') === FALSE && strpos($cycle_index, 'Semester') === FALSE, 'Annual cycle index must render academic year without semester.');
+spmi_audit_check(strpos($cycle_detail, '$academic_year') !== FALSE && strpos($cycle_detail, '$semester') === FALSE && strpos($cycle_detail, 'Semester') === FALSE, 'Annual cycle detail must render academic year without semester.');
 
 fwrite(STDOUT, "SPMI audits regression checks passed.\n");

@@ -41,13 +41,13 @@ $icon = static function ($name) {
         <!-- Header Card -->
         <header class="tw-mb-6 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm">
             <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                <?php echo html_escape($assignment->source_package_code); ?>
+                <?php echo html_escape($assignment->source_standard_code); ?>
             </span>
             <h1 class="tw-text-2xl sm:tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950 tw-mt-2 tw-mb-1">
                 Konfirmasi Submission
             </h1>
             <p class="tw-text-sm tw-text-slate-600 tw-font-medium tw-m-0">
-                <?php echo html_escape($assignment->source_package_code . ' — ' . $assignment->source_package_title); ?>
+                <?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?>
             </p>
 
             <div class="tw-mt-5 tw-flex tw-items-center tw-gap-2.5 tw-rounded-xl tw-border tw-border-amber-200 tw-bg-amber-50/80 tw-p-4 tw-text-xs tw-text-amber-900">
@@ -81,7 +81,7 @@ $icon = static function ($name) {
                     <article class="card mb-3 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm tw-overflow-hidden">
                         <div class="tw-border-b tw-border-slate-100 tw-bg-slate-50/70 tw-p-4 tw-flex tw-items-center tw-justify-between">
                             <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900">
-                                Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->question_code); ?>
+Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->indicator_code); ?>
                             </span>
                             <span class="tw-text-[11px] tw-text-slate-500">
                                 Kebijakan: <?php echo html_escape($clean_policy); ?>
@@ -90,9 +90,8 @@ $icon = static function ($name) {
 
                         <div class="card-body tw-p-6 tw-space-y-4">
                             <div>
-                                <h3><?php echo html_escape((string) $item->display_order . '. ' . $item->question_code); ?></h3>
+<h3><?php echo html_escape((string) $item->display_order . '. ' . $item->indicator_code . ' — ' . $item->indicator_title); ?></h3>
                                 <p class="tw-text-xs tw-font-semibold tw-text-slate-800 tw-leading-relaxed tw-m-0">
-                                    <?php echo nl2br(html_escape($item->question_text)); ?>
                                 </p>
                             </div>
 
