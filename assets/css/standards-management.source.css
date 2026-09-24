@@ -21,6 +21,13 @@
   color: var(--std-text);
 }
 
+#standards-root,
+#standards-root *,
+#standards-root *::before,
+#standards-root *::after {
+  box-sizing: border-box;
+}
+
 #standards-root .std-hero {
   background: linear-gradient(120deg, var(--std-panel), var(--std-blue-soft));
   border-color: var(--std-border);

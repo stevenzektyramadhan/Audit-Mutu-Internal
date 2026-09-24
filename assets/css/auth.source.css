@@ -44,6 +44,61 @@
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.82) 0%, rgba(23, 37, 84, 0.62) 52%, rgba(24, 95, 165, 0.38) 100%);
 }
 
+#auth-root .auth-brand-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  width: auto;
+  max-width: fit-content;
+}
+
+#auth-root .auth-brand-unmuh {
+  display: block;
+  height: 38px;
+  max-height: 40px;
+  max-width: 170px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+#auth-root .auth-brand-sep {
+  width: 1px;
+  height: 28px;
+  background-color: #cbd5e1;
+  flex-shrink: 0;
+}
+
+#auth-root .auth-brand-lpm {
+  display: block;
+  height: 34px;
+  max-height: 36px;
+  max-width: 44px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  #auth-root .auth-brand-unmuh {
+    height: 30px;
+    max-height: 32px;
+    max-width: 135px;
+  }
+
+  #auth-root .auth-brand-sep {
+    height: 22px;
+  }
+
+  #auth-root .auth-brand-lpm {
+    height: 28px;
+    max-height: 30px;
+    max-width: 36px;
+  }
+}
+
 @media (min-width: 768px) and (max-height: 820px) {
   #auth-root .auth-visual-content {
     padding: 2rem;

@@ -4,6 +4,11 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-24 13:04 WIB - Sisyphus: Pushed refreshed UNMUH/LPM branding for
+  login and password recovery plus scoped Indicator SPMI form control fixes;
+  auth, password-reset, and indicator regressions passed on
+  `feature/redesign-ui`.
+
 - 2026-09-23 - Sisyphus: Added the active `POST /auth/login` durable limiter: verified credential failures are capped at 5 per HMAC-normalized identity and 30 per HMAC IP per 15-minute window; generic HTTP 429 responses disclose neither account nor bucket. Migration 040/schema parity, auth/security/hardening/schema regressions, PHP lint, and Docker config passed; AMI legacy and password-reset flow remain unchanged. Existing deployments must apply migration 040 manually after backup.
 - 2026-09-23 - Sisyphus: Kept successful SPMI Auditee evidence upload feedback visible by replacing the post-XHR reselection prompt with server-confirmed `original_name`, while still clearing the native file input. Auditee/audits/hardening regressions, PHP lint, and rebuilt Docker source proof passed; authenticated browser QA remains blocked without an auditee session.
 - 2026-09-22 - Sisyphus: Restored SPMI Auditee pre-upload evidence feedback with an item-local accessible filename status; upload remains the existing detached multipart XHR with CSRF/version refresh and server-confirmed evidence rendering. Auditee/audits/hardening regressions and PHP lint passed; authenticated browser QA remains blocked without an auditee session.
