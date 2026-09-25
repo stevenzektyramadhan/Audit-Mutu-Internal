@@ -51,6 +51,19 @@ class Spmi_ppepp_documents_model extends CI_Model
             ->result();
     }
 
+    public function dashboard_counts($year, $stages)
+    {
+        if (!$stages) return [];
+
+        return $this->db->select('stage, category, COUNT(*) AS total', FALSE)
+            ->from('spmi_ppepp_documents')
+            ->where('period_year', (int) $year)
+            ->where_in('stage', $stages)
+            ->group_by(['stage', 'category'])
+            ->get()
+            ->result();
+    }
+
     public function insert_document($data)
     {
         return $this->db->insert('spmi_ppepp_documents', $data) ? (int) $this->db->insert_id() : 0;

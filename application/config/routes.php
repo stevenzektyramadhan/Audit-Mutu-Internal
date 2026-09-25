@@ -63,6 +63,16 @@ $route['profil/edit'] = 'Profil/edit';
 $route['profil/update'] = 'Profil/update';
 $route['profil/sinkronisasi'] = 'Profil/sinkronisasi';
 $route['profil/upload_logo'] = 'Profil/upload_logo';
+$route['profil/prodi/create'] = 'Profil/prodi_create';
+$route['profil/prodi/store'] = 'Profil/prodi_store';
+$route['profil/prodi/edit/(:num)'] = 'Profil/prodi_edit/$1';
+$route['profil/prodi/update/(:num)'] = 'Profil/prodi_update/$1';
+$route['profil/prodi/delete/(:num)'] = 'Profil/prodi_delete/$1';
+$route['profil/mahasiswa/create'] = 'Profil/mahasiswa_create';
+$route['profil/mahasiswa/store'] = 'Profil/mahasiswa_store';
+$route['profil/mahasiswa/edit/(:num)'] = 'Profil/mahasiswa_edit/$1';
+$route['profil/mahasiswa/update/(:num)'] = 'Profil/mahasiswa_update/$1';
+$route['profil/mahasiswa/delete/(:num)'] = 'Profil/mahasiswa_delete/$1';
 
 $route['account'] = 'Account/index';
 $route['account/update'] = 'Account/update';

@@ -5,6 +5,8 @@ class Profil extends MY_Controller
 {
     /** @var Profil_model */
     public $Profil_model;
+    /** @var Profil_service */
+    public $profil_service;
 
     public function __construct()
     {
@@ -12,6 +14,8 @@ class Profil extends MY_Controller
         $this->_check_login();
         $this->load->helper(['form', 'url']);
         $this->load->model('Profil_model');
+        require_once APPPATH . 'services/Profil_service.php';
+        $this->profil_service = new Profil_service();
         require_once APPPATH . 'services/Upload_size_settings_service.php';
     }
 
@@ -233,6 +237,110 @@ class Profil extends MY_Controller
         redirect('profil/edit');
     }
 
+    public function prodi_create()
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->render_prodi_form('Tambah Program Studi', 'profil/prodi/store');
+    }
+
+    public function prodi_edit($id)
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $row = $this->profil_service->prodi((int) $id);
+        if (!$row) show_404();
+        $this->render_prodi_form('Edit Program Studi', 'profil/prodi/update/' . (int) $id, $row);
+    }
+
+    public function prodi_store()
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->require_post();
+        $this->prodi_rules();
+        if ($this->form_validation->run() === FALSE) {
+            $this->render_prodi_form('Tambah Program Studi', 'profil/prodi/store');
+            return;
+        }
+        $this->flash_profile_result($this->profil_service->create_prodi($this->prodi_input()));
+    }
+
+    public function prodi_update($id)
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->require_post();
+        $row = $this->profil_service->prodi((int) $id);
+        if (!$row) show_404();
+        $this->prodi_rules();
+        if ($this->form_validation->run() === FALSE) {
+            $this->render_prodi_form('Edit Program Studi', 'profil/prodi/update/' . (int) $id, $row);
+            return;
+        }
+        $this->flash_profile_result($this->profil_service->update_prodi((int) $id, $this->prodi_input()));
+    }
+
+    public function prodi_delete($id)
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->require_post();
+        $this->flash_profile_result($this->profil_service->delete_prodi((int) $id));
+    }
+
+    public function mahasiswa_create()
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->render_mahasiswa_form('Tambah Statistik Mahasiswa', 'profil/mahasiswa/store');
+    }
+
+    public function mahasiswa_edit($id)
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $row = $this->profil_service->mahasiswa_stat((int) $id);
+        if (!$row) show_404();
+        $this->render_mahasiswa_form('Edit Statistik Mahasiswa', 'profil/mahasiswa/update/' . (int) $id, $row);
+    }
+
+    public function mahasiswa_store()
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->require_post();
+        $this->mahasiswa_rules();
+        if ($this->form_validation->run() === FALSE) {
+            $this->render_mahasiswa_form('Tambah Statistik Mahasiswa', 'profil/mahasiswa/store');
+            return;
+        }
+        $this->flash_profile_result($this->profil_service->create_mahasiswa_stat($this->mahasiswa_input()));
+    }
+
+    public function mahasiswa_update($id)
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->require_post();
+        $row = $this->profil_service->mahasiswa_stat((int) $id);
+        if (!$row) show_404();
+        $this->mahasiswa_rules();
+        if ($this->form_validation->run() === FALSE) {
+            $this->render_mahasiswa_form('Edit Statistik Mahasiswa', 'profil/mahasiswa/update/' . (int) $id, $row);
+            return;
+        }
+        $this->flash_profile_result($this->profil_service->update_mahasiswa_stat((int) $id, $this->mahasiswa_input()));
+    }
+
+    public function mahasiswa_delete($id)
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->require_post();
+        $this->flash_profile_result($this->profil_service->delete_mahasiswa_stat((int) $id));
+    }
+
     private function profile_input()
     {
         return [
@@ -254,6 +362,79 @@ class Profil extends MY_Controller
             'email' => $this->input->post('email', TRUE),
             'logo_url' => $this->input->post('logo_url', TRUE),
         ];
+    }
+
+    private function render_prodi_form($page_title, $action, $row = NULL)
+    {
+        $this->load->view('lpmpi/profil/prodi_form', [
+            'title' => $page_title . ' - AMI',
+            'page_title' => $page_title,
+            'active_menu' => 'profil',
+            'action' => $action,
+            'row' => $row,
+        ]);
+    }
+
+    private function render_mahasiswa_form($page_title, $action, $row = NULL)
+    {
+        $this->load->view('lpmpi/profil/mahasiswa_stat_form', [
+            'title' => $page_title . ' - AMI',
+            'page_title' => $page_title,
+            'active_menu' => 'profil',
+            'action' => $action,
+            'row' => $row,
+        ]);
+    }
+
+    private function prodi_rules()
+    {
+        $this->form_validation->set_rules('nama_prodi', 'Nama program studi', 'required|max_length[200]');
+        foreach (['kode_prodi' => 20, 'status' => 50, 'jenjang' => 20, 'akreditasi' => 50, 'rasio_dosen_mahasiswa' => 20] as $field => $length) {
+            $this->form_validation->set_rules($field, ucwords(str_replace('_', ' ', $field)), 'max_length[' . $length . ']');
+        }
+        $this->form_validation->set_rules('tanggal_sk_akreditasi', 'Tanggal SK akreditasi', 'callback_valid_optional_date');
+    }
+
+    public function valid_optional_date($value)
+    {
+        if (trim((string) $value) === '') return TRUE;
+        $date = DateTime::createFromFormat('!Y-m-d', (string) $value);
+        if ($date && $date->format('Y-m-d') === $value) return TRUE;
+        $this->form_validation->set_message('valid_optional_date', '{field} tidak valid.');
+        return FALSE;
+    }
+
+    private function mahasiswa_rules()
+    {
+        $this->form_validation->set_rules('jenjang', 'Jenjang', 'required|max_length[50]');
+        $this->form_validation->set_rules('jumlah', 'Jumlah mahasiswa', 'required|integer|greater_than_equal_to[0]');
+    }
+
+    private function prodi_input()
+    {
+        return [
+            'kode_prodi' => $this->input->post('kode_prodi', TRUE),
+            'nama_prodi' => $this->input->post('nama_prodi', TRUE),
+            'status' => $this->input->post('status', TRUE),
+            'jenjang' => $this->input->post('jenjang', TRUE),
+            'akreditasi' => $this->input->post('akreditasi', TRUE),
+            'tanggal_sk_akreditasi' => $this->input->post('tanggal_sk_akreditasi', TRUE),
+            'rasio_dosen_mahasiswa' => $this->input->post('rasio_dosen_mahasiswa', TRUE),
+        ];
+    }
+
+    private function mahasiswa_input()
+    {
+        return [
+            'jenjang' => $this->input->post('jenjang', TRUE),
+            'jumlah' => $this->input->post('jumlah', TRUE),
+        ];
+    }
+
+    private function flash_profile_result($result)
+    {
+        $this->session->set_flashdata(!empty($result['success']) ? 'success' : 'error', $result['message']);
+        redirect('profil');
     }
 
     private function preserve_existing_profile_values($data, $existing)

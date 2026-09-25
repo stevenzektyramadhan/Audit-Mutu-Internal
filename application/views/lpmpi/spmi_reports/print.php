@@ -30,6 +30,13 @@ function spmi_report_print_auditor_evidence($value) {
     }
     return $valid;
 }
+
+$radar_labels = [];
+$radar_values = [];
+foreach ($items as $item) {
+    $radar_labels[] = $item->indicator_code_snapshot;
+    $radar_values[] = (int) $item->score;
+}
 ?><!DOCTYPE html>
 <html lang="id">
 <head>
@@ -281,6 +288,22 @@ function spmi_report_print_auditor_evidence($value) {
             border-top: 1px dotted #e2e8f0;
         }
 
+        .radar-chart-section {
+            height: 280px;
+            margin: 14px 0 16px;
+            padding: 10px 14px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .radar-chart-canvas {
+            display: block;
+            width: 100% !important;
+            height: 230px !important;
+        }
+
         @media print {
             body {
                 padding: 0;
@@ -293,6 +316,10 @@ function spmi_report_print_auditor_evidence($value) {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+            .radar-chart-section {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
         }
     </style>
 </head>
@@ -303,7 +330,7 @@ function spmi_report_print_auditor_evidence($value) {
     <div class="no-print-text">
         <strong>Gunakan dialog browser: pilih “Save as PDF”</strong> dengan orientasi <em>Landscape</em>.
     </div>
-    <button type="button" class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+    <button type="button" class="btn-print" onclick="printReport()">Print / Save as PDF</button>
 </div>
 
 <!-- Report Header -->
@@ -345,6 +372,54 @@ function spmi_report_print_auditor_evidence($value) {
         </div>
     </div>
 </header>
+
+<?php if (!empty($radar_labels)): ?>
+<section class="radar-chart-section" aria-labelledby="radar-chart-heading">
+    <div id="radar-chart-heading" class="section-heading">Capaian Indikator</div>
+    <canvas id="radar-chart" class="radar-chart-canvas" aria-label="Radar capaian indikator berdasarkan skor snapshot laporan" role="img"></canvas>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var radarChartReady = new Promise(function (resolve) {
+        new Chart(document.getElementById('radar-chart'), {
+            type: 'radar',
+            data: {
+                labels: <?php echo json_encode($radar_labels, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
+                datasets: [{
+                    label: 'Skor',
+                    data: <?php echo json_encode($radar_values, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
+                    borderWidth: 1.5,
+                    pointRadius: 1.5,
+                    tension: 0,
+                    backgroundColor: 'rgba(24, 95, 165, 0.12)',
+                    borderColor: '#185fa5',
+                    pointBackgroundColor: '#185fa5'
+                }]
+            },
+            options: {
+                animation: false,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    r: { min: 0, max: 4,
+                        ticks: {
+                            stepSize: 1,
+                            backdropColor: 'transparent'
+                        },
+                        pointLabels: {
+                            font: { size: 8 }
+                        }
+                    }
+                }
+            }
+        });
+        resolve();
+    });
+</script>
+<?php endif; ?>
 
 <div class="section-heading">Hasil Audit Mutu</div>
 
@@ -434,6 +509,39 @@ function spmi_report_print_auditor_evidence($value) {
     </tbody>
 </table>
 <?php endforeach; ?>
+
+<script>
+    var printButton = document.querySelector('.btn-print');
+    var printFallback;
+
+    function restorePrintButton() {
+        if (printFallback) window.clearTimeout(printFallback);
+        if (printButton) printButton.disabled = false;
+    }
+
+    function printReport() {
+        if (!printButton) return;
+        printButton.disabled = true;
+        Promise.resolve(typeof radarChartReady === 'undefined' ? null : radarChartReady)
+            .then(function () {
+                return new Promise(function (resolve) {
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(resolve);
+                    });
+                });
+            })
+            .then(function () {
+                window.print();
+                printFallback = window.setTimeout(restorePrintButton, 1500);
+            })
+            .catch(function () {
+                window.print();
+                printFallback = window.setTimeout(restorePrintButton, 1500);
+            });
+    }
+
+    window.addEventListener('afterprint', restorePrintButton);
+</script>
 
 </body>
 </html>

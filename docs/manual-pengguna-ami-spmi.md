@@ -259,7 +259,7 @@ Prasyarat: login sebagai Super Admin atau Admin LPMPI.
 
 Jalur menu: `Dashboard SPMI`.
 
-Aksi utama: baca ringkasan jumlah cycle, assignment, laporan, dan status kerja lain yang disediakan kartu dashboard.
+Aksi utama: baca ringkasan jumlah cycle, assignment, laporan, dan status kerja lain yang disediakan kartu dashboard. Pada Ringkasan PPEPP, pilih tahun untuk melihat jumlah dokumen LPMPI pada tahap Penetapan, Pelaksanaan, Pengendalian, dan Peningkatan; Evaluasi tetap menampilkan metrik penilaian dan laporan sistem.
 
 Hasil yang diharapkan: pimpinan kerja melihat kondisi mutakhir SPMI dalam satu layar.
 
@@ -321,21 +321,17 @@ Hasil yang diharapkan: daftar tindak lanjut memperlihatkan status penyelesaian y
 
 Catatan batas akses: tindak lanjut mengikuti mekanisme aplikasi dan hanya dapat diubah sesuai status yang diizinkan layar.
 
-### Rekap PPEPP SPMI
-
-![Dashboard rekap PPEPP SPMI](assets/manual-pengguna/r-05-recap-dashboard.png)
-
-_R-05, `r-05-recap-dashboard.png`._
+### Ringkasan PPEPP di Dashboard SPMI
 
 Prasyarat: login sebagai Super Admin atau Admin LPMPI.
 
-Jalur menu: `Rekap PPEPP SPMI`.
+Jalur menu: `Dashboard SPMI`.
 
-Aksi utama: lihat ringkasan PPEPP dari data siklus, laporan, dan tindak lanjut.
+Aksi utama: pilih tahun, lihat jumlah dokumen LPMPI per kategori pada Penetapan, Pelaksanaan, Pengendalian, dan Peningkatan, lalu buka tahap terkait untuk melihat dokumennya.
 
-Hasil yang diharapkan: pengguna mendapat gambaran ringkas siklus PPEPP tanpa membuka detail per record.
+Hasil yang diharapkan: pengguna mendapat ringkasan dokumen PPEPP sesuai tahun yang dipilih; kartu Evaluasi tetap menunjukkan metrik assessment dan laporan sistem.
 
-Catatan batas akses: layar ini lebih cocok untuk monitoring daripada edit data.
+Catatan batas akses: flow PPEPP tetap lima tahap, tetapi Evaluasi tidak memiliki unggahan dokumen karena dilakukan melalui proses audit. Route lama `lpmpi/spmi-recap` hanya mengarahkan ke Dashboard SPMI.
 
 ### Profil Lembaga, bagian Admin LPMPI
 
@@ -553,19 +549,19 @@ Hasil yang diharapkan: daftar tindak lanjut menunjukkan progres yang jelas.
 
 Catatan batas akses: perubahan mengikuti mekanisme edit aplikasi dan perlu dibaca sebagai status kerja, bukan sebagai approval bertingkat.
 
-### Rekap PPEPP SPMI, pengelolaan admin
+### Ringkasan PPEPP di Dashboard SPMI, pengelolaan admin
 
-Rekap PPEPP dipakai untuk melihat ringkasan lintas siklus. Gunakan layar ini ketika ingin membaca pola, bukan saat mengedit transaksi detail.
+Gunakan Dashboard SPMI untuk memilih tahun dan membaca jumlah dokumen LPMPI pada empat tahap dokumen PPEPP. Gunakan kartu tahap untuk membuka daftar dokumen terkait, bukan untuk mengedit transaksi detail dari dashboard.
 
-Prasyarat: data audit dan laporan sudah cukup untuk diringkas.
+Prasyarat: login sebagai Super Admin atau Admin LPMPI; data dokumen PPEPP dapat tersedia pada tahun yang dipilih.
 
-Jalur menu: `Rekap PPEPP SPMI`.
+Jalur menu: `Dashboard SPMI`.
 
-Aksi utama: baca ringkasan dan kecenderungan data PPEPP.
+Aksi utama: pilih tahun, baca jumlah dokumen per kategori pada Penetapan, Pelaksanaan, Pengendalian, dan Peningkatan, serta lihat metrik Evaluasi dari assessment dan laporan.
 
-Hasil yang diharapkan: pimpinan mendapat gambaran keseluruhan tanpa membuka banyak layar detail.
+Hasil yang diharapkan: pimpinan mendapat gambaran dokumen PPEPP per tahun tanpa mencampurkan dokumen dengan metrik audit Evaluasi.
 
-Catatan batas akses: layar ini bersifat ringkasan dan tidak menggantikan data sumber.
+Catatan batas akses: dashboard bersifat ringkasan dan tidak menggantikan data sumber. Flow PPEPP tetap lima tahap; Evaluasi tidak menyediakan unggahan dokumen.
 
 ## Arsip AMI Legacy
 
@@ -670,7 +666,6 @@ Itu perilaku yang benar. Arsip AMI Legacy memang hanya untuk baca.
 | R-01 | `r-01-reports.png` | Laporan SPMI |
 | R-03 | `r-03-rtm.png` | RTM SPMI |
 | R-04 | `r-04-follow-ups.png` | Tindak lanjut RTM |
-| R-05 | `r-05-recap-dashboard.png` | Rekap PPEPP SPMI |
 | L-01 | `l-01-archive-overview.png` | Arsip AMI Legacy overview |
 | L-01 | `l-01-archive-preflight.png` | Arsip AMI Legacy preflight |
 
@@ -689,7 +684,7 @@ Itu perilaku yang benar. Arsip AMI Legacy memang hanya untuk baca.
 | `Laporan SPMI` | `lpmpi/spmi-reports` |
 | `RTM SPMI` | `lpmpi/spmi-rtm` |
 | `Tindak Lanjut RTM` | `lpmpi/spmi-follow-ups` |
-| `Rekap PPEPP SPMI` | `lpmpi/spmi-recap` |
+| `Ringkasan PPEPP` | `lpmpi/spmi-dashboard?year=<tahun>` |
 | `Arsip AMI Legacy` | `lpmpi/legacy-ami-archive` |
 
 ## Catatan akhir

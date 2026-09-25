@@ -4,6 +4,44 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-25 08:30 WIB - Sisyphus: Profile now supports management-only,
+  POST/CSRF-compatible manual CRUD for individual Prodi and student statistics
+  through the existing tables, with service validation and row-scoped writes.
+  PDDikti still replaces only non-empty remote lists and preserves local/manual
+  data for empty payloads; browser QA created, edited, and removed test rows.
+  -> `.multibrain/context/2026-09-25-sisyphus-profil-manual-prodi-mahasiswa.md`
+
+- 2026-09-24 17:40 WIB - Sisyphus: Browser Print/Save as PDF for SPMI reports
+  now renders one Chart.js radar from immutable ordered item snapshots (raw 0-4),
+  waits two paint frames before printing, and keeps report tables/routes/auth
+  unchanged. Report 29 authenticated Chrome PDF is one A4-landscape page with
+  snapshot `001 / 3`; lint and report/RTM/workspace/audit/hardening guards
+  passed. Independent visual reviewers found no product defect but could not
+  render the captured PDF/image in their environment.
+
+- 2026-09-24 17:20 WIB - Sisyphus: SPMI report XLSX export now embeds one
+  native radar chart from that report's immutable ordered item snapshots; chart
+  labels and scores live on hidden `Data Radar`, while the visible report table,
+  GET route, authorization, and formula-safe text remain unchanged. PHP lint,
+  report/RTM/auditor-workspace/hardening regressions, and OOXML chart smoke
+  passed; authenticated export as `opencode@ami.test` for report ID 29 confirmed
+  the hidden source sheet and native `radarChart` with snapshot `001 / 3`.
+
+- 2026-09-24 15:00 WIB - Sisyphus: Dashboard SPMI now summarizes
+  selected-year LPMPI PPEPP documents for Penetapan, Pelaksanaan,
+  Pengendalian, and Peningkatan from grouped document metadata; Evaluasi,
+  Activity, Attention, and top KPIs retain their existing system metrics.
+  XLSX exports the same category rows plus Evaluasi metrics. No schema,
+  route, or legacy recap changes; PHP lint and dashboard/PPEPP/recap/sidebar/
+  hardening regressions passed. Authenticated dashboard/XLSX QA remains
+  blocked because local credentials are intentionally undocumented.
+
+- 2026-09-24 14:32 WIB - Sisyphus: Aligned the SPMI Target Tahunan form
+  with existing Standards primitives and a responsive two-column field grid;
+  POST/CSRF bindings, validation, navigation, and backend remain unchanged.
+  PHP lint plus indicator/sidebar/hardening regressions passed; authenticated
+  browser QA remains blocked without documented credentials.
+
 - 2026-09-24 13:04 WIB - Sisyphus: Pushed refreshed UNMUH/LPM branding for
   login and password recovery plus scoped Indicator SPMI form control fixes;
   auth, password-reset, and indicator regressions passed on
