@@ -76,11 +76,45 @@ class Spmi_reports extends Admin_Lpmpi_Controller
         $sheet->getStyle('A1:P' . max(1, $row - 1))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP)->setWrapText(TRUE);
         $sheet->getStyle('A1:P1')->getFont()->setBold(TRUE);
         $sheet->freezePane('A2');
+        if ($data['items']) {
+            $radar_sheet = $spreadsheet->createSheet();
+            $radar_sheet->setTitle('Data Radar');
+            $this->set_text($radar_sheet, 'A1', 'Indikator');
+            $this->set_text($radar_sheet, 'B1', 'Skor');
+            $radar_row = 2;
+            foreach ($data['items'] as $item) {
+                $this->set_text($radar_sheet, 'A' . $radar_row, $item->indicator_code_snapshot);
+                $radar_sheet->setCellValue('B' . $radar_row, (int) $item->score);
+                $radar_row++;
+            }
+            $radar_last_row = $radar_row - 1;
+            $radar_range = "'Data Radar'!\$A\$2:\$A\$" . $radar_last_row;
+            $score_range = "'Data Radar'!\$B\$2:\$B\$" . $radar_last_row;
+            $series = new \PhpOffice\PhpSpreadsheet\Chart\DataSeries(
+                \PhpOffice\PhpSpreadsheet\Chart\DataSeries::TYPE_RADARCHART,
+                \PhpOffice\PhpSpreadsheet\Chart\DataSeries::GROUPING_STANDARD,
+                [0],
+                [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', "'Data Radar'!\$B\$1", NULL, 1)],
+                [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', $radar_range, NULL, count($data['items']))],
+                [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('Number', $score_range, NULL, count($data['items']))]
+            );
+            $chart = new \PhpOffice\PhpSpreadsheet\Chart\Chart(
+                'radar_capaian_indikator',
+                new \PhpOffice\PhpSpreadsheet\Chart\Title('Radar Capaian Indikator'),
+                new \PhpOffice\PhpSpreadsheet\Chart\Legend(\PhpOffice\PhpSpreadsheet\Chart\Legend::POSITION_RIGHT, NULL, FALSE),
+                new \PhpOffice\PhpSpreadsheet\Chart\PlotArea(NULL, [$series])
+            );
+            $chart->setTopLeftPosition('A' . ($row + 2));
+            $chart->setBottomRightPosition('H' . ($row + 20));
+            $sheet->addChart($chart);
+            $radar_sheet->setSheetState(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::SHEETSTATE_HIDDEN);
+        }
         while (ob_get_level() > 0) @ob_end_clean();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="laporan_spmi.xlsx"');
         header('Cache-Control: max-age=0');
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->setIncludeCharts(TRUE);
         $writer->save('php://output');
         $spreadsheet->disconnectWorksheets();
         exit;
