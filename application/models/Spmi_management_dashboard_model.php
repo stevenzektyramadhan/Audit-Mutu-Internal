@@ -3,9 +3,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Spmi_management_dashboard_model extends CI_Model
 {
-    public function dashboard()
+    public function dashboard($year)
     {
         $this->load->model('User_model');
+        $this->load->model('Spmi_ppepp_documents_model');
+        $this->config->load('spmi_ppepp', TRUE);
         $eligible_cycles = "SELECT id FROM spmi_audit_cycles WHERE state IN ('configured', 'closed')";
         $count = function ($table, $where = [], $from = NULL, $joins = []) {
             $query = $this->db->select('COUNT(*) AS total', FALSE)->from($from ?: $table);
@@ -34,7 +36,23 @@ class Spmi_management_dashboard_model extends CI_Model
                 'follow_ups_overdue' => (int) $this->db->select('COUNT(*) AS total', FALSE)->where_in('status', ['open', 'in_progress'])->where('due_date IS NOT NULL', NULL, FALSE)->where('due_date < CURDATE()', NULL, FALSE)->get('spmi_rtm_follow_ups')->row()->total,
             ],
         ];
+        $stages = $this->config->item('spmi_ppepp_stages', 'spmi_ppepp');
+        $categories = $this->config->item('spmi_ppepp_categories', 'spmi_ppepp');
+        $counts = [];
+        foreach ($this->Spmi_ppepp_documents_model->dashboard_counts($year, array_keys($stages)) as $row) {
+            $counts[$row->stage][$row->category] = (int) $row->total;
+        }
+        $document_summary = [];
+        foreach ($stages as $stage => $label) {
+            $document_summary[$stage] = ['label' => $label, 'categories' => []];
+            foreach ($categories[$stage] as $key => $category_label) {
+                $document_summary[$stage]['categories'][] = ['key' => $key, 'label' => $category_label, 'count' => isset($counts[$stage][$key]) ? $counts[$stage][$key] : 0];
+            }
+        }
         return [
+            'selected_year' => (int) $year,
+            'years' => $this->Spmi_ppepp_documents_model->years(),
+            'document_summary' => $document_summary,
             'metrics' => $metrics,
             'notifications' => $this->notifications($metrics),
             'account_totals' => [
@@ -47,9 +65,10 @@ class Spmi_management_dashboard_model extends CI_Model
 
     public function export_rows($year)
     {
-        $dashboard = $this->dashboard();
+        $dashboard = $this->dashboard($year);
         $rows = [];
-        foreach ($dashboard['metrics'] as $stage => $items) foreach ($items as $metric => $count) $rows[] = [(int) $year, $stage, $metric, (int) $count];
+        foreach ($dashboard['document_summary'] as $stage => $summary) foreach ($summary['categories'] as $category) $rows[] = [(int) $year, $summary['label'], $category['label'], (int) $category['count']];
+        foreach ($dashboard['metrics']['evaluasi'] as $metric => $count) $rows[] = [(int) $year, 'Evaluasi', ucwords(str_replace('_', ' ', $metric)), (int) $count];
         return $rows;
     }
 

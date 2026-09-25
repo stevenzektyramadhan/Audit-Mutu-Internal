@@ -95,11 +95,14 @@ foreach (['Penetapan_model', 'ppepp_recap', "'penetapan' table", 'get_penilaian_
     ppepp_check(strpos($controller, $legacy) === FALSE, 'PPEPP document controller must not reference legacy workflow: ' . $legacy);
 }
 ppepp_check(strpos($model, 'private_storage_') === FALSE && strpos($model, 'is_uploaded_file') === FALSE && strpos($model, 'finfo_') === FALSE, 'PPEPP document model must stay persistence-only.');
-foreach (['documents($stage, $year)', 'years()', 'document($id, $for_update = FALSE)', 'penetapan_core_counts($year, $categories)', 'insert_document($data)', 'update_document($id, $data)', 'delete_document($id)'] as $literal) {
+foreach (['documents($stage, $year)', 'years()', 'document($id, $for_update = FALSE)', 'penetapan_core_counts($year, $categories)', 'dashboard_counts($year, $stages)', 'insert_document($data)', 'update_document($id, $data)', 'delete_document($id)'] as $literal) {
     ppepp_check(strpos($model, $literal) !== FALSE, 'PPEPP document model API missing: ' . $literal);
 }
 foreach (['u.nama AS uploader_name', 'uu.nama AS updater_name', 'WHERE id = ? FOR UPDATE', "where('stage', 'penetapan')", 'group_by(\'category\')'] as $literal) {
     ppepp_check(strpos($model, $literal) !== FALSE, 'PPEPP document model query invariant missing: ' . $literal);
+}
+foreach (["select('stage, category, COUNT(*) AS total', FALSE)", "where('period_year', (int) \$year)", "where_in('stage', \$stages)", "group_by(['stage', 'category'])"] as $literal) {
+    ppepp_check(strpos($model, $literal) !== FALSE, 'PPEPP dashboard grouped-count query invariant missing: ' . $literal);
 }
 
 foreach ([

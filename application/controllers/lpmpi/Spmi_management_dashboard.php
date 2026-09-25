@@ -11,14 +11,14 @@ class Spmi_management_dashboard extends Admin_Lpmpi_Controller
 
     public function index()
     {
-        $data = $this->Spmi_management_dashboard_model->dashboard();
+        $year = $this->selected_year();
+        $data = $this->Spmi_management_dashboard_model->dashboard($year);
         $this->load->view('lpmpi/spmi_management_dashboard/index', array_merge($data, ['title' => 'Dashboard SPMI', 'page_title' => 'Dashboard SPMI', 'page_subtitle' => 'Beranda / Insights / Dashboard SPMI', 'active_menu' => 'spmi_dashboard']));
     }
 
     public function export()
     {
-        $year = (int) $this->input->get('year', TRUE);
-        $year = $year >= 2000 && $year <= 2100 ? $year : (int) date('Y');
+        $year = $this->selected_year();
         $autoload = FCPATH . 'vendor/autoload.php';
         if (!is_file($autoload)) { show_error('Library PhpSpreadsheet belum terpasang. Jalankan composer install terlebih dahulu.', 500, 'Export gagal'); return; }
         require_once $autoload;
@@ -42,5 +42,11 @@ class Spmi_management_dashboard extends Admin_Lpmpi_Controller
         (new $writer_class($spreadsheet))->save('php://output');
         $spreadsheet->disconnectWorksheets();
         exit;
+    }
+
+    protected function selected_year()
+    {
+        $year = (int) $this->input->get('year', TRUE);
+        return $year >= 2000 && $year <= 2100 ? $year : (int) date('Y');
     }
 }

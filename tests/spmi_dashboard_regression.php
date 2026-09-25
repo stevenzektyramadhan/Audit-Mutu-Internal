@@ -24,6 +24,8 @@ $management_controller = source($root, 'application/controllers/lpmpi/Spmi_manag
 $auditor_controller = source($root, 'application/controllers/Spmi_auditor_dashboard.php');
 $auditee_controller = source($root, 'application/controllers/Spmi_auditee_dashboard.php');
 $management_model = source($root, 'application/models/Spmi_management_dashboard_model.php');
+$ppepp_documents_model = source($root, 'application/models/Spmi_ppepp_documents_model.php');
+$ppepp_config = source($root, 'application/config/spmi_ppepp.php');
 $auditor_model = source($root, 'application/models/Spmi_auditor_dashboard_model.php');
 $auditee_model = source($root, 'application/models/Spmi_auditee_dashboard_model.php');
 $management_view = source($root, 'application/views/lpmpi/spmi_management_dashboard/index.php');
@@ -48,7 +50,12 @@ check(strpos($management_controller, "header('Content-Type: application/vnd.open
 check(strpos($management_controller, "header('Content-Disposition: attachment; filename=\"spmi-dashboard-' . \$year . '.xlsx\"')") !== FALSE, 'Native XLSX attachment header missing.');
 check(strpos($management_controller, "FCPATH . 'vendor/autoload.php'") !== FALSE && strpos($management_controller, 'require_once $autoload') !== FALSE && strpos($management_controller, "class_exists('PhpOffice\\\\PhpSpreadsheet\\\\Spreadsheet')") !== FALSE, 'PhpSpreadsheet Composer autoload guard missing.');
 check(strpos($management_controller, "'page_subtitle' => 'Beranda / Insights / Dashboard SPMI'") !== FALSE, 'Management dashboard subtitle must include Insights.');
+check(strpos($management_controller, 'dashboard($year)') !== FALSE && strpos($management_controller, 'protected function selected_year()') !== FALSE, 'Management dashboard must normalize and forward the selected document year.');
 check(strpos($management_model, 'function export_rows($year)') !== FALSE, 'Export rows must receive requested year.');
+foreach (['Spmi_ppepp_documents_model', "config->load('spmi_ppepp', TRUE)", 'document_summary', 'selected_year', 'dashboard_counts($year, array_keys($stages))', 'years()'] as $literal) {
+    check(strpos($management_model, $literal) !== FALSE, 'Document-backed PPEPP dashboard contract missing: ' . $literal);
+}
+check(strpos($management_model, "['metrics']['evaluasi']") !== FALSE, 'Selected-year export must retain Evaluasi system metrics.');
 check(strpos($management_model, "'account_totals'") !== FALSE, 'Management account totals contract missing.');
 foreach (['total_user', 'total_auditor', 'total_auditee'] as $account_total) {
     check(strpos($management_model, "'" . $account_total . "'") !== FALSE, 'Management account total missing: ' . $account_total);
@@ -92,8 +99,10 @@ foreach ([$auditor_model, $auditee_model] as $model) {
 foreach ([$management_view, $auditor_view, $auditee_view] as $view) {
     check(strpos($view, 'layouts/header.php') !== FALSE && strpos($view, 'layouts/sidebar.php') !== FALSE, 'AMI shell missing from dashboard view.');
     check(strpos($view, 'html_escape(') !== FALSE, 'Escaped dashboard output missing.');
-    check(strpos($view, '<form') === FALSE && strpos($view, 'form_open') === FALSE, 'Dashboard view must remain read-only.');
 }
+check(strpos($management_view, "form_open('lpmpi/spmi-dashboard'") !== FALSE && strpos($management_view, "'method' => 'get'") !== FALSE && strpos($management_view, 'name="year"') !== FALSE, 'Management dashboard must provide a read-only GET year filter.');
+check(strpos($management_view, 'document_summary') !== FALSE && strpos($management_view, 'document_index_url($stage, $selected_year)') !== FALSE, 'Management dashboard document-card summary/link contract missing.');
+check(strpos($management_view, '$stage === \'evaluasi\'') !== FALSE && strpos($management_view, '$items = $metrics[$stage]') !== FALSE, 'Management dashboard must retain a separate Evaluasi system card.');
 $notification_position = strpos($management_view, 'aria-labelledby="');
 $metric_position = strpos($management_view, 'ami-stat-grid');
 check(strpos($management_view, 'ami-dashboard-logo-banner') !== FALSE, 'Management dashboard identity banner missing.');
@@ -102,9 +111,14 @@ check(strpos($management_view, 'ami-stat-grid') !== FALSE && strpos($management_
 check(strpos($management_view, 'ami-task-card') !== FALSE && strpos($management_view, 'ami-task-icon') !== FALSE, 'Management notifications must reuse AMI task cards.');
 check(strpos($management_view, 'list-group') === FALSE, 'Management notifications must not use Bootstrap list groups.');
 check(strpos($management_view, "'danger' ? 'tone-rose'") !== FALSE && strpos($management_view, "'warning' ? 'tone-amber'") !== FALSE, 'Management notification severity tone mapping changed.');
-check(strpos($management_view, "site_url('lpmpi/spmi-dashboard/export?year=' . date('Y'))") !== FALSE, 'Management export action changed.');
+check(strpos($management_view, "site_url('lpmpi/spmi-dashboard/export?year=' . rawurlencode((string) \$selected_year))") !== FALSE, 'Management export must retain the selected document year.');
 check(strpos($management_view, 'ami-empty') !== FALSE || strpos($management_view, 'Belum ada data') !== FALSE, 'Management zero state must remain present.');
-foreach (['Belum ada data penetapan SPMI.', 'Belum ada data pelaksanaan SPMI.', 'Belum ada data evaluasi SPMI.', 'Belum ada data pengendalian SPMI.', 'Belum ada data peningkatan SPMI.'] as $empty_text) check(strpos($management_view, $empty_text) !== FALSE, 'Management stage zero state missing: ' . $empty_text);
+foreach (['Belum ada dokumen Penetapan pada tahun ini.', 'Belum ada dokumen Pelaksanaan pada tahun ini.', 'Belum ada data evaluasi SPMI.', 'Belum ada dokumen Pengendalian pada tahun ini.', 'Belum ada dokumen Peningkatan pada tahun ini.'] as $empty_text) check(strpos($management_view, $empty_text) !== FALSE, 'Management stage zero state missing: ' . $empty_text);
+check(strpos($ppepp_config, "'evaluasi'") === FALSE, 'PPEPP document configuration must not add an Evaluasi upload stage.');
+foreach (['penetapan', 'pelaksanaan', 'pengendalian', 'peningkatan'] as $stage) check(strpos($ppepp_config, "'" . $stage . "' =>") !== FALSE, 'PPEPP document stage missing from configuration: ' . $stage);
+foreach (['function dashboard_counts($year, $stages)', "select('stage, category, COUNT(*) AS total', FALSE)", "where('period_year', (int) \$year)", "where_in('stage', \$stages)", "group_by(['stage', 'category'])"] as $literal) {
+    check(strpos($ppepp_documents_model, $literal) !== FALSE, 'PPEPP grouped dashboard count contract missing: ' . $literal);
+}
 check(strpos($auditor_view, 'print') === FALSE && strpos($auditor_view, 'export') === FALSE, 'Auditor dashboard must not expose print/export.');
 check(strpos($auditee_view, 'print') === FALSE && strpos($auditee_view, 'export') === FALSE, 'Auditee dashboard must not expose print/export.');
 check(strpos($management_controller, "in_array(") !== FALSE && strpos($management_controller, "['=', '+', '-', '@']") !== FALSE, 'Export formula safety missing.');

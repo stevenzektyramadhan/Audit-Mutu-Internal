@@ -7,12 +7,22 @@ include APPPATH . 'views/layouts/sidebar.php';
 
 <?php
 $stage_details = [
-    'penetapan' => ['title' => 'Penetapan', 'description' => 'Tetapkan standar', 'caption' => 'Fondasi standar dan sasaran mutu.', 'icon' => 'compass', 'tone' => 'tone-blue', 'empty' => 'Belum ada data penetapan SPMI.'],
-    'pelaksanaan' => ['title' => 'Pelaksanaan', 'description' => 'Jalankan proses', 'caption' => 'Siklus dan submission yang berjalan.', 'icon' => 'play', 'tone' => 'tone-teal', 'empty' => 'Belum ada data pelaksanaan SPMI.'],
+    'penetapan' => ['title' => 'Penetapan', 'description' => 'Tetapkan standar', 'caption' => 'Dokumen fondasi standar dan sasaran mutu.', 'icon' => 'compass', 'tone' => 'tone-blue', 'empty' => 'Belum ada dokumen Penetapan pada tahun ini.'],
+    'pelaksanaan' => ['title' => 'Pelaksanaan', 'description' => 'Jalankan proses', 'caption' => 'Dokumen pelaksanaan standar yang diunggah LPMPI.', 'icon' => 'play', 'tone' => 'tone-teal', 'empty' => 'Belum ada dokumen Pelaksanaan pada tahun ini.'],
     'evaluasi' => ['title' => 'Evaluasi', 'description' => 'Nilai hasil', 'caption' => 'Penilaian dan laporan hasil mutu.', 'icon' => 'search', 'tone' => 'tone-amber', 'empty' => 'Belum ada data evaluasi SPMI.'],
-    'pengendalian' => ['title' => 'Pengendalian', 'description' => 'Kendalikan hasil', 'caption' => 'RTM dan keputusan perbaikan.', 'icon' => 'sliders', 'tone' => 'tone-rose', 'empty' => 'Belum ada data pengendalian SPMI.'],
-    'peningkatan' => ['title' => 'Peningkatan', 'description' => 'Tingkatkan mutu', 'caption' => 'Tindak lanjut menuju mutu berkelanjutan.', 'icon' => 'arrow-up', 'tone' => 'tone-green', 'empty' => 'Belum ada data peningkatan SPMI.'],
+    'pengendalian' => ['title' => 'Pengendalian', 'description' => 'Kendalikan hasil', 'caption' => 'Dokumen analisis dan tindakan koreksi LPMPI.', 'icon' => 'sliders', 'tone' => 'tone-rose', 'empty' => 'Belum ada dokumen Pengendalian pada tahun ini.'],
+    'peningkatan' => ['title' => 'Peningkatan', 'description' => 'Tingkatkan mutu', 'caption' => 'Dokumen rekomendasi dan peningkatan mutu LPMPI.', 'icon' => 'arrow-up', 'tone' => 'tone-green', 'empty' => 'Belum ada dokumen Peningkatan pada tahun ini.'],
 ];
+$selected_year = isset($selected_year) ? (int) $selected_year : (int) date('Y');
+$year_options = [];
+foreach ((array) $years as $year) {
+    $year_value = is_object($year) ? $year->period_year : $year;
+    $year_options[(string) $year_value] = $year_value;
+}
+$year_options[(string) date('Y')] = (int) date('Y');
+$document_index_url = static function ($stage, $year) {
+    return site_url('lpmpi/spmi-ppepp-documents') . '?stage=' . rawurlencode((string) $stage) . '&year=' . rawurlencode((string) $year);
+};
 $spmi_icons = [
     'arrow-up' => '<path d="M12 19V5m0 0-6 6m6-6 6 6"/>',
     'badge' => '<path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
@@ -68,7 +78,7 @@ $spmi_icon = static function ($name) use ($spmi_icons) {
             <img src="<?php echo html_escape(base_url('assets/img/logo-2.png')); ?>" alt="Logo LPM" class="tw-h-[52px] tw-w-[52px] tw-rounded-xl tw-bg-white tw-object-contain tw-p-1.5">
             <div><div class="spmi-eyebrow">Sistem Penjaminan Mutu Internal</div><h2 id="spmi-dashboard-title">Dashboard SPMI</h2><p>Pulse PPEPP untuk membantu tim mutu menjaga ritme perbaikan.</p></div>
         </div>
-        <a class="tw-inline-flex tw-items-center tw-gap-2 tw-whitespace-nowrap tw-rounded-md tw-border tw-px-4 tw-py-2.5 tw-font-bold spmi-export" href="<?php echo site_url('lpmpi/spmi-dashboard/export?year=' . date('Y')); ?>"><?php echo $spmi_icon('download'); ?> Export XLSX Tahunan</a>
+        <a class="tw-inline-flex tw-items-center tw-gap-2 tw-whitespace-nowrap tw-rounded-md tw-border tw-px-4 tw-py-2.5 tw-font-bold spmi-export" href="<?php echo html_escape(site_url('lpmpi/spmi-dashboard/export?year=' . rawurlencode((string) $selected_year))); ?>"><?php echo $spmi_icon('download'); ?> Export XLSX Tahunan</a>
     </section>
 
     <section class="tw-mb-6 tw-rounded-lg tw-border tw-p-4 sm:tw-p-6 spmi-flow" aria-labelledby="spmi-flow-title"><div class="tw-mb-4 tw-flex tw-items-center tw-justify-between tw-gap-4"><div><div class="spmi-eyebrow">Siklus mutu</div><h3 id="spmi-flow-title">Alur PPEPP</h3></div><span class="spmi-flow-note">5 tahap terhubung</span></div><div class="spmi-stepper"><?php foreach ($stage_details as $stage => $detail): ?><a class="spmi-flow-step <?php echo $detail['tone']; ?>" href="#spmi-stage-<?php echo html_escape($stage); ?>"><span class="spmi-flow-marker"><span class="spmi-flow-number"><?php echo html_escape(str_pad((string) (array_search($stage, array_keys($stage_details), TRUE) + 1), 2, '0', STR_PAD_LEFT)); ?></span><?php echo $spmi_icon($detail['icon']); ?></span><span class="spmi-flow-copy"><strong><?php echo html_escape($detail['title']); ?></strong><span><?php echo html_escape($detail['description']); ?></span></span></a><?php endforeach; ?></div></section>
@@ -88,17 +98,31 @@ $spmi_icon = static function ($name) use ($spmi_icons) {
     </section>
 
     <section class="tw-mb-6 spmi-summary" aria-labelledby="spmi-summary-title">
-        <div class="tw-mb-4 tw-flex tw-items-end tw-justify-between tw-gap-4">
+        <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between tw-gap-4">
             <div><div class="spmi-eyebrow">Ringkasan siklus</div><h3 id="spmi-summary-title">Ringkasan PPEPP</h3></div>
-            <span class="spmi-flow-note">5 tahap mutu</span>
+            <?php echo form_open('lpmpi/spmi-dashboard', ['method' => 'get', 'class' => 'tw-flex tw-items-center tw-gap-2']); ?>
+                <label class="tw-font-bold" for="spmi-summary-year">Tahun</label>
+                <select class="tw-rounded-md tw-border tw-px-3 tw-py-2" id="spmi-summary-year" name="year">
+                    <?php foreach ($year_options as $year_value): ?>
+                        <option value="<?php echo html_escape((string) $year_value); ?>" <?php echo (int) $year_value === $selected_year ? 'selected' : ''; ?>><?php echo html_escape((string) $year_value); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button class="tw-rounded-md tw-border tw-px-3 tw-py-2 tw-font-bold" type="submit">Terapkan</button>
+            <?php echo form_close(); ?>
         </div>
         <div class="ami-stat-grid spmi-summary-grid">
             <?php foreach (array_keys($stage_details) as $stage): ?>
-                <?php $items = $metrics[$stage]; ?>
                 <section id="spmi-stage-<?php echo html_escape($stage); ?>" class="ami-panel spmi-stage <?php echo $stage === 'peningkatan' ? 'spmi-stage-wide' : ''; ?>" aria-labelledby="spmi-stage-title-<?php echo html_escape($stage); ?>">
-                    <div class="ami-panel-body"><div class="spmi-stage-heading"><span class="spmi-stage-icon <?php echo $stage_details[$stage]['tone']; ?>"><?php echo $spmi_icon($stage_details[$stage]['icon']); ?></span><div><h3 id="spmi-stage-title-<?php echo html_escape($stage); ?>"><?php echo html_escape($stage_details[$stage]['title']); ?></h3><p><?php echo html_escape($stage_details[$stage]['caption']); ?></p></div></div>
-                    <div class="spmi-metric-list"><?php foreach ($items as $key => $value): ?><div class="tw-grid tw-grid-cols-[30px_1fr_auto] tw-items-center tw-gap-2.5 tw-rounded-md tw-border tw-p-3 spmi-attention-item spmi-metric-row"><span class="spmi-attention-icon spmi-metric-icon <?php echo $stage_details[$stage]['tone']; ?>"><?php echo $spmi_icon($spmi_metric_icons[$key] ?? $stage_details[$stage]['icon']); ?></span><span class="spmi-metric-label"><?php echo html_escape(ucwords(str_replace('_', ' ', $key))); ?></span><strong><?php echo html_escape((string) $value); ?></strong></div><?php endforeach; ?></div>
-                    <?php if (array_sum($items) === 0): ?><div class="ami-empty spmi-stage-empty"><?php echo html_escape($stage_details[$stage]['empty']); ?></div><?php endif; ?>
+                    <div class="ami-panel-body"><div class="spmi-stage-heading"><span class="spmi-stage-icon <?php echo $stage_details[$stage]['tone']; ?>"><?php echo $spmi_icon($stage_details[$stage]['icon']); ?></span><div><h3 id="spmi-stage-title-<?php echo html_escape($stage); ?>"><?php if ($stage === 'evaluasi'): ?><?php echo html_escape($stage_details[$stage]['title']); ?><?php else: ?><a href="<?php echo html_escape($document_index_url($stage, $selected_year)); ?>"><?php echo html_escape($stage_details[$stage]['title']); ?></a><?php endif; ?></h3><p><?php echo html_escape($stage_details[$stage]['caption']); ?></p></div></div>
+                    <?php if ($stage === 'evaluasi'): ?>
+                        <?php $items = $metrics[$stage]; ?>
+                        <div class="spmi-metric-list"><?php foreach ($items as $key => $value): ?><div class="tw-grid tw-grid-cols-[30px_1fr_auto] tw-items-center tw-gap-2.5 tw-rounded-md tw-border tw-p-3 spmi-attention-item spmi-metric-row"><span class="spmi-attention-icon spmi-metric-icon <?php echo $stage_details[$stage]['tone']; ?>"><?php echo $spmi_icon($spmi_metric_icons[$key] ?? $stage_details[$stage]['icon']); ?></span><span class="spmi-metric-label"><?php echo html_escape(ucwords(str_replace('_', ' ', $key))); ?></span><strong><?php echo html_escape((string) $value); ?></strong></div><?php endforeach; ?></div>
+                        <?php if (array_sum($items) === 0): ?><div class="ami-empty spmi-stage-empty"><?php echo html_escape($stage_details[$stage]['empty']); ?></div><?php endif; ?>
+                    <?php else: ?>
+                        <?php $summary = isset($document_summary[$stage]) && is_array($document_summary[$stage]) ? $document_summary[$stage] : []; ?>
+                        <div class="spmi-metric-list"><?php foreach ($summary['categories'] ?? [] as $category): ?><div class="tw-grid tw-grid-cols-[30px_1fr_auto] tw-items-center tw-gap-2.5 tw-rounded-md tw-border tw-p-3 spmi-attention-item spmi-metric-row"><span class="spmi-attention-icon spmi-metric-icon <?php echo $stage_details[$stage]['tone']; ?>"><?php echo $spmi_icon($stage_details[$stage]['icon']); ?></span><span class="spmi-metric-label"><?php echo html_escape($category['label']); ?></span><strong><?php echo html_escape((string) $category['count']); ?></strong></div><?php endforeach; ?></div>
+                        <?php if (empty($summary['categories'])): ?><div class="ami-empty spmi-stage-empty"><?php echo html_escape($stage_details[$stage]['empty']); ?></div><?php endif; ?>
+                    <?php endif; ?>
                     </div>
                 </section>
             <?php endforeach; ?>
