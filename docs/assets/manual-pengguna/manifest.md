@@ -32,7 +32,6 @@
 | R-01 | Admin LPMPI | `/lpmpi/spmi-reports` | Reports surface dibuka pada fixture tanpa pre-created report | REVIEWED — none | `application/config/routes.php:147-151`; `application/views/layouts/sidebar.php:36-39` | `r-01-reports.png` | `#laporan-spmi` |
 | R-03 | Admin LPMPI | `/lpmpi/spmi-rtm` | RTM surface dibuka; fixture tidak pre-create meeting | REVIEWED — none | `application/config/routes.php:152-159`; `application/views/layouts/sidebar.php:37` | `r-03-rtm.png` | `#rtm-spmi` |
 | R-04 | Admin LPMPI | `/lpmpi/spmi-follow-ups` | Follow-up surface dibuka; fixture tidak pre-create follow-up | REVIEWED — none | `application/config/routes.php:160-166`; `application/views/layouts/sidebar.php:38` | `r-04-follow-ups.png` | `#tindak-lanjut` |
-| R-05 | Admin LPMPI | `/lpmpi/spmi-recap` | Rekap PPEPP surface dibuka pada lifecycle fixture | REVIEWED — none | `application/config/routes.php:167-169`; `application/views/layouts/sidebar.php:39` | `r-05-recap-dashboard.png` | `#rekap-ppepp` |
 | L-01 | Admin LPMPI | `/lpmpi/legacy-ami-archive` dan `/lpmpi/legacy-ami-archive/preflight` | Satu archive run, task, answer, dan issue sintetis tersedia; hanya GET/read-only | REVIEWED — none | `application/config/routes.php:170-174` | `l-01-archive-overview.png`, `l-01-archive-preflight.png` | `#arsip-ami-legacy` |
 
 ## Verification notes
