@@ -53,6 +53,46 @@ class Profil_model extends CI_Model
             ->result();
     }
 
+    public function find_prodi($id)
+    {
+        return $this->db->where('id', (int) $id)->get($this->prodi_table)->row();
+    }
+
+    public function create_prodi($data)
+    {
+        return $this->db->insert($this->prodi_table, $data);
+    }
+
+    public function update_prodi($id, $data)
+    {
+        return $this->db->where('id', (int) $id)->update($this->prodi_table, $data);
+    }
+
+    public function delete_prodi($id)
+    {
+        return $this->db->where('id', (int) $id)->delete($this->prodi_table);
+    }
+
+    public function find_mahasiswa_stat($id)
+    {
+        return $this->db->where('id', (int) $id)->get($this->mahasiswa_table)->row();
+    }
+
+    public function create_mahasiswa_stat($data)
+    {
+        return $this->db->insert($this->mahasiswa_table, $data);
+    }
+
+    public function update_mahasiswa_stat($id, $data)
+    {
+        return $this->db->where('id', (int) $id)->update($this->mahasiswa_table, $data);
+    }
+
+    public function delete_mahasiswa_stat($id)
+    {
+        return $this->db->where('id', (int) $id)->delete($this->mahasiswa_table);
+    }
+
     public function get_akreditasi_summary()
     {
         if (!$this->db->table_exists($this->prodi_table)) {

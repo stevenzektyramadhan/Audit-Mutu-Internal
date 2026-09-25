@@ -135,4 +135,11 @@ $model = source($root, 'application/models/Profil_model.php');
 check(strpos($model, 'function replace_prodi($rows)') !== FALSE && strpos($model, '$this->db->empty_table($this->prodi_table);') !== FALSE, 'Model replace_prodi tetap destructive hanya jika controller memanggilnya.');
 check(strpos($model, 'function replace_mahasiswa_stats($rows)') !== FALSE && strpos($model, '$this->db->empty_table($this->mahasiswa_table);') !== FALSE, 'Model replace_mahasiswa_stats tetap destructive hanya jika controller memanggilnya.');
 
+$profil_service = source($root, 'application/services/Profil_service.php');
+check(strpos($profil_service, 'replace_prodi(') === FALSE && strpos($profil_service, 'replace_mahasiswa_stats(') === FALSE, 'CRUD manual Profil tidak boleh memakai replacement PDDikti.');
+foreach (['find_prodi', 'create_prodi', 'update_prodi', 'delete_prodi', 'find_mahasiswa_stat', 'create_mahasiswa_stat', 'update_mahasiswa_stat', 'delete_mahasiswa_stat'] as $method) {
+    check(strpos($model, 'function ' . $method . '(') !== FALSE, 'Model CRUD manual Profil hilang: ' . $method . '.');
+}
+check(strpos($model, "->where('id', (int) \$id)") !== FALSE, 'CRUD manual Profil harus tetap dibatasi oleh ID baris.');
+
 fwrite(STDOUT, "PDDikti sync regression checks passed.\n");

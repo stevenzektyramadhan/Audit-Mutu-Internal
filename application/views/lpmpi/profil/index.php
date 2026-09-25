@@ -174,6 +174,29 @@ include APPPATH . 'views/layouts/sidebar.php';
             width: 118px;
             height: 118px;
         }
+
+        .ami-section-head > .ami-actions {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ami-section-head > .ami-actions > a,
+        .ami-section-head > .ami-actions > form,
+        .ami-section-head > .ami-actions > form .btn,
+        .ami-section-head > .ami-actions > form .form-control {
+            width: 100%;
+        }
+
+        .ami-section-head > .ami-actions > form {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ami-section-head > .ami-actions > form .form-control {
+            min-width: 0 !important;
+        }
     }
 </style>
 
@@ -184,21 +207,12 @@ include APPPATH . 'views/layouts/sidebar.php';
             <a href="<?php echo site_url('profil/edit'); ?>" class="btn btn-outline-ami btn-ami">
                 <i class="fas fa-edit" aria-hidden="true"></i> Edit Manual
             </a>
-            <?php if ($schema_ready): ?>
-                <?php echo form_open('profil/sinkronisasi', ['class' => 'ami-actions mb-0']); ?>
-                    <?php if ($nama_sinkron === ''): ?>
-                        <input type="text" name="nama_pt_pddikti" class="form-control" required placeholder="Nama PT di PDDikti" style="min-width:260px;">
-                    <?php else: ?>
-                        <input type="hidden" name="nama_pt_pddikti" value="<?php echo html_escape($nama_sinkron); ?>">
-                    <?php endif; ?>
-                    <?php if ($profil && !empty($profil->id_pt_pddikti)): ?>
-                        <input type="hidden" name="id_pt_pddikti" value="<?php echo html_escape($profil->id_pt_pddikti); ?>">
-                    <?php endif; ?>
-                    <button type="submit" class="btn btn-primary btn-ami" data-confirm-sync data-loading-text="Sinkronisasi...">
-                        <i class="fas fa-sync-alt" aria-hidden="true"></i> Sinkronkan dari PDDikti
-                    </button>
-                <?php echo form_close(); ?>
-            <?php endif; ?>
+            <a href="<?php echo html_escape(site_url('profil/prodi/create')); ?>" class="btn btn-outline-ami btn-ami">
+                <i class="fas fa-plus" aria-hidden="true"></i> Tambah Program Studi
+            </a>
+            <a href="<?php echo html_escape(site_url('profil/mahasiswa/create')); ?>" class="btn btn-outline-ami btn-ami">
+                <i class="fas fa-plus" aria-hidden="true"></i> Tambah Statistik Mahasiswa
+            </a>
         </div>
     <?php endif; ?>
 </div>
@@ -292,6 +306,14 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <div class="profil-field">
                                     <div class="ami-stat-label"><?php echo html_escape($row->jenjang ?: 'Lainnya'); ?></div>
                                     <div class="profil-field-value"><?php echo html_escape(number_format((int) $row->jumlah, 0, ',', '.')); ?></div>
+                                    <?php if ($can_manage): ?>
+                                        <div class="mt-2 d-flex flex-wrap align-items-center" style="gap: 6px;">
+                                            <a href="<?php echo html_escape(site_url('profil/mahasiswa/edit/' . (int) $row->id)); ?>" class="btn btn-sm btn-outline-ami">Edit</a>
+                                            <?php echo form_open('profil/mahasiswa/delete/' . (int) $row->id, ['class' => 'd-inline']); ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return window.confirm('Hapus statistik mahasiswa ini?');">Hapus</button>
+                                            <?php echo form_close(); ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -327,6 +349,9 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <th>Akreditasi</th>
                         <th>Tanggal SK Akreditasi</th>
                         <th>Rasio Dosen/Mahasiswa</th>
+                        <?php if ($can_manage): ?>
+                            <th>Aksi</th>
+                        <?php endif; ?>
                     </tr>
                     </thead>
                     <tbody>
@@ -341,11 +366,21 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <td><?php echo html_escape($row->akreditasi ?: '-'); ?></td>
                                 <td><?php echo !empty($row->tanggal_sk_akreditasi) ? html_escape(format_tanggal_indo($row->tanggal_sk_akreditasi)) : '-'; ?></td>
                                 <td><?php echo html_escape($row->rasio_dosen_mahasiswa ?: '-'); ?></td>
+                                <?php if ($can_manage): ?>
+                                    <td>
+                                        <div class="d-flex flex-wrap align-items-center" style="gap: 6px;">
+                                            <a href="<?php echo html_escape(site_url('profil/prodi/edit/' . (int) $row->id)); ?>" class="btn btn-sm btn-outline-ami">Edit</a>
+                                            <?php echo form_open('profil/prodi/delete/' . (int) $row->id, ['class' => 'd-inline']); ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return window.confirm('Hapus program studi ini?');">Hapus</button>
+                                            <?php echo form_close(); ?>
+                                        </div>
+                                    </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="8">
+                            <td colspan="<?php echo $can_manage ? '9' : '8'; ?>">
                                 <div class="ami-empty">
                                     <div class="ami-empty-icon"><i class="fas fa-list" aria-hidden="true"></i></div>
                                     <div class="ami-empty-title">Belum ada data program studi</div>
