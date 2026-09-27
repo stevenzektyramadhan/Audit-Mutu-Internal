@@ -38,20 +38,33 @@ def csrf(html):
     return match.group(1)
 
 
-def expect_redirect(opener, url, data, roster_url, success):
+def normalize_destination(url):
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc or parsed.query or parsed.fragment:
+        raise RuntimeError(f"invalid roster destination: {url!r}")
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path.rstrip("/") or "/", "", ""))
+
+
+def expect_redirect(opener, redirect_opener, url, data, roster_url, success):
+    destination = normalize_destination(roster_url)
     try:
-        response = request(opener, url, data)
+        response = request(redirect_opener, url, data)
     except urllib.error.HTTPError as error:
         if error.code not in REDIRECT_STATUSES:
             raise RuntimeError(f"POST {url} returned HTTP {error.code}") from error
         location = error.headers.get("Location", "")
-        if not location.endswith(roster_url):
-            raise RuntimeError(f"POST {url} redirected to {location!r}, not {roster_url!r}")
+        if normalize_destination(urllib.parse.urljoin(url, location)) != destination:
+            raise RuntimeError(f"POST {url} redirected to {location!r}, not {destination!r}")
     else:
-        if response.geturl().rstrip("/") != roster_url.rstrip("/"):
-            raise RuntimeError(f"POST {url} ended at {response.geturl()!r}, not {roster_url!r}")
-        if success not in body(response):
-            raise RuntimeError(f"POST {url} did not render {success!r}")
+        if normalize_destination(response.geturl()) != destination:
+            raise RuntimeError(f"POST {url} ended at {response.geturl()!r}, not {destination!r}")
+
+    response = request(opener, destination)
+    html = body(response)
+    if response.getcode() != 200:
+        raise RuntimeError(f"GET {destination} returned HTTP {response.getcode()}")
+    if success not in html:
+        raise RuntimeError(f"GET {destination} did not render {success!r}")
 
 
 def roster_token(opener, roster_url):
@@ -99,6 +112,7 @@ def main():
 
     jar = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+    redirect_opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar), NoRedirect())
     login_page = request(opener, f"{base_url}/auth")
     login_token = csrf(body(login_page))
     login = request(opener, f"{base_url}/auth/login", {"csrf_test_name": login_token, "email": ADMIN_EMAIL, "password": PASSWORD})
@@ -106,18 +120,18 @@ def main():
         raise RuntimeError(f"admin login did not reach its dashboard: {login.geturl()!r}")
 
     add_token = roster_token(opener, source_roster)
-    expect_redirect(opener, f"{source_roster}/add", {"csrf_test_name": add_token, "id_akun": AUDITOR_ID, "jabatan": "P4.2 Auditor"}, source_roster, "Staf program studi berhasil ditambahkan.")
+    expect_redirect(opener, redirect_opener, f"{source_roster}/add", {"csrf_test_name": add_token, "id_akun": AUDITOR_ID, "jabatan": "P4.2 Auditor"}, source_roster, "Staf program studi berhasil ditambahkan.")
     relation_id = query(args, "SELECT id FROM staf_prodi WHERE id_akun = 910002 AND id_prodi = 920001 AND status = 'active';")
     if not relation_id.isdigit():
         raise RuntimeError(f"add did not create exactly one known relation ID: {relation_id!r}")
     expect_state(args, f"{relation_id}\t910002\t920001\tP4.2 Auditor\tactive")
 
     move_token = roster_token(opener, source_roster)
-    expect_redirect(opener, f"{source_roster}/move/{relation_id}", {"csrf_test_name": move_token, "target_prodi_id": TARGET_PRODI_ID}, source_roster, "Staf berhasil dipindahkan ke program studi tujuan.")
+    expect_redirect(opener, redirect_opener, f"{source_roster}/move/{relation_id}", {"csrf_test_name": move_token, "target_prodi_id": TARGET_PRODI_ID}, source_roster, "Staf berhasil dipindahkan ke program studi tujuan.")
     expect_state(args, f"{relation_id}\t910002\t920002\tP4.2 Auditor\tactive")
 
     deactivate_token = roster_token(opener, target_roster)
-    expect_redirect(opener, f"{target_roster}/deactivate/{relation_id}", {"csrf_test_name": deactivate_token}, target_roster, "Relasi staf berhasil dinonaktifkan.")
+    expect_redirect(opener, redirect_opener, f"{target_roster}/deactivate/{relation_id}", {"csrf_test_name": deactivate_token}, target_roster, "Relasi staf berhasil dinonaktifkan.")
     expect_state(args, f"{relation_id}\t910002\t920002\tP4.2 Auditor\tinactive")
     print("P4.2 staf_prodi HTTP smoke passed.")
 

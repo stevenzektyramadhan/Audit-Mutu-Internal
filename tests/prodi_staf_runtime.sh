@@ -10,16 +10,19 @@ compose() {
 }
 
 cleanup() {
-    compose down --volumes --remove-orphans
-    test -z "$(docker ps --all --quiet --filter "label=com.docker.compose.project=$project")"
-    test -z "$(docker network ls --filter "label=com.docker.compose.project=$project" --quiet)"
-    test -z "$(docker volume ls --filter "label=com.docker.compose.project=$project" --quiet)"
+    local cleanup_status=0
+    compose down --volumes --remove-orphans || cleanup_status=1
+    test -z "$(docker ps --all --quiet --filter "label=com.docker.compose.project=$project")" || cleanup_status=1
+    test -z "$(docker network ls --filter "label=com.docker.compose.project=$project" --quiet)" || cleanup_status=1
+    test -z "$(docker volume ls --filter "label=com.docker.compose.project=$project" --quiet)" || cleanup_status=1
+    return "$cleanup_status"
 }
 
 cleanup_on_exit() {
     local status=$?
     trap - EXIT INT TERM
-    if ! cleanup && [ "$status" -eq 0 ]; then
+    if ! cleanup; then
+        printf 'P4.2 isolated cleanup failed for project %s (original smoke status %s).\n' "$project" "$status" >&2
         exit 1
     fi
     exit "$status"
