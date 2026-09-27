@@ -35,6 +35,11 @@ uploads/profil/
 /tests/results/
 AGENTS.md
 
+# Local backups and agent runtime artifacts can contain sensitive data.
+/backups/
+/.playwright-mcp/
+/artifacts/
+
 # Local development notes
 .clinerules
 docs/DATABASE.md

@@ -2,7 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $profil = isset($profil) ? $profil : NULL;
-$prodi = isset($prodi) ? $prodi : [];
+$prodi = isset($prodi) && is_array($prodi) ? $prodi : [];
 $mahasiswa_stats = isset($mahasiswa_stats) ? $mahasiswa_stats : [];
 $akreditasi_summary = isset($akreditasi_summary) ? $akreditasi_summary : [];
 $schema_ready = !empty($schema_ready);
@@ -151,6 +151,37 @@ include APPPATH . 'views/layouts/sidebar.php';
         gap: 10px;
     }
 
+    .profil-prodi-table-wrap {
+        overflow-x: auto;
+    }
+
+    .profil-prodi-table {
+        min-width: 560px;
+        margin-bottom: 0;
+    }
+
+    .profil-prodi-table th {
+        white-space: nowrap;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .profil-prodi-table td {
+        vertical-align: middle;
+    }
+
+    .profil-prodi-code {
+        color: var(--ami-muted);
+        font-family: monospace;
+        font-size: 12px;
+    }
+
+    .profil-prodi-name {
+        color: var(--ami-text);
+        font-weight: 700;
+    }
+
     @media (max-width: 991.98px) {
         .profil-hero,
         .profil-mahasiswa-head,
@@ -206,9 +237,6 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="ami-actions">
             <a href="<?php echo site_url('profil/edit'); ?>" class="btn btn-outline-ami btn-ami">
                 <i class="fas fa-edit" aria-hidden="true"></i> Edit Manual
-            </a>
-            <a href="<?php echo html_escape(site_url('profil/prodi/create')); ?>" class="btn btn-outline-ami btn-ami">
-                <i class="fas fa-plus" aria-hidden="true"></i> Tambah Program Studi
             </a>
             <a href="<?php echo html_escape(site_url('profil/mahasiswa/create')); ?>" class="btn btn-outline-ami btn-ami">
                 <i class="fas fa-plus" aria-hidden="true"></i> Tambah Statistik Mahasiswa
@@ -334,63 +362,51 @@ include APPPATH . 'views/layouts/sidebar.php';
         </div>
     </div>
 
-    <div class="ami-panel">
+<?php endif; ?>
+
+<?php if ($schema_ready): ?>
+    <div class="ami-panel mb-3">
         <div class="ami-panel-body">
-            <h2 class="ami-section-title mb-3">Daftar Program Studi</h2>
-            <div class="table-responsive">
-                <table class="table ami-table">
-                    <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Kode Prodi</th>
-                        <th>Nama Program Studi</th>
-                        <th>Status</th>
-                        <th>Jenjang</th>
-                        <th>Akreditasi</th>
-                        <th>Tanggal SK Akreditasi</th>
-                        <th>Rasio Dosen/Mahasiswa</th>
-                        <?php if ($can_manage): ?>
-                            <th>Aksi</th>
-                        <?php endif; ?>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php if (!empty($prodi)): ?>
-                        <?php foreach ($prodi as $index => $row): ?>
-                            <tr>
-                                <td><?php echo (int) $index + 1; ?></td>
-                                <td><?php echo html_escape($row->kode_prodi ?: '-'); ?></td>
-                                <td><strong><?php echo html_escape($row->nama_prodi ?: '-'); ?></strong></td>
-                                <td><?php echo html_escape($row->status ?: '-'); ?></td>
-                                <td><?php echo html_escape($row->jenjang ?: '-'); ?></td>
-                                <td><?php echo html_escape($row->akreditasi ?: '-'); ?></td>
-                                <td><?php echo !empty($row->tanggal_sk_akreditasi) ? html_escape(format_tanggal_indo($row->tanggal_sk_akreditasi)) : '-'; ?></td>
-                                <td><?php echo html_escape($row->rasio_dosen_mahasiswa ?: '-'); ?></td>
-                                <?php if ($can_manage): ?>
-                                    <td>
-                                        <div class="d-flex flex-wrap align-items-center" style="gap: 6px;">
-                                            <a href="<?php echo html_escape(site_url('profil/prodi/edit/' . (int) $row->id)); ?>" class="btn btn-sm btn-outline-ami">Edit</a>
-                                            <?php echo form_open('profil/prodi/delete/' . (int) $row->id, ['class' => 'd-inline']); ?>
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return window.confirm('Hapus program studi ini?');">Hapus</button>
-                                            <?php echo form_close(); ?>
-                                        </div>
-                                    </td>
-                                <?php endif; ?>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="<?php echo $can_manage ? '9' : '8'; ?>">
-                                <div class="ami-empty">
-                                    <div class="ami-empty-icon"><i class="fas fa-list" aria-hidden="true"></i></div>
-                                    <div class="ami-empty-title">Belum ada data program studi</div>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
+            <div class="ami-section-head mb-3">
+                <div>
+                    <h2 class="ami-section-title mb-1">Daftar Program Studi</h2>
+                    <p class="text-muted mb-0">Informasi program studi yang terdaftar pada profil lembaga.</p>
+                </div>
+                <?php if ($can_manage): ?>
+                    <div class="ami-actions">
+                        <a href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>" class="btn btn-outline-ami btn-ami">Kelola di Master Data</a>
+                    </div>
+                <?php endif; ?>
             </div>
+            <?php if (!empty($prodi)): ?>
+                <div class="table-responsive profil-prodi-table-wrap">
+                    <table class="table ami-table profil-prodi-table">
+                        <caption class="sr-only">Daftar program studi berdasarkan kode, nama, dan jenjang</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Kode</th>
+                                <th scope="col">Nama Program Studi</th>
+                                <th scope="col">Jenjang</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($prodi as $row): ?>
+                                <tr>
+                                    <td class="profil-prodi-code"><?php echo html_escape((string) ($row->kode_prodi ?? '-')); ?></td>
+                                    <td class="profil-prodi-name"><?php echo html_escape((string) ($row->nama_prodi ?? '-')); ?></td>
+                                    <td><?php echo html_escape((string) ($row->jenjang ?? '-')); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="ami-empty">
+                    <div class="ami-empty-icon"><i class="fas fa-graduation-cap" aria-hidden="true"></i></div>
+                    <div class="ami-empty-title">Belum ada data program studi</div>
+                    <div>Daftar program studi akan tampil setelah data tersedia.</div>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 <?php endif; ?>

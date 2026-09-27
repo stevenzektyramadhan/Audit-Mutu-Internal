@@ -7,6 +7,8 @@ class Profil extends MY_Controller
     public $Profil_model;
     /** @var Profil_service */
     public $profil_service;
+    /** @var Prodi_staf_service */
+    public $prodi_staf_service;
 
     public function __construct()
     {
@@ -16,6 +18,8 @@ class Profil extends MY_Controller
         $this->load->model('Profil_model');
         require_once APPPATH . 'services/Profil_service.php';
         $this->profil_service = new Profil_service();
+        require_once APPPATH . 'services/Prodi_staf_service.php';
+        $this->prodi_staf_service = new Prodi_staf_service();
         require_once APPPATH . 'services/Upload_size_settings_service.php';
     }
 
@@ -263,7 +267,7 @@ class Profil extends MY_Controller
             $this->render_prodi_form('Tambah Program Studi', 'profil/prodi/store');
             return;
         }
-        $this->flash_profile_result($this->profil_service->create_prodi($this->prodi_input()));
+        $this->flash_prodi_result($this->profil_service->create_prodi($this->prodi_input()));
     }
 
     public function prodi_update($id)
@@ -278,7 +282,7 @@ class Profil extends MY_Controller
             $this->render_prodi_form('Edit Program Studi', 'profil/prodi/update/' . (int) $id, $row);
             return;
         }
-        $this->flash_profile_result($this->profil_service->update_prodi((int) $id, $this->prodi_input()));
+        $this->flash_prodi_result($this->profil_service->update_prodi((int) $id, $this->prodi_input()));
     }
 
     public function prodi_delete($id)
@@ -286,7 +290,76 @@ class Profil extends MY_Controller
         $this->require_manage();
         $this->require_schema_ready();
         $this->require_post();
-        $this->flash_profile_result($this->profil_service->delete_prodi((int) $id));
+        $this->flash_prodi_result($this->profil_service->delete_prodi((int) $id));
+    }
+
+    public function prodi_staf($id)
+    {
+        $this->require_manage();
+        $this->require_roster_schema_ready();
+        $prodi = $this->roster_prodi($id);
+        $this->load->view('lpmpi/profil/prodi_staf', [
+            'title' => 'Kelola Staf Program Studi - AMI',
+            'page_title' => 'Kelola Staf Program Studi',
+            'active_menu' => 'master_data_prodi_staf',
+            'prodi' => $prodi,
+            'eligible_users' => $this->prodi_staf_service->eligible_users(),
+            'target_prodi' => $this->prodi_staf_service->prodi_list((int) $prodi->id),
+            'active_staf' => $this->prodi_staf_service->staf((int) $prodi->id, 'active'),
+            'inactive_staf' => $this->prodi_staf_service->staf((int) $prodi->id, 'inactive'),
+        ]);
+    }
+
+    public function prodi_staf_add($id)
+    {
+        $this->require_manage();
+        $this->require_roster_schema_ready();
+        $this->require_post();
+        $prodi = $this->roster_prodi($id);
+        $this->form_validation->set_rules('id_akun', 'Akun staf', 'required|integer|greater_than[0]');
+        $this->form_validation->set_rules('jabatan', 'Jabatan', 'max_length[100]');
+        if ($this->form_validation->run() === FALSE) return $this->flash_roster_error((int) $prodi->id, 'Data staf tidak valid.');
+        $this->flash_roster_result((int) $prodi->id, $this->prodi_staf_service->add((int) $prodi->id, (int) $this->input->post('id_akun', TRUE), $this->input->post('jabatan', TRUE)));
+    }
+
+    public function prodi_staf_update($id, $staf_id)
+    {
+        $this->require_manage();
+        $this->require_roster_schema_ready();
+        $this->require_post();
+        $prodi = $this->roster_prodi($id);
+        $this->form_validation->set_rules('jabatan', 'Jabatan', 'max_length[100]');
+        if ($this->form_validation->run() === FALSE) return $this->flash_roster_error((int) $prodi->id, 'Jabatan staf tidak valid.');
+        $this->flash_roster_result((int) $prodi->id, $this->prodi_staf_service->update_jabatan((int) $prodi->id, (int) $staf_id, $this->input->post('jabatan', TRUE)));
+    }
+
+    public function prodi_staf_move($id, $staf_id)
+    {
+        $this->require_manage();
+        $this->require_roster_schema_ready();
+        $this->require_post();
+        $prodi = $this->roster_prodi($id);
+        $this->form_validation->set_rules('target_prodi_id', 'Program studi tujuan', 'required|integer|greater_than[0]');
+        if ($this->form_validation->run() === FALSE) return $this->flash_roster_error((int) $prodi->id, 'Program studi tujuan tidak valid.');
+        $this->flash_roster_result((int) $prodi->id, $this->prodi_staf_service->move((int) $prodi->id, (int) $staf_id, (int) $this->input->post('target_prodi_id', TRUE)));
+    }
+
+    public function prodi_staf_deactivate($id, $staf_id)
+    {
+        $this->require_manage();
+        $this->require_roster_schema_ready();
+        $this->require_post();
+        $prodi = $this->roster_prodi($id);
+        $this->flash_roster_result((int) $prodi->id, $this->prodi_staf_service->deactivate((int) $prodi->id, (int) $staf_id));
+    }
+
+    public function prodi_staf_reactivate($id, $staf_id)
+    {
+        $this->require_manage();
+        $this->require_roster_schema_ready();
+        $this->require_post();
+        $prodi = $this->roster_prodi($id);
+        $this->flash_roster_result((int) $prodi->id, $this->prodi_staf_service->reactivate((int) $prodi->id, (int) $staf_id));
     }
 
     public function mahasiswa_create()
@@ -369,7 +442,8 @@ class Profil extends MY_Controller
         $this->load->view('lpmpi/profil/prodi_form', [
             'title' => $page_title . ' - AMI',
             'page_title' => $page_title,
-            'active_menu' => 'profil',
+            'active_menu' => 'master_data_prodi_staf',
+            'return_url' => 'lpmpi/master-data-prodi-staf',
             'action' => $action,
             'row' => $row,
         ]);
@@ -435,6 +509,31 @@ class Profil extends MY_Controller
     {
         $this->session->set_flashdata(!empty($result['success']) ? 'success' : 'error', $result['message']);
         redirect('profil');
+    }
+
+    private function flash_prodi_result($result)
+    {
+        $this->session->set_flashdata(!empty($result['success']) ? 'success' : 'error', $result['message']);
+        redirect('lpmpi/master-data-prodi-staf');
+    }
+
+    private function roster_prodi($id)
+    {
+        $prodi = $this->prodi_staf_service->prodi((int) $id);
+        if (!$prodi) show_404();
+        return $prodi;
+    }
+
+    private function flash_roster_result($prodi_id, $result)
+    {
+        $this->session->set_flashdata(!empty($result['success']) ? 'success' : 'error', $result['message']);
+        redirect('profil/prodi/' . (int) $prodi_id . '/staf');
+    }
+
+    private function flash_roster_error($prodi_id, $message)
+    {
+        $this->session->set_flashdata('error', $message);
+        redirect('profil/prodi/' . (int) $prodi_id . '/staf');
     }
 
     private function preserve_existing_profile_values($data, $existing)
@@ -529,6 +628,15 @@ class Profil extends MY_Controller
     {
         if (!$this->Profil_model->has_tables()) {
             show_error('Tabel profil belum tersedia. Jalankan migration 008_create_profil_tables.sql terlebih dahulu.', 500, 'Database belum siap');
+            exit;
+        }
+    }
+
+    private function require_roster_schema_ready()
+    {
+        $this->require_schema_ready();
+        if (!$this->prodi_staf_service->ready()) {
+            show_error('Tabel relasi staf program studi belum tersedia. Jalankan migration 041_create_staf_prodi.sql terlebih dahulu.', 500, 'Database belum siap');
             exit;
         }
     }

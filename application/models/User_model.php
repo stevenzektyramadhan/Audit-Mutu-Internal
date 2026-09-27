@@ -30,8 +30,12 @@ class User_model extends CI_Model
         return $this->db->query($query . ($for_update ? ' FOR UPDATE' : ''))->row();
     }
 
-    public function find($id)
+    public function find($id, $for_update = FALSE)
     {
+        if ($for_update) {
+            return $this->db->query('SELECT * FROM users WHERE id = ? FOR UPDATE', [(int) $id])->row();
+        }
+
         return $this->db->where('id', (int) $id)->get($this->table)->row();
     }
 
@@ -95,6 +99,19 @@ class User_model extends CI_Model
                 ->or_where('auditee_id', (int) $id)
             ->group_end()
             ->count_all_results('tugas_audit') > 0;
+    }
+
+    public function has_staf_prodi_links($id, $for_update = FALSE)
+    {
+        if (!$this->db->table_exists('staf_prodi')) {
+            return FALSE;
+        }
+
+        if ($for_update) {
+            return count($this->db->query('SELECT id FROM staf_prodi WHERE id_akun = ? FOR UPDATE', [(int) $id])->result()) > 0;
+        }
+
+        return $this->db->where('id_akun', (int) $id)->count_all_results('staf_prodi') > 0;
     }
 
     public function user_dependency_category($id)

@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $row = isset($row) ? $row : NULL;
+$return_url = isset($return_url) ? $return_url : 'lpmpi/master-data-prodi-staf';
 
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
@@ -11,7 +12,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     <div class="ami-panel-body">
         <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap" style="gap: 12px;">
             <h2 class="ami-section-title m-0"><?php echo html_escape($page_title); ?></h2>
-            <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('profil')); ?>">Kembali</a>
+            <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Kembali</a>
         </div>
 
         <?php if (validation_errors()): ?>
@@ -59,7 +60,7 @@ include APPPATH . 'views/layouts/sidebar.php';
             </div>
 
             <div class="d-flex justify-content-end flex-wrap" style="gap: 8px;">
-                <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('profil')); ?>">Batal</a>
+                <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Batal</a>
                 <button type="submit" class="btn btn-primary btn-ami">Simpan</button>
             </div>
         <?php echo form_close(); ?>

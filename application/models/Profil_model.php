@@ -40,6 +40,30 @@ class Profil_model extends CI_Model
             ->result();
     }
 
+    public function get_prodi_master_data()
+    {
+        if (!$this->db->table_exists($this->prodi_table)) {
+            return [];
+        }
+
+        $has_staff_table = $this->db->table_exists('staf_prodi');
+        $this->db->select('profil_prodi.*');
+        if ($has_staff_table) {
+            $this->db->select("COUNT(CASE WHEN staf_prodi.status = 'active' THEN staf_prodi.id END) AS active_staff_count", FALSE);
+            $this->db->join('staf_prodi', 'staf_prodi.id_prodi = profil_prodi.id', 'left');
+        } else {
+            $this->db->select('0 AS active_staff_count', FALSE);
+        }
+
+        return $this->db
+            ->from($this->prodi_table)
+            ->order_by('profil_prodi.jenjang', 'ASC')
+            ->order_by('profil_prodi.nama_prodi', 'ASC')
+            ->group_by('profil_prodi.id')
+            ->get()
+            ->result();
+    }
+
     public function get_mahasiswa_stats()
     {
         if (!$this->db->table_exists($this->mahasiswa_table)) {
@@ -58,6 +82,11 @@ class Profil_model extends CI_Model
         return $this->db->where('id', (int) $id)->get($this->prodi_table)->row();
     }
 
+    public function find_prodi_for_update($id)
+    {
+        return $this->db->query('SELECT * FROM profil_prodi WHERE id = ? FOR UPDATE', [(int) $id])->row();
+    }
+
     public function create_prodi($data)
     {
         return $this->db->insert($this->prodi_table, $data);
@@ -71,6 +100,21 @@ class Profil_model extends CI_Model
     public function delete_prodi($id)
     {
         return $this->db->where('id', (int) $id)->delete($this->prodi_table);
+    }
+
+    public function prodi_has_staf($id)
+    {
+        return $this->db->table_exists('staf_prodi')
+            && $this->db->where('id_prodi', (int) $id)->count_all_results('staf_prodi') > 0;
+    }
+
+    public function prodi_staf_for_update($id)
+    {
+        if (!$this->db->table_exists('staf_prodi')) {
+            return [];
+        }
+
+        return $this->db->query('SELECT id FROM staf_prodi WHERE id_prodi = ? FOR UPDATE', [(int) $id])->result();
     }
 
     public function find_mahasiswa_stat($id)
@@ -136,10 +180,40 @@ class Profil_model extends CI_Model
         $rows = $this->clean_prodi_rows($rows);
 
         $this->db->trans_start();
-        $this->db->empty_table($this->prodi_table);
+        $this->db->query('SELECT id FROM profil_prodi ORDER BY id ASC FOR UPDATE');
+        $relations = [];
+        if ($this->db->table_exists('staf_prodi')) {
+            $query = $this->db->select('staf_prodi.id_akun, staf_prodi.jabatan, staf_prodi.status, profil_prodi.kode_prodi')
+                ->from('staf_prodi')
+                ->join($this->prodi_table, 'profil_prodi.id = staf_prodi.id_prodi')
+                ->where('profil_prodi.kode_prodi IS NOT NULL', NULL, FALSE)
+                ->get_compiled_select();
+            $relations = $this->db->query($query . ' FOR UPDATE')->result_array();
+        }
+
+        $this->db->delete($this->prodi_table);
 
         if (!empty($rows)) {
             $this->db->insert_batch($this->prodi_table, $rows);
+        }
+
+        if (!empty($relations)) {
+            $prodi_ids = [];
+            foreach ($this->db->select('id, kode_prodi')->where('kode_prodi IS NOT NULL', NULL, FALSE)->get($this->prodi_table)->result() as $prodi) {
+                if (!isset($prodi_ids[$prodi->kode_prodi])) {
+                    $prodi_ids[$prodi->kode_prodi] = (int) $prodi->id;
+                }
+            }
+            foreach ($relations as $relation) {
+                if (isset($prodi_ids[$relation['kode_prodi']])) {
+                    $this->db->insert('staf_prodi', [
+                        'id_akun' => (int) $relation['id_akun'],
+                        'id_prodi' => $prodi_ids[$relation['kode_prodi']],
+                        'jabatan' => $relation['jabatan'],
+                        'status' => $relation['status'],
+                    ]);
+                }
+            }
         }
 
         $this->db->trans_complete();

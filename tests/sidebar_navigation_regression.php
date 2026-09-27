@@ -69,13 +69,22 @@ foreach ([
 
 check(substr_count($sidebar, "'group' => 'Settings'") === 8, 'Settings group must cover all account, upload setting, and management profile entries.');
 check(substr_count($sidebar, "'key' => 'spmi_workspace', 'label' => 'Workspace SPMI', 'icon' => 'fa-laptop-house', 'url' => 'auditee/spmi', 'group' => 'Work'") === 1, 'SPMI workspace menu must be auditee-only.');
-check(substr_count($sidebar, "'group' => 'Management'") === 10, 'Management group count changed.');
-$ppepp_contract = "['key' => 'spmi_ppepp_documents', 'label' => 'Dokumen PPEPP', 'icon' => 'fa-folder-open', 'url' => 'lpmpi/spmi-ppepp-documents', 'group' => 'Management']";
-check(substr_count($sidebar, $ppepp_contract) === 2, 'PPEPP documents menu must appear once in each management role.');
+check(substr_count($sidebar, "'group' => 'Management'") === 12, 'Management group count changed.');
+$master_data_contract = "['key' => 'master_data_prodi_staf', 'label' => 'Master Data Prodi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management']";
+check(substr_count($sidebar, $master_data_contract) === 2, 'Master Data Prodi & Staf menu must appear once in each management role.');
+$organization_contract = "['key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization', 'group' => 'Management']";
+$standards_contract = "['key' => 'spmi_standards', 'label' => 'Standar SPMI', 'icon' => 'fa-layer-group', 'url' => 'lpmpi/spmi-standards', 'group' => 'Management']";
 $super_admin_start = strpos($sidebar, "'super_admin' => [");
 $admin_lpmpi_start = strpos($sidebar, "'admin_lpmpi' => [");
 $auditor_start = strpos($sidebar, "'auditor' => [");
 $auditee_start = strpos($sidebar, "'auditee' => [");
+check(strpos($sidebar, $master_data_contract) !== FALSE && strpos($sidebar, $organization_contract) < strpos($sidebar, $master_data_contract) && strpos($sidebar, $master_data_contract) < strpos($sidebar, $standards_contract), 'Master Data Prodi & Staf must follow Struktur Organisasi and precede Standar SPMI.');
+$master_data_position = strpos($sidebar, $master_data_contract);
+check($master_data_position < $auditor_start, 'Master Data Prodi & Staf must be inside management menus.');
+check(strpos($sidebar, $master_data_contract, $auditor_start) === FALSE, 'Master Data Prodi & Staf must not be available to auditor.');
+check(strpos($sidebar, $master_data_contract, $auditee_start) === FALSE, 'Master Data Prodi & Staf must not be available to auditee.');
+$ppepp_contract = "['key' => 'spmi_ppepp_documents', 'label' => 'Dokumen PPEPP', 'icon' => 'fa-folder-open', 'url' => 'lpmpi/spmi-ppepp-documents', 'group' => 'Management']";
+check(substr_count($sidebar, $ppepp_contract) === 2, 'PPEPP documents menu must appear once in each management role.');
 check($super_admin_start !== FALSE && strpos($sidebar, $ppepp_contract, $super_admin_start) !== FALSE && strpos($sidebar, $ppepp_contract, $super_admin_start) < $admin_lpmpi_start, 'PPEPP menu must be inside super_admin Management menu.');
 check($admin_lpmpi_start !== FALSE && strpos($sidebar, $ppepp_contract, $admin_lpmpi_start) !== FALSE && strpos($sidebar, $ppepp_contract, $admin_lpmpi_start) < $auditor_start, 'PPEPP menu must be inside admin_lpmpi Management menu.');
 check($auditor_start !== FALSE && strpos($sidebar, $ppepp_contract, $auditor_start) === FALSE, 'PPEPP menu must not be available to auditor.');

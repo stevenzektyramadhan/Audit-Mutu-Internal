@@ -132,7 +132,9 @@ check(strpos($sinkronisasi, 'Data program studi lokal dipertahankan karena PDDik
 check(strpos($sinkronisasi, 'Data statistik mahasiswa lokal dipertahankan karena PDDikti tidak mengirim data statistik.') !== FALSE, 'Warning pertahankan statistik mahasiswa lokal harus tetap ada.');
 
 $model = source($root, 'application/models/Profil_model.php');
-check(strpos($model, 'function replace_prodi($rows)') !== FALSE && strpos($model, '$this->db->empty_table($this->prodi_table);') !== FALSE, 'Model replace_prodi tetap destructive hanya jika controller memanggilnya.');
+check(strpos($model, 'function replace_prodi($rows)') !== FALSE && strpos($model, '$this->db->delete($this->prodi_table);') !== FALSE && strpos($model, "->join(\$this->prodi_table, 'profil_prodi.id = staf_prodi.id_prodi')") !== FALSE && strpos($model, "'status' => \$relation['status']") !== FALSE && strpos($model, "'id_prodi' => \$prodi_ids[\$relation['kode_prodi']]") !== FALSE, 'replace_prodi harus menghapus FK-safe lalu memulihkan relasi staf aktif/inaktif menurut kode prodi pengganti.');
+check(strpos(substr($model, strpos($model, 'function replace_prodi($rows)')), 'empty_table($this->prodi_table)') === FALSE, 'replace_prodi tidak boleh memakai TRUNCATE di bawah FK staf_prodi.');
+check(strpos($model, 'SELECT id FROM profil_prodi ORDER BY id ASC FOR UPDATE') !== FALSE && strpos($model, "\$relations = \$this->db->query(\$query . ' FOR UPDATE')->result_array();") !== FALSE, 'replace_prodi harus mengunci semua Prodi lalu snapshot relasi staf dalam transaksi sebelum delete cascade.');
 check(strpos($model, 'function replace_mahasiswa_stats($rows)') !== FALSE && strpos($model, '$this->db->empty_table($this->mahasiswa_table);') !== FALSE, 'Model replace_mahasiswa_stats tetap destructive hanya jika controller memanggilnya.');
 
 $profil_service = source($root, 'application/services/Profil_service.php');
