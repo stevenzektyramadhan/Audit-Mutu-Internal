@@ -43,13 +43,16 @@ users_consolidation_check(strpos($service, "'admin_lpmpi' => ['auditor', 'audite
 users_consolidation_check(strpos($service, 'create_lpmpi_account') === FALSE && strpos($service, 'update_lpmpi_account') === FALSE && strpos($service, 'delete_lpmpi_account') === FALSE, 'Method CRUD legacy Akun harus dihapus dari service.');
 users_consolidation_check(strpos($service, 'is_valid_unit_fields') === FALSE && strpos($service, 'normalize_unit_fields') === FALSE, 'Service account CRUD tidak boleh mengelola field unit organisasi.');
 users_consolidation_check(strpos($service, 'dependency = $this->user_model->user_dependency_category') !== FALSE, 'Service harus memakai dependency blocker model.');
+users_consolidation_check(strpos($service, 'trans_begin()') !== FALSE && strpos($service, 'find($id, TRUE)') !== FALSE && strpos($service, "!in_array(\$data['role'], ['auditor', 'auditee'], TRUE)") !== FALSE && strpos($service, 'has_staf_prodi_links($id, TRUE)') !== FALSE && strpos($service, 'relasi staf program studi') !== FALSE, 'Role akun berelasi staf harus terkunci dan ditolak hanya saat berubah ke role tidak layak.');
 users_consolidation_check(strpos($service, 'if ($user->role === \'super_admin\')') !== FALSE, 'Delete harus menolak semua target super_admin.');
 users_consolidation_check(strpos($service, 'if ($user->role === \'super_admin\' && $this->user_model->count_by_role(\'super_admin\') <= 1)') === FALSE, 'Delete tidak boleh lagi memakai policy Super Admin terakhir.');
 users_consolidation_check(strpos($service, 'Super Admin tidak dapat dihapus.') !== FALSE, 'Delete harus memakai pesan absolute super_admin protection.');
 users_consolidation_check(strpos($service, 'Anda tidak dapat menghapus akun yang sedang digunakan.') !== FALSE, 'Delete harus blok akun sesi sendiri.');
+users_consolidation_check(strpos($service, "if (\$this->user_model->has_staf_prodi_links(\$id))") !== FALSE && strpos($service, 'Pengguna tidak dapat dihapus karena masih terikat pada relasi staf program studi.') !== FALSE, 'Delete harus menolak akun yang masih memiliki relasi staf program studi.');
 
 users_consolidation_check(strpos($model, "or_like('nama_unit', \$filters['q'])") === FALSE, 'Search Users account-only tidak boleh mencari nama_unit.');
 users_consolidation_check(strpos($model, 'function user_dependency_category') !== FALSE, 'Model harus punya lookup dependency user.');
+users_consolidation_check(strpos($model, 'function has_staf_prodi_links') !== FALSE && strpos($model, 'SELECT id FROM staf_prodi WHERE id_akun = ? FOR UPDATE') !== FALSE, 'Model harus dapat memeriksa semua link staf aktif/inaktif dengan lock saat role berubah.');
 foreach (['tugas_audit', 'spmi_audit_assignments', 'spmi_audit_cycles', 'spmi_versions', 'spmi_reports', 'spmi_rtm_meetings', 'spmi_rtm_participants', 'spmi_rtm_follow_ups', 'user_unit_assignments'] as $table) {
     users_consolidation_check(strpos($model, "'table' => '" . $table . "'") !== FALSE, 'Dependency table wajib dicek: ' . $table);
 }

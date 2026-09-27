@@ -71,33 +71,45 @@ class User_service
     public function update_user($id, $data)
     {
         $actor_role = isset($data['actor_role']) ? $data['actor_role'] : '';
-        $user = $this->user_model->find($id);
-        if (!$user) {
-            return $this->fail('Pengguna tidak ditemukan.');
-        }
-
         $data = $this->normalize($data);
         if (!$this->is_valid($data, FALSE)) {
             return $this->fail('Data pengguna tidak valid.');
         }
 
+        $this->ci->db->trans_begin();
+        try {
+        $user = $this->user_model->find($id, TRUE);
+        if (!$user) {
+            $this->ci->db->trans_rollback();
+            return $this->fail('Pengguna tidak ditemukan.');
+        }
+
         if (!$this->can_manage_role($actor_role, $user->role) || !$this->can_manage_role($actor_role, $data['role'])) {
+            $this->ci->db->trans_rollback();
             return $this->fail('Role pengguna tidak boleh dikelola oleh akun ini.');
         }
 
         if ($this->user_model->email_exists_except($data['email'], $id)) {
+            $this->ci->db->trans_rollback();
             return $this->fail('Email sudah digunakan pengguna lain.');
         }
 
         if ($user->role === 'super_admin'
             && $data['role'] !== 'super_admin'
             && $this->user_model->count_by_role('super_admin') <= 1) {
+            $this->ci->db->trans_rollback();
             return $this->fail('Super Admin terakhir tidak dapat diubah ke role lain.');
         }
 
         if ($data['role'] !== $user->role) {
+            if (!in_array($data['role'], ['auditor', 'auditee'], TRUE)
+                && $this->user_model->has_staf_prodi_links($id, TRUE)) {
+                $this->ci->db->trans_rollback();
+                return $this->fail('Role pengguna tidak dapat diubah karena masih terikat pada relasi staf program studi.');
+            }
             $dependency = $this->user_model->user_dependency_category($id);
             if ($dependency !== '') {
+                $this->ci->db->trans_rollback();
                 return $this->fail('Role pengguna tidak dapat diubah karena masih terikat pada ' . $dependency . '.');
             }
         }
@@ -108,11 +120,17 @@ class User_service
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        if ($this->user_model->update($id, $data)) {
+        if ($this->user_model->update($id, $data) && $this->ci->db->trans_status()) {
+            $this->ci->db->trans_commit();
             return ['success' => TRUE, 'message' => 'Pengguna berhasil diperbarui.'];
         }
 
+        $this->ci->db->trans_rollback();
         return $this->fail('Gagal memperbarui pengguna.');
+        } catch (Throwable $exception) {
+            $this->ci->db->trans_rollback();
+            return $this->fail('Gagal memperbarui pengguna.');
+        }
     }
 
     public function delete_user($id, $current_user_id, $actor_role = '')
@@ -132,6 +150,10 @@ class User_service
 
         if ($user->role === 'super_admin') {
             return $this->fail('Super Admin tidak dapat dihapus.');
+        }
+
+        if ($this->user_model->has_staf_prodi_links($id)) {
+            return $this->fail('Pengguna tidak dapat dihapus karena masih terikat pada relasi staf program studi.');
         }
 
         $dependency = $this->user_model->user_dependency_category($id);
