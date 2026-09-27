@@ -4,6 +4,8 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-27 - Sisyphus-Junior: P3.2 menambahkan pencarian client-side roster dari corpus escaped nama/email/role/jabatan serta pagination independen 10 baris untuk staf aktif dan nonaktif, dengan summary, previous/next, state no-match, reset page saat filter, dan lifecycle form existing tetap utuh. Hanya view roster dan static regression guard yang berubah selain entry memory; tidak ada perubahan server/data/route. `php -l` kedua file, regression roster/master-data, dan `git diff --check` lulus.
+
 - 2026-09-27 - Sisyphus-Junior: P2.2 memperjelas copy agregat staf aktif-only di Master Data Prodi & Staf menjadi `Total Staf Aktif Terhubung`, `Staf Aktif`, dan caption aksesibel yang menyebut staf aktif; perilaku agregat `active_staff_count`, styling/layout, route, authorization, dan mutasi tetap tidak berubah. `php -l` untuk dua file PHP, `master_data_prodi_staf_regression.php`, `prodi_staf_manual_regression.php`, dan `git diff --check` lulus.
 
 - 2026-09-27 - Sisyphus: P2.1 menormalisasi whitespace `jabatan` hanya pada tulis maju di `Prodi_staf_service`: trim dan collapse whitespace Unicode ke satu spasi ASCII, tanpa mengubah case/akronim, data historis, lifecycle P2.3, atau organisasi. Lint dan regression roster/master-data/import/PDDikti lulus.
