@@ -4,6 +4,8 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-27 - Sisyphus: Prioritas 1.2 smoke lokal Docker sebagai `admin_lpmpi`: import Prodi sementara `SMK-P12-20260927` dan tambah Budi Santoso berhasil; Prodi sementara serta relasi aktif `staf_prodi` sengaja dipertahankan. Uji pindah/nonaktif/aktif kembali dan cleanup diblokir oleh keputusan P2.3 karena penghapusan Prodi menolak semua relasi termasuk nonaktif; `organization_units`/`user_unit_assignments` tetap 3/1 dan regression relevan lulus.
+
 - 2026-09-27 - Sisyphus: Prioritas 1.1 preflight lokal selesai tanpa mutasi: Docker MySQL `ami` sudah memiliki `staf_prodi` migration 041 dengan unique/index/FK yang diharapkan; tabel saat ini berisi 1 relasi dan private storage tersedia serta writable. Backup/apply tidak dijalankan; deployment non-lokal tetap memerlukan konfirmasi eksplisit setelah backup DB dan `APP_PRIVATE_STORAGE_PATH`.
 
 - 2026-09-27 - Sisyphus-Junior: Added a read-only Profile Lembaga Program Studi directory sourced from the existing ordered `Profil_model::get_prodi()` read path. Profile renders escaped code/name/jenjang rows, an empty state, and only a management-only link to the Master Data hub; no Prodi mutation/import/roster control moved back into Profile. Focused and required adjacent regressions/lint are being verified. -> `.multibrain/context/2026-09-27-sisyphus-junior-profile-prodi-directory.md`
