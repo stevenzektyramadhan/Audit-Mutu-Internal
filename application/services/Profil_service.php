@@ -22,10 +22,26 @@ class Profil_service
 
     public function delete_prodi($id)
     {
-        if (!$this->prodi($id)) return $this->fail('Data program studi tidak ditemukan.');
-        return $this->model->delete_prodi((int) $id)
-            ? $this->success('Program studi berhasil dihapus.')
-            : $this->fail('Program studi gagal dihapus.');
+        $this->ci->db->trans_begin();
+        try {
+            if (!$this->model->find_prodi_for_update($id)) {
+                $this->ci->db->trans_rollback();
+                return $this->fail('Data program studi tidak ditemukan.');
+            }
+            if ($this->model->prodi_staf_for_update($id)) {
+                $this->ci->db->trans_rollback();
+                return $this->fail('Program studi tidak dapat dihapus karena masih memiliki relasi staf aktif.');
+            }
+            if (!$this->model->delete_prodi((int) $id) || !$this->ci->db->trans_status()) {
+                $this->ci->db->trans_rollback();
+                return $this->fail('Program studi gagal dihapus.');
+            }
+            $this->ci->db->trans_commit();
+            return $this->success('Program studi berhasil dihapus.');
+        } catch (Throwable $exception) {
+            $this->ci->db->trans_rollback();
+            return $this->fail('Program studi gagal dihapus.');
+        }
     }
 
     public function delete_mahasiswa_stat($id)
