@@ -43,6 +43,8 @@ prodi_staf_manual_check(strpos($model, "get('users')->result()") !== FALSE && st
 foreach (['trans_begin()', 'trans_commit()', 'trans_rollback()', 'find_prodi($prodi_id, TRUE)', 'find_pair($account_id, $prodi_id, TRUE)', "'active'", "'inactive'", 'mb_strlen($value) > 100', 'return $value === \'\' ? NULL : $value'] as $contract) {
     prodi_staf_manual_check(strpos($service, $contract) !== FALSE, 'Service roster kehilangan kontrak transaksi/lifecycle: ' . $contract);
 }
+prodi_staf_manual_check(strpos($service, 'preg_replace(\'/\\s+/u\', \' \', trim((string) $value))') !== FALSE, 'Jabatan hanya boleh dinormalisasi whitespace Unicode menjadi spasi ASCII.');
+prodi_staf_manual_check(strpos($service, 'ucwords') === FALSE && strpos($service, 'strtolower') === FALSE && strpos($service, 'mb_convert_case') === FALSE, 'Jabatan harus mempertahankan case/akronim/punctuation pengguna.');
 prodi_staf_manual_check(strpos($service, 'find_eligible_user($account_id, TRUE)') !== FALSE, 'Tambah staf harus recheck role akun pada transaksi.');
 prodi_staf_manual_check(strpos($service, 'Akun sudah memiliki relasi dengan program studi ini.') !== FALSE, 'Tambah harus menolak pasangan aktif maupun nonaktif yang sudah ada.');
 prodi_staf_manual_check(strpos($service, '$staf->status !== \'active\'') !== FALSE && strpos($service, 'Program studi tujuan harus berbeda.') !== FALSE && strpos($service, 'Akun sudah memiliki relasi dengan program studi tujuan.') !== FALSE, 'Pindah harus aktif-only dan menolak target konflik.');
