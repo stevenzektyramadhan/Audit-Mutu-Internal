@@ -1,0 +1,48 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ami
+      MYSQL_USER: ami_runtime
+      MYSQL_PASSWORD: ami_runtime_password
+      MYSQL_ROOT_PASSWORD: ami_runtime_root_password
+    volumes:
+      - prodi_staf_db:/var/lib/mysql
+      - ../database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  app:
+    build: ..
+    environment:
+      CI_ENV: development
+      APP_LOG_THRESHOLD: 1
+      APP_ENCRYPTION_KEY: prodi-staf-runtime-only-key
+      DB_HOST: db
+      DB_USERNAME: ami_runtime
+      DB_PASSWORD: ami_runtime_password
+      DB_DATABASE: ami
+      APP_PRIVATE_STORAGE_PATH: /srv/ami/private
+    command: >-
+      sh -c "mkdir -p /srv/ami/private
+      && chown -R www-data:www-data /srv/ami/private
+      && exec apache2-foreground"
+    ports:
+      - "127.0.0.1::80"
+    volumes:
+      - prodi_staf_sessions:/var/www/html/application/cache/sessions
+      - prodi_staf_uploads:/var/www/html/uploads
+      - prodi_staf_private_storage:/srv/ami/private
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  prodi_staf_db:
+  prodi_staf_sessions:
+  prodi_staf_uploads:
+  prodi_staf_private_storage:

@@ -43,6 +43,8 @@ prodi_staf_manual_check(strpos($model, "get('users')->result()") !== FALSE && st
 foreach (['trans_begin()', 'trans_commit()', 'trans_rollback()', 'find_prodi($prodi_id, TRUE)', 'find_pair($account_id, $prodi_id, TRUE)', "'active'", "'inactive'", 'mb_strlen($value) > 100', 'return $value === \'\' ? NULL : $value'] as $contract) {
     prodi_staf_manual_check(strpos($service, $contract) !== FALSE, 'Service roster kehilangan kontrak transaksi/lifecycle: ' . $contract);
 }
+prodi_staf_manual_check(strpos($service, 'preg_replace(\'/\\s+/u\', \' \', trim((string) $value))') !== FALSE, 'Jabatan hanya boleh dinormalisasi whitespace Unicode menjadi spasi ASCII.');
+prodi_staf_manual_check(strpos($service, 'ucwords') === FALSE && strpos($service, 'strtolower') === FALSE && strpos($service, 'mb_convert_case') === FALSE, 'Jabatan harus mempertahankan case/akronim/punctuation pengguna.');
 prodi_staf_manual_check(strpos($service, 'find_eligible_user($account_id, TRUE)') !== FALSE, 'Tambah staf harus recheck role akun pada transaksi.');
 prodi_staf_manual_check(strpos($service, 'Akun sudah memiliki relasi dengan program studi ini.') !== FALSE, 'Tambah harus menolak pasangan aktif maupun nonaktif yang sudah ada.');
 prodi_staf_manual_check(strpos($service, '$staf->status !== \'active\'') !== FALSE && strpos($service, 'Program studi tujuan harus berbeda.') !== FALSE && strpos($service, 'Akun sudah memiliki relasi dengan program studi tujuan.') !== FALSE, 'Pindah harus aktif-only dan menolak target konflik.');
@@ -52,6 +54,18 @@ prodi_staf_manual_check(strpos($model, 'SELECT * FROM profil_prodi WHERE id IN (
 
 prodi_staf_manual_check(strpos($view, 'form_open(') !== FALSE && strpos($view, 'html_escape(') !== FALSE, 'View roster harus memakai form CSRF dan escaping.');
 prodi_staf_manual_check(strpos($view, 'password') === FALSE && strpos($view, 'credential') === FALSE, 'View roster tidak boleh mengekspos kredensial.');
+prodi_staf_manual_check(strpos($view, 'data-roster-search') !== FALSE && strpos($view, 'type="search"') !== FALSE, 'Roster harus memiliki satu pencarian client-side.');
+prodi_staf_manual_check(strpos($view, "['active' => ['title' => 'Staf Aktif'") !== FALSE && strpos($view, "'inactive' => ['title' => 'Staf Tidak Aktif'") !== FALSE && strpos($view, 'data-roster-section="<?php echo html_escape($status); ?>"') !== FALSE, 'Roster harus memiliki section aktif dan nonaktif yang terpisah.');
+prodi_staf_manual_check(strpos($view, 'data-roster-page-size="10"') !== FALSE, 'Roster harus memakai page size 10.');
+prodi_staf_manual_check(strpos($view, 'data-roster-prev>Sebelumnya') !== FALSE && strpos($view, 'data-roster-next>Berikutnya') !== FALSE && strpos($view, "querySelector('[data-roster-prev]')") !== FALSE && strpos($view, "querySelector('[data-roster-next]')") !== FALSE, 'Roster harus memiliki kontrol previous/next independen per section.');
+prodi_staf_manual_check(strpos($view, 'data-roster-summary') !== FALSE && strpos($view, 'data-roster-no-results') !== FALSE && strpos($view, "querySelector('[data-roster-no-results]')") !== FALSE, 'Roster harus memiliki summary dan no-search-results per section.');
+prodi_staf_manual_check(strpos($view, 'data-roster-row') !== FALSE && strpos($view, 'data-roster-search="<?php echo html_escape(mb_strtolower($staf->nama . \' \' . $staf->email . \' \' . $staf->role . \' \' . $staf->jabatan, \'UTF-8\')); ?>"') !== FALSE, 'Setiap row harus memiliki corpus pencarian escaped UTF-8 dari nama, email, role, dan jabatan.');
+prodi_staf_manual_check(strpos($view, 'html_escape(strtolower($staf->nama . \' \' . $staf->email . \' \' . $staf->role . \' \' . $staf->jabatan))') === FALSE, 'Corpus pencarian roster tidak boleh memakai strtolower ASCII-only.');
+prodi_staf_manual_check(strpos($view, 'Belum ada staf.') !== FALSE && strpos($view, 'data-roster-source-empty') !== FALSE, 'Belum ada staf hanya boleh menjadi state source kosong.');
+foreach (['staf/add', 'staf/update/', 'staf/move/', 'staf/deactivate/', 'staf/reactivate/'] as $action) {
+    prodi_staf_manual_check(strpos($view, $action) !== FALSE, 'Kontrol lifecycle roster hilang: ' . $action);
+}
+prodi_staf_manual_check(strpos($view, 'addEventListener(\'input\'') !== FALSE && strpos($view, 'page = 1') !== FALSE && strpos($view, 'slice(start, start + pageSize)') !== FALSE, 'Filter roster harus mereset page dan memotong row per section di client-side.');
 prodi_staf_manual_check(strpos($master_view, "site_url('profil/prodi/' . (int) \$row->id . '/staf')") !== FALSE, 'Master Data harus memiliki link roster setiap Prodi.');
 prodi_staf_manual_check(strpos($profile_view, 'Kelola Staf') === FALSE && strpos($profile_view, 'profil/prodi/') === FALSE, 'Profil tidak boleh merender UI roster Prodi.');
 prodi_staf_manual_check(strpos($controller, "'active_menu' => 'master_data_prodi_staf'") !== FALSE && strpos($view, "master-data-prodi-staf") !== FALSE, 'Roster harus memakai konteks aktif dan Back Master Data.');

@@ -92,7 +92,7 @@ class Prodi_staf_service
 
     private function jabatan($value)
     {
-        $value = trim((string) $value);
+        $value = preg_replace('/\s+/u', ' ', trim((string) $value));
         if (mb_strlen($value) > 100) throw new InvalidArgumentException('Jabatan maksimal 100 karakter.');
         return $value === '' ? NULL : $value;
     }

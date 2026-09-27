@@ -34,8 +34,11 @@ master_data_check(strpos($profil_model, 'get_prodi_master_data()') !== FALSE && 
 master_data_check(strpos($controller, "load->view('lpmpi/master_data_prodi_staf/index'") !== FALSE && strpos($controller, "'page_title' => 'Master Data Prodi & Staf'") !== FALSE && strpos($controller, "'active_menu' => 'master_data_prodi_staf'") !== FALSE, 'Controller hub harus merender view, judul, dan active menu yang benar.');
 master_data_check(strpos($routes, "\$route['lpmpi/master-data-prodi-staf'] = 'lpmpi/Master_data_prodi_staf/index';") !== FALSE, 'Route hub Master Data hilang.');
 
-foreach (['Master Data Prodi &amp; Staf', 'Total Program Studi', 'Total Staf Terhubung', 'Jenjang Tersedia', 'Tambah Prodi', 'Import Prodi', 'kode_prodi', 'nama_prodi', 'jenjang', 'Jumlah Staf', 'Terakhir Diperbarui', 'profil/prodi/', '/staf', 'profil/prodi/edit/', 'profil/prodi/delete/', 'form_open', 'window.confirm', 'html_escape', 'master-search', 'master-level-filter', 'data-master-row', 'data-master-prev', 'data-master-next', 'pageSize'] as $literal) {
+foreach (['Master Data Prodi &amp; Staf', 'Total Program Studi', 'Total Staf Aktif Terhubung', 'Jenjang Tersedia', 'Tambah Prodi', 'Import Prodi', 'kode_prodi', 'nama_prodi', 'jenjang', 'Staf Aktif', 'Direktori program studi dan staf aktif terhubung, serta tindakan pengelolaan', 'Terakhir Diperbarui', 'profil/prodi/', '/staf', 'profil/prodi/edit/', 'profil/prodi/delete/', 'form_open', 'window.confirm', 'html_escape', 'master-search', 'master-level-filter', 'data-master-row', 'data-master-prev', 'data-master-next', 'pageSize'] as $literal) {
     master_data_check(strpos($view, $literal) !== FALSE, 'View hub kehilangan kontrak: ' . $literal);
+}
+foreach (['Total Staf Terhubung', 'Jumlah Staf', 'Direktori program studi, jumlah staf aktif terhubung, dan tindakan pengelolaan'] as $ambiguous_literal) {
+    master_data_check(strpos($view, $ambiguous_literal) === FALSE, 'View hub masih memuat label staf yang ambigu: ' . $ambiguous_literal);
 }
 foreach (['<form', 'method="post"', 'Pddikti', 'user->', 'get_users'] as $forbidden) {
     master_data_check(stripos($view, $forbidden) === FALSE, 'View hub tidak boleh memuat implementasi atau data terlarang: ' . $forbidden);
