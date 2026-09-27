@@ -49,7 +49,7 @@ include APPPATH . 'views/layouts/sidebar.php';
             <?php if (empty($section['rows'])): ?>
                 <tr data-roster-source-empty><td colspan="5">Belum ada staf.</td></tr>
             <?php else: foreach ($section['rows'] as $staf): ?>
-                <tr data-roster-row data-roster-search="<?php echo html_escape(strtolower($staf->nama . ' ' . $staf->email . ' ' . $staf->role . ' ' . $staf->jabatan)); ?>">
+                <tr data-roster-row data-roster-search="<?php echo html_escape(mb_strtolower($staf->nama . ' ' . $staf->email . ' ' . $staf->role . ' ' . $staf->jabatan, 'UTF-8')); ?>">
                     <td><?php echo html_escape($staf->nama); ?></td><td><?php echo html_escape($staf->email); ?></td><td><?php echo html_escape($staf->role); ?></td>
                     <td>
                         <?php echo form_open('profil/prodi/' . (int) $prodi->id . '/staf/update/' . (int) $staf->id, ['class' => 'd-flex', 'style' => 'gap:6px;']); ?>
