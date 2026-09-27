@@ -4,6 +4,8 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-09-27 - Sisyphus: P2.1 menormalisasi whitespace `jabatan` hanya pada tulis maju di `Prodi_staf_service`: trim dan collapse whitespace Unicode ke satu spasi ASCII, tanpa mengubah case/akronim, data historis, lifecycle P2.3, atau organisasi. Lint dan regression roster/master-data/import/PDDikti lulus.
+
 - 2026-09-27 - Sisyphus: Prioritas 1.2 smoke lokal Docker sebagai `admin_lpmpi`: import Prodi sementara `SMK-P12-20260927` dan tambah Budi Santoso berhasil; Prodi sementara serta relasi aktif `staf_prodi` sengaja dipertahankan. Uji pindah/nonaktif/aktif kembali dan cleanup diblokir oleh keputusan P2.3 karena penghapusan Prodi menolak semua relasi termasuk nonaktif; `organization_units`/`user_unit_assignments` tetap 3/1 dan regression relevan lulus.
 
 - 2026-09-27 - Sisyphus: Prioritas 1.1 preflight lokal selesai tanpa mutasi: Docker MySQL `ami` sudah memiliki `staf_prodi` migration 041 dengan unique/index/FK yang diharapkan; tabel saat ini berisi 1 relasi dan private storage tersedia serta writable. Backup/apply tidak dijalankan; deployment non-lokal tetap memerlukan konfirmasi eksplisit setelah backup DB dan `APP_PRIVATE_STORAGE_PATH`.
