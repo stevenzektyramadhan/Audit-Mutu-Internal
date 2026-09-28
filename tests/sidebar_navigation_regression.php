@@ -21,6 +21,8 @@ function check($condition, $message)
 $sidebar = source($root, 'application/views/layouts/sidebar.php');
 $header = source($root, 'application/views/layouts/header.php');
 $dashboard_controller = source($root, 'application/controllers/Dashboard.php');
+$routes = source($root, 'application/config/routes.php');
+$organization_controller = source($root, 'application/controllers/lpmpi/Organization.php');
 
 $menus = [
     'super_admin' => [
@@ -69,16 +71,16 @@ foreach ([
 
 check(substr_count($sidebar, "'group' => 'Settings'") === 8, 'Settings group must cover all account, upload setting, and management profile entries.');
 check(substr_count($sidebar, "'key' => 'spmi_workspace', 'label' => 'Workspace SPMI', 'icon' => 'fa-laptop-house', 'url' => 'auditee/spmi', 'group' => 'Work'") === 1, 'SPMI workspace menu must be auditee-only.');
-check(substr_count($sidebar, "'group' => 'Management'") === 12, 'Management group count changed.');
-$master_data_contract = "['key' => 'master_data_prodi_staf', 'label' => 'Master Data Prodi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management']";
-check(substr_count($sidebar, $master_data_contract) === 2, 'Master Data Prodi & Staf menu must appear once in each management role.');
+check(substr_count($sidebar, "'group' => 'Management'") === 10, 'Management group count changed.');
+$master_data_contract = "['key' => 'master_data_prodi_staf', 'label' => 'Master Data Organisasi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management']";
+check(substr_count($sidebar, $master_data_contract) === 2, 'Master Data Organisasi & Staf menu must appear once in each management role.');
 $organization_contract = "['key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization', 'group' => 'Management']";
 $standards_contract = "['key' => 'spmi_standards', 'label' => 'Standar SPMI', 'icon' => 'fa-layer-group', 'url' => 'lpmpi/spmi-standards', 'group' => 'Management']";
 $super_admin_start = strpos($sidebar, "'super_admin' => [");
 $admin_lpmpi_start = strpos($sidebar, "'admin_lpmpi' => [");
 $auditor_start = strpos($sidebar, "'auditor' => [");
 $auditee_start = strpos($sidebar, "'auditee' => [");
-check(strpos($sidebar, $master_data_contract) !== FALSE && strpos($sidebar, $organization_contract) < strpos($sidebar, $master_data_contract) && strpos($sidebar, $master_data_contract) < strpos($sidebar, $standards_contract), 'Master Data Prodi & Staf must follow Struktur Organisasi and precede Standar SPMI.');
+check(strpos($sidebar, $master_data_contract) !== FALSE && strpos($sidebar, $master_data_contract) < strpos($sidebar, $standards_contract), 'Master Data Organisasi & Staf must precede Standar SPMI.');
 $master_data_position = strpos($sidebar, $master_data_contract);
 check($master_data_position < $auditor_start, 'Master Data Prodi & Staf must be inside management menus.');
 check(strpos($sidebar, $master_data_contract, $auditor_start) === FALSE, 'Master Data Prodi & Staf must not be available to auditor.');
@@ -89,7 +91,10 @@ check($super_admin_start !== FALSE && strpos($sidebar, $ppepp_contract, $super_a
 check($admin_lpmpi_start !== FALSE && strpos($sidebar, $ppepp_contract, $admin_lpmpi_start) !== FALSE && strpos($sidebar, $ppepp_contract, $admin_lpmpi_start) < $auditor_start, 'PPEPP menu must be inside admin_lpmpi Management menu.');
 check($auditor_start !== FALSE && strpos($sidebar, $ppepp_contract, $auditor_start) === FALSE, 'PPEPP menu must not be available to auditor.');
 check($auditee_start !== FALSE && strpos($sidebar, $ppepp_contract, $auditee_start) === FALSE, 'PPEPP menu must not be available to auditee.');
-check(substr_count($sidebar, "'key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization'") === 2, 'Organization menu must be shared by management roles.');
+check(substr_count($sidebar, $organization_contract) === 0, 'Organization menu must be hidden from all sidebars.');
+check(strpos($routes, "\$route['lpmpi/organization'] = 'lpmpi/Organization/index';") !== FALSE, 'Direct Organization index route must remain available.');
+check(strpos($routes, "\$route['lpmpi/organization/unit/store'] = 'lpmpi/Organization/store_unit';") !== FALSE, 'Direct Organization mutation route must remain available.');
+check(strpos($organization_controller, 'class Organization extends Admin_Lpmpi_Controller') !== FALSE && strpos($organization_controller, 'public function index()') !== FALSE, 'Direct Organization controller must remain available.');
 check(strpos($sidebar, "'key' => 'spmi_indicators'") === FALSE, 'SPMI indicator menu must be removed from sidebar.');
 check(strpos($sidebar, "'key' => 'spmi_master'") === FALSE, 'SPMI master menu must be removed from sidebar.');
 check(strpos($sidebar, "'key' => 'spmi_instruments'") === FALSE, 'Retired SPMI instrument menu must not remain in the sidebar.');
