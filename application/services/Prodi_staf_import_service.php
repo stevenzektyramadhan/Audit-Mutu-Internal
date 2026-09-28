@@ -78,7 +78,11 @@ class Prodi_staf_import_service
             }
             foreach ($payload['prodi'] as $row) {
                 $data = ['kode_prodi' => $row['kode_prodi'], 'nama_prodi' => $row['nama_prodi'], 'jenjang' => $row['jenjang']];
-                if ($prodi_ids[$row['kode_prodi']]) { if (!$this->model->update_prodi($prodi_ids[$row['kode_prodi']], $data)) return $this->rollback('Program studi gagal disimpan.'); }
+                if ($prodi_ids[$row['kode_prodi']]) {
+                    $mapped_unit_id = $this->model->mapped_organization_unit_id($prodi_ids[$row['kode_prodi']]);
+                    if ($mapped_unit_id && !$this->model->update_organization_unit($mapped_unit_id, ['code' => $row['kode_prodi'], 'name' => $row['nama_prodi']])) return $this->rollback('Unit organisasi program studi gagal disimpan.');
+                    if (!$this->model->update_prodi($prodi_ids[$row['kode_prodi']], $data)) return $this->rollback('Program studi gagal disimpan.');
+                }
                 else { if (!$this->model->create_prodi($data)) return $this->rollback('Program studi gagal disimpan.'); $prodi_ids[$row['kode_prodi']] = (int) $this->ci->db->insert_id(); }
             }
             if (!$this->ci->db->trans_status()) return $this->rollback('Import gagal disimpan.');

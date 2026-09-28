@@ -15,4 +15,10 @@ class Prodi_staf_import_model extends CI_Model
 
     public function create_prodi($data) { return $this->db->insert('profil_prodi', $data); }
     public function update_prodi($id, $data) { return $this->db->where('id', (int) $id)->update('profil_prodi', $data); }
+    public function mapped_organization_unit_id($prodi_id)
+    {
+        $row = $this->db->query('SELECT organization_unit_id FROM profil_prodi WHERE id = ? FOR UPDATE', [(int) $prodi_id])->row();
+        return $row && !empty($row->organization_unit_id) ? (int) $row->organization_unit_id : 0;
+    }
+    public function update_organization_unit($id, $data) { return $this->db->where('id', (int) $id)->update('organization_units', $data); }
 }
