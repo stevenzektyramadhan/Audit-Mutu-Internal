@@ -8,6 +8,113 @@ class Organization_model extends CI_Model
         return $this->db->order_by('code', 'ASC')->get('organization_units')->result();
     }
 
+    public function get_master_directory_units()
+    {
+        return $this->db
+            ->select('ou.id, ou.parent_id, ou.code, ou.name, ou.type, ou.is_active, parent.code AS parent_code, parent.name AS parent_name, parent.type AS parent_type')
+            ->from('organization_units ou')
+            ->join('organization_units parent', 'parent.id = ou.parent_id', 'left')
+            ->where_in('ou.type', ['university', 'faculty', 'study_program', 'bureau', 'unit', 'institute'])
+            ->order_by('ou.parent_id IS NOT NULL', 'ASC', FALSE)
+            ->order_by('parent.code', 'ASC')
+            ->order_by('ou.type', 'ASC')
+            ->order_by('ou.code', 'ASC')
+            ->get()
+            ->result();
+    }
+
+    public function get_master_directory_summary()
+    {
+        $summary = [
+            'faculty' => 0,
+            'study_program' => 0,
+            'bureau' => 0,
+            'unit' => 0,
+            'institute' => 0,
+            'active_staff' => 0,
+        ];
+
+        $unit_counts = $this->db
+            ->select('type, COUNT(id) AS total', FALSE)
+            ->from('organization_units')
+            ->where_in('type', ['faculty', 'study_program', 'bureau', 'unit', 'institute'])
+            ->group_by('type')
+            ->get()
+            ->result();
+
+        foreach ($unit_counts as $row) {
+            if (isset($summary[$row->type])) {
+                $summary[$row->type] = (int) $row->total;
+            }
+        }
+
+        $summary['active_staff'] = $this->count_master_directory_active_staff();
+        return $summary;
+    }
+
+    public function get_current_non_prodi_staff_placements()
+    {
+        return $this->db
+            ->select('a.id, a.user_id, a.organization_unit_id, a.position_code, a.valid_from, a.valid_until, a.is_primary, u.nama, u.email, ou.code AS unit_code, ou.name AS unit_name, ou.type AS unit_type')
+            ->from('user_unit_assignments a')
+            ->join('users u', 'u.id = a.user_id')
+            ->join('organization_units ou', 'ou.id = a.organization_unit_id')
+            ->where_in('ou.type', ['faculty', 'bureau', 'unit', 'institute'])
+            ->where('a.valid_from <= CURDATE()', NULL, FALSE)
+            ->group_start()
+                ->where('a.valid_until IS NULL', NULL, FALSE)
+                ->or_where('a.valid_until > CURDATE()', NULL, FALSE)
+            ->group_end()
+            ->order_by('ou.type', 'ASC')
+            ->order_by('ou.code', 'ASC')
+            ->order_by('u.nama', 'ASC')
+            ->get()
+            ->result();
+    }
+
+    public function count_current_non_prodi_staff_placements()
+    {
+        return (int) $this->db
+            ->select('COUNT(DISTINCT a.user_id) AS total', FALSE)
+            ->from('user_unit_assignments a')
+            ->join('organization_units ou', 'ou.id = a.organization_unit_id')
+            ->where_in('ou.type', ['faculty', 'bureau', 'unit', 'institute'])
+            ->where('a.valid_from <= CURDATE()', NULL, FALSE)
+            ->group_start()
+                ->where('a.valid_until IS NULL', NULL, FALSE)
+                ->or_where('a.valid_until > CURDATE()', NULL, FALSE)
+            ->group_end()
+            ->get()
+            ->row()
+            ->total;
+    }
+
+    private function count_master_directory_active_staff()
+    {
+        $prodi_staff = $this->db
+            ->select('id_akun AS user_id')
+            ->from('staf_prodi')
+            ->where('status', 'active')
+            ->get_compiled_select();
+
+        $non_prodi_staff = $this->db
+            ->select('a.user_id')
+            ->from('user_unit_assignments a')
+            ->join('organization_units ou', 'ou.id = a.organization_unit_id')
+            ->where_in('ou.type', ['faculty', 'bureau', 'unit', 'institute'])
+            ->where('a.valid_from <= CURDATE()', NULL, FALSE)
+            ->group_start()
+                ->where('a.valid_until IS NULL', NULL, FALSE)
+                ->or_where('a.valid_until > CURDATE()', NULL, FALSE)
+            ->group_end()
+            ->get_compiled_select();
+
+        return (int) $this->db
+            ->query('SELECT COUNT(DISTINCT user_id) AS total FROM ((' . $prodi_staff . ') UNION ALL (' . $non_prodi_staff . ')) active_directory_staff')
+            ->row()
+            ->total;
+    }
+
     public function find_unit($id)
     {
         return $this->db->where('id', (int) $id)->get('organization_units')->row();
