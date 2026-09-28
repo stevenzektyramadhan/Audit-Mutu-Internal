@@ -262,7 +262,7 @@ class Profil extends MY_Controller
         $this->require_manage();
         $this->require_schema_ready();
         $this->require_post();
-        $this->prodi_rules();
+        $this->prodi_rules(TRUE);
         if ($this->form_validation->run() === FALSE) {
             $this->render_prodi_form('Tambah Program Studi', 'profil/prodi/store');
             return;
@@ -277,7 +277,7 @@ class Profil extends MY_Controller
         $this->require_post();
         $row = $this->profil_service->prodi((int) $id);
         if (!$row) show_404();
-        $this->prodi_rules();
+        $this->prodi_rules(!empty($row->organization_unit_id));
         if ($this->form_validation->run() === FALSE) {
             $this->render_prodi_form('Edit Program Studi', 'profil/prodi/update/' . (int) $id, $row);
             return;
@@ -291,6 +291,19 @@ class Profil extends MY_Controller
         $this->require_schema_ready();
         $this->require_post();
         $this->flash_prodi_result($this->profil_service->delete_prodi((int) $id));
+    }
+
+    public function prodi_link($id)
+    {
+        $this->require_manage();
+        $this->require_schema_ready();
+        $this->require_post();
+        $this->form_validation->set_rules('faculty_id', 'Fakultas', 'required|integer|greater_than[0]');
+        if ($this->form_validation->run() === FALSE) {
+            $this->flash_prodi_result(['success' => FALSE, 'message' => 'Fakultas wajib dipilih.']);
+            return;
+        }
+        $this->flash_prodi_result($this->profil_service->link_prodi((int) $id, (int) $this->input->post('faculty_id', TRUE)));
     }
 
     public function prodi_staf($id)
@@ -439,6 +452,7 @@ class Profil extends MY_Controller
 
     private function render_prodi_form($page_title, $action, $row = NULL)
     {
+        $require_faculty = !$row || !empty($row->organization_unit_id);
         $this->load->view('lpmpi/profil/prodi_form', [
             'title' => $page_title . ' - AMI',
             'page_title' => $page_title,
@@ -446,6 +460,9 @@ class Profil extends MY_Controller
             'return_url' => 'lpmpi/master-data-prodi-staf',
             'action' => $action,
             'row' => $row,
+            'faculties' => $this->Profil_model->active_faculties(),
+            'selected_faculty_id' => $row && !empty($row->organization_unit_id) ? $this->Profil_model->prodi_faculty_id((int) $row->organization_unit_id) : 0,
+            'require_faculty' => $require_faculty,
         ]);
     }
 
@@ -460,10 +477,14 @@ class Profil extends MY_Controller
         ]);
     }
 
-    private function prodi_rules()
+    private function prodi_rules($require_faculty)
     {
         $this->form_validation->set_rules('nama_prodi', 'Nama program studi', 'required|max_length[200]');
-        foreach (['kode_prodi' => 20, 'status' => 50, 'jenjang' => 20, 'akreditasi' => 50, 'rasio_dosen_mahasiswa' => 20] as $field => $length) {
+        $this->form_validation->set_rules('kode_prodi', 'Kode prodi', 'required|max_length[20]');
+        $this->form_validation->set_rules('jenjang', 'Jenjang', 'required|max_length[20]');
+        $faculty_rule = $require_faculty ? 'required|integer|greater_than[0]' : 'integer|greater_than[0]';
+        $this->form_validation->set_rules('faculty_id', 'Fakultas', $faculty_rule);
+        foreach (['status' => 50, 'akreditasi' => 50, 'rasio_dosen_mahasiswa' => 20] as $field => $length) {
             $this->form_validation->set_rules($field, ucwords(str_replace('_', ' ', $field)), 'max_length[' . $length . ']');
         }
         $this->form_validation->set_rules('tanggal_sk_akreditasi', 'Tanggal SK akreditasi', 'callback_valid_optional_date');
@@ -494,6 +515,7 @@ class Profil extends MY_Controller
             'akreditasi' => $this->input->post('akreditasi', TRUE),
             'tanggal_sk_akreditasi' => $this->input->post('tanggal_sk_akreditasi', TRUE),
             'rasio_dosen_mahasiswa' => $this->input->post('rasio_dosen_mahasiswa', TRUE),
+            'faculty_id' => $this->input->post('faculty_id', TRUE),
         ];
     }
 

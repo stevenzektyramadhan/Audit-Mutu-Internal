@@ -2,7 +2,10 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $row = isset($row) ? $row : NULL;
+$faculties = isset($faculties) && is_array($faculties) ? $faculties : [];
 $return_url = isset($return_url) ? $return_url : 'lpmpi/master-data-prodi-staf';
+$selected_faculty = set_value('faculty_id', isset($selected_faculty_id) ? $selected_faculty_id : '');
+$require_faculty = !empty($require_faculty);
 
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
@@ -21,16 +24,28 @@ include APPPATH . 'views/layouts/sidebar.php';
             </div>
         <?php endif; ?>
 
-        <?php echo form_open($action); ?>
+            <?php echo form_open($action); ?>
+                <input type="hidden" name="require_faculty" value="<?php echo $require_faculty ? '1' : '0'; ?>">
             <div class="form-row">
                 <div class="form-group col-md-4">
                     <label for="kode-prodi">Kode Prodi</label>
-                    <input type="text" class="form-control" id="kode-prodi" name="kode_prodi" maxlength="20" value="<?php echo html_escape(set_value('kode_prodi', $row ? $row->kode_prodi : '')); ?>">
+                    <input type="text" class="form-control" id="kode-prodi" name="kode_prodi" maxlength="20" value="<?php echo html_escape(set_value('kode_prodi', $row ? $row->kode_prodi : '')); ?>" required>
                 </div>
                 <div class="form-group col-md-8">
                     <label for="nama-prodi">Nama Program Studi</label>
                     <input type="text" class="form-control" id="nama-prodi" name="nama_prodi" maxlength="200" value="<?php echo html_escape(set_value('nama_prodi', $row ? $row->nama_prodi : '')); ?>" required>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label for="prodi-faculty">Fakultas</label>
+                <select class="form-control" id="prodi-faculty" name="faculty_id" <?php echo $require_faculty ? 'required' : ''; ?>>
+                    <option value="">Pilih Fakultas aktif...</option>
+                    <?php foreach ($faculties as $faculty): ?>
+                        <option value="<?php echo (int) $faculty->id; ?>" <?php echo set_select('faculty_id', $faculty->id, (string) $selected_faculty === (string) $faculty->id); ?>><?php echo html_escape($faculty->code . ' — ' . $faculty->name); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <small class="form-text text-muted">Pilih Fakultas secara eksplisit sebagai parent Program Studi.</small>
             </div>
 
             <div class="form-row">
@@ -40,7 +55,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                 </div>
                 <div class="form-group col-md-4">
                     <label for="prodi-jenjang">Jenjang</label>
-                    <input type="text" class="form-control" id="prodi-jenjang" name="jenjang" maxlength="20" value="<?php echo html_escape(set_value('jenjang', $row ? $row->jenjang : '')); ?>" placeholder="Contoh: D3, S1, S2">
+                    <input type="text" class="form-control" id="prodi-jenjang" name="jenjang" maxlength="20" value="<?php echo html_escape(set_value('jenjang', $row ? $row->jenjang : '')); ?>" placeholder="Contoh: D3, S1, S2" required>
                 </div>
                 <div class="form-group col-md-4">
                     <label for="prodi-akreditasi">Akreditasi</label>
