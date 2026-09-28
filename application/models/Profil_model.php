@@ -64,6 +64,37 @@ class Profil_model extends CI_Model
             ->result();
     }
 
+    public function get_prodi_master_directory_data()
+    {
+        if (!$this->db->table_exists($this->prodi_table)) {
+            return [];
+        }
+
+        $has_staff_table = $this->db->table_exists('staf_prodi');
+        $this->db->select('profil_prodi.*');
+        $this->db->select('ou.id AS mapped_organization_unit_id, ou.code AS organization_unit_code, ou.name AS organization_unit_name, ou.type AS organization_unit_type, ou.is_active AS organization_unit_is_active');
+        $this->db->select('parent.id AS faculty_id, parent.code AS faculty_code, parent.name AS faculty_name');
+        $this->db->select('CASE WHEN profil_prodi.organization_unit_id IS NULL THEN 0 WHEN ou.id IS NULL THEN 0 ELSE 1 END AS is_mapped_to_organization', FALSE);
+        $this->db->select("CASE WHEN profil_prodi.organization_unit_id IS NULL THEN 'unmapped' WHEN ou.id IS NULL THEN 'missing_unit' WHEN ou.type != 'study_program' THEN 'invalid_type' ELSE 'mapped' END AS organization_mapping_status", FALSE);
+        if ($has_staff_table) {
+            $this->db->select("COUNT(CASE WHEN staf_prodi.status = 'active' THEN staf_prodi.id END) AS active_staff_count", FALSE);
+            $this->db->join('staf_prodi', 'staf_prodi.id_prodi = profil_prodi.id', 'left');
+        } else {
+            $this->db->select('0 AS active_staff_count', FALSE);
+        }
+
+        return $this->db
+            ->from($this->prodi_table)
+            ->join('organization_units ou', 'ou.id = profil_prodi.organization_unit_id', 'left')
+            ->join('organization_units parent', 'parent.id = ou.parent_id', 'left')
+            ->order_by('parent.code', 'ASC')
+            ->order_by('profil_prodi.jenjang', 'ASC')
+            ->order_by('profil_prodi.nama_prodi', 'ASC')
+            ->group_by('profil_prodi.id')
+            ->get()
+            ->result();
+    }
+
     public function get_mahasiswa_stats()
     {
         if (!$this->db->table_exists($this->mahasiswa_table)) {
@@ -80,6 +111,17 @@ class Profil_model extends CI_Model
     public function find_prodi($id)
     {
         return $this->db->where('id', (int) $id)->get($this->prodi_table)->row();
+    }
+
+    public function active_faculties()
+    {
+        return $this->db->where(['type' => 'faculty', 'is_active' => 1])->order_by('code', 'ASC')->order_by('name', 'ASC')->get('organization_units')->result();
+    }
+
+    public function prodi_faculty_id($organization_unit_id)
+    {
+        $unit = $this->db->select('parent_id')->where(['id' => (int) $organization_unit_id, 'type' => 'study_program'])->get('organization_units')->row();
+        return $unit ? (int) $unit->parent_id : 0;
     }
 
     public function find_prodi_for_update($id)
@@ -100,6 +142,33 @@ class Profil_model extends CI_Model
     public function delete_prodi($id)
     {
         return $this->db->where('id', (int) $id)->delete($this->prodi_table);
+    }
+
+    public function find_organization_unit_for_update($id)
+    {
+        return $this->db->query('SELECT * FROM organization_units WHERE id = ? FOR UPDATE', [(int) $id])->row();
+    }
+
+    public function find_organization_units_by_code_for_update($code)
+    {
+        return $this->db->query('SELECT * FROM organization_units WHERE code = ? FOR UPDATE', [trim((string) $code)])->result();
+    }
+
+    public function organization_unit_bound_to_prodi($organization_unit_id, $except_prodi_id = 0)
+    {
+        $this->db->where('organization_unit_id', (int) $organization_unit_id);
+        if ($except_prodi_id) $this->db->where('id !=', (int) $except_prodi_id);
+        return $this->db->count_all_results($this->prodi_table) > 0;
+    }
+
+    public function create_organization_unit($data)
+    {
+        return $this->db->insert('organization_units', $data);
+    }
+
+    public function update_organization_unit($id, $data)
+    {
+        return $this->db->where('id', (int) $id)->update('organization_units', $data);
     }
 
     public function prodi_has_staf($id)
@@ -182,6 +251,12 @@ class Profil_model extends CI_Model
         $this->db->trans_start();
         $this->db->query('SELECT id FROM profil_prodi ORDER BY id ASC FOR UPDATE');
         $relations = [];
+        $organization_links = [];
+        foreach ($this->db->select('kode_prodi, organization_unit_id')->where('kode_prodi IS NOT NULL', NULL, FALSE)->where('organization_unit_id IS NOT NULL', NULL, FALSE)->get($this->prodi_table)->result_array() as $link) {
+            if (!isset($organization_links[$link['kode_prodi']])) {
+                $organization_links[$link['kode_prodi']] = (int) $link['organization_unit_id'];
+            }
+        }
         if ($this->db->table_exists('staf_prodi')) {
             $query = $this->db->select('staf_prodi.id_akun, staf_prodi.jabatan, staf_prodi.status, profil_prodi.kode_prodi')
                 ->from('staf_prodi')
@@ -192,6 +267,12 @@ class Profil_model extends CI_Model
         }
 
         $this->db->delete($this->prodi_table);
+
+        foreach ($rows as &$row) {
+            $code = isset($row['kode_prodi']) ? $row['kode_prodi'] : NULL;
+            $row['organization_unit_id'] = $code !== NULL && isset($organization_links[$code]) ? $organization_links[$code] : NULL;
+        }
+        unset($row);
 
         if (!empty($rows)) {
             $this->db->insert_batch($this->prodi_table, $rows);
