@@ -18,6 +18,7 @@
 -- current parity migration 001-039
 -- current parity migration 001-040
 -- current parity migration 001-041
+-- current parity migration 001-042
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -181,6 +182,7 @@ CREATE TABLE IF NOT EXISTS `profil_lembaga` (
 
 CREATE TABLE IF NOT EXISTS `profil_prodi` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `organization_unit_id` INT NULL,
     `id_prodi_pddikti` VARCHAR(255) NULL,
     `kode_prodi` VARCHAR(20) NULL,
     `nama_prodi` VARCHAR(200) NULL,
@@ -190,7 +192,8 @@ CREATE TABLE IF NOT EXISTS `profil_prodi` (
     `tanggal_sk_akreditasi` DATE NULL,
     `rasio_dosen_mahasiswa` VARCHAR(20) NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_profil_prodi_organization_unit` (`organization_unit_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `staf_prodi` (
@@ -260,6 +263,10 @@ CREATE TABLE IF NOT EXISTS `role_capabilities` (
     PRIMARY KEY (`role`, `capability_id`),
     CONSTRAINT `fk_role_capabilities_capability` FOREIGN KEY (`capability_id`) REFERENCES `capabilities` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `profil_prodi`
+    ADD CONSTRAINT `fk_profil_prodi_organization_unit`
+        FOREIGN KEY (`organization_unit_id`) REFERENCES `organization_units` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 INSERT IGNORE INTO `organization_units` (`parent_id`, `code`, `name`, `type`, `is_active`) VALUES (NULL, 'UNIVERSITAS', 'Universitas', 'university', 1);
 INSERT IGNORE INTO `capabilities` (`code`, `label`, `description`) VALUES
