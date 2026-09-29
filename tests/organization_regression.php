@@ -24,10 +24,15 @@ organization_check(strpos($service, 'known_ids') !== FALSE && strpos($service, '
 organization_check(strpos($service, "if (\$role === 'super_admin')") !== FALSE, 'Super admin capability floor missing.');
 organization_check(strpos($service, "!empty(\$data['is_primary']) && \$this->is_current_assignment") !== FALSE, 'Historical primary assignment must not clear current primary.');
 organization_check(strpos($service, "\$until === '' || \$until > \$today") !== FALSE, 'An assignment ending today must not remain current.');
+organization_check(strpos($service, "public function create_unit($" . "data) { return $" . "this->save_unit($" . "data, 0); }") !== FALSE, 'Legacy create_unit must keep permissive save_unit path.');
+organization_check(strpos($service, "public function update_unit($" . "id, $" . "data) { return $" . "this->save_unit($" . "data, (int) $" . "id); }") !== FALSE, 'Legacy update_unit must keep permissive save_unit path.');
+organization_check(strpos($controller, "in_list[faculty,upps,study_program,institute,bureau,unit]") !== FALSE, 'Legacy Organization controller must keep permissive type validation including UPPS and study_program.');
 foreach (['find_user', 'find_active_unit', 'find_assignment'] as $literal) organization_check(strpos($service, $literal . '(') !== FALSE && strpos($routes, 'lpmpi/organization') !== FALSE, 'Organization data lookup contract missing: ' . $literal);
 organization_check(strpos($index, "'root'") !== FALSE && strpos($index, "render_organization_units('root'") !== FALSE, 'Organization root rendering contract missing.');
 foreach (['lpmpi/organization', 'unit/create', 'unit/store', 'unit/edit', 'unit/update', 'unit/toggle', 'assignment/create', 'assignment/store', 'assignment/end', 'capabilities/update'] as $literal) organization_check(strpos($routes, $literal) !== FALSE, 'Route missing: ' . $literal);
-organization_check(substr_count($sidebar, "'key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization', 'group' => 'Management'") === 2, 'Organization sidebar entry must exist only for two management roles.');
+organization_check(substr_count($sidebar, "'key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization', 'group' => 'Management'") === 0, 'Organization sidebar entry must remain hidden after Master consolidation.');
+organization_check(strpos($routes, "\$route['lpmpi/organization'] = 'lpmpi/Organization/index';") !== FALSE, 'Organization index route must remain directly available.');
+organization_check(strpos($controller, 'public function index()') !== FALSE, 'Organization controller index must remain directly available.');
 foreach ([$index, $unit_form, $assignment_form, $capabilities] as $view) organization_check(strpos($view, 'html_escape') !== FALSE, 'Organization view must escape output.');
 foreach ([$unit_form, $assignment_form, $capabilities] as $view) organization_check(strpos($view, 'form_open(') !== FALSE, 'Organization mutation view must use form_open().');
 organization_check(substr_count($capabilities, 'Organization_service::ROLES') === 3, 'Capability matrix must use scoped management roles only.');

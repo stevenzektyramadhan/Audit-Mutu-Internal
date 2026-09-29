@@ -31,6 +31,20 @@ class Organization_service
     public function create_unit($data) { return $this->save_unit($data, 0); }
     public function update_unit($id, $data) { return $this->save_unit($data, (int) $id); }
 
+    public function create_canonical_unit($data) { return $this->save_canonical_unit($data, 0); }
+    public function update_canonical_unit($id, $data) { return $this->save_canonical_unit($data, (int) $id); }
+
+    private function save_canonical_unit($data, $id)
+    {
+        $type = (string) (isset($data['type']) ? $data['type'] : '');
+        $parent_id = (int) (isset($data['parent_id']) ? $data['parent_id'] : 0);
+        $current = $id ? $this->model->find_unit($id) : NULL;
+        if ($id && (!$current || $current->parent_id === NULL)) return $this->fail('Unit root tidak dapat diubah melalui Master Data.');
+        if (!$this->is_canonical_generic_type($type)) return $this->fail('Tipe unit Master Data tidak valid.');
+        if (!$this->valid_canonical_parent($type, $parent_id)) return $this->fail('Parent unit canonical tidak valid.');
+        return $this->save_unit($data, $id);
+    }
+
     private function save_unit($data, $id)
     {
         $code = strtoupper(trim((string) (isset($data['code']) ? $data['code'] : '')));
@@ -72,6 +86,45 @@ class Organization_service
         if (!$unit || $unit->parent_id === NULL) return $this->fail('Unit root tidak dapat dinonaktifkan.');
         if ((int) $unit->is_active === 1 && $this->model->has_active_children($id)) return $this->fail('Nonaktifkan child unit terlebih dahulu.');
         return $this->model->update_unit($id, ['is_active' => (int) !$unit->is_active]) ? ['success' => TRUE, 'message' => 'Status unit berhasil diubah.'] : $this->fail('Status unit gagal diubah.');
+    }
+
+    public function toggle_canonical_unit($id)
+    {
+        $unit = $this->model->find_unit($id);
+        if (!$unit || !$this->is_canonical_generic_type($unit->type)) return $this->fail('Unit Master Data tidak ditemukan.');
+        return $this->toggle_unit($id);
+    }
+
+    public function create_canonical_non_prodi_assignment($data)
+    {
+        if (!$this->valid_non_prodi_unit((int) (isset($data['organization_unit_id']) ? $data['organization_unit_id'] : 0))) return $this->fail('Unit penempatan non-Prodi tidak valid.');
+        return $this->create_assignment($data);
+    }
+
+    public function end_canonical_non_prodi_assignment($id, $until)
+    {
+        $assignment = $this->model->find_assignment($id);
+        if (!$assignment || !$this->valid_non_prodi_unit((int) $assignment->organization_unit_id)) return $this->fail('Penempatan non-Prodi tidak ditemukan.');
+        return $this->end_assignment($id, $until);
+    }
+
+    private function valid_canonical_parent($type, $parent_id)
+    {
+        $matrix = ['faculty' => 'university', 'study_program' => 'faculty', 'bureau' => 'university', 'unit' => 'bureau', 'institute' => 'university'];
+        if (!isset($matrix[$type])) return FALSE;
+        $parent = $this->model->find_unit($parent_id);
+        return $parent && (int) $parent->is_active === 1 && $parent->type === $matrix[$type];
+    }
+
+    private function valid_non_prodi_unit($id)
+    {
+        $unit = $this->model->find_active_unit($id);
+        return $unit && $this->is_canonical_generic_type($unit->type);
+    }
+
+    private function is_canonical_generic_type($type)
+    {
+        return in_array($type, ['faculty', 'bureau', 'unit', 'institute'], TRUE);
     }
 
     public function create_assignment($data)

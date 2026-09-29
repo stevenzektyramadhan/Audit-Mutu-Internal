@@ -66,7 +66,7 @@ foreach (['staf/add', 'staf/update/', 'staf/move/', 'staf/deactivate/', 'staf/re
     prodi_staf_manual_check(strpos($view, $action) !== FALSE, 'Kontrol lifecycle roster hilang: ' . $action);
 }
 prodi_staf_manual_check(strpos($view, 'addEventListener(\'input\'') !== FALSE && strpos($view, 'page = 1') !== FALSE && strpos($view, 'slice(start, start + pageSize)') !== FALSE, 'Filter roster harus mereset page dan memotong row per section di client-side.');
-prodi_staf_manual_check(strpos($master_view, "site_url('profil/prodi/' . (int) \$row->id . '/staf')") !== FALSE, 'Master Data harus memiliki link roster setiap Prodi.');
+prodi_staf_manual_check(strpos($master_view, "site_url('profil/prodi/' . (int) \$value(\$row, 'id') . '/staf')") !== FALSE, 'Master Data harus memiliki link roster setiap Prodi.');
 prodi_staf_manual_check(strpos($profile_view, 'Kelola Staf') === FALSE && strpos($profile_view, 'profil/prodi/') === FALSE, 'Profil tidak boleh merender UI roster Prodi.');
 prodi_staf_manual_check(strpos($controller, "'active_menu' => 'master_data_prodi_staf'") !== FALSE && strpos($view, "master-data-prodi-staf") !== FALSE, 'Roster harus memakai konteks aktif dan Back Master Data.');
 prodi_staf_manual_check(strpos($pddikti, 'class Pddikti_service') !== FALSE && strpos($service, 'Pddikti') === FALSE, 'Roster manual tidak boleh menggantikan perilaku PDDikti.');

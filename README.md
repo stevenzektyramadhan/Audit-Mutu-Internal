@@ -52,10 +52,12 @@ Dokumen PPEPP adalah arsip manajemen-only untuk tahap `Penetapan`, `Pelaksanaan`
 
 | Peran | Redirect login | Menu sidebar terlihat |
 |---|---|---|
-| `super_admin` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Struktur Organisasi; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
-| `admin_lpmpi` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Struktur Organisasi; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
+| `super_admin` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Master Data Organisasi & Staf; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
+| `admin_lpmpi` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Master Data Organisasi & Staf; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
 | `auditor` | `auditor/spmi-dashboard` | Dashboard SPMI; Penilaian SPMI; Akun Saya |
 | `auditee` | `auditee/spmi-dashboard` | Dashboard SPMI; Workspace SPMI; Akun Saya |
+
+Route `lpmpi/organization` tetap tersedia untuk akses langsung yang kompatibel, tetapi tidak lagi ditampilkan sebagai menu sidebar.
 
 ## Peta Kode SPMI
 
@@ -200,7 +202,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-041`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-042`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
 
 #### Akun Administrator Pertama
 
@@ -224,11 +226,11 @@ Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration ba
 
 #### Database baru
 
-Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `039` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
+Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `042` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `041` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `042` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -260,6 +262,7 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 28. `039_create_upload_size_settings.sql`
 29. `040_create_login_rate_limit_buckets.sql`
 30. `041_create_staf_prodi.sql`
+31. `042_link_profil_prodi_to_organization_units.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
@@ -270,6 +273,8 @@ Migration `039_create_upload_size_settings.sql` bersifat aditif: menambahkan pen
 Migration `040_create_login_rate_limit_buckets.sql` bersifat aditif: menambahkan bucket kegagalan login yang menyimpan HMAC identitas dan IP, bukan email atau IP mentah. Terapkan migration ini sekali setelah backup database, lalu smoke test login sebelum membuka traffic.
 
 Migration `041_create_staf_prodi.sql` bersifat aditif: menambahkan relasi staf existing ke program studi dengan status aktif/inaktif. Import Prodi hanya membuat atau memperbarui `profil_prodi` secara row-scoped melalui sheet `Prodi` berkolom `kode_prodi`, `nama_prodi`, dan `jenjang`; roster staf tetap dikelola manual.
+
+Migration `042_link_profil_prodi_to_organization_units.sql` bersifat aditif: menambahkan link nullable `profil_prodi.organization_unit_id`, unique key, dan foreign key RESTRICT ke `organization_units.id`. Migration ini tidak melakukan auto-map, backfill, insert, update, delete, penghapusan UPPS, atau perubahan workflow; Prodi lama boleh tetap `NULL` sampai admin menghubungkan struktur organisasi secara eksplisit pada fase berikutnya. Terapkan sekali setelah backup database lengkap dan `APP_PRIVATE_STORAGE_PATH`, tanpa menonaktifkan foreign key checks.
 
 Docker lokal memakai nilai `APP_ENCRYPTION_KEY` development yang dapat dioverride melalui environment. Deployment harus selalu menyediakan nilai acak dan rahasia sendiri; jangan gunakan nilai default Docker lokal di luar development.
 

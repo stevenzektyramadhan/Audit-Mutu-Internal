@@ -10,8 +10,7 @@ $menus = [
     'super_admin' => [
         ['key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'],
         ['key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'],
-        ['key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization', 'group' => 'Management'],
-        ['key' => 'master_data_prodi_staf', 'label' => 'Master Data Prodi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management'],
+        ['key' => 'master_data_prodi_staf', 'label' => 'Master Data Organisasi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management'],
         ['key' => 'spmi_standards', 'label' => 'Standar SPMI', 'icon' => 'fa-layer-group', 'url' => 'lpmpi/spmi-standards', 'group' => 'Management'],
         ['key' => 'spmi_audits', 'label' => 'Siklus & Penugasan SPMI', 'icon' => 'fa-calendar-check', 'url' => 'lpmpi/spmi-audits', 'group' => 'Management'],
         ['key' => 'spmi_ppepp_documents', 'label' => 'Dokumen PPEPP', 'icon' => 'fa-folder-open', 'url' => 'lpmpi/spmi-ppepp-documents', 'group' => 'Management'],
@@ -25,8 +24,7 @@ $menus = [
     'admin_lpmpi' => [
         ['key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'],
         ['key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'],
-        ['key' => 'organization', 'label' => 'Struktur Organisasi', 'icon' => 'fa-sitemap', 'url' => 'lpmpi/organization', 'group' => 'Management'],
-        ['key' => 'master_data_prodi_staf', 'label' => 'Master Data Prodi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management'],
+        ['key' => 'master_data_prodi_staf', 'label' => 'Master Data Organisasi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management'],
         ['key' => 'spmi_standards', 'label' => 'Standar SPMI', 'icon' => 'fa-layer-group', 'url' => 'lpmpi/spmi-standards', 'group' => 'Management'],
         ['key' => 'spmi_audits', 'label' => 'Siklus & Penugasan SPMI', 'icon' => 'fa-calendar-check', 'url' => 'lpmpi/spmi-audits', 'group' => 'Management'],
         ['key' => 'spmi_ppepp_documents', 'label' => 'Dokumen PPEPP', 'icon' => 'fa-folder-open', 'url' => 'lpmpi/spmi-ppepp-documents', 'group' => 'Management'],
