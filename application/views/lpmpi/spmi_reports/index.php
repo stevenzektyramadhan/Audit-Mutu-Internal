@@ -4,412 +4,119 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
-// Lucide icon helper
 $icon = static function ($name) {
     $paths = [
         'file-text' => '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>',
         'arrow-right' => '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
-        'search' => '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-        'calendar' => '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-        'clock' => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-        'check-circle' => '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+        'arrow-left' => '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
         'sparkles' => '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>',
-        'user' => '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     ];
-    return '<svg class="reports-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file-text']) . '</svg>';
+    return '<svg class="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file-text']) . '</svg>';
+};
+
+$data = is_array($index_data) ? $index_data : [];
+$filters = isset($data['filters']) && is_array($data['filters']) ? $data['filters'] : [];
+$options = isset($data['options']) && is_array($data['options']) ? $data['options'] : [];
+$summary = isset($data['summary']) ? $data['summary'] : (object) [];
+$pagination = isset($data['pagination']) && is_array($data['pagination']) ? $data['pagination'] : ['page' => 1, 'per_page' => 20, 'page_count' => 1];
+$reports = isset($data['reports']) && is_array($data['reports']) ? $data['reports'] : [];
+$standard_analysis = isset($data['standard_analysis']) && is_array($data['standard_analysis']) ? $data['standard_analysis'] : [];
+$result_count = isset($data['count']) ? (int) $data['count'] : 0;
+$current_page = (int) $pagination['page'];
+$page_count = max(1, (int) $pagination['page_count']);
+
+$format_timestamp = static function ($value) {
+    $timestamp = trim((string) $value);
+    if ($timestamp === '' || strtotime($timestamp) === FALSE) return 'Belum tersedia';
+    $months = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'];
+    $time = strtotime($timestamp);
+    return date('j', $time) . ' ' . $months[(int) date('n', $time)] . ' ' . date('Y, H:i', $time);
+};
+
+$filter_query = static function ($page = NULL) use ($filters) {
+    $query = [];
+    foreach (['academic_year', 'cycle_id', 'version_id', 'auditee_id', 'q'] as $key) {
+        if (isset($filters[$key]) && $filters[$key] !== '' && $filters[$key] !== 0) $query[$key] = $filters[$key];
+    }
+    if ($page !== NULL && (int) $page > 1) $query['page'] = (int) $page;
+    return $query;
+};
+
+$page_url = static function ($page) use ($filter_query) {
+    $query = $filter_query($page);
+    $url = site_url('lpmpi/spmi-reports');
+    return $query ? $url . '?' . http_build_query($query) : $url;
 };
 ?>
 
 <main id="reports-root" data-ui-contract="ami-row-actions ami-action-btn" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
     <div class="tw-mx-auto tw-max-w-7xl">
-        <!-- Header / Hero -->
-        <div class="tw-mb-8 tw-flex tw-flex-col tw-gap-4 sm:tw-flex-row sm:tw-items-end sm:tw-justify-between">
-            <div>
-                <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Hasil Audit Mutu</p>
-                <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950">Laporan SPMI</h1>
-                <p class="tw-mt-2 tw-max-w-2xl tw-text-sm tw-text-slate-500">
-                    <?php echo nl2br(html_escape('Snapshot immutable per versi SPMI setelah seluruh standar penugasannya difinalisasi.')); ?>
-                </p>
-            </div>
-        </div>
+        <header class="tw-mb-8">
+            <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Hasil Audit Mutu</p>
+            <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950">Laporan SPMI</h1>
+            <p class="tw-mt-2 tw-max-w-2xl tw-text-sm tw-text-slate-500">Kelola, tinjau, dan ekspor hasil audit mutu yang telah difinalisasi.</p>
+        </header>
 
         <?php if (!empty($finalized_assessments)): ?>
-            <!-- Section: Version Finalized Pending Generation -->
             <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm" aria-labelledby="pending-assessments-title">
-                <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between">
+                <div class="tw-mb-4 tw-flex tw-flex-col tw-gap-3 sm:tw-flex-row sm:tw-items-start sm:tw-justify-between">
                     <div>
                         <h2 id="pending-assessments-title" class="tw-text-base tw-font-bold tw-text-slate-900">Versi SPMI siap dilaporkan</h2>
                         <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Seluruh standar pada versi berikut telah difinalisasi dan siap dibuatkan satu dokumen snapshot laporan resmi.</p>
                     </div>
-                    <span class="tw-inline-flex tw-items-center tw-gap-1.5 tw-rounded-full tw-bg-amber-50 tw-px-3 tw-py-1 tw-text-xs tw-font-semibold tw-text-amber-800 tw-border tw-border-amber-200">
-                        <?php echo count($finalized_assessments); ?> Menunggu
-                    </span>
+                    <span class="tw-inline-flex tw-w-fit tw-items-center tw-rounded-full tw-border tw-border-amber-200 tw-bg-amber-50 tw-px-3 tw-py-1 tw-text-xs tw-font-semibold tw-text-amber-800"><?php echo html_escape((string) count($finalized_assessments)); ?> Menunggu</span>
                 </div>
-
-                <!-- Desktop Table -->
-                <div class="tw-hidden md:tw-block tw-overflow-hidden tw-rounded-xl tw-border tw-border-slate-200">
-                    <table class="tw-w-full tw-text-left tw-text-sm">
-                        <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-500">
-                            <tr>
-                                 <th class="tw-px-4 tw-py-3">Siklus</th>
-                                 <th class="tw-px-4 tw-py-3">Versi / Standar</th>
-                                 <th class="tw-px-4 tw-py-3">Auditee</th>
-                                <th class="tw-px-4 tw-py-3">Finalisasi</th>
-                                <th class="tw-px-4 tw-py-3 tw-text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="tw-divide-y tw-divide-slate-100">
-                            <?php foreach ($finalized_assessments as $assessment): ?>
-                                <tr class="hover:tw-bg-slate-50">
-                                     <td class="tw-px-4 tw-py-3 tw-font-medium tw-text-slate-900">
-                                         <?php echo html_escape($assessment->cycle_code . ' — ' . $assessment->cycle_title); ?>
-                                     </td>
-                                     <td class="tw-px-4 tw-py-3 tw-text-slate-700">
-                                         <div class="tw-font-medium"><?php echo html_escape($assessment->source_version_code . ' — ' . $assessment->source_version_title); ?></div>
-                                         <div class="tw-mt-0.5 tw-text-xs tw-text-slate-500"><?php echo (int) $assessment->standard_count; ?> standar</div>
-                                     </td>
-                                    <td class="tw-px-4 tw-py-3 tw-text-slate-700">
-                                        <?php echo html_escape($assessment->auditee_name); ?>
-                                    </td>
-                                    <td class="tw-px-4 tw-py-3 tw-whitespace-nowrap tw-text-slate-500 tw-text-xs">
-                                        <?php echo html_escape($assessment->finalized_at); ?>
-                                    </td>
-                                    <td class="tw-px-4 tw-py-3 tw-text-right">
-                                        <div class="ami-row-actions tw-inline-flex tw-justify-end">
-                                            <?php echo form_open('lpmpi/spmi-reports/assessment/create/' . (int) $assessment->anchor_assessment_id, ['class' => 'tw-m-0']); ?>
-                                                <button class="btn-ami ami-action-btn tw-button-primary tw-text-xs tw-py-1.5 tw-px-3" type="submit">
-                                                    <?php echo $icon('sparkles'); ?>
-                                                    <span>Generate laporan</span>
-                                                </button>
-                                            <?php echo form_close(); ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div class="tw-hidden tw-overflow-hidden tw-rounded-xl tw-border tw-border-slate-200 md:tw-block">
+                    <div class="tw-overflow-x-auto">
+                        <table class="tw-w-full tw-text-left tw-text-sm">
+                            <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-500"><tr><th class="tw-px-4 tw-py-3">Siklus</th><th class="tw-px-4 tw-py-3">Versi / Standar</th><th class="tw-px-4 tw-py-3">Auditee</th><th class="tw-px-4 tw-py-3">Finalisasi</th><th class="tw-px-4 tw-py-3 tw-text-right">Aksi</th></tr></thead>
+                            <tbody class="tw-divide-y tw-divide-slate-100">
+                                <?php foreach ($finalized_assessments as $assessment): ?>
+                                    <tr class="hover:tw-bg-slate-50"><td class="tw-px-4 tw-py-3 tw-font-medium tw-text-slate-900"><?php echo html_escape($assessment->cycle_code . ' — ' . $assessment->cycle_title); ?></td><td class="tw-px-4 tw-py-3 tw-text-slate-700"><div class="tw-font-medium"><?php echo html_escape($assessment->source_version_code . ' — ' . $assessment->source_version_title); ?></div><div class="tw-mt-0.5 tw-text-xs tw-text-slate-500"><?php echo html_escape((string) (int) $assessment->standard_count); ?> standar</div></td><td class="tw-px-4 tw-py-3 tw-text-slate-700"><?php echo html_escape($assessment->auditee_name); ?></td><td class="tw-whitespace-nowrap tw-px-4 tw-py-3 tw-text-xs tw-text-slate-500"><?php echo html_escape($format_timestamp($assessment->finalized_at)); ?></td><td class="tw-px-4 tw-py-3 tw-text-right"><div class="ami-row-actions tw-inline-flex tw-justify-end"><?php echo form_open('lpmpi/spmi-reports/assessment/create/' . (int) $assessment->anchor_assessment_id, ['class' => 'tw-m-0']); ?><button class="btn-ami ami-action-btn tw-button-primary tw-min-h-[40px] tw-text-xs" type="submit"><?php echo $icon('sparkles'); ?><span>Generate laporan</span></button><?php echo form_close(); ?></div></td></tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-
-                <!-- Mobile Cards -->
                 <div class="tw-grid tw-gap-3 md:tw-hidden">
                     <?php foreach ($finalized_assessments as $assessment): ?>
-                        <div class="tw-rounded-xl tw-border tw-border-slate-200 tw-bg-slate-50 tw-p-4">
-                            <div class="tw-text-xs tw-font-semibold tw-text-slate-500">Siklus</div>
-                            <div class="tw-text-sm tw-font-bold tw-text-slate-900 tw-mt-0.5">
-                                <?php echo html_escape($assessment->cycle_code . ' — ' . $assessment->cycle_title); ?>
-                            </div>
-                             <div class="tw-mt-2.5 tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-slate-700">
-                                 <?php echo $icon('user'); ?>
-                                 <span><?php echo html_escape($assessment->auditee_name); ?></span>
-                             </div>
-                             <div class="tw-mt-1 tw-text-xs tw-text-slate-600">
-                                 <?php echo html_escape($assessment->source_version_code . ' — ' . $assessment->source_version_title); ?> · <?php echo (int) $assessment->standard_count; ?> standar
-                             </div>
-                            <div class="tw-mt-1 tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-slate-500">
-                                <?php echo $icon('clock'); ?>
-                                <span><?php echo html_escape($assessment->finalized_at); ?></span>
-                            </div>
-                            <div class="tw-mt-3 tw-pt-3 tw-border-t tw-border-slate-200">
-                                <div class="ami-row-actions">
-                                    <?php echo form_open('lpmpi/spmi-reports/assessment/create/' . (int) $assessment->anchor_assessment_id, ['class' => 'tw-w-full']); ?>
-                                        <button class="btn-ami ami-action-btn tw-button-primary tw-w-full tw-min-h-[44px] tw-text-sm" type="submit">
-                                            <?php echo $icon('sparkles'); ?>
-                                            <span>Generate laporan</span>
-                                        </button>
-                                    <?php echo form_close(); ?>
-                                </div>
-                            </div>
-                        </div>
+                        <article class="tw-rounded-xl tw-border tw-border-slate-200 tw-bg-slate-50 tw-p-4"><div class="tw-text-xs tw-font-semibold tw-text-slate-500">Siklus</div><div class="tw-mt-0.5 tw-text-sm tw-font-bold tw-text-slate-900"><?php echo html_escape($assessment->cycle_code . ' — ' . $assessment->cycle_title); ?></div><div class="tw-mt-2 tw-text-xs tw-text-slate-700"><?php echo html_escape($assessment->source_version_code . ' — ' . $assessment->source_version_title); ?> · <?php echo html_escape((string) (int) $assessment->standard_count); ?> standar</div><div class="tw-mt-1 tw-text-xs tw-text-slate-600"><?php echo html_escape($assessment->auditee_name); ?></div><div class="tw-mt-1 tw-text-xs tw-text-slate-500"><?php echo html_escape($format_timestamp($assessment->finalized_at)); ?></div><div class="tw-mt-3 tw-border-t tw-border-slate-200 tw-pt-3"><div class="ami-row-actions"><div class="tw-w-full"><?php echo form_open('lpmpi/spmi-reports/assessment/create/' . (int) $assessment->anchor_assessment_id, ['class' => 'tw-w-full']); ?><button class="btn-ami ami-action-btn tw-button-primary tw-min-h-[44px] tw-w-full tw-text-sm" type="submit"><?php echo $icon('sparkles'); ?><span>Generate laporan</span></button><?php echo form_close(); ?></div></div></div></article>
                     <?php endforeach; ?>
                 </div>
             </section>
         <?php endif; ?>
 
-        <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm" aria-labelledby="version-export-title">
-            <div class="tw-mb-4">
-                <h2 id="version-export-title" class="tw-text-base tw-font-bold tw-text-slate-900">Ekspor laporan per kelompok penugasan</h2>
-                <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Pilih siklus lalu satu kelompok versi, auditor, dan auditee. Ekspor hanya memakai snapshot laporan kelompok tersebut.</p>
-            </div>
-            <?php echo form_open('lpmpi/spmi-reports', ['method' => 'get', 'class' => 'tw-grid tw-gap-3 md:tw-grid-cols-[1fr_2fr_auto] md:tw-items-end']); ?>
-                <input type="hidden" name="radar_cycle" value="<?php echo html_escape($radar_selected_cycle); ?>">
-                <label class="tw-block">
-                    <span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Siklus</span>
-                    <select id="report_cycle_id" name="report_cycle_id" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900" onchange="this.form.submit()">
-                        <option value="">Pilih siklus…</option>
-                        <?php foreach ($version_report_cycles as $cycle): ?>
-                            <option value="<?php echo (int) $cycle->source_cycle_id; ?>" <?php echo (int) $selected_report_cycle_id === (int) $cycle->source_cycle_id ? 'selected' : ''; ?>><?php echo html_escape($cycle->cycle_code_snapshot . ' — ' . $cycle->cycle_title_snapshot); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label class="tw-block">
-                    <span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Kelompok penugasan</span>
-                    <select id="report_id" name="report_id" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900" <?php echo empty($version_reports) ? 'disabled' : ''; ?> onchange="this.form.submit()">
-                        <option value="">Pilih versi, auditor, dan auditee…</option>
-                        <?php foreach ($version_reports as $version_report): ?>
-                            <option value="<?php echo (int) $version_report->id; ?>" <?php echo $selected_version_report && (int) $selected_version_report->id === (int) $version_report->id ? 'selected' : ''; ?>><?php echo html_escape($version_report->source_version_code_snapshot . ' — ' . $version_report->source_version_title_snapshot . ' | Auditor: ' . $version_report->auditor_name_snapshot . ' | Auditee: ' . $version_report->auditee_name_snapshot); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <button class="btn-ami tw-button-secondary tw-px-4 tw-py-2.5 tw-text-sm" type="submit">Tampilkan</button>
+        <section class="tw-mb-6 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm md:tw-p-6" aria-labelledby="report-filter-title">
+            <div class="tw-mb-4"><h2 id="report-filter-title" class="tw-text-base tw-font-bold tw-text-slate-900">Filter laporan snapshot</h2><p class="tw-mt-1 tw-text-xs tw-text-slate-500">Pilih konteks tahun akademik dan siklus, lalu persempit hasil bila diperlukan.</p></div>
+            <?php echo form_open('lpmpi/spmi-reports', ['method' => 'get', 'class' => 'tw-grid tw-gap-3 md:tw-grid-cols-2 lg:tw-grid-cols-4']); ?>
+                <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Tahun akademik</span><select name="academic_year" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200"><option value="">Semua tahun</option><?php foreach (($options['academic_years'] ?? []) as $year): ?><option value="<?php echo html_escape($year->academic_year_snapshot); ?>" <?php echo (string) ($filters['academic_year'] ?? '') === (string) $year->academic_year_snapshot ? 'selected' : ''; ?>><?php echo html_escape($year->academic_year_snapshot); ?></option><?php endforeach; ?></select></label>
+                <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Siklus</span><select name="cycle_id" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200"><option value="">Semua siklus</option><?php foreach (($options['cycles'] ?? []) as $cycle): ?><option value="<?php echo html_escape((string) (int) $cycle->source_cycle_id); ?>" <?php echo (int) ($filters['cycle_id'] ?? 0) === (int) $cycle->source_cycle_id ? 'selected' : ''; ?>><?php echo html_escape($cycle->cycle_code_snapshot . ' — ' . $cycle->cycle_title_snapshot); ?></option><?php endforeach; ?></select></label>
+                <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Versi SPMI</span><select name="version_id" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200"><option value="">Semua versi</option><?php foreach (($options['versions'] ?? []) as $version): ?><option value="<?php echo html_escape((string) (int) $version->source_version_id); ?>" <?php echo (int) ($filters['version_id'] ?? 0) === (int) $version->source_version_id ? 'selected' : ''; ?>><?php echo html_escape($version->source_version_code_snapshot . ' — ' . $version->source_version_title_snapshot); ?></option><?php endforeach; ?></select></label>
+                <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Auditee</span><select name="auditee_id" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200"><option value="">Semua auditee</option><?php foreach (($options['auditees'] ?? []) as $auditee): ?><option value="<?php echo html_escape((string) (int) $auditee->auditee_id_snapshot); ?>" <?php echo (int) ($filters['auditee_id'] ?? 0) === (int) $auditee->auditee_id_snapshot ? 'selected' : ''; ?>><?php echo html_escape($auditee->auditee_name_snapshot); ?></option><?php endforeach; ?></select></label>
+                <label class="tw-block lg:tw-col-span-2"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Cari laporan</span><input name="q" value="<?php echo html_escape((string) ($filters['q'] ?? '')); ?>" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200" type="search" placeholder="Nomor, versi, auditor, auditee, atau standar..."></label>
+                <div class="tw-flex tw-flex-wrap tw-items-end tw-gap-2 lg:tw-col-span-2 lg:tw-justify-end"><button class="btn-ami tw-button-primary tw-min-h-[42px] tw-px-4 tw-text-sm" type="submit">Tampilkan</button><a class="btn-ami tw-button-secondary tw-inline-flex tw-min-h-[42px] tw-items-center tw-px-4 tw-text-sm" href="<?php echo site_url('lpmpi/spmi-reports'); ?>">Reset</a></div>
             <?php echo form_close(); ?>
-            <?php if ($selected_report_cycle_id && empty($version_reports)): ?>
-                <p class="tw-mt-4 tw-text-sm tw-text-slate-500">Belum ada snapshot laporan per versi pada siklus ini.</p>
-            <?php elseif ($selected_version_report): ?>
-                <div class="tw-mt-4 tw-flex tw-flex-col tw-gap-3 tw-rounded-xl tw-border tw-border-emerald-200 tw-bg-emerald-50 tw-p-4 sm:tw-flex-row sm:tw-items-center sm:tw-justify-between">
-                    <div class="tw-text-sm tw-text-emerald-950"><strong><?php echo html_escape($selected_version_report->source_version_code_snapshot . ' — ' . $selected_version_report->source_version_title_snapshot); ?></strong><br><span class="tw-text-xs">Auditor: <?php echo html_escape($selected_version_report->auditor_name_snapshot); ?> · Auditee: <?php echo html_escape($selected_version_report->auditee_name_snapshot); ?></span></div>
-                    <div class="ami-row-actions tw-flex tw-gap-2"><a class="btn-ami ami-action-btn tw-button-secondary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/detail/' . (int) $selected_version_report->id); ?>">Detail</a><a class="btn-ami ami-action-btn tw-button-secondary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/print/' . (int) $selected_version_report->id); ?>" target="_blank" rel="noopener">Print</a><a class="btn-ami ami-action-btn tw-button-primary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/export/' . (int) $selected_version_report->id); ?>">Ekspor XLSX</a></div>
-                </div>
-            <?php endif; ?>
+            <?php if (($filters['academic_year'] ?? '') === ''): ?><p class="tw-mt-3 tw-text-xs tw-text-slate-500">Semua tahun mencakup laporan historis yang belum memiliki snapshot tahun akademik.</p><?php endif; ?>
         </section>
 
-        <!-- Section: Rekap Skor per Indikator (Radar Chart per Auditee) -->
-        <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm" aria-labelledby="radar-recap-title">
-            <div class="tw-mb-4 tw-flex tw-flex-col tw-gap-3 sm:tw-flex-row sm:tw-items-end sm:tw-justify-between">
-                <div>
-                    <h2 id="radar-recap-title" class="tw-text-base tw-font-bold tw-text-slate-900">Rekap skor per indikator</h2>
-                    <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Skor per indikator (gabungan semua standar) dalam satu siklus, radar terpisah per auditee/unit.</p>
-                </div>
-                <?php echo form_open('lpmpi/spmi-reports', ['method' => 'get', 'class' => 'tw-flex tw-items-center tw-gap-2']); ?>
-                    <label class="tw-sr-only" for="radar_cycle">Pilih siklus</label>
-                    <select id="radar_cycle" name="radar_cycle" class="tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-sm tw-text-slate-900" onchange="this.form.submit()">
-                        <option value="">Pilih siklus…</option>
-                        <?php foreach ($radar_cycles as $c): ?>
-                            <option value="<?php echo html_escape($c->cycle_code_snapshot); ?>" <?php echo $radar_selected_cycle === $c->cycle_code_snapshot ? 'selected' : ''; ?>>
-                                <?php echo html_escape($c->cycle_code_snapshot . ' — ' . $c->cycle_title_snapshot); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                <?php echo form_close(); ?>
-            </div>
+        <section class="tw-mb-8" aria-labelledby="snapshot-summary-title"><div class="tw-mb-3"><h2 id="snapshot-summary-title" class="tw-text-base tw-font-bold tw-text-slate-900">Ringkasan snapshot</h2><p class="tw-text-xs tw-text-slate-500">Data immutable dari laporan yang sesuai filter.</p></div><div class="tw-grid tw-grid-cols-2 tw-gap-3 lg:tw-grid-cols-4">
+            <?php $cards = [['label' => 'Laporan', 'value' => (int) ($summary->report_count ?? 0)], ['label' => 'Auditee', 'value' => (int) ($summary->auditee_count ?? 0)], ['label' => 'Standar', 'value' => (int) ($summary->standard_count ?? 0)], ['label' => 'Rata-rata skor', 'value' => $summary->average_score !== NULL && $summary->average_score !== '' ? number_format((float) $summary->average_score, 2, ',', '.') : '—']]; foreach ($cards as $card): ?><div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm md:tw-p-5"><div class="tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500"><?php echo html_escape($card['label']); ?></div><div class="tw-mt-2 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950"><?php echo html_escape((string) $card['value']); ?></div><div class="tw-mt-1 tw-text-xs tw-text-slate-500">Snapshot immutable</div></div><?php endforeach; ?>
+        </div></section>
 
-            <?php if ($radar_selected_cycle === ''): ?>
-                <div class="tw-rounded-xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">
-                    Pilih siklus audit dulu untuk menampilkan rekap.
-                </div>
-            <?php elseif (empty($radar_recap)): ?>
-                <div class="tw-rounded-xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">
-                    Belum ada laporan SPMI pada siklus ini.
-                </div>
-            <?php else: ?>
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <div class="tw-grid tw-gap-6 tw-grid-cols-1 lg:tw-grid-cols-2">
-                    <?php $i = 0; foreach ($radar_recap as $auditee_name => $series): $i++; ?>
-                        <div class="tw-rounded-xl tw-border tw-border-slate-200 tw-p-4">
-                            <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-mb-2"><?php echo html_escape($auditee_name); ?></h3>
-                            <div style="height: 420px;">
-                                <canvas id="radar-recap-<?php echo $i; ?>" aria-label="Radar skor per indikator untuk <?php echo html_escape($auditee_name); ?>"></canvas>
-                            </div>
-                        </div>
-                        <script>
-                        (function () {
-                            if (typeof Chart === 'undefined') return;
-                            var el = document.getElementById('radar-recap-<?php echo $i; ?>');
-                            if (!el) return;
-                            new Chart(el, {
-                                type: 'radar',
-                                data: {
-                                    labels: <?php echo json_encode($series['labels'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
-                                    datasets: [{
-                                        label: 'Skor',
-                                        data: <?php echo json_encode($series['values'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
-                                        backgroundColor: 'rgba(77, 163, 255, 0.20)',
-                                        borderColor: 'rgba(77, 163, 255, 1)',
-                                        borderWidth: 1.5,
-                                        pointRadius: 1.5,
-                                        pointBackgroundColor: 'rgba(77, 163, 255, 1)',
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    scales: {
-                                        r: { min: 0, max: 4, ticks: { stepSize: 1, backdropColor: 'transparent' }, pointLabels: { font: { size: 8 } } }
-                                    },
-                                    plugins: { legend: { display: false } },
-                                    elements: { line: { tension: 0 } }
-                                }
-                            });
-                        })();
-                        </script>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </section>
+        <div class="tw-mb-3 tw-flex tw-flex-col tw-gap-1 sm:tw-flex-row sm:tw-items-end sm:tw-justify-between"><div><h2 class="tw-text-lg tw-font-bold tw-text-slate-900">Daftar laporan</h2><p class="tw-text-xs tw-text-slate-500">Urutan terbaru berdasarkan waktu pembuatan snapshot.</p></div><p class="tw-text-sm tw-text-slate-600" aria-live="polite">Menampilkan <?php echo html_escape((string) $result_count); ?> laporan · Halaman <?php echo html_escape((string) $current_page); ?> dari <?php echo html_escape((string) $page_count); ?></p></div>
 
-        <!-- Toolbar Filter & Search -->
-        <section class="tw-mb-5 tw-grid tw-gap-3 sm:tw-grid-cols-[1fr_220px]" aria-label="Filter laporan">
-            <label class="tw-block">
-                <span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Cari laporan</span>
-                <div class="tw-relative">
-                    <input id="report-filter-search" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none" type="search" placeholder="Nomor laporan, siklus, auditee...">
-                </div>
-            </label>
-            <label class="tw-block">
-                <span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Siklus</span>
-                <select id="report-filter-cycle" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none">
-                    <option value="">Semua siklus</option>
-                    <?php
-                    $seen_cycles = [];
-                    foreach ($reports as $r) {
-                        $cycle_key = trim((string) $r->cycle_code_snapshot);
-                        if ($cycle_key !== '' && !isset($seen_cycles[$cycle_key])) {
-                            $seen_cycles[$cycle_key] = $r->cycle_code_snapshot . ' — ' . $r->cycle_title_snapshot;
-                            echo '<option value="' . html_escape($cycle_key) . '">' . html_escape($seen_cycles[$cycle_key]) . '</option>';
-                        }
-                    }
-                    ?>
-                </select>
-            </label>
-        </section>
-
-        <?php if (empty($reports)): ?>
-            <div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-bg-white tw-p-12 tw-text-center">
-                <div class="tw-mx-auto tw-mb-3 tw-flex tw-h-12 tw-w-12 tw-items-center tw-justify-center tw-rounded-full tw-bg-slate-100 tw-text-slate-400">
-                    <?php echo $icon('file-text'); ?>
-                </div>
-                <h2 class="tw-text-base tw-font-bold tw-text-slate-900">Belum ada laporan SPMI</h2>
-                <p class="tw-mt-1.5 tw-text-sm tw-text-slate-500">Laporan dibuat secara otomatis dari assessment M9 yang telah selesai dan difinalisasi.</p>
-            </div>
+        <?php if ($result_count === 0): ?>
+            <div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-bg-white tw-p-10 tw-text-center md:tw-p-12"><div class="tw-mx-auto tw-mb-3 tw-flex tw-h-12 tw-w-12 tw-items-center tw-justify-center tw-rounded-full tw-bg-slate-100 tw-text-slate-400"><?php echo $icon('file-text'); ?></div><h2 class="tw-text-base tw-font-bold tw-text-slate-900">Belum ada laporan SPMI.</h2><p class="tw-mt-2 tw-text-sm tw-text-slate-500">Belum ada snapshot yang cocok dengan filter ini. Coba ubah filter atau tampilkan semua riwayat laporan.</p></div>
         <?php else: ?>
-            <!-- Desktop Table View -->
-            <div class="tw-hidden md:tw-block tw-overflow-hidden tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm">
-                <div class="tw-overflow-x-auto">
-                    <table class="tw-w-full tw-text-left tw-text-sm">
-                        <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-500">
-                            <tr>
-                                 <th class="tw-px-5 tw-py-4">Nomor Laporan</th>
-                                 <th class="tw-px-5 tw-py-4">Siklus</th>
-                                 <th class="tw-px-5 tw-py-4">Versi</th>
-                                 <th class="tw-px-5 tw-py-4">Auditee</th>
-                                <th class="tw-px-5 tw-py-4">Finalisasi</th>
-                                <th class="tw-px-5 tw-py-4 tw-text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="report-list-table" class="tw-divide-y tw-divide-slate-100">
-                            <?php foreach ($reports as $report): ?>
-                                <tr class="report-row hover:tw-bg-slate-50"
-                                    data-search="<?php echo html_escape(strtolower($report->report_number . ' ' . $report->cycle_code_snapshot . ' ' . $report->cycle_title_snapshot . ' ' . $report->auditee_name_snapshot)); ?>"
-                                    data-cycle="<?php echo html_escape(trim((string) $report->cycle_code_snapshot)); ?>">
-                                    <td class="tw-px-5 tw-py-4">
-                                        <span class="tw-font-mono tw-font-bold tw-text-sm tw-text-slate-900 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                                            <?php echo html_escape($report->report_number); ?>
-                                        </span>
-                                    </td>
-                                     <td class="tw-px-5 tw-py-4 tw-text-slate-700">
-                                         <div class="tw-font-medium tw-text-slate-900"><?php echo html_escape($report->cycle_code_snapshot); ?></div>
-                                         <div class="tw-text-xs tw-text-slate-500"><?php echo html_escape($report->cycle_title_snapshot); ?></div>
-                                     </td>
-                                     <td class="tw-px-5 tw-py-4 tw-text-slate-700">
-                                         <div class="tw-font-medium tw-text-slate-900"><?php echo html_escape($report->source_version_code_snapshot); ?></div>
-                                         <div class="tw-text-xs tw-text-slate-500"><?php echo html_escape($report->source_version_title_snapshot); ?></div>
-                                     </td>
-                                    <td class="tw-px-5 tw-py-4 tw-font-medium tw-text-slate-800">
-                                        <?php echo html_escape($report->auditee_name_snapshot); ?>
-                                    </td>
-                                    <td class="tw-px-5 tw-py-4 tw-whitespace-nowrap tw-text-xs tw-text-slate-500">
-                                        <?php echo html_escape($report->assessment_finalized_at_snapshot); ?>
-                                    </td>
-                                    <td class="tw-px-5 tw-py-4 tw-text-right">
-                                        <div class="ami-row-actions tw-inline-flex tw-justify-end">
-                                            <a class="ami-action-btn tw-button-secondary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/detail/' . (int) $report->id); ?>">
-                                                <span>Detail</span>
-                                                <?php echo $icon('arrow-right'); ?>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Mobile Cards View -->
-            <div id="report-list-cards" class="tw-grid tw-gap-3 md:tw-hidden">
-                <?php foreach ($reports as $report): ?>
-                    <article class="report-row tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm"
-                             data-search="<?php echo html_escape(strtolower($report->report_number . ' ' . $report->cycle_code_snapshot . ' ' . $report->cycle_title_snapshot . ' ' . $report->auditee_name_snapshot)); ?>"
-                             data-cycle="<?php echo html_escape(trim((string) $report->cycle_code_snapshot)); ?>">
-                        <div class="tw-flex tw-items-center tw-justify-between tw-gap-2 tw-mb-3">
-                            <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-rounded tw-border tw-border-slate-200">
-                                <?php echo html_escape($report->report_number); ?>
-                            </span>
-                            <span class="tw-text-xs tw-text-slate-500">
-                                <?php echo html_escape($report->assessment_finalized_at_snapshot); ?>
-                            </span>
-                        </div>
-
-                         <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-m-0">
-                             <?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?>
-                         </h3>
-                         <div class="tw-mt-1 tw-text-xs tw-text-slate-600">
-                             <?php echo html_escape($report->source_version_code_snapshot . ' — ' . $report->source_version_title_snapshot); ?>
-                         </div>
-
-                        <div class="tw-mt-2 tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-slate-600">
-                            <?php echo $icon('user'); ?>
-                            <span>Auditee: <strong><?php echo html_escape($report->auditee_name_snapshot); ?></strong></span>
-                        </div>
-
-                        <div class="tw-mt-4 tw-pt-3 tw-border-t tw-border-slate-100">
-                            <div class="ami-row-actions">
-                                <a class="ami-action-btn tw-button-secondary tw-w-full tw-min-h-[44px] tw-text-sm tw-justify-center" href="<?php echo site_url('lpmpi/spmi-reports/detail/' . (int) $report->id); ?>">
-                                    <span>Detail Laporan</span>
-                                    <?php echo $icon('arrow-right'); ?>
-                                </a>
-                            </div>
-                        </div>
-                    </article>
-                <?php endforeach; ?>
-            </div>
-
-            <!-- Empty Filter Notice -->
-            <p id="report-filter-empty" class="tw-hidden tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-8 tw-text-center tw-text-sm tw-text-slate-500 tw-mt-4">
-                Tidak ada laporan yang sesuai dengan filter pencarian.
-            </p>
+            <div class="tw-mb-4 tw-hidden tw-overflow-hidden tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm md:tw-block"><div class="tw-overflow-x-auto"><table class="tw-w-full tw-text-left tw-text-sm"><thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-500"><tr><th class="tw-px-5 tw-py-4">Laporan</th><th class="tw-px-5 tw-py-4">Auditee</th><th class="tw-px-5 tw-py-4">Versi SPMI</th><th class="tw-px-5 tw-py-4">Auditor</th><th class="tw-px-5 tw-py-4">Finalisasi</th><th class="tw-px-5 tw-py-4 tw-text-right">Aksi</th></tr></thead><tbody class="tw-divide-y tw-divide-slate-100">
+                <?php foreach ($reports as $report): ?><tr class="hover:tw-bg-slate-50"><td class="tw-px-5 tw-py-4"><span class="tw-inline-flex tw-max-w-[220px] tw-break-all tw-rounded tw-border tw-border-slate-200 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-font-mono tw-text-xs tw-font-bold tw-text-slate-900"><?php echo html_escape($report->report_number); ?></span><div class="tw-mt-2 tw-text-xs tw-text-slate-500"><?php echo html_escape((string) (int) $report->item_count); ?> indikator · <?php echo html_escape((string) (int) $report->standard_count); ?> standar</div></td><td class="tw-px-5 tw-py-4 tw-font-medium tw-text-slate-800"><?php echo html_escape($report->auditee_name_snapshot); ?></td><td class="tw-px-5 tw-py-4 tw-text-slate-700"><div class="tw-font-medium tw-text-slate-900"><?php echo html_escape($report->source_version_code_snapshot); ?></div><div class="tw-mt-0.5 tw-text-xs tw-text-slate-500"><?php echo html_escape($report->source_version_title_snapshot); ?></div></td><td class="tw-px-5 tw-py-4 tw-text-slate-700"><?php echo html_escape($report->auditor_name_snapshot); ?></td><td class="tw-whitespace-nowrap tw-px-5 tw-py-4 tw-text-xs tw-text-slate-500"><?php echo html_escape($format_timestamp($report->assessment_finalized_at_snapshot)); ?></td><td class="tw-px-5 tw-py-4 tw-text-right"><div class="ami-row-actions tw-inline-flex tw-items-center tw-justify-end tw-gap-2"><a class="ami-action-btn tw-button-primary tw-min-h-[40px] tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/detail/' . (int) $report->id); ?>">Detail</a><a class="ami-action-btn tw-button-secondary tw-min-h-[40px] tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/print/' . (int) $report->id); ?>" target="_blank" rel="noopener">Print</a><a class="ami-action-btn tw-button-secondary tw-min-h-[40px] tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/export/' . (int) $report->id); ?>">XLSX</a></div></td></tr><?php endforeach; ?>
+            </tbody></table></div></div>
+            <div class="tw-grid tw-gap-3 md:tw-hidden"><?php foreach ($reports as $report): ?><article class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm"><div class="tw-flex tw-items-start tw-justify-between tw-gap-3"><span class="tw-inline-flex tw-max-w-[70%] tw-break-all tw-rounded tw-border tw-border-slate-200 tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-font-mono tw-text-xs tw-font-bold tw-text-slate-900"><?php echo html_escape($report->report_number); ?></span><span class="tw-whitespace-nowrap tw-text-right tw-text-xs tw-text-slate-500"><?php echo html_escape($format_timestamp($report->assessment_finalized_at_snapshot)); ?></span></div><dl class="tw-mt-4 tw-space-y-2 tw-text-sm"><div><dt class="tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Auditee</dt><dd class="tw-mt-0.5 tw-font-medium tw-text-slate-900"><?php echo html_escape($report->auditee_name_snapshot); ?></dd></div><div><dt class="tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Versi SPMI</dt><dd class="tw-mt-0.5 tw-text-slate-700"><?php echo html_escape($report->source_version_code_snapshot . ' — ' . $report->source_version_title_snapshot); ?></dd></div><div><dt class="tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Auditor</dt><dd class="tw-mt-0.5 tw-text-slate-700"><?php echo html_escape($report->auditor_name_snapshot); ?></dd></div></dl><div class="tw-mt-4 tw-border-t tw-border-slate-100 tw-pt-3"><div class="ami-row-actions tw-flex tw-items-center tw-gap-2"><a class="ami-action-btn tw-button-primary tw-flex-1 tw-justify-center tw-min-h-[44px] tw-text-sm" href="<?php echo site_url('lpmpi/spmi-reports/detail/' . (int) $report->id); ?>">Detail</a><a class="ami-action-btn tw-button-secondary tw-min-h-[44px] tw-text-sm" href="<?php echo site_url('lpmpi/spmi-reports/print/' . (int) $report->id); ?>" target="_blank" rel="noopener" aria-label="Print <?php echo html_escape($report->report_number); ?>">Print</a><a class="ami-action-btn tw-button-secondary tw-min-h-[44px] tw-text-sm" href="<?php echo site_url('lpmpi/spmi-reports/export/' . (int) $report->id); ?>" aria-label="Ekspor XLSX <?php echo html_escape($report->report_number); ?>">XLSX</a></div></div></article><?php endforeach; ?></div>
+            <?php if ($page_count > 1): ?><nav class="tw-mt-5 tw-flex tw-flex-wrap tw-items-center justify-between gap-3" aria-label="Navigasi halaman laporan"><div><?php if ($current_page > 1): ?><a class="ami-action-btn tw-button-secondary tw-inline-flex tw-min-h-[44px] tw-items-center tw-gap-2 tw-text-sm" rel="prev" href="<?php echo html_escape($page_url($current_page - 1)); ?>"><?php echo $icon('arrow-left'); ?><span>Sebelumnya</span></a><?php endif; ?></div><div class="tw-flex tw-flex-wrap tw-items-center tw-gap-1" aria-label="Halaman laporan"><?php for ($page = 1; $page <= $page_count; $page++): ?><a class="ami-action-btn tw-inline-flex tw-min-h-[44px] tw-min-w-[44px] tw-items-center tw-justify-center tw-text-sm <?php echo $page === $current_page ? 'tw-button-primary' : 'tw-button-secondary'; ?>" href="<?php echo html_escape($page_url($page)); ?>" <?php echo $page === $current_page ? 'aria-current="page"' : ''; ?>><?php echo html_escape((string) $page); ?></a><?php endfor; ?></div><div><?php if ($current_page < $page_count): ?><a class="ami-action-btn tw-button-secondary tw-inline-flex tw-min-h-[44px] tw-items-center tw-gap-2 tw-text-sm" rel="next" href="<?php echo html_escape($page_url($current_page + 1)); ?>"><span>Berikutnya</span><?php echo $icon('arrow-right'); ?></a><?php endif; ?></div></nav><?php endif; ?>
         <?php endif; ?>
+
+        <section class="tw-mt-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm md:tw-p-6" aria-labelledby="standard-analysis-title"><div class="tw-mb-4"><h2 id="standard-analysis-title" class="tw-text-base tw-font-bold tw-text-slate-900">Analisis per standar</h2><p class="tw-mt-1 tw-text-xs tw-text-slate-500">Rata-rata skor dan temuan dari snapshot laporan yang sesuai filter.</p></div><?php if (empty($standard_analysis)): ?><div class="tw-rounded-xl tw-border tw-border-dashed tw-border-slate-300 tw-p-6 tw-text-center tw-text-sm tw-text-slate-500">Belum ada data analisis standar pada snapshot dengan filter ini.</div><?php else: ?><div class="tw-grid tw-gap-3 lg:tw-grid-cols-2"><?php foreach ($standard_analysis as $analysis): $score = max(0, min(4, (float) $analysis->average_score)); $width = ($score / 4) * 100; ?><article class="tw-rounded-xl tw-border tw-border-slate-200 tw-p-4"><div class="tw-flex tw-items-start tw-justify-between tw-gap-3"><div><h3 class="tw-text-sm tw-font-bold tw-text-slate-900"><?php echo html_escape($analysis->standard_code); ?></h3><p class="tw-mt-0.5 tw-text-xs tw-text-slate-500"><?php echo html_escape($analysis->standard_title); ?></p></div><span class="tw-whitespace-nowrap tw-font-mono tw-text-sm tw-font-bold tw-text-slate-900"><?php echo html_escape(number_format($score, 2, ',', '.')); ?> / 4</span></div><div class="tw-mt-3" role="img" aria-label="Skor rata-rata <?php echo html_escape(number_format($score, 2, ',', '.')); ?> dari 4 untuk <?php echo html_escape($analysis->standard_code); ?>"><div class="tw-h-2 tw-overflow-hidden tw-rounded-full tw-bg-slate-100"><div class="tw-h-full tw-rounded-full tw-bg-slate-700" style="width: <?php echo html_escape((string) $width); ?>%;"></div></div></div><div class="tw-mt-3 tw-flex tw-flex-wrap tw-gap-x-4 tw-gap-y-1 tw-text-xs tw-text-slate-500"><span><?php echo html_escape((string) (int) $analysis->indicator_count); ?> indikator</span><span><?php echo html_escape((string) (int) $analysis->finding_count); ?> temuan</span></div></article><?php endforeach; ?></div><?php endif; ?></section>
     </div>
 </main>
-
-<script>
-(function () {
-    var rows = Array.prototype.slice.call(document.querySelectorAll('.report-row'));
-    var search = document.getElementById('report-filter-search');
-    var cycle = document.getElementById('report-filter-cycle');
-    var empty = document.getElementById('report-filter-empty');
-
-    function filter() {
-        var query = search ? search.value.trim().toLowerCase() : '';
-        var selectedCycle = cycle ? cycle.value.trim() : '';
-
-        var visibleCount = 0;
-        rows.forEach(function (row) {
-            var text = row.getAttribute('data-search') || '';
-            var rowCycle = row.getAttribute('data-cycle') || '';
-
-            var matchSearch = !query || text.indexOf(query) !== -1;
-            var matchCycle = !selectedCycle || rowCycle === selectedCycle;
-
-            if (matchSearch && matchCycle) {
-                row.classList.remove('tw-hidden');
-                visibleCount++;
-            } else {
-                row.classList.add('tw-hidden');
-            }
-        });
-
-        if (empty) {
-            if (visibleCount === 0 && rows.length > 0) {
-                empty.classList.remove('tw-hidden');
-            } else {
-                empty.classList.add('tw-hidden');
-            }
-        }
-    }
-
-    if (search) search.addEventListener('input', filter);
-    if (cycle) cycle.addEventListener('change', filter);
-})();
-</script>
 
 <?php include APPPATH . 'views/layouts/footer.php'; ?>

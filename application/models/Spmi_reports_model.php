@@ -3,52 +3,64 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Spmi_reports_model extends CI_Model
 {
-    public function reports()
+    public function index_options($filters = NULL)
     {
-        return $this->db->order_by('generated_at', 'DESC')->order_by('id', 'DESC')->get('spmi_reports')->result();
+        $filters = is_array($filters) ? $filters : ['academic_year' => '', 'cycle_id' => 0, 'version_id' => 0, 'auditee_id' => 0, 'q' => '', 'page' => 1];
+        $options_query = function ($select, $group_by, $order_by, $positive_id_column = NULL) use ($filters) {
+            $query = $this->db->select($select, FALSE)->from('spmi_reports r')->where('r.report_scope', 'version');
+            if ($filters['academic_year'] !== '') $query->where('r.academic_year_snapshot', $filters['academic_year']);
+            if ($filters['cycle_id']) $query->where('r.source_cycle_id', (int) $filters['cycle_id']);
+            if ($filters['version_id']) $query->where('r.source_version_id', (int) $filters['version_id']);
+            if ($positive_id_column !== NULL) $query->where($positive_id_column . ' >', 0);
+            return $query->group_by($group_by)->order_by($order_by[0], $order_by[1])->get()->result();
+        };
+        return [
+            'academic_years' => $this->db->select('academic_year_snapshot', FALSE)->from('spmi_reports')->where('report_scope', 'version')->where('academic_year_snapshot IS NOT NULL', NULL, FALSE)->where("TRIM(academic_year_snapshot) != ''", NULL, FALSE)->group_by('academic_year_snapshot')->order_by('academic_year_snapshot', 'DESC')->get()->result(),
+            'cycles' => $options_query('source_cycle_id, cycle_code_snapshot, cycle_title_snapshot', 'source_cycle_id, cycle_code_snapshot, cycle_title_snapshot', ['cycle_code_snapshot', 'DESC']),
+            'versions' => $options_query('source_version_id, source_version_code_snapshot, source_version_title_snapshot', 'source_version_id, source_version_code_snapshot, source_version_title_snapshot', ['source_version_code_snapshot', 'DESC'], 'r.source_version_id'),
+            'auditees' => $options_query('auditee_id_snapshot, auditee_name_snapshot', 'auditee_id_snapshot, auditee_name_snapshot', ['auditee_name_snapshot', 'ASC'], 'r.auditee_id_snapshot'),
+        ];
     }
 
-    public function report_cycles()
+    public function index_count($filters)
     {
-        return $this->db->select('cycle_code_snapshot, cycle_title_snapshot', FALSE)
-            ->from('spmi_reports')
-            ->group_by('cycle_code_snapshot, cycle_title_snapshot')
-            ->order_by('cycle_code_snapshot', 'DESC')
-            ->get()->result();
+        $query = $this->db->select('COUNT(DISTINCT r.id) AS report_count', FALSE)->from('spmi_reports r')->join('spmi_report_items ri', 'ri.report_id = r.id', 'left');
+        $this->apply_index_filters($query, $filters);
+        return (int) $query->get()->row()->report_count;
     }
 
-    public function version_report_cycles()
+    public function index_reports($filters, $limit, $offset)
     {
-        return $this->db->select('source_cycle_id, cycle_code_snapshot, cycle_title_snapshot', FALSE)
-            ->from('spmi_reports')->where('report_scope', 'version')->where('source_cycle_id IS NOT NULL', NULL, FALSE)
-            ->group_by('source_cycle_id, cycle_code_snapshot, cycle_title_snapshot')
-            ->order_by('cycle_code_snapshot', 'DESC')->order_by('source_cycle_id', 'DESC')->get()->result();
+        $query = $this->db->select('r.*, AVG(ri.score) AS average_score, COUNT(ri.id) AS item_count, COUNT(DISTINCT CONCAT(COALESCE(ri.source_standard_code_snapshot, r.source_standard_code_snapshot), "\\n", COALESCE(ri.source_standard_title_snapshot, r.source_standard_title_snapshot))) AS standard_count, SUM(CASE WHEN ri.finding_snapshot IS NOT NULL AND TRIM(ri.finding_snapshot) != "" THEN 1 ELSE 0 END) AS finding_count', FALSE)->from('spmi_reports r')->join('spmi_report_items ri', 'ri.report_id = r.id', 'left');
+        $this->apply_index_filters($query, $filters);
+        return $query->group_by('r.id')->order_by('r.generated_at', 'DESC')->order_by('r.id', 'DESC')->limit((int) $limit, (int) $offset)->get()->result();
     }
 
-    public function version_reports_for_cycle($cycle_id)
+    public function index_summary($filters)
     {
-        return $this->db->select('id, report_number, source_version_code_snapshot, source_version_title_snapshot, auditor_name_snapshot, auditee_name_snapshot, assessment_finalized_at_snapshot')
-            ->from('spmi_reports')->where('source_cycle_id', (int) $cycle_id)->where('report_scope', 'version')
-            ->where('source_version_id IS NOT NULL', NULL, FALSE)->where('auditor_id_snapshot IS NOT NULL', NULL, FALSE)->where('auditee_id_snapshot IS NOT NULL', NULL, FALSE)
-            ->order_by('source_version_code_snapshot', 'ASC')->order_by('auditee_name_snapshot', 'ASC')->order_by('auditor_name_snapshot', 'ASC')->order_by('id', 'ASC')->get()->result();
+        $query = $this->db->select('COUNT(DISTINCT r.id) AS report_count, COUNT(DISTINCT r.auditee_id_snapshot) AS auditee_count, COUNT(DISTINCT CONCAT(COALESCE(ri.source_standard_code_snapshot, r.source_standard_code_snapshot), "\\n", COALESCE(ri.source_standard_title_snapshot, r.source_standard_title_snapshot))) AS standard_count, AVG(ri.score) AS average_score', FALSE)->from('spmi_reports r')->join('spmi_report_items ri', 'ri.report_id = r.id', 'left');
+        $this->apply_index_filters($query, $filters);
+        return $query->get()->row();
     }
 
-    public function version_report_for_cycle($cycle_id, $report_id)
+    public function index_standard_analysis($filters)
     {
-        return $this->db->where('id', (int) $report_id)->where('source_cycle_id', (int) $cycle_id)->where('report_scope', 'version')->get('spmi_reports')->row();
+        $query = $this->db->select('COALESCE(ri.source_standard_code_snapshot, r.source_standard_code_snapshot) AS standard_code, COALESCE(ri.source_standard_title_snapshot, r.source_standard_title_snapshot) AS standard_title, AVG(ri.score) AS average_score, COUNT(ri.id) AS indicator_count, SUM(CASE WHEN ri.finding_snapshot IS NOT NULL AND TRIM(ri.finding_snapshot) != "" THEN 1 ELSE 0 END) AS finding_count', FALSE)->from('spmi_reports r')->join('spmi_report_items ri', 'ri.report_id = r.id');
+        $this->apply_index_filters($query, $filters);
+        return $query->group_by('COALESCE(ri.source_standard_code_snapshot, r.source_standard_code_snapshot), COALESCE(ri.source_standard_title_snapshot, r.source_standard_title_snapshot)', FALSE)->order_by('standard_code', 'ASC')->order_by('standard_title', 'ASC')->get()->result();
     }
 
-    public function score_recap_per_indicator_per_auditee($cycle_code)
+    protected function apply_index_filters($query, $filters)
     {
-        return $this->db
-            ->select('r.auditee_name_snapshot AS auditee_name, COALESCE(ri.source_standard_code_snapshot, r.source_standard_code_snapshot) AS standard_code, ri.indicator_code_snapshot AS item_code, ri.indicator_title_snapshot AS item_title, ri.score AS score', FALSE)
-            ->from('spmi_reports r')
-            ->join('spmi_report_items ri', 'ri.report_id = r.id')
-            ->where('r.cycle_code_snapshot', $cycle_code)
-            ->order_by('r.auditee_name_snapshot', 'ASC')
-            ->order_by('COALESCE(ri.source_standard_code_snapshot, r.source_standard_code_snapshot)', 'ASC', FALSE)
-            ->order_by('ri.display_order', 'ASC')
-            ->get()->result();
+        $query->where('r.report_scope', 'version');
+        if ($filters['academic_year'] !== '') $query->where('r.academic_year_snapshot', $filters['academic_year']);
+        if ($filters['cycle_id']) $query->where('r.source_cycle_id', (int) $filters['cycle_id']);
+        if ($filters['version_id']) $query->where('r.source_version_id', (int) $filters['version_id']);
+        if ($filters['auditee_id']) $query->where('r.auditee_id_snapshot', (int) $filters['auditee_id']);
+        if ($filters['q'] !== '') {
+            $query->group_start()->like('r.report_number', $filters['q'])->or_like('r.cycle_code_snapshot', $filters['q'])->or_like('r.cycle_title_snapshot', $filters['q'])->or_like('r.source_version_code_snapshot', $filters['q'])->or_like('r.source_version_title_snapshot', $filters['q'])->or_like('r.auditor_name_snapshot', $filters['q'])->or_like('r.auditee_name_snapshot', $filters['q'])->or_like('ri.source_standard_code_snapshot', $filters['q'])->or_like('ri.source_standard_title_snapshot', $filters['q'])->or_like('ri.indicator_code_snapshot', $filters['q'])->or_like('ri.indicator_title_snapshot', $filters['q'])->group_end();
+        }
+        return $query;
     }
 
     public function finalized_assessments()
