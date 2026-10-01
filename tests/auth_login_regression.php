@@ -46,6 +46,18 @@ if (strpos($auth_controller, 'redirect($this->login_redirect());') === FALSE) {
     throw new RuntimeException('Login sukses harus memakai hasil mapping role sesi untuk redirect.');
 }
 
+foreach ([
+    'application/views/auth/login.php',
+    'application/views/auth/forgot_password.php',
+    'application/views/auth/reset_password.php',
+    'application/views/auth/reset_password_invalid.php',
+] as $auth_view_path) {
+    $auth_view = file_get_contents(dirname(__DIR__) . '/' . $auth_view_path);
+    if ($auth_view === FALSE || strpos($auth_view, "assets/img/unmuh-foto.jpg") === FALSE || strpos($auth_view, "assets/img/login-bg.jpg") !== FALSE) {
+        throw new RuntimeException('Halaman autentikasi harus memakai aset foto institusi yang tersedia: ' . $auth_view_path);
+    }
+}
+
 $index_method_start = strpos($auth_controller, 'public function index()');
 $login_method_start = strpos($auth_controller, 'public function login()');
 
