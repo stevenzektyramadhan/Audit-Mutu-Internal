@@ -4,6 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Master_data_prodi_staf extends Admin_Lpmpi_Controller
 {
     protected $organization_service;
+    protected $profil_service;
 
     public function __construct()
     {
@@ -14,6 +15,8 @@ class Master_data_prodi_staf extends Admin_Lpmpi_Controller
         $this->load->model('Organization_model');
         require_once APPPATH . 'services/Organization_service.php';
         $this->organization_service = new Organization_service();
+        require_once APPPATH . 'services/Profil_service.php';
+        $this->profil_service = new Profil_service();
     }
 
     public function index()
@@ -23,6 +26,7 @@ class Master_data_prodi_staf extends Admin_Lpmpi_Controller
             return;
         }
 
+        $this->require_capability('organization.view');
         $prodi = $this->Profil_model->get_prodi_master_directory_data();
         $organization_units = $this->Organization_model->get_master_directory_units();
         $summary = $this->Organization_model->get_master_directory_summary();
@@ -77,6 +81,31 @@ class Master_data_prodi_staf extends Admin_Lpmpi_Controller
         $data['parent_unit'] = $this->organization_service->find_unit((int) $unit->parent_id);
         $data['assignments'] = $this->organization_service->assignments((int) $id);
         $this->load->view('lpmpi/master_data_prodi_staf/unit_detail', $data);
+    }
+
+    public function create()
+    {
+        if ($this->input->method(TRUE) !== 'GET') {
+            show_error('Method tidak diizinkan.', 405, 'Method Not Allowed');
+            return;
+        }
+
+        $this->require_capability('organization.manage');
+        $this->load->view('lpmpi/master_data_prodi_staf/create_form', $this->create_page_data());
+    }
+
+    public function prodi_store()
+    {
+        $this->require_post_capability('organization.manage');
+        $this->prodi_rules(TRUE);
+        if ($this->form_validation->run() === FALSE) {
+            $this->load->view('lpmpi/master_data_prodi_staf/create_form', $this->create_page_data());
+            return;
+        }
+
+        $result = $this->profil_service->create_prodi($this->prodi_input());
+        $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
+        redirect('lpmpi/master-data-prodi-staf');
     }
 
     public function prodi_link($id)
@@ -162,10 +191,14 @@ class Master_data_prodi_staf extends Admin_Lpmpi_Controller
     private function require_capability($capability) { if (!$this->can($capability)) show_error('Akses ditolak.', 403, 'Forbidden'); }
     private function require_post_capability($capability) { if ($this->input->method(TRUE) !== 'POST') show_error('Method tidak diizinkan.', 405, 'Method Not Allowed'); $this->require_capability($capability); }
     private function flash_redirect($result, $url) { $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']); redirect($url); }
+    private function create_page_data() { return ['title' => 'Tambah Master Data Organisasi & Staf - AMI', 'page_title' => 'Tambah Master Data Organisasi & Staf', 'page_subtitle' => 'Master Data Organisasi & Staf / Tambah Data', 'active_menu' => 'master_data_prodi_staf', 'create_url' => 'lpmpi/master-data-prodi-staf/create', 'units' => $this->organization_service->units(), 'faculties' => $this->Profil_model->active_faculties(), 'return_url' => 'lpmpi/master-data-prodi-staf', 'unit_store_action' => 'lpmpi/master-data-prodi-staf/unit/store', 'prodi_store_action' => 'lpmpi/master-data-prodi-staf/prodi/store']; }
     private function unit_page_data($title, $action, $unit) { return ['title' => $title . ' - AMI', 'page_title' => $title, 'page_subtitle' => 'Master Data Organisasi & Staf / ' . $title, 'active_menu' => 'master_data_prodi_staf', 'action' => $action, 'unit' => $unit, 'units' => $this->organization_service->units()]; }
     private function placement_page_data() { return ['title' => 'Tambah Penempatan Non-Prodi - AMI', 'page_title' => 'Tambah Penempatan Non-Prodi', 'page_subtitle' => 'Master Data Organisasi & Staf / Penempatan Non-Prodi', 'active_menu' => 'master_data_prodi_staf', 'action' => 'lpmpi/master-data-prodi-staf/placement/store', 'users' => $this->organization_service->users(), 'units' => $this->organization_service->units()]; }
     private function set_unit_rules() { $this->form_validation->set_rules('code', 'Kode Unit', 'required|max_length[64]'); $this->form_validation->set_rules('name', 'Nama Unit', 'required|max_length[200]'); $this->form_validation->set_rules('type', 'Tipe Unit', 'required|in_list[faculty,bureau,unit,institute]'); $this->form_validation->set_rules('parent_id', 'Parent Unit', 'required|integer'); }
     private function set_assignment_rules() { $this->form_validation->set_rules('user_id', 'Pengguna', 'required|integer'); $this->form_validation->set_rules('organization_unit_id', 'Unit', 'required|integer'); $this->form_validation->set_rules('position_code', 'Posisi', 'required|max_length[64]'); $this->form_validation->set_rules('valid_from', 'Mulai berlaku', 'required'); }
+    private function prodi_rules($require_faculty) { $this->form_validation->set_rules('nama_prodi', 'Nama program studi', 'required|max_length[200]'); $this->form_validation->set_rules('kode_prodi', 'Kode prodi', 'required|max_length[20]'); $this->form_validation->set_rules('jenjang', 'Jenjang', 'required|max_length[20]'); $this->form_validation->set_rules('faculty_id', 'Fakultas', $require_faculty ? 'required|integer|greater_than[0]' : 'integer|greater_than[0]'); foreach (['status' => 50, 'akreditasi' => 50, 'rasio_dosen_mahasiswa' => 20] as $field => $length) { $this->form_validation->set_rules($field, ucwords(str_replace('_', ' ', $field)), 'max_length[' . $length . ']'); } $this->form_validation->set_rules('tanggal_sk_akreditasi', 'Tanggal SK akreditasi', 'callback_valid_optional_date'); }
+    public function valid_optional_date($value) { if (trim((string) $value) === '') return TRUE; $date = DateTime::createFromFormat('!Y-m-d', (string) $value); if ($date && $date->format('Y-m-d') === $value) return TRUE; $this->form_validation->set_message('valid_optional_date', '{field} tidak valid.'); return FALSE; }
     private function unit_input() { return ['code' => $this->input->post('code', TRUE), 'name' => $this->input->post('name', TRUE), 'type' => $this->input->post('type', TRUE), 'parent_id' => $this->input->post('parent_id', TRUE)]; }
+    private function prodi_input() { return ['kode_prodi' => $this->input->post('kode_prodi', TRUE), 'nama_prodi' => $this->input->post('nama_prodi', TRUE), 'status' => $this->input->post('status', TRUE), 'jenjang' => $this->input->post('jenjang', TRUE), 'akreditasi' => $this->input->post('akreditasi', TRUE), 'tanggal_sk_akreditasi' => $this->input->post('tanggal_sk_akreditasi', TRUE), 'rasio_dosen_mahasiswa' => $this->input->post('rasio_dosen_mahasiswa', TRUE), 'faculty_id' => $this->input->post('faculty_id', TRUE)]; }
     private function assignment_input() { return ['user_id' => $this->input->post('user_id', TRUE), 'organization_unit_id' => $this->input->post('organization_unit_id', TRUE), 'position_code' => $this->input->post('position_code', TRUE), 'valid_from' => $this->input->post('valid_from', TRUE), 'valid_until' => $this->input->post('valid_until', TRUE), 'is_primary' => $this->input->post('is_primary', TRUE)]; }
 }

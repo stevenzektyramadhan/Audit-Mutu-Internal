@@ -39,6 +39,7 @@ $profil_service = mdos_source('application/services/Profil_service.php');
 $profil_controller = mdos_source('application/controllers/Profil.php');
 $view = mdos_source('application/views/lpmpi/master_data_prodi_staf/index.php');
 $prodi_link_form = mdos_source('application/views/lpmpi/master_data_prodi_staf/prodi_link_form.php');
+$create_form = mdos_source('application/views/lpmpi/master_data_prodi_staf/create_form.php');
 $prodi_form = mdos_source('application/views/lpmpi/profil/prodi_form.php');
 $unit_detail = mdos_source('application/views/lpmpi/master_data_prodi_staf/unit_detail.php');
 $unit_form = mdos_source('application/views/lpmpi/master_data_prodi_staf/unit_form.php');
@@ -66,7 +67,7 @@ mdos_check(strpos($migration, 'FOREIGN_KEY_CHECKS') === FALSE, 'Migration 042 ti
 foreach (['INSERT', 'UPDATE', 'DELETE'] as $verb) mdos_has_no_statement($migration, $verb, 'Migration 042 tidak boleh menjalankan DML: ' . $verb);
 
 mdos_check(strpos($schema, 'current parity migration 001-041') !== FALSE, 'Marker historis 001-041 harus tetap ada.');
-mdos_check(strpos($schema, 'current parity migration 001-042') !== FALSE, 'Marker parity 001-042 harus ada.');
+mdos_check(strpos($schema, 'current parity migration 001-043') !== FALSE, 'Marker parity 001-043 harus ada.');
 mdos_check(strpos($profil_prodi, '`organization_unit_id` INT NULL') !== FALSE, 'Bootstrap schema profil_prodi harus punya organization_unit_id nullable.');
 mdos_check(strpos($profil_prodi, 'UNIQUE KEY `uq_profil_prodi_organization_unit` (`organization_unit_id`)') !== FALSE, 'Bootstrap schema profil_prodi harus punya unique key organization_unit_id.');
 mdos_check(strpos($organization_units, "ENUM('university','faculty','upps','study_program','institute','bureau','unit')") !== FALSE, 'Bootstrap schema organization_units harus mempertahankan tipe UPPS.');
@@ -76,7 +77,7 @@ $fk_pos = strpos($schema, 'ADD CONSTRAINT `fk_profil_prodi_organization_unit`');
 mdos_check($organization_table_pos !== FALSE && $fk_pos !== FALSE && $organization_table_pos < $fk_pos, 'Bootstrap FK profil_prodi harus dideklarasikan setelah organization_units.');
 mdos_check(strpos($schema, 'FOREIGN KEY (`organization_unit_id`) REFERENCES `organization_units` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT') !== FALSE, 'Bootstrap FK profil_prodi harus RESTRICT untuk delete dan update.');
 
-mdos_check(strpos($readme, 'parity migration `001-042`') !== FALSE, 'README harus mendokumentasikan parity 001-042.');
+mdos_check(strpos($readme, 'parity migration `001-043`') !== FALSE, 'README harus mendokumentasikan parity 001-043.');
 mdos_check(strpos($readme, '`042_link_profil_prodi_to_organization_units.sql`') !== FALSE, 'README harus mencantumkan migration 042.');
 mdos_check(strpos($readme, 'nullable `profil_prodi.organization_unit_id`') !== FALSE, 'README harus menjelaskan link nullable.');
 mdos_check(strpos($readme, 'tidak melakukan auto-map') !== FALSE, 'README harus melarang auto-map fase 042.');
@@ -104,9 +105,26 @@ foreach (['create_canonical_unit($this->unit_input())', 'update_canonical_unit((
     mdos_check(strpos($controller, $literal) !== FALSE, 'Controller harus memanggil service canonical: ' . $literal);
 }
 mdos_check(substr_count($controller, "'lpmpi/master-data-prodi-staf'") >= 4, 'Mutation Master harus redirect ke URL canonical Master Data.');
+mdos_check(strpos($routes, "\$route['lpmpi/master-data-prodi-staf/create'] = 'lpmpi/Master_data_prodi_staf/create';") !== FALSE, 'Route GET unified create Master Data hilang.');
 foreach (['unit/detail/(:num)', 'unit/create', 'unit/store', 'unit/edit/(:num)', 'unit/update/(:num)', 'unit/toggle/(:num)', 'placement/create', 'placement/store', 'placement/end/(:num)'] as $literal) {
     mdos_check(strpos($routes, 'lpmpi/master-data-prodi-staf/' . $literal) !== FALSE, 'Route canonical Master hilang: ' . $literal);
 }
+foreach ([
+    "\$route['lpmpi/master-data-prodi-staf/unit/store'] = 'lpmpi/Master_data_prodi_staf/unit_store';",
+    "\$route['lpmpi/master-data-prodi-staf/prodi/store'] = 'lpmpi/Master_data_prodi_staf/prodi_store';",
+    "\$route['profil/prodi/store'] = 'Profil/prodi_store';",
+    "\$route['lpmpi/master-data-prodi-staf/unit/create'] = 'lpmpi/Master_data_prodi_staf/unit_create';",
+    "\$route['profil/prodi/create'] = 'Profil/prodi_create';",
+] as $literal) {
+    mdos_check(strpos($routes, $literal) !== FALSE, 'Route direct existing harus tetap tersedia: ' . $literal);
+}
+foreach (['public function create()', "method(TRUE) !== 'GET'", "require_capability('organization.manage')", "load->view('lpmpi/master_data_prodi_staf/create_form'", "'unit_store_action' => 'lpmpi/master-data-prodi-staf/unit/store'", "'prodi_store_action' => 'lpmpi/master-data-prodi-staf/prodi/store'", "'units' => $" . "this->organization_service->units()", "'faculties' => $" . "this->Profil_model->active_faculties()"] as $literal) {
+    mdos_check(strpos($controller, $literal) !== FALSE, 'Controller unified create kehilangan kontrak GET-only: ' . $literal);
+}
+foreach (['public function prodi_store()', "require_post_capability('organization.manage')", '$this->prodi_rules(TRUE);', 'Profil_service.php', '$this->profil_service = new Profil_service();', 'create_prodi($this->prodi_input())', "'lpmpi/master-data-prodi-staf/create'", 'validation_errors(', "set_flashdata('error'", "redirect('lpmpi/master-data-prodi-staf')"] as $literal) {
+    mdos_check(strpos($controller, $literal) !== FALSE, 'Controller Master receiver Prodi kehilangan kontrak: ' . $literal);
+}
+mdos_check(strpos($controller, 'public function create_store(') === FALSE && strpos($routes, 'master-data-prodi-staf/create/store') === FALSE, 'Unified create tidak boleh menambah handler POST generic baru.');
 
 foreach (['create_canonical_unit', 'update_canonical_unit', 'toggle_canonical_unit', 'create_canonical_non_prodi_assignment', 'end_canonical_non_prodi_assignment', 'valid_canonical_parent', 'valid_non_prodi_unit', 'is_canonical_generic_type'] as $method) {
     mdos_check(strpos($service, $method) !== FALSE, 'Service canonical missing: ' . $method);
@@ -152,6 +170,8 @@ foreach (['faculty', 'study_program', 'bureau', 'unit', 'institute', 'active_sta
     mdos_check(strpos($organization_model, "'" . $summary_key . "' => 0") !== FALSE, 'Summary harus memiliki key stabil: ' . $summary_key);
 }
 mdos_check(strpos($organization_model, "where_in('ou.type', ['university', 'faculty', 'study_program', 'bureau', 'unit', 'institute'])") !== FALSE, 'Directory unit harus memuat tipe canonical termasuk inactive untuk filter directory.');
+mdos_check(strpos($organization_model, "join('profil_prodi pp_linked', 'pp_linked.organization_unit_id = ou.id', 'left')") !== FALSE, 'Directory unit harus join profil_prodi untuk mengecualikan hanya duplicate Program Studi yang sudah linked.');
+mdos_check(strpos($organization_model, "where('(ou.type != ' . $" . "this->db->escape('study_program') . ' OR pp_linked.organization_unit_id IS NULL)', NULL, FALSE)") !== FALSE, 'Directory unit harus tetap menampilkan study_program legacy yang belum linked ke profil_prodi.');
 mdos_check(strpos($organization_model, "where_in('ou.type', ['faculty', 'bureau', 'unit', 'institute'])") !== FALSE, 'Penempatan non-Prodi tidak boleh menghitung study_program.');
 mdos_check(strpos($organization_model, 'a.valid_from <= CURDATE()') !== FALSE && strpos($organization_model, 'a.valid_until > CURDATE()') !== FALSE, 'Penempatan aktif harus mengikuti semantik current Organization_service.');
 mdos_check(strpos($organization_model, 'COUNT(DISTINCT user_id) AS total') !== FALSE, 'Total staf aktif harus distinct user lintas roster Prodi dan penempatan current non-Prodi.');
@@ -177,6 +197,7 @@ mdos_check(strpos($view, 'top: calc(100% + 4px)') === FALSE && substr_count($vie
 mdos_check(strpos($view, 'dropdown-divider') !== FALSE, 'Menu Prodi harus mempertahankan separator sebelum aksi Hapus.');
 mdos_check(strpos($view, 'Tambah Penempatan Non-Prodi') === FALSE, 'CTA penempatan non-Prodi hanya boleh tampil pada section Penempatan Staf.');
 mdos_check(strpos($view, 'data-search=') !== FALSE && strpos($view, 'data-type=') !== FALSE && strpos($view, 'data-status=') !== FALSE, 'View canonical harus menyiapkan corpus pencarian, tipe, dan status untuk seluruh baris.');
+mdos_check(strpos($view, '$type !== \'study_program\'') !== FALSE && strpos($view, '<option value="prodi">Program Studi</option>') !== FALSE && strpos($view, '<option value="study_program">Program Studi legacy belum terhubung</option>') !== FALSE, 'Filter tipe harus memetakan Program Studi canonical ke profil_prodi dan memberi label eksplisit untuk unit study_program legacy.');
 mdos_check(strpos($view, 'visible.slice((page - 1) * pageSize, page * pageSize)') !== FALSE, 'View canonical harus memiliki pagination client-side.');
 mdos_check(strpos($view, 'master-status-active') !== FALSE && strpos($view, 'master-status-inactive') !== FALSE, 'Status aktif/nonaktif harus terlihat melalui teks dan badge.');
 mdos_check(strpos($view, 'non_prodi_staff_placements') !== FALSE && strpos($view, 'Penempatan Staf Non-Prodi') !== FALSE, 'View canonical harus menyediakan daftar staf non-Prodi read-only.');
@@ -186,6 +207,24 @@ $value_helper_end = strpos($view, '$type_labels =', $value_helper_start);
 $value_helper = $value_helper_start !== FALSE && $value_helper_end !== FALSE ? substr($view, $value_helper_start, $value_helper_end - $value_helper_start) : '';
 mdos_check(strpos($value_helper, 'property_exists($row, $key)') !== FALSE && strpos($value_helper, 'array_key_exists($key, $row)') !== FALSE, 'View value helper harus mempertahankan nilai NULL dari object dan array row.');
 mdos_check(strpos($view, '$unit_is_root = $value($unit, \'parent_id\') === NULL') !== FALSE && strpos($view, '<span class="text-muted" aria-label="Unit root">—</span>') !== FALSE && strpos($view, '<a class="btn btn-sm btn-outline-ami" href="<?php echo html_escape(site_url(\'lpmpi/master-data-prodi-staf/unit/detail/\' . (int) $value($unit, \'id\'))); ?>">') !== FALSE, 'Unit root harus memakai marker netral, sedangkan unit non-root harus mempertahankan tautan Detail.');
+mdos_check(strpos($view, "site_url('lpmpi/master-data-prodi-staf/create')") !== FALSE, 'Index Master Data harus memakai CTA unified create.');
+mdos_check(strpos($view, "site_url('lpmpi/master-data-prodi-staf/unit/create')") === FALSE && strpos($view, "site_url('profil/prodi/create')") === FALSE, 'Index Master Data tidak boleh menampilkan CTA create direct lama.');
+foreach (['form_open($unit_store_action', 'lpmpi/master-data-prodi-staf/unit/store', 'lpmpi/master-data-prodi-staf/prodi/store', 'name="entity_type"', 'name="type"', 'name="require_faculty"', '$faculties', 'html_escape'] as $literal) {
+    mdos_check(strpos($create_form, $literal) !== FALSE, 'Form unified create kehilangan kontrak dasar: ' . $literal);
+}
+mdos_check(strpos($create_form, 'profil/prodi/store') === FALSE, 'Unified form tidak boleh POST Program Studi ke endpoint legacy Profil.');
+foreach (["var unitAction = <?php echo json_encode(site_url($" . "unit_store_action)); ?>", "var prodiAction = <?php echo json_encode(site_url($" . "prodi_store_action)); ?>", "form.action = isProdi ? prodiAction : unitAction"] as $literal) {
+    mdos_check(strpos($create_form, $literal) !== FALSE, 'Form unified create harus mengatur action dari JS: ' . $literal);
+}
+foreach (["'faculty' => 'Fakultas'", "'bureau' => 'Biro'", "'unit' => 'Unit'", "'institute' => 'Lembaga'", "'study_program' => 'Program Studi'"] as $literal) {
+    mdos_check(strpos($create_form, $literal) !== FALSE, 'Selector tipe unified create kehilangan opsi: ' . $literal);
+}
+foreach (['name="kode_prodi"', 'name="nama_prodi"', 'name="faculty_id"', 'name="status"', 'name="jenjang"', 'name="akreditasi"', 'name="tanggal_sk_akreditasi"', 'name="rasio_dosen_mahasiswa"'] as $literal) {
+    mdos_check(strpos($create_form, $literal) !== FALSE, 'Form unified create kehilangan field akademik Prodi: ' . $literal);
+}
+foreach (['data-parent-type', 'requiredParentType', 'parent_id', 'option.hidden = !matches', 'option.disabled = !matches'] as $literal) {
+    mdos_check(strpos($create_form, $literal) !== FALSE, 'Form unified create kehilangan scoping parent generic: ' . $literal);
+}
 foreach ([
     [$unit_detail, 'parent_unit', 'Detail unit harus menampilkan parent dari view-data controller.'],
     [$unit_detail, 'assignments', 'Detail unit harus menampilkan penempatan unit.'],
@@ -199,7 +238,7 @@ foreach ([
 ] as $contract) {
     mdos_check(strpos($contract[0], $contract[1]) !== FALSE, $contract[2]);
 }
-foreach (['lpmpi/master-data-prodi-staf/unit/create', 'lpmpi/master-data-prodi-staf/placement/create', 'lpmpi/master-data-prodi-staf/unit/detail/', 'lpmpi/master-data-prodi-staf/unit/toggle/', 'lpmpi/master-data-prodi-staf/placement/end/'] as $literal) {
+foreach (['lpmpi/master-data-prodi-staf/placement/create', 'lpmpi/master-data-prodi-staf/unit/detail/', 'lpmpi/master-data-prodi-staf/unit/toggle/', 'lpmpi/master-data-prodi-staf/placement/end/'] as $literal) {
     mdos_check(strpos($view, $literal) !== FALSE || strpos($unit_detail, $literal) !== FALSE, 'Affordance canonical hilang: ' . $literal);
 }
 mdos_check(strpos($view, 'Read-only directory') === FALSE, 'Placeholder Read-only directory harus diganti dengan aksi canonical.');
