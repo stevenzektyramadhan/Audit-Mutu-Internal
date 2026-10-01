@@ -15,7 +15,7 @@ class Spmi_standards extends Admin_Lpmpi_Controller
 
     public function index()
     {
-        $this->render('index', ['title' => 'Standar SPMI', 'page_title' => 'Standar SPMI Berbasis Versi', 'page_subtitle' => 'Beranda / Standar SPMI', 'active_menu' => 'spmi_standards', 'versions' => $this->service->versions()]);
+        $this->render('index', ['title' => 'Standar SPMI', 'page_title' => 'Standar SPMI Berbasis Versi', 'page_subtitle' => 'Beranda / Standar SPMI', 'active_menu' => 'spmi_standards', 'versions' => $this->service->versions(), 'upload_limit_mib' => $this->limit_mib($this->upload_limit_bytes('spreadsheet_imports'))]);
     }
 
     public function version_create() { $this->render('version_form', $this->form_data('Tambah Versi Standar SPMI', 'lpmpi/spmi-standards/version/store', NULL)); }
