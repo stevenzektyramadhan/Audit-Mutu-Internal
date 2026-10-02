@@ -11,8 +11,6 @@ $menus = [
         ['key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'],
         ['key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'],
         ['key' => 'master_data_prodi_staf', 'label' => 'Master Data Organisasi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management'],
-        ['key' => 'spmi_standards', 'label' => 'Standar SPMI', 'icon' => 'fa-layer-group', 'url' => 'lpmpi/spmi-standards', 'group' => 'Management'],
-        ['key' => 'spmi_audits', 'label' => 'Siklus & Penugasan SPMI', 'icon' => 'fa-calendar-check', 'url' => 'lpmpi/spmi-audits', 'group' => 'Management'],
         ['key' => 'spmi_ppepp_documents', 'label' => 'Dokumen PPEPP', 'icon' => 'fa-folder-open', 'url' => 'lpmpi/spmi-ppepp-documents', 'group' => 'Management'],
         ['key' => 'spmi_reports', 'label' => 'Laporan SPMI', 'icon' => 'fa-file-alt', 'url' => 'lpmpi/spmi-reports', 'group' => 'Insights'],
         ['key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'],
@@ -25,8 +23,6 @@ $menus = [
         ['key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'],
         ['key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'],
         ['key' => 'master_data_prodi_staf', 'label' => 'Master Data Organisasi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management'],
-        ['key' => 'spmi_standards', 'label' => 'Standar SPMI', 'icon' => 'fa-layer-group', 'url' => 'lpmpi/spmi-standards', 'group' => 'Management'],
-        ['key' => 'spmi_audits', 'label' => 'Siklus & Penugasan SPMI', 'icon' => 'fa-calendar-check', 'url' => 'lpmpi/spmi-audits', 'group' => 'Management'],
         ['key' => 'spmi_ppepp_documents', 'label' => 'Dokumen PPEPP', 'icon' => 'fa-folder-open', 'url' => 'lpmpi/spmi-ppepp-documents', 'group' => 'Management'],
         ['key' => 'spmi_reports', 'label' => 'Laporan SPMI', 'icon' => 'fa-file-alt', 'url' => 'lpmpi/spmi-reports', 'group' => 'Insights'],
         ['key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'],
@@ -49,6 +45,12 @@ $menus = [
 $page_title = isset($page_title) ? $page_title : 'Dashboard';
 $page_subtitle = isset($page_subtitle) ? $page_subtitle : '';
 $current_menus = isset($menus[$role]) ? $menus[$role] : [];
+$ppepp_stages = $this->config->item('spmi_ppepp_stages', 'spmi_ppepp');
+$ppepp_stages = is_array($ppepp_stages) ? $ppepp_stages : [];
+$ppepp_selected_stage = isset($selected_stage) ? (string) $selected_stage : '';
+$ppepp_selected_year = isset($selected_year) ? (int) $selected_year : (int) date('Y');
+$ppepp_is_active = $active_menu === 'spmi_ppepp_documents';
+$evaluasi_is_active = in_array($active_menu, ['spmi_standards', 'spmi_audits'], TRUE);
 $name_parts = preg_split('/\s+/', trim((string) $nama));
 $initial = '';
 foreach (array_slice($name_parts, 0, 2) as $name_part) {
@@ -76,13 +78,45 @@ if ($initial === '') {
                 <?php $current_group = $menu['group']; ?>
                 <div class="ami-nav-label"><?php echo html_escape($current_group); ?></div>
             <?php endif; ?>
-            <a class="ami-nav-link <?php echo $active_menu === $menu['key'] ? 'active' : ''; ?>" href="<?php echo site_url($menu['url']); ?>">
-                <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
-                <span><?php echo html_escape($menu['label']); ?></span>
-                <?php if (isset($menu_badges[$menu['key']]) && (int) $menu_badges[$menu['key']] > 0): ?>
-                    <span class="ami-nav-badge"><?php echo html_escape((string) $menu_badges[$menu['key']]); ?></span>
-                <?php endif; ?>
-            </a>
+            <?php if ($menu['key'] === 'spmi_ppepp_documents'): ?>
+                <?php foreach ($ppepp_stages as $stage_key => $stage_label): ?>
+                    <?php
+                    $stage_key = (string) $stage_key;
+                    $stage_url = site_url($menu['url']) . '?stage=' . rawurlencode($stage_key) . '&year=' . rawurlencode((string) $ppepp_selected_year);
+                    $stage_is_current = $ppepp_is_active && $ppepp_selected_stage !== '' && $ppepp_selected_stage === $stage_key;
+                    ?>
+                    <a class="ami-nav-link ami-nav-ppepp-stage-link <?php echo $stage_is_current ? 'active' : ''; ?>" href="<?php echo html_escape($stage_url); ?>"<?php echo $stage_is_current ? ' aria-current="page"' : ''; ?>>
+                        <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
+                        <span><?php echo html_escape($stage_label); ?></span>
+                    </a>
+                <?php endforeach; ?>
+                <?php $evaluasi_nav_id = 'ami-nav-evaluasi'; ?>
+                <button type="button" class="ami-nav-link ami-nav-disclosure <?php echo $evaluasi_is_active ? 'active' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
+                    <i class="fas fa-layer-group" aria-hidden="true"></i>
+                    <span>Evaluasi</span>
+                    <i class="fas fa-chevron-down ami-nav-chevron" aria-hidden="true"></i>
+                </button>
+                <ul class="ami-nav-submenu" id="<?php echo $evaluasi_nav_id; ?>" <?php echo $evaluasi_is_active ? '' : 'hidden'; ?> aria-label="Evaluasi SPMI">
+                    <li>
+                        <a class="ami-nav-link ami-nav-sub-link" href="<?php echo site_url('lpmpi/spmi-standards'); ?>"<?php echo $active_menu === 'spmi_standards' ? ' aria-current="page"' : ''; ?>>
+                            <span>Standar SPMI</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="ami-nav-link ami-nav-sub-link" href="<?php echo site_url('lpmpi/spmi-audits'); ?>"<?php echo $active_menu === 'spmi_audits' ? ' aria-current="page"' : ''; ?>>
+                            <span>Siklus &amp; Penugasan SPMI</span>
+                        </a>
+                    </li>
+                </ul>
+            <?php else: ?>
+                <a class="ami-nav-link <?php echo $active_menu === $menu['key'] ? 'active' : ''; ?>" href="<?php echo site_url($menu['url']); ?>">
+                    <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
+                    <span><?php echo html_escape($menu['label']); ?></span>
+                    <?php if (isset($menu_badges[$menu['key']]) && (int) $menu_badges[$menu['key']] > 0): ?>
+                        <span class="ami-nav-badge"><?php echo html_escape((string) $menu_badges[$menu['key']]); ?></span>
+                    <?php endif; ?>
+                </a>
+            <?php endif; ?>
         <?php endforeach; ?>
     </nav>
 
