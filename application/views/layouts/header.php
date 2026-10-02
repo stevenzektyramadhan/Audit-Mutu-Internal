@@ -260,6 +260,277 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             font-size: 14px;
         }
 
+        .ami-nav-disclosure {
+            width: 100%;
+            border-top: 0;
+            border-right: 0;
+            border-bottom: 0;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .ami-nav-disclosure .ami-nav-chevron {
+            width: auto;
+            margin-left: auto;
+            font-size: 11px;
+            transition: transform .12s ease;
+        }
+
+        .ami-nav-disclosure[aria-expanded="true"] .ami-nav-chevron {
+            transform: rotate(180deg);
+        }
+
+        .ami-nav-disclosure:focus-visible,
+        .ami-nav-sub-link:focus-visible {
+            outline: 2px solid #8bc7ff;
+            outline-offset: -2px;
+        }
+
+        .ami-nav-submenu {
+            list-style: none;
+            margin: 0;
+            padding: 2px 0 6px 18px;
+        }
+
+        .ami-nav-sub-link {
+            min-height: 44px;
+            padding-left: 49px;
+            font-size: 12px;
+            border-left-color: transparent;
+        }
+
+        .ami-nav-sub-link[aria-current="page"] {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+            border-left-color: var(--ami-link);
+        }
+
+        .ami-nav-sub-link:hover,
+        .ami-nav-sub-link:focus {
+            border-left-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .ami-nav-sub-link span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .ppepp-heading {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--ami-space-md);
+        }
+
+        .ppepp-heading-icon {
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            border-radius: var(--ami-radius-sm);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--ami-link-soft);
+            color: var(--ami-blue);
+        }
+
+        .ppepp-breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+            color: var(--ami-muted);
+            font-size: 12px;
+        }
+
+        .ppepp-breadcrumb a {
+            color: var(--ami-blue) !important;
+        }
+
+        .ppepp-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: var(--ami-space-md);
+            margin-bottom: var(--ami-space-lg);
+        }
+
+        .ppepp-search {
+            flex: 1 1 260px;
+            max-width: 360px;
+        }
+
+        .ppepp-search label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .ppepp-search-control {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .ppepp-search-control > i {
+            position: absolute;
+            left: 12px;
+            color: var(--ami-muted);
+            pointer-events: none;
+        }
+
+        .ppepp-search-control .form-control {
+            padding-left: 34px;
+            padding-right: 62px;
+        }
+
+        .ppepp-search-clear {
+            position: absolute;
+            right: 6px;
+            min-height: 30px;
+            padding: 4px 8px;
+            border: 0;
+            border-radius: 5px;
+            background: var(--ami-link-soft);
+            color: var(--ami-blue);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .ppepp-checklist-grid,
+        .ppepp-document-grid {
+            display: grid;
+            gap: var(--ami-space-md);
+        }
+
+        .ppepp-checklist-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .ppepp-checklist-card,
+        .ppepp-document-card {
+            min-width: 0;
+            border: 1px solid var(--ami-border);
+            border-radius: var(--ami-radius-sm);
+            background: var(--ami-panel);
+        }
+
+        .ppepp-checklist-card-inner {
+            min-height: 78px;
+            padding: var(--ami-space-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--ami-space-sm);
+        }
+
+        .ppepp-document-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .ppepp-document-card {
+            padding: var(--ami-space-md);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 8px 22px rgba(32, 39, 51, 0.07);
+        }
+
+        .ppepp-document-card-top,
+        .ppepp-document-meta,
+        .ppepp-document-types {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .ppepp-document-card-top {
+            justify-content: space-between;
+            color: var(--ami-muted);
+            font-size: 12px;
+        }
+
+        .ppepp-document-category {
+            color: var(--ami-blue);
+            font-weight: 700;
+        }
+
+        .ppepp-document-card h3 {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .ppepp-document-description {
+            overflow-wrap: anywhere;
+            line-height: 1.5;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+        }
+
+        .ppepp-document-meta {
+            margin: 0;
+            gap: var(--ami-space-md);
+        }
+
+        .ppepp-document-meta div {
+            min-width: 0;
+        }
+
+        .ppepp-document-meta dt {
+            color: var(--ami-muted);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .ppepp-document-meta dd {
+            margin: 2px 0 0;
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .ppepp-document-actions {
+            margin-top: auto;
+            padding-top: 4px;
+        }
+
+        @media (max-width: 1199.98px) {
+            .ppepp-checklist-grid,
+            .ppepp-document-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .ppepp-checklist-grid,
+            .ppepp-document-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ppepp-toolbar,
+            .ppepp-search {
+                max-width: none;
+                width: 100%;
+            }
+
+            .ppepp-toolbar form,
+            .ppepp-toolbar form .form-control,
+            .ppepp-toolbar form .btn-ami {
+                width: 100%;
+            }
+
+            .ppepp-toolbar form {
+                gap: 8px;
+            }
+        }
+
         .ami-nav-badge {
             margin-left: auto;
             min-width: 22px;
