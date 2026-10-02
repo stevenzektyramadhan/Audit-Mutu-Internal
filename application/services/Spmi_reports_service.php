@@ -9,38 +9,31 @@ class Spmi_reports_service
     protected $model;
 
     public function __construct() { $this->ci = &get_instance(); $this->ci->load->model('Spmi_reports_model'); $this->model = $this->ci->Spmi_reports_model; }
-    public function reports() { return $this->model->reports(); }
-    public function report_cycles() { return $this->model->report_cycles(); }
-    public function score_recap($cycle_code)
+    public function index_data($input)
     {
-        $cycle_code = trim((string) $cycle_code);
-        if ($cycle_code === '') return [];
-
-        $rows = $this->model->score_recap_per_indicator_per_auditee($cycle_code);
-
-        $grouped = [];
-        foreach ($rows as $row) {
-            $auditee = $row->auditee_name;
-            if (!isset($grouped[$auditee])) {
-                $grouped[$auditee] = ['labels' => [], 'values' => []];
-            }
-            $grouped[$auditee]['labels'][] = $row->item_code;
-            $grouped[$auditee]['values'][] = (int) $row->score;
-        }
-        return $grouped;
+        $filters = $this->normalize_index_filters($input, $this->model->index_options());
+        $filters = $this->normalize_index_filters($input, $this->model->index_options($filters));
+        $options = $this->model->index_options($filters);
+        $count = $this->model->index_count($filters);
+        $page_count = max(1, (int) ceil($count / 20));
+        if ($filters['page'] > $page_count) $filters['page'] = $page_count;
+        return ['filters' => $filters, 'options' => $options, 'count' => $count, 'pagination' => ['page' => $filters['page'], 'per_page' => 20, 'page_count' => $page_count], 'reports' => $this->model->index_reports($filters, 20, ($filters['page'] - 1) * 20), 'summary' => $this->model->index_summary($filters), 'standard_analysis' => $this->model->index_standard_analysis($filters)];
+    }
+    protected function normalize_index_filters($input, $options)
+    {
+        $value = function ($name) use ($input) { return isset($input[$name]) && is_scalar($input[$name]) ? trim((string) $input[$name]) : ''; };
+        $filters = ['academic_year' => $value('academic_year'), 'cycle_id' => $this->positive_integer($value('cycle_id')), 'version_id' => $this->positive_integer($value('version_id')), 'auditee_id' => $this->positive_integer($value('auditee_id')), 'q' => substr($value('q'), 0, 120), 'page' => $this->positive_integer($value('page')) ?: 1];
+        $valid = ['academic_year' => [], 'cycle_id' => [], 'version_id' => [], 'auditee_id' => []];
+        foreach ($options['academic_years'] as $row) $valid['academic_year'][] = (string) $row->academic_year_snapshot;
+        foreach ($options['cycles'] as $row) $valid['cycle_id'][] = (int) $row->source_cycle_id;
+        foreach ($options['versions'] as $row) $valid['version_id'][] = (int) $row->source_version_id;
+        foreach ($options['auditees'] as $row) $valid['auditee_id'][] = (int) $row->auditee_id_snapshot;
+        if ($filters['academic_year'] !== '' && !in_array($filters['academic_year'], $valid['academic_year'], TRUE)) $filters['academic_year'] = '';
+        foreach (['cycle_id', 'version_id', 'auditee_id'] as $name) if ($filters[$name] && !in_array($filters[$name], $valid[$name], TRUE)) $filters[$name] = 0;
+        return $filters;
     }
     public function finalized_assessments() { return $this->model->finalized_assessments(); }
     public function finalized_versions() { return $this->model->finalized_versions(); }
-    public function version_report_selector($cycle_id, $report_id)
-    {
-        $cycle_id = $this->positive_integer($cycle_id);
-        $report_id = $this->positive_integer($report_id);
-        $selector = ['version_report_cycles' => $this->model->version_report_cycles(), 'selected_report_cycle_id' => $cycle_id, 'version_reports' => [], 'selected_version_report' => NULL];
-        if (!$cycle_id) return $selector;
-        $selector['version_reports'] = $this->model->version_reports_for_cycle($cycle_id);
-        if ($report_id) $selector['selected_version_report'] = $this->model->version_report_for_cycle($cycle_id, $report_id);
-        return $selector;
-    }
     public function report($id) { $report = $this->model->report_by_id($id); if (!$report) return NULL; $items = $this->model->report_items($report->id); $standards = []; foreach ($items as $item) { $code = $item->source_standard_code_snapshot ?: $report->source_standard_code_snapshot; $title = $item->source_standard_title_snapshot ?: $report->source_standard_title_snapshot; $key = (string) $code . "\n" . (string) $title; if (!isset($standards[$key])) $standards[$key] = ['source_standard_code_snapshot' => $code, 'source_standard_title_snapshot' => $title, 'items' => []]; $standards[$key]['items'][] = $item; } return ['report' => $report, 'items' => $items, 'standards' => array_values($standards)]; }
 
     public function generate($assessment_id, $user_id)
@@ -66,7 +59,8 @@ class Spmi_reports_service
             if ($finalized_at === NULL || $finalized_at < $final_assessment->finalized_at) $finalized_at = $final_assessment->finalized_at;
         }
         $report_number = 'SPMI-' . strtoupper(preg_replace('/[^A-Za-z0-9-]/', '-', (string) $assessment->cycle_code)) . '-' . strtoupper(preg_replace('/[^A-Za-z0-9-]/', '-', (string) $assessment->source_version_code)) . '-V-' . (int) $assessment->auditee_id . '-' . (int) $assessment->auditor_id;
-        $report_id = $this->model->insert_report(['assessment_id' => NULL, 'report_number' => $report_number, 'report_scope' => 'version', 'source_cycle_id' => (int) $assessment->cycle_id, 'cycle_code_snapshot' => $assessment->cycle_code, 'cycle_title_snapshot' => $assessment->cycle_title, 'cycle_start_date_snapshot' => $assessment->cycle_start_date, 'cycle_end_date_snapshot' => $assessment->cycle_end_date, 'source_version_id' => (int) $assessment->source_version_id, 'source_version_code_snapshot' => $assessment->source_version_code, 'source_version_title_snapshot' => $assessment->source_version_title, 'source_standard_code_snapshot' => NULL, 'source_standard_title_snapshot' => NULL, 'auditor_name_snapshot' => $assessment->auditor_name, 'auditor_id_snapshot' => (int) $assessment->auditor_id, 'auditee_name_snapshot' => $assessment->auditee_name, 'auditee_id_snapshot' => (int) $assessment->auditee_id, 'assessment_finalized_at_snapshot' => $finalized_at, 'generated_by' => (int) $user_id]);
+        $academic_year_snapshot = trim((string) $cycle->academic_year);
+        $report_id = $this->model->insert_report(['assessment_id' => NULL, 'report_number' => $report_number, 'report_scope' => 'version', 'source_cycle_id' => (int) $assessment->cycle_id, 'academic_year_snapshot' => $academic_year_snapshot === '' ? NULL : $academic_year_snapshot, 'cycle_code_snapshot' => $assessment->cycle_code, 'cycle_title_snapshot' => $assessment->cycle_title, 'cycle_start_date_snapshot' => $assessment->cycle_start_date, 'cycle_end_date_snapshot' => $assessment->cycle_end_date, 'source_version_id' => (int) $assessment->source_version_id, 'source_version_code_snapshot' => $assessment->source_version_code, 'source_version_title_snapshot' => $assessment->source_version_title, 'source_standard_code_snapshot' => NULL, 'source_standard_title_snapshot' => NULL, 'auditor_name_snapshot' => $assessment->auditor_name, 'auditor_id_snapshot' => (int) $assessment->auditor_id, 'auditee_name_snapshot' => $assessment->auditee_name, 'auditee_id_snapshot' => (int) $assessment->auditee_id, 'assessment_finalized_at_snapshot' => $finalized_at, 'generated_by' => (int) $user_id]);
         if (!$report_id || $this->ci->db->affected_rows() !== 1) return $this->rollback('Laporan SPMI gagal dibuat.');
         foreach ($report_items as $index => $report_item) {
             $assignment = $report_item['assignment']; $item = $report_item['item']; $rubric = $report_item['rubric'];

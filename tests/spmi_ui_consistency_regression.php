@@ -25,15 +25,26 @@ foreach (['.ami-row-actions', '.ami-action-btn', '.btn-ami', '.btn-outline-ami']
 foreach ($lists as $path) {
     $view = spmi_ui_source($path);
     spmi_ui_check(strpos($view, 'html_escape') !== FALSE, 'SPMI UI list must keep escaped output: ' . $path);
-    spmi_ui_check(strpos($view, 'ami-row-actions') !== FALSE, 'SPMI UI list actions must use .ami-row-actions: ' . $path);
-    spmi_ui_check(strpos($view, 'ami-action-btn') !== FALSE, 'SPMI UI list actions must use .ami-action-btn: ' . $path);
+    if ($path === 'application/views/lpmpi/spmi_standards/index.php') {
+        spmi_ui_check(strpos($view, 'std-button') !== FALSE && strpos($view, 'tw-inline-flex tw-items-center') !== FALSE, 'SPMI standards actions must keep the standards action controls.');
+    } else {
+        spmi_ui_check(strpos($view, 'ami-row-actions') !== FALSE, 'SPMI UI list actions must use .ami-row-actions: ' . $path);
+        spmi_ui_check(strpos($view, 'ami-action-btn') !== FALSE, 'SPMI UI list actions must use .ami-action-btn: ' . $path);
+    }
 }
 
 foreach ($details as $path) {
     $view = spmi_ui_source($path);
     spmi_ui_check(strpos($view, 'html_escape') !== FALSE, 'SPMI UI detail must keep escaped output: ' . $path);
-    spmi_ui_check(strpos($view, 'ami-row-actions') !== FALSE, 'SPMI UI detail actions must use .ami-row-actions: ' . $path);
-    spmi_ui_check(strpos($view, 'ami-action-btn') !== FALSE, 'SPMI UI detail actions must use .ami-action-btn: ' . $path);
+    if (in_array($path, [
+        'application/views/lpmpi/spmi_indicators/indicator_detail.php',
+        'application/views/lpmpi/spmi_standards/version_detail.php',
+    ], TRUE)) {
+        spmi_ui_check(strpos($view, 'std-button') !== FALSE, 'SPMI standards detail actions must keep the standards action controls: ' . $path);
+    } else {
+        spmi_ui_check(strpos($view, 'ami-row-actions') !== FALSE, 'SPMI UI detail actions must use .ami-row-actions: ' . $path);
+        spmi_ui_check(strpos($view, 'ami-action-btn') !== FALSE, 'SPMI UI detail actions must use .ami-action-btn: ' . $path);
+    }
     spmi_ui_check(strpos($view, 'Kembali') !== FALSE, 'SPMI UI detail must expose a Kembali link: ' . $path);
 }
 

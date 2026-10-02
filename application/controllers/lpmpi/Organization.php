@@ -17,19 +17,7 @@ class Organization extends Admin_Lpmpi_Controller
     public function index()
     {
         $this->require_capability('organization.view');
-        $tab = (string) $this->input->get('tab', TRUE);
-        $allowed_tabs = ['structure', 'assignments', 'access'];
-        $active_tab = in_array($tab, $allowed_tabs, TRUE) ? $tab : 'structure';
-
-        $data = $this->page_data('Struktur Organisasi', 'Struktur Organisasi');
-        $data['units'] = $this->organization_service->units();
-        $data['assignments'] = $this->organization_service->assignments();
-        $data['active_tab'] = $active_tab;
-        $data['can_manage'] = $this->can('organization.manage');
-        $data['can_assign'] = $this->can('organization.assignment.manage');
-        $data['can_capabilities'] = $this->can('organization.capability.manage');
-        $data['can_view_capabilities'] = $this->can('organization.view');
-        $this->load->view('lpmpi/organization/index', $data);
+        redirect('lpmpi/master-data-prodi-staf');
     }
 
     public function create()

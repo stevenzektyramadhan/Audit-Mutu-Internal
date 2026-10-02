@@ -19,6 +19,7 @@
 -- current parity migration 001-040
 -- current parity migration 001-041
 -- current parity migration 001-042
+-- current parity migration 001-043
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -549,6 +550,7 @@ CREATE TABLE IF NOT EXISTS `spmi_reports` (
     `report_number` VARCHAR(128) NOT NULL,
     `report_scope` ENUM('standard','version') NOT NULL DEFAULT 'standard',
     `source_cycle_id` INT NULL,
+    `academic_year_snapshot` VARCHAR(20) NULL,
     `cycle_code_snapshot` VARCHAR(64) NOT NULL,
     `cycle_title_snapshot` VARCHAR(200) NOT NULL,
     `cycle_start_date_snapshot` DATE NOT NULL,
@@ -568,6 +570,7 @@ CREATE TABLE IF NOT EXISTS `spmi_reports` (
     UNIQUE KEY `uq_spmi_reports_assessment` (`assessment_id`),
     UNIQUE KEY `uq_spmi_reports_report_number` (`report_number`),
     UNIQUE KEY `uq_spmi_reports_version_tuple` (`source_cycle_id`, `source_version_id`, `auditor_id_snapshot`, `auditee_id_snapshot`, `report_scope`),
+    KEY `idx_spmi_reports_academic_year_generated` (`academic_year_snapshot`, `generated_at`, `id`),
     CONSTRAINT `fk_spmi_reports_assessment` FOREIGN KEY (`assessment_id`) REFERENCES `spmi_auditor_assessments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_reports_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

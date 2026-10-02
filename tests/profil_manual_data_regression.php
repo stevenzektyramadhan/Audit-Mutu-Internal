@@ -27,6 +27,7 @@ $index = profile_manual_source('application/views/lpmpi/profil/index.php');
 $prodi_form = profile_manual_source('application/views/lpmpi/profil/prodi_form.php');
 $prodi_link_form = profile_manual_source('application/views/lpmpi/master_data_prodi_staf/prodi_link_form.php');
 $master = profile_manual_source('application/views/lpmpi/master_data_prodi_staf/index.php');
+$master_create_form = profile_manual_source('application/views/lpmpi/master_data_prodi_staf/create_form.php');
 $mahasiswa_form = profile_manual_source('application/views/lpmpi/profil/mahasiswa_stat_form.php');
 
 foreach (['profil/prodi/create', 'profil/prodi/store', 'profil/prodi/edit/(:num)', 'profil/prodi/update/(:num)', 'profil/prodi/link/(:num)', 'profil/prodi/delete/(:num)', 'profil/mahasiswa/create', 'profil/mahasiswa/store', 'profil/mahasiswa/edit/(:num)', 'profil/mahasiswa/update/(:num)', 'profil/mahasiswa/delete/(:num)'] as $route) {
@@ -43,6 +44,8 @@ foreach (['prodi_staf', 'prodi_staf_add', 'prodi_staf_update', 'prodi_staf_move'
 foreach (['require_manage()', 'require_schema_ready()', 'require_post()', 'Profil_service'] as $literal) {
     profile_manual_check(strpos($controller, $literal) !== FALSE, 'Kontrak controller profil manual hilang: ' . $literal);
 }
+profile_manual_check(strpos($routes, "\$route['profil/prodi/store'] = 'Profil/prodi_store';") !== FALSE, 'Route legacy profil/prodi/store harus tetap langsung ke Profil::prodi_store.');
+profile_manual_check(strpos($controller, 'public function prodi_store()') !== FALSE && strpos($controller, '$this->require_manage();') !== FALSE && strpos($controller, '$this->require_post();') !== FALSE && strpos($controller, '$this->profil_service->create_prodi($this->prodi_input())') !== FALSE, 'Endpoint legacy Profil::prodi_store harus tetap POST-only dengan require_manage broad dan reuse create_prodi.');
 
 foreach (['find_prodi', 'create_prodi', 'update_prodi', 'delete_prodi', 'find_mahasiswa_stat', 'create_mahasiswa_stat', 'update_mahasiswa_stat', 'delete_mahasiswa_stat'] as $method) {
     profile_manual_check(strpos($model, 'function ' . $method . '(') !== FALSE, 'Operasi model profil manual hilang: ' . $method);
@@ -79,7 +82,8 @@ foreach (['Daftar Program Studi', 'kode_prodi', 'nama_prodi', 'jenjang', 'table-
 foreach (['profil/prodi/create', 'profil/prodi/edit', 'profil/prodi/delete', 'lpmpi/prodi-import', 'Kelola Staf'] as $forbidden) {
     profile_manual_check(strpos($index, $forbidden) === FALSE, 'Profil tidak boleh memuat aksi/mutasi Prodi: ' . $forbidden);
 }
-profile_manual_check(strpos($master, 'profil/prodi/create') !== FALSE && strpos($master, 'lpmpi/prodi-import') !== FALSE && strpos($master, 'profil/prodi/edit/') !== FALSE && strpos($master, 'profil/prodi/delete/') !== FALSE, 'Master Data harus menjadi pemilik UI CRUD Prodi.');
+profile_manual_check(strpos($master, 'lpmpi/master-data-prodi-staf/create') !== FALSE && strpos($master, 'lpmpi/prodi-import') !== FALSE && strpos($master, 'profil/prodi/edit/') !== FALSE && strpos($master, 'profil/prodi/delete/') !== FALSE, 'Master Data harus menjadi pemilik UI CRUD Prodi lewat CTA unified, import, edit, dan delete row.');
+profile_manual_check(strpos($master_create_form, 'profil/prodi/store') === FALSE && strpos($master_create_form, 'lpmpi/master-data-prodi-staf/prodi/store') !== FALSE && strpos($master_create_form, 'name="kode_prodi"') !== FALSE && strpos($master_create_form, 'name="nama_prodi"') !== FALSE && strpos($master_create_form, 'name="faculty_id"') !== FALSE && strpos($master_create_form, 'name="jenjang"') !== FALSE, 'Form unified Master Data harus mengirim Prodi ke receiver Master explicit, bukan endpoint legacy Profil.');
 profile_manual_check(strpos($prodi_form, "master-data-prodi-staf") !== FALSE, 'Form Prodi harus kembali ke Master Data.');
 profile_manual_check(strpos($prodi_form, '$faculties') !== FALSE && strpos($prodi_form, 'name="faculty_id"') !== FALSE && strpos($prodi_form, '$require_faculty ? \'required\' : \'\'') !== FALSE && strpos($prodi_form, 'set_select') !== FALSE, 'Form Prodi harus menyediakan Faculty selector eksplisit dengan required kondisional.');
 profile_manual_check(strpos($prodi_form, 'name="require_faculty"') !== FALSE && strpos($prodi_form, '$require_faculty ? \'1\' : \'0\'') !== FALSE && strpos($prodi_form, 'isset($selected_faculty_id) ? $selected_faculty_id') !== FALSE, 'Form Prodi harus menerima require_faculty eksplisit dan selected Faculty dari controller.');

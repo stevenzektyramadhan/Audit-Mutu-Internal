@@ -26,7 +26,7 @@ $icon = static function ($name) {
     <main class="auth-shell">
         <!-- Visual Hero Section (Left) -->
         <section class="auth-visual" aria-label="Identitas Sistem Penjaminan Mutu Internal">
-            <img src="<?php echo html_escape(base_url('assets/img/login-bg.jpg')); ?>" alt="Lingkungan kampus" class="auth-visual-image">
+            <img src="<?php echo html_escape(base_url('assets/img/unmuh-foto.jpg')); ?>" alt="Lingkungan kampus" class="auth-visual-image">
             <div class="auth-visual-overlay" aria-hidden="true"></div>
             <div class="auth-visual-content tw-relative tw-z-10 tw-flex tw-h-full tw-min-h-[220px] tw-flex-col tw-justify-end tw-p-6 sm:tw-p-10 lg:tw-p-14">
                 <div class="tw-max-w-xl tw-text-white">

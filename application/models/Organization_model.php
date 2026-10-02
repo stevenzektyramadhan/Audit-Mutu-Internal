@@ -14,7 +14,9 @@ class Organization_model extends CI_Model
             ->select('ou.id, ou.parent_id, ou.code, ou.name, ou.type, ou.is_active, parent.code AS parent_code, parent.name AS parent_name, parent.type AS parent_type')
             ->from('organization_units ou')
             ->join('organization_units parent', 'parent.id = ou.parent_id', 'left')
+            ->join('profil_prodi pp_linked', 'pp_linked.organization_unit_id = ou.id', 'left')
             ->where_in('ou.type', ['university', 'faculty', 'study_program', 'bureau', 'unit', 'institute'])
+            ->where('(ou.type != ' . $this->db->escape('study_program') . ' OR pp_linked.organization_unit_id IS NULL)', NULL, FALSE)
             ->order_by('ou.parent_id IS NOT NULL', 'ASC', FALSE)
             ->order_by('parent.code', 'ASC')
             ->order_by('ou.type', 'ASC')
@@ -37,7 +39,7 @@ class Organization_model extends CI_Model
         $unit_counts = $this->db
             ->select('type, COUNT(id) AS total', FALSE)
             ->from('organization_units')
-            ->where_in('type', ['faculty', 'study_program', 'bureau', 'unit', 'institute'])
+            ->where_in('type', ['faculty', 'bureau', 'unit', 'institute'])
             ->group_by('type')
             ->get()
             ->result();
@@ -48,6 +50,8 @@ class Organization_model extends CI_Model
             }
         }
 
+        // ponytail: prodi count from canonical profil_prodi, not organization_units
+        $summary['study_program'] = (int) $this->db->count_all('profil_prodi');
         $summary['active_staff'] = $this->count_master_directory_active_staff();
         return $summary;
     }

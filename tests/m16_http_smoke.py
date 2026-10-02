@@ -48,7 +48,7 @@ def main():
 
     jar = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
-    login_url = args.base_url.rstrip("/") + "/auth/login"
+    login_url = args.base_url.rstrip("/") + "/auth"
 
     login_page = request(opener, login_url)
     assert_header(login_page.headers, "X-Content-Type-Options", "nosniff")
@@ -65,7 +65,7 @@ def main():
     if not args.email or not args.password:
         raise RuntimeError("AMI_SMOKE_EMAIL dan AMI_SMOKE_PASSWORD wajib diisi")
 
-    posted = request(opener, login_url, {"csrf_test_name": token, "email": args.email, "password": args.password})
+    posted = request(opener, args.base_url.rstrip("/") + "/auth/login", {"csrf_test_name": token, "email": args.email, "password": args.password})
     if posted.getcode() not in (200, 302):
         raise RuntimeError(f"Login POST returned HTTP {posted.getcode()}")
 

@@ -11,7 +11,7 @@
         :root { --auth-bg: #f3f5f8; --auth-card: #fff; --auth-text: #1a1a2e; --auth-muted: #555770; --auth-green: #1b5e20; --auth-green-hover: #145218; }
         *, *::before, *::after { box-sizing: border-box; }
         body { min-height: 100vh; margin: 0; display: flex; flex-direction: column; background: var(--auth-bg); color: var(--auth-text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        .auth-bg { position: fixed; inset: 0; z-index: 0; background: url('<?php echo html_escape(base_url('assets/img/login-bg.jpg')); ?>') center/cover; }
+        .auth-bg { position: fixed; inset: 0; z-index: 0; background: url('<?php echo html_escape(base_url('assets/img/unmuh-foto.jpg')); ?>') center/cover; }
         .auth-bg::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, .35); }
         .auth-navbar, .auth-footer { position: fixed; left: 0; right: 0; z-index: 2; display: flex; align-items: center; padding: 0 28px; background: rgba(27, 94, 32, .9); color: rgba(255, 255, 255, .85); }
         .auth-navbar { top: 0; height: 56px; }

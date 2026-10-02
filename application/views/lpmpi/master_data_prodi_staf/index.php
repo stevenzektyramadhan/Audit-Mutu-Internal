@@ -109,8 +109,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         </div>
         <div class="ami-panel-body master-management-actions" aria-label="Aksi master data">
             <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('lpmpi/prodi-import')); ?>"><i class="fas fa-file-import" aria-hidden="true"></i> Import Prodi</a>
-            <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/unit/create')); ?>"><i class="fas fa-building" aria-hidden="true"></i> Tambah Unit</a>
-            <a class="btn btn-primary btn-ami" href="<?php echo html_escape(site_url('profil/prodi/create')); ?>"><i class="fas fa-plus" aria-hidden="true"></i> Tambah Prodi</a>
+            <a class="btn btn-primary btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/create')); ?>"><i class="fas fa-plus" aria-hidden="true"></i> Tambah Data Organisasi</a>
         </div>
     </section>
 
@@ -128,7 +127,7 @@ include APPPATH . 'views/layouts/sidebar.php';
              <div><h3 id="directory-title">Direktori Organisasi &amp; Staf</h3><p>Daftar hierarki organisasi dan metadata akademik Program Studi. Gunakan pencarian atau filter untuk menemukan baris.</p></div>
             <div class="master-controls" role="search" aria-label="Filter direktori">
                 <div class="master-control master-control-search"><label class="sr-only" for="master-search">Cari nama atau kode</label><input class="form-control" id="master-search" type="search" placeholder="Cari nama atau kode..." autocomplete="off"></div>
-                <div class="master-control"><label class="sr-only" for="master-type-filter">Filter tipe</label><select class="form-control" id="master-type-filter"><option value="">Semua tipe</option><?php foreach ($type_labels as $type => $label): ?><option value="<?php echo html_escape($type); ?>"><?php echo html_escape($label); ?></option><?php endforeach; ?><option value="prodi">Program Studi</option></select></div>
+                <div class="master-control"><label class="sr-only" for="master-type-filter">Filter tipe</label><select class="form-control" id="master-type-filter"><option value="">Semua tipe</option><?php foreach ($type_labels as $type => $label): ?><?php if ($type !== 'study_program'): ?><option value="<?php echo html_escape($type); ?>"><?php echo html_escape($label); ?></option><?php endif; ?><?php endforeach; ?><option value="prodi">Program Studi</option><option value="study_program">Program Studi legacy belum terhubung</option></select></div>
                 <div class="master-control"><label class="sr-only" for="master-status-filter">Filter status</label><select class="form-control" id="master-status-filter"><option value="">Semua status</option><option value="active">Aktif</option><option value="inactive">Nonaktif</option></select></div>
             </div>
         </div>
