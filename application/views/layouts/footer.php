@@ -38,7 +38,17 @@
 
     document.querySelectorAll('.ami-sidebar .ami-nav-link').forEach(function (link) {
         link.addEventListener('click', function () {
+            if (link.hasAttribute('data-nav-disclosure')) return;
             if (window.innerWidth < 992) setSidebar(false);
+        });
+    });
+
+    document.querySelectorAll('[data-nav-disclosure]').forEach(function (disclosure) {
+        disclosure.addEventListener('click', function () {
+            var expanded = disclosure.getAttribute('aria-expanded') === 'true';
+            var submenu = document.getElementById(disclosure.getAttribute('aria-controls'));
+            disclosure.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            if (submenu) submenu.hidden = expanded;
         });
     });
 
@@ -96,6 +106,31 @@
             }
         });
     });
+
+    var ppeppSearch = document.getElementById('ppepp-document-search');
+    var ppeppClear = document.getElementById('ppepp-document-search-clear');
+    var ppeppNoMatch = document.getElementById('ppepp-document-no-match');
+    if (ppeppSearch && ppeppClear && ppeppNoMatch) {
+        var ppeppCards = document.querySelectorAll('[data-ppepp-document-card]');
+        function filterPpeppDocuments() {
+            var query = ppeppSearch.value.trim().toLowerCase();
+            var visible = 0;
+            ppeppCards.forEach(function (card) {
+                var matches = query === '' || card.textContent.toLowerCase().indexOf(query) !== -1;
+                card.hidden = !matches;
+                if (matches) visible++;
+            });
+            ppeppClear.hidden = query === '';
+            ppeppNoMatch.hidden = visible !== 0 || query === '';
+        }
+
+        ppeppSearch.addEventListener('input', filterPpeppDocuments);
+        ppeppClear.addEventListener('click', function () {
+            ppeppSearch.value = '';
+            ppeppSearch.focus();
+            filterPpeppDocuments();
+        });
+    }
 
     window.addEventListener('pageshow', restoreSubmitState);
 })();
