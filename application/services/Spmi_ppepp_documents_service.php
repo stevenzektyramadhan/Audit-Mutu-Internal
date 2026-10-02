@@ -128,6 +128,11 @@ class Spmi_ppepp_documents_service
             $this->cleanup_saved($saved);
             return ['success' => FALSE, 'message' => 'Dokumen PPEPP tidak ditemukan.'];
         }
+        if ((string) $data['stage'] !== (string) $document->stage) {
+            $this->ci->db->trans_rollback();
+            $this->cleanup_saved($saved);
+            return ['success' => FALSE, 'message' => 'Tahap dokumen PPEPP tidak dapat diubah.'];
+        }
 
         $old_stored_name = $document->stored_name;
         $next = array_merge($data, $saved['data']);

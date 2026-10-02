@@ -8,6 +8,7 @@ $document = isset($document) ? $document : NULL;
 $selected_stage = $document && isset($document->stage) ? (string) $document->stage : 'penetapan';
 $selected_category = $document && isset($document->category) ? (string) $document->category : '';
 $selected_year = $document && isset($document->period_year) ? (int) $document->period_year : (int) date('Y');
+$selected_stage_label = isset($stages[$selected_stage]) ? $stages[$selected_stage] : $selected_stage;
 $selected_stage_categories = isset($categories[$selected_stage]) && is_array($categories[$selected_stage]) ? $categories[$selected_stage] : [];
 $return_query = '?stage=' . rawurlencode($selected_stage) . '&year=' . rawurlencode((string) $selected_year);
 ?>
@@ -38,11 +39,8 @@ $return_query = '?stage=' . rawurlencode($selected_stage) . '&year=' . rawurlenc
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label for="ppepp-stage">Tahap <span class="text-danger">*</span></label>
-                    <select class="form-control" id="ppepp-stage" name="stage" required>
-                        <?php foreach ($stages as $stage_key => $label): ?>
-                            <option value="<?php echo html_escape($stage_key); ?>" <?php echo $selected_stage === (string) $stage_key ? 'selected' : ''; ?>><?php echo html_escape($label); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <input class="form-control-plaintext" id="ppepp-stage" type="text" value="<?php echo html_escape($selected_stage_label); ?>" readonly>
+                    <input type="hidden" name="stage" value="<?php echo html_escape($selected_stage); ?>">
                 </div>
                 <div class="form-group col-md-6">
                     <label for="ppepp-category">Kategori <span class="text-danger">*</span></label>
@@ -95,26 +93,4 @@ $return_query = '?stage=' . rawurlencode($selected_stage) . '&year=' . rawurlenc
         <?php echo form_close(); ?>
     </div>
 </div>
-
-<script>
-(function() {
-    var allCategories = <?php echo json_encode($categories, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
-    var stageSelect = document.getElementById('ppepp-stage');
-    var categorySelect = document.getElementById('ppepp-category');
-    if (!stageSelect || !categorySelect) return;
-
-    stageSelect.addEventListener('change', function() {
-        var cats = allCategories[this.value] || {};
-        categorySelect.innerHTML = '<option value="">Pilih kategori...</option>';
-        for (var key in cats) {
-            if (cats.hasOwnProperty(key)) {
-                var opt = document.createElement('option');
-                opt.value = key;
-                opt.textContent = cats[key];
-                categorySelect.appendChild(opt);
-            }
-        }
-    });
-})();
-</script>
 <?php include APPPATH . 'views/layouts/footer.php'; ?>
