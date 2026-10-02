@@ -26,6 +26,9 @@ $model = ppepp_source('application/models/Spmi_ppepp_documents_model.php');
 $service = ppepp_source('application/services/Spmi_ppepp_documents_service.php');
 $controller = ppepp_source('application/controllers/lpmpi/Spmi_ppepp_documents.php');
 $routes = ppepp_source('application/config/routes.php');
+$index_view = ppepp_source('application/views/lpmpi/spmi_ppepp_documents/index.php');
+$header_view = ppepp_source('application/views/layouts/header.php');
+$footer_view = ppepp_source('application/views/layouts/footer.php');
 
 $table_contract = [
     'CREATE TABLE IF NOT EXISTS `spmi_ppepp_documents`',
@@ -199,6 +202,32 @@ foreach (["config->item('spmi_ppepp_stages'", "config->item('spmi_ppepp_categori
     ppepp_check(strpos($controller, $literal) !== FALSE, 'PPEPP controller must expose config to eventual views: ' . $literal);
 }
 ppepp_check(strpos($controller, 'load->view(\'lpmpi/spmi_ppepp_documents/\' . $view') !== FALSE, 'PPEPP controller must render expected view path.');
+
+// --- Index view: stage-aware responsive document workspace ---
+ppepp_check(strpos($index_view, 'nav-tabs') === FALSE, 'PPEPP index must remove in-content stage tabs.');
+foreach (['Beranda', 'Dokumen PPEPP', 'aria-label="Breadcrumb"', '$stage_description', '$stage_icon', 'Tambah dokumen'] as $literal) {
+    ppepp_check(strpos($index_view, $literal) !== FALSE, 'PPEPP stage-aware header contract missing: ' . $literal);
+}
+$ppepp_search_order = strpos($index_view, '<div class="ppepp-search">');
+$ppepp_filter_order = strpos($index_view, "form_open('lpmpi/spmi-ppepp-documents'");
+ppepp_check($ppepp_search_order !== FALSE && $ppepp_filter_order !== FALSE && $ppepp_search_order < $ppepp_filter_order, 'PPEPP toolbar must place Search before the year filter in document order.');
+ppepp_check(strpos($index_view, '$ppepp_stage_label') !== FALSE && preg_match('/(?<![A-Za-z0-9_])\$stage_label(?![A-Za-z0-9_])/', $index_view) === 0, 'PPEPP page content must use a label variable that the shared sidebar cannot overwrite.');
+foreach (["form_open('lpmpi/spmi-ppepp-documents', ['method' => 'get'", 'name="stage"', 'name="year"', '>Terapkan<'] as $literal) {
+    ppepp_check(strpos($index_view, $literal) !== FALSE, 'PPEPP year filter contract missing: ' . $literal);
+}
+foreach (['ppepp-document-search', 'type="search"', 'ppepp-document-no-match', 'ppepp-search-clear', 'data-ppepp-document-card', 'ppepp-document-grid', 'repeat(3, minmax(0, 1fr))', 'repeat(2, minmax(0, 1fr))'] as $literal) {
+    ppepp_check(strpos($index_view . $header_view, $literal) !== FALSE, 'PPEPP UI contract missing: ' . $literal);
+}
+ppepp_check(strpos($header_view, "@media (max-width: 1199.98px) {\n            .ppepp-checklist-grid,\n            .ppepp-document-grid") !== FALSE, 'PPEPP checklist and document grids must both use two columns at tablet widths.');
+ppepp_check(strpos($index_view, 'stage_categories[$category_key]') !== FALSE && strpos($index_view, '$checklist_categories') !== FALSE && strpos($index_view, "selected_stage === 'penetapan'") !== FALSE, 'Penetapan checklist conditional/data contract must remain.');
+foreach (['document_date', 'period_year', 'uploader_name', 'stored_name', 'external_url', 'download/', '/edit/', '/delete/', 'target="_blank"', 'rel="noopener noreferrer"', 'Hapus dokumen PPEPP ini?', 'form_open'] as $literal) {
+    ppepp_check(strpos($index_view, $literal) !== FALSE, 'PPEPP document card/action contract missing: ' . $literal);
+}
+foreach (['.ppepp-document-description', 'overflow-wrap: anywhere;', 'overflow: hidden;', 'display: -webkit-box;', '-webkit-box-orient: vertical;', '-webkit-line-clamp: 3;', 'line-clamp: 3;'] as $literal) {
+    ppepp_check(strpos($header_view, $literal) !== FALSE, 'PPEPP description clamp contract missing: ' . $literal);
+}
+ppepp_check(strpos($index_view, 'ami-empty') !== FALSE && strpos($index_view, 'stage_label') !== FALSE && strpos($index_view, '$selected_year') !== FALSE && strpos($index_view, "create') . \$query") !== FALSE, 'PPEPP empty state must remain stage/year/query aware.');
+ppepp_check(strpos($footer_view, 'filterPpeppDocuments') !== FALSE && strpos($footer_view, 'card.textContent.toLowerCase()') !== FALSE && strpos($footer_view, "ppeppSearch.value = ''") !== FALSE, 'PPEPP search must filter rendered cards client-side with clear behavior.');
 ppepp_check(strpos($controller, "show_error('Dokumen PPEPP tidak ditemukan.', 404, 'Not Found')") !== FALSE, 'PPEPP controller must 404 missing edit/download documents.');
 foreach (['public function store()', 'public function update($id)', 'public function delete($id)'] as $method) {
     $pos = strpos($controller, $method);
@@ -229,12 +258,20 @@ foreach (['penetapan', 'pelaksanaan', 'pengendalian', 'peningkatan'] as $stage_c
     );
 }
 
-// --- Form view: dynamic category update when stage changes ---
+// --- Form view and update service: stage is locked to the selected document stage ---
 $form_view = ppepp_source('application/views/lpmpi/spmi_ppepp_documents/form.php');
-ppepp_check(strpos($form_view, "json_encode(\$categories") !== FALSE, 'PPEPP form must render categories JSON for dynamic stage-category binding.');
-ppepp_check(strpos($form_view, "getElementById('ppepp-stage')") !== FALSE, 'PPEPP form must bind change listener to stage select.');
-ppepp_check(strpos($form_view, "getElementById('ppepp-category')") !== FALSE, 'PPEPP form must update category select on stage change.');
-ppepp_check(strpos($form_view, "addEventListener('change'") !== FALSE, 'PPEPP form must listen for stage change events.');
+ppepp_check(strpos($form_view, '$selected_stage_label') !== FALSE, 'PPEPP form must derive the selected stage display label.');
+ppepp_check(strpos($form_view, 'type="hidden" name="stage"') !== FALSE, 'PPEPP form must submit the selected stage through a hidden input.');
+ppepp_check(strpos($form_view, 'readonly') !== FALSE && strpos($form_view, 'html_escape($selected_stage_label)') !== FALSE, 'PPEPP form must render the selected stage as escaped read-only context.');
+ppepp_check(strpos($form_view, '<select class="form-control" id="ppepp-stage"') === FALSE, 'PPEPP form must not render a mutable stage selector.');
+ppepp_check(strpos($form_view, 'json_encode($categories') === FALSE, 'PPEPP form must not render dynamic stage-category JSON.');
+ppepp_check(strpos($form_view, "addEventListener('change'") === FALSE, 'PPEPP form must not bind a mutable stage change listener.');
+ppepp_check(strpos($form_view, '$selected_stage_categories') !== FALSE, 'PPEPP form must keep categories scoped to the selected stage.');
+$update_mismatch = strpos($service, "if ((string) \$data['stage'] !== (string) \$document->stage)");
+$update_next = strpos($service, '$next = array_merge($data, $saved[\'data\']);', $update_mismatch);
+$update_rollback = strpos($service, '$this->ci->db->trans_rollback();', $update_mismatch);
+$update_cleanup = strpos($service, '$this->cleanup_saved($saved);', $update_mismatch);
+ppepp_check($update_document_lock !== FALSE && $update_mismatch !== FALSE && $update_next !== FALSE && $update_rollback !== FALSE && $update_cleanup !== FALSE && $update_document_lock < $update_mismatch && $update_mismatch < $update_next && $update_mismatch < $update_rollback && $update_mismatch < $update_cleanup, 'PPEPP update must lock the document before rejecting a mismatched stage, before persistence, and clean a newly saved upload.');
 
 $expected_routes = [
     "\$route['lpmpi/spmi-ppepp-documents'] = 'lpmpi/Spmi_ppepp_documents/index';",
