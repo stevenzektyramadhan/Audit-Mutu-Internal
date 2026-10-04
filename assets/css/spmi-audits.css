@@ -1544,6 +1544,11 @@
   padding-bottom: 1rem;
 }
 
+.tw-py-8 {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
 .tw-pb-3 {
   padding-bottom: 0.75rem;
 }
