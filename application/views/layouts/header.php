@@ -269,6 +269,33 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             cursor: pointer;
         }
 
+        .ami-nav-disclosure.active {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.85);
+            border-left-color: transparent;
+            box-shadow: none;
+        }
+
+        .ami-nav-disclosure.has-active-child {
+            color: #ffffff;
+            background: transparent;
+            border-left-color: transparent;
+            box-shadow: none;
+        }
+
+        .ami-nav-disclosure.has-active-child:hover,
+        .ami-nav-disclosure.has-active-child:focus,
+        .ami-nav-disclosure.active:hover,
+        .ami-nav-disclosure.active:focus {
+            background: var(--ami-sidebar-soft);
+            color: #ffffff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .ami-nav-disclosure[aria-expanded="true"] {
+            color: #ffffff;
+        }
+
         .ami-nav-disclosure .ami-nav-chevron {
             width: auto;
             margin-left: auto;

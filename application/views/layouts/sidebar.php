@@ -91,7 +91,7 @@ if ($initial === '') {
                     </a>
                 <?php endforeach; ?>
                 <?php $evaluasi_nav_id = 'ami-nav-evaluasi'; ?>
-                <button type="button" class="ami-nav-link ami-nav-disclosure <?php echo $evaluasi_is_active ? 'active' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
+                <button type="button" class="ami-nav-link ami-nav-disclosure <?php echo $evaluasi_is_active ? 'has-active-child' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
                     <i class="fas fa-layer-group" aria-hidden="true"></i>
                     <span>Evaluasi</span>
                     <i class="fas fa-chevron-down ami-nav-chevron" aria-hidden="true"></i>
