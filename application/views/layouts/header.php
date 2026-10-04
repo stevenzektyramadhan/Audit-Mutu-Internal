@@ -20,7 +20,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
     <?php if (isset($active_menu) && $active_menu === 'users'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/users-management.css')); ?>">
     <?php endif; ?>
-    <?php if (isset($active_menu) && $active_menu === 'organization'): ?>
+    <?php if (isset($active_menu) && in_array($active_menu, ['organization', 'master_data_prodi_staf'], TRUE)): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/organization.css')); ?>">
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_standards'): ?>
