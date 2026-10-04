@@ -262,9 +262,12 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
 
         .ami-nav-disclosure {
             width: 100%;
+            background: transparent;
+            background-color: transparent;
             border-top: 0;
             border-right: 0;
             border-bottom: 0;
+            border-left: 3px solid transparent;
             text-align: left;
             cursor: pointer;
         }
