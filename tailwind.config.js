@@ -6,6 +6,7 @@ module.exports = {
         './application/views/users/create.php',
         './application/views/users/edit.php',
         './application/views/lpmpi/organization/**/*.php',
+        './application/views/lpmpi/master_data_prodi_staf/**/*.php',
         './application/views/lpmpi/spmi_standards/**/*.php',
         './application/views/lpmpi/spmi_indicators/**/*.php',
         './application/views/lpmpi/spmi_instruments/**/*.php',
