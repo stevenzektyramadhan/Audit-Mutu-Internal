@@ -90,14 +90,18 @@ if ($initial === '') {
                 <div class="ami-nav-label"><?php echo html_escape($current_group); ?></div>
             <?php endif; ?>
             <?php if ($menu['key'] === 'spmi_ppepp_documents'): ?>
-                <?php foreach ($ppepp_stages as $stage_key => $stage_label): ?>
-                    <?php
+                <div class="ami-nav-subgroup-label" aria-hidden="true">Siklus PPEPP</div>
+                <?php
+                $ppepp_step_num = 1;
+                foreach ($ppepp_stages as $stage_key => $stage_label):
                     $stage_key = (string) $stage_key;
                     $stage_url = site_url($menu['url']) . '?stage=' . rawurlencode($stage_key) . '&year=' . rawurlencode((string) $ppepp_selected_year);
                     $stage_is_current = $ppepp_is_active && $ppepp_selected_stage !== '' && $ppepp_selected_stage === $stage_key;
-                    ?>
+                    $step_badge = sprintf('%02d', $ppepp_step_num++);
+                ?>
                     <a class="ami-nav-link ami-nav-ppepp-stage-link <?php echo $stage_is_current ? 'active' : ''; ?>" href="<?php echo html_escape($stage_url); ?>"<?php echo $stage_is_current ? ' aria-current="page"' : ''; ?>>
-                        <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
+                        <span class="ami-nav-step" aria-hidden="true"><?php echo $step_badge; ?></span>
+                        <i class="fas <?php echo html_escape($menu['icon']); ?> sr-only" aria-hidden="true"></i>
                         <span><?php echo html_escape($stage_label); ?></span>
                     </a>
                 <?php endforeach; ?>

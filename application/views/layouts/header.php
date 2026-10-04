@@ -207,21 +207,40 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
         }
 
         .ami-nav {
-            padding: var(--ami-space-sm) 0 var(--ami-space-md);
+            padding: var(--ami-space-xs) 0 var(--ami-space-sm);
             flex: 1;
         }
 
         .ami-nav-label {
-            color: rgba(255, 255, 255, 0.36);
+            color: rgba(255, 255, 255, 0.40);
             font-size: 10px;
             font-weight: 700;
             letter-spacing: .08em;
             text-transform: uppercase;
-            padding: var(--ami-space-md) 18px 6px;
+            padding: 12px 18px 4px;
         }
 
         .ami-nav-label:first-child {
-            padding-top: var(--ami-space-sm);
+            padding-top: 6px;
+        }
+
+        .ami-nav-subgroup-label {
+            color: rgba(255, 255, 255, 0.32);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .09em;
+            text-transform: uppercase;
+            padding: 10px 18px 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ami-nav-subgroup-label::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .ami-nav-link {
@@ -229,35 +248,75 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 9px 18px;
-            color: rgba(255, 255, 255, 0.68);
+            padding: 8px 18px;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
             border-left: 3px solid transparent;
-            transition: background .12s ease, color .12s ease, border-color .12s ease, box-shadow .12s ease;
+            transition: background .12s ease, color .12s ease, border-color .12s ease;
         }
 
         .ami-nav-link:hover,
         .ami-nav-link:focus {
-            background: var(--ami-sidebar-soft);
-            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
             outline: 0;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+            box-shadow: none;
         }
 
         .ami-nav-link.active {
-            background: var(--ami-link-soft);
+            background: rgba(30, 58, 138, 0.45);
             color: #ffffff;
-            border-left-color: var(--ami-link);
-            box-shadow: inset 0 0 18px rgba(77, 163, 255, 0.08);
+            font-weight: 600;
+            border-left-color: #3b82f6;
+            box-shadow: none;
         }
 
         .ami-nav-link.active:focus {
-            box-shadow: inset 0 0 0 1px var(--ami-link), inset 0 0 18px rgba(77, 163, 255, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.5);
         }
 
         .ami-nav-link i {
             width: 18px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
+            color: #94a3b8;
+            transition: color .12s ease;
+        }
+
+        .ami-nav-link:hover i,
+        .ami-nav-link:focus i,
+        .ami-nav-link.active i {
+            color: #ffffff;
+        }
+
+        .ami-nav-step {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #94a3b8;
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            flex: 0 0 20px;
+            transition: all .12s ease;
+        }
+
+        .ami-nav-link:hover .ami-nav-step,
+        .ami-nav-link:focus .ami-nav-step {
+            background: rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+        }
+
+        .ami-nav-link.active .ami-nav-step {
+            background: #2563eb;
+            color: #ffffff;
+            font-weight: 700;
         }
 
         .ami-nav-disclosure {
@@ -274,13 +333,13 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
 
         .ami-nav-disclosure.active {
             background: transparent;
-            color: rgba(255, 255, 255, 0.85);
+            color: #cbd5e1;
             border-left-color: transparent;
             box-shadow: none;
         }
 
         .ami-nav-disclosure.has-active-child {
-            color: #ffffff;
+            color: #f8fafc;
             background: transparent;
             border-left-color: transparent;
             box-shadow: none;
@@ -290,54 +349,77 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
         .ami-nav-disclosure.has-active-child:focus,
         .ami-nav-disclosure.active:hover,
         .ami-nav-disclosure.active:focus {
-            background: var(--ami-sidebar-soft);
+            background: rgba(255, 255, 255, 0.05);
             color: #ffffff;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+            box-shadow: none;
         }
 
         .ami-nav-disclosure[aria-expanded="true"] {
-            color: #ffffff;
+            color: #f8fafc;
         }
 
         .ami-nav-disclosure .ami-nav-chevron {
             width: auto;
             margin-left: auto;
             font-size: 11px;
-            transition: transform .12s ease;
+            color: #94a3b8;
+            transition: transform .15s ease, color .12s ease;
         }
 
         .ami-nav-disclosure[aria-expanded="true"] .ami-nav-chevron {
             transform: rotate(180deg);
+            color: #cbd5e1;
         }
 
         .ami-nav-disclosure:focus-visible,
         .ami-nav-sub-link:focus-visible {
-            outline: 2px solid #8bc7ff;
+            outline: 2px solid #3b82f6;
             outline-offset: -2px;
         }
 
         .ami-nav-submenu {
             list-style: none;
             margin: 0;
-            padding: 2px 0 6px 18px;
+            padding: 2px 0 4px;
+            position: relative;
+        }
+
+        .ami-nav-submenu::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            bottom: 6px;
+            left: 27px;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .ami-nav-sub-link {
-            min-height: 44px;
-            padding-left: 49px;
+            min-height: 40px;
+            padding: 6px 18px 6px 42px;
             font-size: 12px;
-            border-left-color: transparent;
+            color: #94a3b8;
+            border-left: 3px solid transparent;
+            position: relative;
         }
 
         .ami-nav-sub-link[aria-current="page"] {
             color: #ffffff;
-            background: rgba(255, 255, 255, 0.08);
-            border-left-color: var(--ami-link);
+            font-weight: 600;
+            background: rgba(30, 58, 138, 0.45);
+            border-left-color: #3b82f6;
         }
 
         .ami-nav-sub-link:hover,
         .ami-nav-sub-link:focus {
-            border-left-color: rgba(255, 255, 255, 0.35);
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: transparent;
+        }
+
+        .ami-nav-sub-link[aria-current="page"]:hover,
+        .ami-nav-sub-link[aria-current="page"]:focus {
+            border-left-color: #3b82f6;
         }
 
         .ami-nav-sub-link span {
