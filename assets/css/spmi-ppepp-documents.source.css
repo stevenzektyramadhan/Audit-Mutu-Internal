@@ -8,9 +8,22 @@
 
 #ppepp-documents-root input[type="text"],
 #ppepp-documents-root input[type="search"],
+#ppepp-documents-root input[type="number"],
+#ppepp-documents-root input[type="date"],
+#ppepp-documents-root input[type="url"],
 #ppepp-documents-root select,
 #ppepp-documents-root textarea {
     color-scheme: light;
+    box-sizing: border-box;
+}
+
+#ppepp-documents-root .ppepp-dropzone {
+    transition: all 0.2s ease-in-out;
+}
+
+#ppepp-documents-root .ppepp-dropzone.is-dragover {
+    border-color: #2563eb;
+    background-color: #eff6ff;
 }
 
 #ppepp-documents-root .line-clamp-2 {
