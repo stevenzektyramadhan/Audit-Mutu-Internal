@@ -20,6 +20,7 @@ module.exports = {
         './application/views/spmi_auditee_dashboard/**/*.php',
         './application/views/spmi_auditee_workspace/**/*.php',
         './application/views/auth/**/*.php',
+        './application/views/lpmpi/spmi_ppepp_documents/**/*.php',
     ],
     prefix: 'tw-',
     corePlugins: {

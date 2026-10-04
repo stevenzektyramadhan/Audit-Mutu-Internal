@@ -50,6 +50,9 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
     <?php if (isset($active_menu) && in_array($active_menu, ['spmi_auditee_dashboard', 'spmi_workspace'], TRUE)): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-auditee-workspace.css')); ?>">
     <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'spmi_ppepp_documents'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-ppepp-documents.css')); ?>">
+    <?php endif; ?>
     <style>
         :root {
             color-scheme: light;
