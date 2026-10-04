@@ -46,7 +46,18 @@ $page_title = isset($page_title) ? $page_title : 'Dashboard';
 $page_subtitle = isset($page_subtitle) ? $page_subtitle : '';
 $current_menus = isset($menus[$role]) ? $menus[$role] : [];
 $ppepp_stages = $this->config->item('spmi_ppepp_stages', 'spmi_ppepp');
-$ppepp_stages = is_array($ppepp_stages) ? $ppepp_stages : [];
+if (empty($ppepp_stages) || !is_array($ppepp_stages)) {
+    $this->config->load('spmi_ppepp', TRUE, TRUE);
+    $ppepp_stages = $this->config->item('spmi_ppepp_stages', 'spmi_ppepp');
+}
+if (empty($ppepp_stages) || !is_array($ppepp_stages)) {
+    $ppepp_stages = [
+        'penetapan' => 'Penetapan',
+        'pelaksanaan' => 'Pelaksanaan',
+        'pengendalian' => 'Pengendalian',
+        'peningkatan' => 'Peningkatan',
+    ];
+}
 $ppepp_selected_stage = isset($selected_stage) ? (string) $selected_stage : '';
 $ppepp_selected_year = isset($selected_year) ? (int) $selected_year : (int) date('Y');
 $ppepp_is_active = $active_menu === 'spmi_ppepp_documents';

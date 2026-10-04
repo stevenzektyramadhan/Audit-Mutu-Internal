@@ -44,11 +44,31 @@
     });
 
     document.querySelectorAll('[data-nav-disclosure]').forEach(function (disclosure) {
+        var controlsId = disclosure.getAttribute('aria-controls');
+        var submenu = controlsId ? document.getElementById(controlsId) : null;
+        var storageKey = controlsId ? 'ami_nav_disclosure_' + controlsId : null;
+
+        if (storageKey && !disclosure.classList.contains('has-active-child') && disclosure.getAttribute('aria-expanded') !== 'true') {
+            try {
+                var savedState = localStorage.getItem(storageKey);
+                if (savedState !== null) {
+                    var shouldExpand = savedState === 'true';
+                    disclosure.setAttribute('aria-expanded', shouldExpand ? 'true' : 'false');
+                    if (submenu) submenu.hidden = !shouldExpand;
+                }
+            } catch (e) {}
+        }
+
         disclosure.addEventListener('click', function () {
             var expanded = disclosure.getAttribute('aria-expanded') === 'true';
             var submenu = document.getElementById(disclosure.getAttribute('aria-controls'));
             disclosure.setAttribute('aria-expanded', expanded ? 'false' : 'true');
             if (submenu) submenu.hidden = expanded;
+            if (storageKey) {
+                try {
+                    localStorage.setItem(storageKey, expanded ? 'false' : 'true');
+                } catch (e) {}
+            }
         });
     });
 
