@@ -53,6 +53,9 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
     <?php if (isset($active_menu) && $active_menu === 'spmi_ppepp_documents'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-ppepp-documents.css')); ?>">
     <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'upload_size_settings'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/upload-size-settings.css')); ?>">
+    <?php endif; ?>
     <style>
         :root {
             color-scheme: light;
