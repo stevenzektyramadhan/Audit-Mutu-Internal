@@ -83,7 +83,7 @@ if ($initial === '') {
             </div>
         </a>
         <button type="button" class="ami-sidebar-close" data-sidebar-close aria-label="Tutup menu">
-            <svg class="tw-w-5 tw-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="tw-w-5 tw-h-5" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
@@ -170,10 +170,10 @@ if ($initial === '') {
     <div class="ami-topbar">
         <div class="ami-topbar-heading">
             <button type="button" class="ami-desktop-toggle d-none d-lg-inline-flex" data-sidebar-desktop-toggle aria-label="Toggle sidebar desktop" title="Sembunyikan/Tampilkan sidebar">
-                <svg class="tw-w-5 tw-h-5 ami-icon-panel-close" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="tw-w-5 tw-h-5 ami-icon-panel-close" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                 </svg>
-                <svg class="tw-w-5 tw-h-5 ami-icon-panel-open tw-hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="tw-w-5 tw-h-5 ami-icon-panel-open tw-hidden" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                 </svg>
             </button>
