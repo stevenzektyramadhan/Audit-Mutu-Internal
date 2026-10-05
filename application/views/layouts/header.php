@@ -694,6 +694,103 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             min-width: 0;
         }
 
+        .ami-desktop-toggle {
+            border: 1px solid var(--ami-border);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--ami-text);
+            border-radius: 7px;
+            width: 38px;
+            height: 38px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .ami-desktop-toggle:hover {
+            background: var(--ami-link-soft);
+            color: var(--ami-blue);
+            border-color: var(--ami-link);
+        }
+
+        /* Desktop Sidebar Collapse (72px) */
+        @media (min-width: 992px) {
+            .ami-sidebar {
+                transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .ami-app.sidebar-collapsed .ami-sidebar {
+                width: 72px;
+                flex: 0 0 72px;
+            }
+
+            .ami-app.sidebar-collapsed .ami-brand-text,
+            .ami-app.sidebar-collapsed .ami-user-name,
+            .ami-app.sidebar-collapsed .ami-user-role,
+            .ami-app.sidebar-collapsed .ami-nav-label,
+            .ami-app.sidebar-collapsed .ami-nav-subgroup-label,
+            .ami-app.sidebar-collapsed .ami-nav-link > span:not(.ami-nav-step),
+            .ami-app.sidebar-collapsed .ami-nav-chevron,
+            .ami-app.sidebar-collapsed .ami-nav-badge,
+            .ami-app.sidebar-collapsed .ami-logout span {
+                display: none !important;
+            }
+
+            .ami-app.sidebar-collapsed .ami-brand {
+                padding: 16px 14px;
+                justify-content: center;
+            }
+
+            .ami-app.sidebar-collapsed .ami-user {
+                padding: 14px 10px;
+                justify-content: center;
+            }
+
+            .ami-app.sidebar-collapsed .ami-nav-link {
+                justify-content: center;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .ami-app.sidebar-collapsed .ami-nav-link i {
+                margin: 0;
+                font-size: 16px;
+            }
+
+            .ami-app.sidebar-collapsed .ami-nav-step {
+                font-size: 11px;
+            }
+
+            .ami-app.sidebar-collapsed .ami-nav-submenu {
+                padding-left: 0;
+                border-left: none;
+            }
+
+            .ami-app.sidebar-collapsed .ami-nav-sub-link {
+                padding-left: 0;
+                justify-content: center;
+            }
+
+            .ami-app.sidebar-collapsed .ami-logout {
+                padding: 16px 10px;
+                display: flex;
+                justify-content: center;
+            }
+
+            .ami-app.sidebar-collapsed .ami-logout button {
+                text-align: center;
+                justify-content: center;
+            }
+
+            .ami-app.sidebar-collapsed .ami-icon-panel-close {
+                display: none !important;
+            }
+
+            .ami-app.sidebar-collapsed .ami-icon-panel-open {
+                display: inline-block !important;
+            }
+        }
+
         .ami-menu-toggle,
         .ami-sidebar-close {
             border: 1px solid var(--ami-border);

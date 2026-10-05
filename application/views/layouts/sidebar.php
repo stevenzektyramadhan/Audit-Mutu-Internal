@@ -75,19 +75,38 @@ if ($initial === '') {
 ?>
 <aside class="ami-sidebar" id="ami-sidebar" aria-label="Navigasi utama">
     <div class="ami-brand">
-        <img src="<?= base_url('assets/img/logo-2.png'); ?>" alt="Logo LPM" class="ami-logo-img">
-        <div class="ami-brand-title">AMI<br>Perguruan Tinggi</div>
+        <a href="<?= site_url(); ?>" class="ami-brand-link">
+            <img src="<?= base_url('assets/img/logo-2.png'); ?>" alt="Logo LPM" class="ami-logo-img">
+            <div class="ami-brand-text">
+                <div class="ami-brand-title">AMI</div>
+                <div class="ami-brand-subtitle">Universitas Muhammadiyah Babel</div>
+            </div>
+        </a>
         <button type="button" class="ami-sidebar-close" data-sidebar-close aria-label="Tutup menu">
-            <i class="fas fa-times" aria-hidden="true"></i>
+            <svg class="tw-w-5 tw-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
         </button>
     </div>
 
     <nav class="ami-nav">
-        <?php $current_group = ''; ?>
+        <?php
+        $current_group = '';
+        $group_labels = [
+            'Overview' => 'OVERVIEW',
+            'Management' => 'MANAJEMEN',
+            'Insights' => 'HASIL & TINDAK LANJUT',
+            'Settings' => 'PENGATURAN',
+            'Work' => 'WORKSPACE',
+        ];
+        ?>
         <?php foreach ($current_menus as $menu): ?>
             <?php if (isset($menu['group']) && $menu['group'] !== $current_group): ?>
-                <?php $current_group = $menu['group']; ?>
-                <div class="ami-nav-label"><?php echo html_escape($current_group); ?></div>
+                <?php
+                $current_group = $menu['group'];
+                $display_group_label = isset($group_labels[$current_group]) ? $group_labels[$current_group] : $current_group;
+                ?>
+                <div class="ami-nav-label"><?php echo html_escape($display_group_label); ?></div>
             <?php endif; ?>
             <?php if ($menu['key'] === 'spmi_ppepp_documents'): ?>
                 <div class="ami-nav-subgroup-label" aria-hidden="true">Siklus PPEPP</div>
@@ -150,7 +169,15 @@ if ($initial === '') {
 <main class="ami-main">
     <div class="ami-topbar">
         <div class="ami-topbar-heading">
-            <button type="button" class="ami-menu-toggle" data-sidebar-toggle aria-controls="ami-sidebar" aria-expanded="false" aria-label="Buka menu">
+            <button type="button" class="ami-desktop-toggle d-none d-lg-inline-flex" data-sidebar-desktop-toggle aria-label="Toggle sidebar desktop" title="Sembunyikan/Tampilkan sidebar">
+                <svg class="tw-w-5 tw-h-5 ami-icon-panel-close" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+                <svg class="tw-w-5 tw-h-5 ami-icon-panel-open tw-hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                </svg>
+            </button>
+            <button type="button" class="ami-menu-toggle d-lg-none" data-sidebar-toggle aria-controls="ami-sidebar" aria-expanded="false" aria-label="Buka menu">
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <div>
