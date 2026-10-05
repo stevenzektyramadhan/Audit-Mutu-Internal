@@ -79,13 +79,13 @@ $icon = static function ($name) {
                 </div>
 
                 <div class="ami-row-actions no-print tw-flex tw-flex-wrap tw-items-center tw-gap-2.5">
-                    <a class="ami-action-btn tw-button-secondary" href="<?php echo site_url('lpmpi/spmi-reports/export/' . (int) $report->id); ?>">
+                    <a class="ami-action-btn tw-button-secondary tw-h-10 tw-px-3.5 tw-text-sm" href="<?php echo site_url('lpmpi/spmi-reports/print/' . (int) $report->id); ?>" target="_blank" rel="noopener">
+                        <?php echo $icon('printer'); ?>
+                        <span>Print</span>
+                    </a>
+                    <a class="ami-action-btn tw-button-secondary tw-h-10 tw-px-3.5 tw-text-sm" href="<?php echo site_url('lpmpi/spmi-reports/export/' . (int) $report->id); ?>">
                         <?php echo $icon('file-spreadsheet'); ?>
                         <span>Export XLSX</span>
-                    </a>
-                    <a class="ami-action-btn tw-button-primary" href="<?php echo site_url('lpmpi/spmi-reports/print/' . (int) $report->id); ?>">
-                        <?php echo $icon('printer'); ?>
-                        <span>Print / Save as PDF</span>
                     </a>
                 </div>
             </div>
