@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#upload-settings-root {
+    color-scheme: light;
+}
+
+#upload-settings-root svg {
+    max-width: 100%;
+    flex-shrink: 0;
+}

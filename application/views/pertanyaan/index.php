@@ -145,7 +145,7 @@ $tones = ['tone-violet', 'tone-green', 'tone-amber', 'tone-blue', 'tone-rose', '
                 </div>
                 <div class="modal-body">
                     <p class="text-muted">
-                        Upload file Excel (.xlsx atau .xls) sesuai format template, maksimal 2 MB.
+                        Upload file Excel (.xlsx atau .xls) sesuai format template, maksimal <?php echo html_escape((string) (isset($upload_limit_mib) ? $upload_limit_mib : (function_exists('get_upload_limit_mib') ? get_upload_limit_mib('spreadsheet_imports') : 2))); ?> MB.
                         <a href="<?php echo site_url('pertanyaan/download_template/' . (int) $standar_id); ?>">Download template di sini</a>.
                     </p>
                     <div class="form-group mb-0">

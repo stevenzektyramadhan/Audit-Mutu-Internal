@@ -10,7 +10,26 @@
 
     var app = document.querySelector('.ami-app');
     var sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+    var sidebarDesktopToggle = document.querySelector('[data-sidebar-desktop-toggle]');
     var sidebarClosers = document.querySelectorAll('[data-sidebar-close]');
+
+    // Desktop Collapse Persistence
+    try {
+        var savedCollapsed = localStorage.getItem('ami_sidebar_collapsed');
+        if (savedCollapsed === 'true' && window.innerWidth >= 992) {
+            if (app) app.classList.add('sidebar-collapsed');
+        }
+    } catch (e) {}
+
+    if (sidebarDesktopToggle) {
+        sidebarDesktopToggle.addEventListener('click', function () {
+            if (!app) return;
+            var isCollapsed = app.classList.toggle('sidebar-collapsed');
+            try {
+                localStorage.setItem('ami_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+            } catch (e) {}
+        });
+    }
     function setSidebar(open) {
         if (!app) return;
         app.classList.toggle('sidebar-open', open);
@@ -60,6 +79,12 @@
         }
 
         disclosure.addEventListener('click', function () {
+            if (app && app.classList.contains('sidebar-collapsed')) {
+                app.classList.remove('sidebar-collapsed');
+                try {
+                    localStorage.setItem('ami_sidebar_collapsed', 'false');
+                } catch (e) {}
+            }
             var expanded = disclosure.getAttribute('aria-expanded') === 'true';
             var submenu = document.getElementById(disclosure.getAttribute('aria-controls'));
             disclosure.setAttribute('aria-expanded', expanded ? 'false' : 'true');
