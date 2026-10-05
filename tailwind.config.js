@@ -6,6 +6,7 @@ module.exports = {
         './application/views/users/create.php',
         './application/views/users/edit.php',
         './application/views/lpmpi/organization/**/*.php',
+        './application/views/lpmpi/master_data_prodi_staf/**/*.php',
         './application/views/lpmpi/spmi_standards/**/*.php',
         './application/views/lpmpi/spmi_indicators/**/*.php',
         './application/views/lpmpi/spmi_instruments/**/*.php',
@@ -20,6 +21,7 @@ module.exports = {
         './application/views/spmi_auditee_dashboard/**/*.php',
         './application/views/spmi_auditee_workspace/**/*.php',
         './application/views/auth/**/*.php',
+        './application/views/lpmpi/spmi_ppepp_documents/**/*.php',
     ],
     prefix: 'tw-',
     corePlugins: {

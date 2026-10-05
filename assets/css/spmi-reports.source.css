@@ -3,10 +3,103 @@
 @tailwind utilities;
 
 #reports-root {
+  color-scheme: light;
   --reports-blue: #185fa5;
   --reports-blue-hover: #124e89;
   --reports-blue-soft: rgba(24, 95, 165, 0.1);
   --reports-border: #e2e8f0;
+  --reports-ink: #0f172a;
+  --reports-muted: #64748b;
+  --reports-radius: 0.75rem;
+}
+
+#reports-root input,
+#reports-root select {
+  color-scheme: light;
+}
+
+#reports-root .reports-header {
+  border-left: 3px solid var(--reports-blue);
+  padding-left: 1rem;
+}
+
+#reports-root .reports-metric-icon,
+#reports-root .reports-metric-icon svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
+#reports-root .reports-metric-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--reports-blue);
+}
+
+#reports-root .tw-hidden.tw-overflow-hidden table tbody td:first-child > span,
+#reports-root .tw-grid.md\:tw-hidden article > div:first-child > span:first-child {
+  display: block;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow-wrap: anywhere;
+}
+
+#reports-root .tw-hidden.tw-overflow-hidden table tbody td:first-child > span {
+  letter-spacing: 0.01em;
+}
+
+#reports-root .reports-pending {
+  border-left: 3px solid #f59e0b;
+}
+
+#reports-root .ami-row-actions {
+  flex-wrap: nowrap;
+}
+
+#reports-root .reports-action-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+#reports-root .reports-dropdown-menu {
+  min-width: 11rem;
+}
+
+#reports-root .reports-dropup .reports-dropdown-menu {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+}
+
+#reports-root .reports-dropdown-item {
+  transition: background-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+}
+
+#reports-root .reports-filter label > span > svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--reports-blue);
+}
+
+@media (max-width: 767px) {
+  #reports-root {
+    padding: 1rem;
+  }
+
+  #reports-root .reports-header {
+    padding-left: 0.75rem;
+  }
+
+  #reports-root .ami-row-actions a,
+  #reports-root .ami-row-actions button {
+    min-width: 0;
+  }
 }
 
 @layer components {

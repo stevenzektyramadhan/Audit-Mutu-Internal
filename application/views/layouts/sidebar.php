@@ -46,7 +46,18 @@ $page_title = isset($page_title) ? $page_title : 'Dashboard';
 $page_subtitle = isset($page_subtitle) ? $page_subtitle : '';
 $current_menus = isset($menus[$role]) ? $menus[$role] : [];
 $ppepp_stages = $this->config->item('spmi_ppepp_stages', 'spmi_ppepp');
-$ppepp_stages = is_array($ppepp_stages) ? $ppepp_stages : [];
+if (empty($ppepp_stages) || !is_array($ppepp_stages)) {
+    $this->config->load('spmi_ppepp', TRUE, TRUE);
+    $ppepp_stages = $this->config->item('spmi_ppepp_stages', 'spmi_ppepp');
+}
+if (empty($ppepp_stages) || !is_array($ppepp_stages)) {
+    $ppepp_stages = [
+        'penetapan' => 'Penetapan',
+        'pelaksanaan' => 'Pelaksanaan',
+        'pengendalian' => 'Pengendalian',
+        'peningkatan' => 'Peningkatan',
+    ];
+}
 $ppepp_selected_stage = isset($selected_stage) ? (string) $selected_stage : '';
 $ppepp_selected_year = isset($selected_year) ? (int) $selected_year : (int) date('Y');
 $ppepp_is_active = $active_menu === 'spmi_ppepp_documents';
@@ -79,19 +90,23 @@ if ($initial === '') {
                 <div class="ami-nav-label"><?php echo html_escape($current_group); ?></div>
             <?php endif; ?>
             <?php if ($menu['key'] === 'spmi_ppepp_documents'): ?>
-                <?php foreach ($ppepp_stages as $stage_key => $stage_label): ?>
-                    <?php
+                <div class="ami-nav-subgroup-label" aria-hidden="true">Siklus PPEPP</div>
+                <?php
+                $ppepp_step_num = 1;
+                foreach ($ppepp_stages as $stage_key => $stage_label):
                     $stage_key = (string) $stage_key;
                     $stage_url = site_url($menu['url']) . '?stage=' . rawurlencode($stage_key) . '&year=' . rawurlencode((string) $ppepp_selected_year);
                     $stage_is_current = $ppepp_is_active && $ppepp_selected_stage !== '' && $ppepp_selected_stage === $stage_key;
-                    ?>
+                    $step_badge = sprintf('%02d', $ppepp_step_num++);
+                ?>
                     <a class="ami-nav-link ami-nav-ppepp-stage-link <?php echo $stage_is_current ? 'active' : ''; ?>" href="<?php echo html_escape($stage_url); ?>"<?php echo $stage_is_current ? ' aria-current="page"' : ''; ?>>
-                        <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
+                        <span class="ami-nav-step" aria-hidden="true"><?php echo $step_badge; ?></span>
+                        <i class="fas <?php echo html_escape($menu['icon']); ?> sr-only" aria-hidden="true"></i>
                         <span><?php echo html_escape($stage_label); ?></span>
                     </a>
                 <?php endforeach; ?>
                 <?php $evaluasi_nav_id = 'ami-nav-evaluasi'; ?>
-                <button type="button" class="ami-nav-link ami-nav-disclosure <?php echo $evaluasi_is_active ? 'active' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
+                <button type="button" class="ami-nav-link ami-nav-disclosure bg-transparent <?php echo $evaluasi_is_active ? 'has-active-child' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
                     <i class="fas fa-layer-group" aria-hidden="true"></i>
                     <span>Evaluasi</span>
                     <i class="fas fa-chevron-down ami-nav-chevron" aria-hidden="true"></i>
