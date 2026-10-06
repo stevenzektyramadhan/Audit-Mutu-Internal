@@ -100,6 +100,14 @@ check(strpos($sidebar, "foreach (\$ppepp_stages as \$stage_key => \$stage_label)
 check(strpos($sidebar, "'?stage=' . rawurlencode(\$stage_key) . '&year=' . rawurlencode((string) \$ppepp_selected_year)") !== FALSE, 'PPEPP child links must preserve stage and year query.');
 check(strpos($sidebar, "\$stage_is_current = \$ppepp_is_active && \$ppepp_selected_stage !== ''") !== FALSE, 'PPEPP direct-link current state must require selected stage.');
 check(strpos($sidebar, "\$evaluasi_is_active = in_array(\$active_menu, ['spmi_standards', 'spmi_audits'], TRUE);") !== FALSE, 'Evaluasi active state must be limited to its two child pages.');
+check(strpos($sidebar, "\$stage_key === 'pengendalian'") !== FALSE
+    && strpos($sidebar, "ami-nav-disclosure") < strpos($sidebar, "ami-nav-ppepp-stage-link"),
+    'Evaluasi must precede Pengendalian in PPEPP stage loop.');
+check(strpos($sidebar, "\$evaluasi_step_badge") !== FALSE
+    && strpos($sidebar, '<span class="ami-nav-step" aria-hidden="true"><?php echo $evaluasi_step_badge; ?></span>') !== FALSE,
+    'Evaluasi menu must render its step badge in PPEPP cycle.');
+check(strpos($header, '.ami-nav-disclosure.has-active-child .ami-nav-step') !== FALSE,
+    'Evaluasi step badge must highlight when child pages are active.');
 check(substr_count($sidebar, "data-nav-disclosure") === 1 && strpos($sidebar, 'ami-nav-evaluasi') !== FALSE, 'Evaluasi must be the only sidebar disclosure.');
 foreach (["<span>Evaluasi</span>", "site_url('lpmpi/spmi-standards')", "site_url('lpmpi/spmi-audits')", 'aria-label="Evaluasi SPMI"', 'class="ami-nav-submenu"', 'aria-expanded=', 'aria-controls=', 'hidden'] as $contract) {
     check(strpos($sidebar, $contract) !== FALSE, 'Evaluasi disclosure contract missing: ' . $contract);

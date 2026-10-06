@@ -319,7 +319,8 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             color: #f8fafc;
         }
 
-        .ami-nav-link.active .ami-nav-step {
+        .ami-nav-link.active .ami-nav-step,
+        .ami-nav-disclosure.has-active-child .ami-nav-step {
             background: #2563eb;
             color: #ffffff;
             font-weight: 700;
