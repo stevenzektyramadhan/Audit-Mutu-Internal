@@ -112,8 +112,32 @@ if ($initial === '') {
                 <div class="ami-nav-subgroup-label" aria-hidden="true">Siklus PPEPP</div>
                 <?php
                 $ppepp_step_num = 1;
+                $evaluasi_nav_id = 'ami-nav-evaluasi';
                 foreach ($ppepp_stages as $stage_key => $stage_label):
                     $stage_key = (string) $stage_key;
+                    if ($stage_key === 'pengendalian'):
+                        $evaluasi_step_badge = sprintf('%02d', $ppepp_step_num++);
+                ?>
+                    <button type="button" class="ami-nav-link ami-nav-disclosure bg-transparent <?php echo $evaluasi_is_active ? 'has-active-child' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
+                        <span class="ami-nav-step" aria-hidden="true"><?php echo $evaluasi_step_badge; ?></span>
+                        <i class="fas fa-layer-group sr-only" aria-hidden="true"></i>
+                        <span>Evaluasi</span>
+                        <i class="fas fa-chevron-down ami-nav-chevron" aria-hidden="true"></i>
+                    </button>
+                    <ul class="ami-nav-submenu" id="<?php echo $evaluasi_nav_id; ?>" <?php echo $evaluasi_is_active ? '' : 'hidden'; ?> aria-label="Evaluasi SPMI">
+                        <li>
+                            <a class="ami-nav-link ami-nav-sub-link" href="<?php echo site_url('lpmpi/spmi-standards'); ?>"<?php echo $active_menu === 'spmi_standards' ? ' aria-current="page"' : ''; ?>>
+                                <span>Standar SPMI</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="ami-nav-link ami-nav-sub-link" href="<?php echo site_url('lpmpi/spmi-audits'); ?>"<?php echo $active_menu === 'spmi_audits' ? ' aria-current="page"' : ''; ?>>
+                                <span>Siklus &amp; Penugasan SPMI</span>
+                            </a>
+                        </li>
+                    </ul>
+                <?php
+                    endif;
                     $stage_url = site_url($menu['url']) . '?stage=' . rawurlencode($stage_key) . '&year=' . rawurlencode((string) $ppepp_selected_year);
                     $stage_is_current = $ppepp_is_active && $ppepp_selected_stage !== '' && $ppepp_selected_stage === $stage_key;
                     $step_badge = sprintf('%02d', $ppepp_step_num++);
@@ -124,24 +148,6 @@ if ($initial === '') {
                         <span><?php echo html_escape($stage_label); ?></span>
                     </a>
                 <?php endforeach; ?>
-                <?php $evaluasi_nav_id = 'ami-nav-evaluasi'; ?>
-                <button type="button" class="ami-nav-link ami-nav-disclosure bg-transparent <?php echo $evaluasi_is_active ? 'has-active-child' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
-                    <i class="fas fa-layer-group" aria-hidden="true"></i>
-                    <span>Evaluasi</span>
-                    <i class="fas fa-chevron-down ami-nav-chevron" aria-hidden="true"></i>
-                </button>
-                <ul class="ami-nav-submenu" id="<?php echo $evaluasi_nav_id; ?>" <?php echo $evaluasi_is_active ? '' : 'hidden'; ?> aria-label="Evaluasi SPMI">
-                    <li>
-                        <a class="ami-nav-link ami-nav-sub-link" href="<?php echo site_url('lpmpi/spmi-standards'); ?>"<?php echo $active_menu === 'spmi_standards' ? ' aria-current="page"' : ''; ?>>
-                            <span>Standar SPMI</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="ami-nav-link ami-nav-sub-link" href="<?php echo site_url('lpmpi/spmi-audits'); ?>"<?php echo $active_menu === 'spmi_audits' ? ' aria-current="page"' : ''; ?>>
-                            <span>Siklus &amp; Penugasan SPMI</span>
-                        </a>
-                    </li>
-                </ul>
             <?php else: ?>
                 <a class="ami-nav-link <?php echo $active_menu === $menu['key'] ? 'active' : ''; ?>" href="<?php echo site_url($menu['url']); ?>">
                     <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
