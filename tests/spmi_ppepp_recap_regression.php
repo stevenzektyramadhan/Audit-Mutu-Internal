@@ -25,27 +25,27 @@ $routes = source($root, 'application/config/routes.php');
 $sidebar = source($root, 'application/views/layouts/sidebar.php');
 
 check(substr_count($model, 'function recap()') === 1, 'Recap model must expose one recap method.');
-foreach (['spmi_standards', 'spmi_indicators', 'spmi_indicator_targets', 'spmi_audit_cycles', 'spmi_audit_assignments', 'spmi_auditee_submissions', 'spmi_auditor_assessments', 'spmi_reports', 'spmi_rtm_meetings', 'spmi_rtm_decisions', 'spmi_rtm_follow_ups'] as $table) {
-    check(strpos($model, $table) !== FALSE, 'M3-M12 table missing: ' . $table);
+foreach (['spmi_standards', 'spmi_indicators', 'spmi_indicator_targets', 'spmi_audit_cycles', 'spmi_audit_assignments', 'spmi_auditee_submissions', 'spmi_auditor_assessments', 'spmi_reports', 'spmi_rtm_meetings', 'spmi_rtm_decisions'] as $table) {
+    check(strpos($model, $table) !== FALSE, 'Active PPEPP table missing: ' . $table);
 }
 foreach (['tugas_audit', 'jawaban_audit', 'Laporan_model', 'Dashboard'] as $forbidden) {
     check(stripos($model, $forbidden) === FALSE, 'Legacy source must remain excluded: ' . $forbidden);
 }
 check(strpos($model, "state IN ('configured', 'closed')") !== FALSE, 'Cycle state filter missing.');
+check(strpos($model, "where('r.source_cycle_id IN (' . \$eligible_cycles . ')', NULL, FALSE)") !== FALSE && strpos($model, "'aa.id = r.assessment_id'") === FALSE, 'Recap reports must count immutable grouped reports by source cycle, not one assessment anchor.');
 check(strpos($model, "where('status', 'resolved')") !== FALSE, 'Resolved RTM meeting filter missing.');
-check(strpos($model, "where_in('status', ['open', 'in_progress'])") !== FALSE, 'Open follow-up filter missing.');
-check(strpos($model, "where('due_date IS NOT NULL', NULL, FALSE)") !== FALSE && strpos($model, "where('due_date < CURDATE()', NULL, FALSE)") !== FALSE, 'Overdue follow-up predicate missing.');
-foreach (['submissions_draft', 'submissions_submitted', 'assessments_draft', 'assessments_finalized', 'meetings_resolved', 'follow_ups_open', 'follow_ups_in_progress', 'follow_ups_completed', 'follow_ups_overdue'] as $literal) {
+foreach (['submissions_draft', 'submissions_submitted', 'assessments_draft', 'assessments_finalized', 'meetings_resolved', 'decisions'] as $literal) {
     check(strpos($model, $literal) !== FALSE || strpos($view, $literal) !== FALSE, 'Planned PPEPP metric missing: ' . $literal);
 }
 foreach (['evidence', 'findings', 'overdue_follow_ups', 'target_revisions', 'recommendations'] as $forbidden_metric) {
     check(strpos($model, "'" . $forbidden_metric . "'") === FALSE && strpos($view, "'" . $forbidden_metric . "'") === FALSE, 'Forbidden recap metric still present: ' . $forbidden_metric);
 }
+foreach (['spmi_rtm_follow_ups', 'follow_ups_open', 'follow_ups_in_progress', 'follow_ups_completed', 'follow_ups_overdue'] as $retired) check(strpos($model . $view, $retired) === FALSE, 'Retired follow-up recap artifact remains: ' . $retired);
 check(strpos($controller, 'extends Admin_Lpmpi_Controller') !== FALSE && substr_count($controller, 'public function ') === 2, 'Controller must have constructor and index only.');
 check(strpos($controller, "redirect('lpmpi/spmi-dashboard')") !== FALSE, 'Recap controller must redirect to canonical dashboard.');
 check(strpos($routes, '$route[\'lpmpi/spmi-recap\'] = \'lpmpi/Spmi_ppepp_recap/index\';') !== FALSE, 'Recap route missing.');
 check(strpos($sidebar, "'key' => 'spmi_ppepp_recap'") === FALSE, 'Recap sidebar entry must be removed.');
-foreach (['Belum ada standar, indikator, atau target SPMI yang ditetapkan.', 'Belum ada siklus, penugasan, atau submission SPMI yang berjalan.', 'Belum ada penilaian auditor atau laporan SPMI yang dihasilkan.', 'Belum ada RTM resolved atau keputusan pengendalian SPMI.', 'Belum ada tindak lanjut RTM yang terbuka atau diselesaikan.'] as $empty_text) {
+foreach (['Belum ada standar, indikator, atau target SPMI yang ditetapkan.', 'Belum ada siklus, penugasan, atau submission SPMI yang berjalan.', 'Belum ada penilaian auditor atau laporan SPMI yang dihasilkan.', 'Belum ada RTM resolved atau keputusan pengendalian SPMI.'] as $empty_text) {
     check(strpos($view, $empty_text) !== FALSE, 'Stage zero-state missing: ' . $empty_text);
 }
 check(strpos($view, 'form_open') === FALSE && strpos($view, 'export') === FALSE && strpos($view, 'print') === FALSE, 'View must remain read-only without actions or exports.');

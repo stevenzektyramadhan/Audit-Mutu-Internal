@@ -36,16 +36,6 @@
             'decisions' => 'Keputusan RTM',
         ],
     ],
-    'peningkatan' => [
-        'title' => 'Peningkatan',
-        'empty' => 'Belum ada tindak lanjut RTM yang terbuka atau diselesaikan.',
-        'items' => [
-            'follow_ups_open' => 'Tindak Lanjut Open',
-            'follow_ups_in_progress' => 'Tindak Lanjut In Progress',
-            'follow_ups_completed' => 'Tindak Lanjut Completed',
-            'follow_ups_overdue' => 'Tindak Lanjut Overdue',
-        ],
-    ],
 ]; ?>
 <div class="ami-panel">
     <div class="ami-panel-body">

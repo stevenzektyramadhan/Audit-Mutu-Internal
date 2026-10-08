@@ -19,7 +19,8 @@
 -- current parity migration 001-040
 -- current parity migration 001-041
 -- current parity migration 001-042
--- current parity migration 001-043
+-- current parity migration 001-044
+-- current parity migration 001-045
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -548,7 +549,8 @@ CREATE TABLE IF NOT EXISTS `spmi_reports` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `assessment_id` INT NULL,
     `report_number` VARCHAR(128) NOT NULL,
-    `report_scope` ENUM('standard','version') NOT NULL DEFAULT 'standard',
+    `report_scope` ENUM('standard','version','version_auditee') NOT NULL DEFAULT 'standard',
+    `version_auditee_scope_guard` TINYINT GENERATED ALWAYS AS (CASE WHEN `report_scope` = 'version_auditee' THEN 1 ELSE NULL END) STORED,
     `source_cycle_id` INT NULL,
     `academic_year_snapshot` VARCHAR(20) NULL,
     `cycle_code_snapshot` VARCHAR(64) NOT NULL,
@@ -570,6 +572,7 @@ CREATE TABLE IF NOT EXISTS `spmi_reports` (
     UNIQUE KEY `uq_spmi_reports_assessment` (`assessment_id`),
     UNIQUE KEY `uq_spmi_reports_report_number` (`report_number`),
     UNIQUE KEY `uq_spmi_reports_version_tuple` (`source_cycle_id`, `source_version_id`, `auditor_id_snapshot`, `auditee_id_snapshot`, `report_scope`),
+    UNIQUE KEY `uq_spmi_reports_version_auditee_tuple` (`source_cycle_id`, `source_version_id`, `auditee_id_snapshot`, `version_auditee_scope_guard`),
     KEY `idx_spmi_reports_academic_year_generated` (`academic_year_snapshot`, `generated_at`, `id`),
     CONSTRAINT `fk_spmi_reports_assessment` FOREIGN KEY (`assessment_id`) REFERENCES `spmi_auditor_assessments` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_reports_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -578,6 +581,9 @@ CREATE TABLE IF NOT EXISTS `spmi_reports` (
 CREATE TABLE IF NOT EXISTS `spmi_report_items` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `report_id` INT NOT NULL,
+    `auditor_id_snapshot` INT NULL,
+    `auditor_name_snapshot` VARCHAR(200) NULL,
+    `auditor_email_snapshot` VARCHAR(255) NULL,
     `source_standard_id` INT NULL,
     `source_standard_code_snapshot` VARCHAR(64) NULL,
     `source_standard_title_snapshot` VARCHAR(200) NULL,
@@ -611,6 +617,11 @@ CREATE TABLE IF NOT EXISTS `spmi_rtm_meetings` (
     `meeting_title` VARCHAR(200) NOT NULL,
     `meeting_date` DATE NOT NULL,
     `location` VARCHAR(200) NOT NULL,
+    `photo_stored_name` VARCHAR(255) NULL,
+    `photo_original_name` VARCHAR(255) NULL,
+    `photo_mime_type` VARCHAR(100) NULL,
+    `photo_size_bytes` INT UNSIGNED NULL,
+    `photo_sha256` CHAR(64) NULL,
     `status` ENUM('draft','resolved') NOT NULL DEFAULT 'draft',
     `created_by` INT NOT NULL,
     `resolved_by` INT NULL,
@@ -618,6 +629,7 @@ CREATE TABLE IF NOT EXISTS `spmi_rtm_meetings` (
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_rtm_meetings_code` (`meeting_code`),
+    UNIQUE KEY `uq_spmi_rtm_meetings_photo_stored_name` (`photo_stored_name`),
     CONSTRAINT `fk_spmi_rtm_meetings_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_rtm_meetings_resolved_by` FOREIGN KEY (`resolved_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -729,7 +741,8 @@ INSERT INTO `spmi_upload_size_settings` (`category`, `label`, `limit_mib`) VALUE
 ('profile_photos', 'Foto Profil', 2),
 ('spreadsheet_imports', 'Import Spreadsheet', 2),
 ('spmi_source_pdf', 'PDF Sumber SPMI', 5),
-('institution_logo', 'Logo Lembaga', 4);
+('institution_logo', 'Logo Lembaga', 4),
+('rtm_photos', 'Foto Dokumentasi RTM', 5);
 
 CREATE TABLE IF NOT EXISTS `legacy_ami_archive_runs` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,

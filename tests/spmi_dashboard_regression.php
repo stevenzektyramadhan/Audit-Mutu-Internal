@@ -73,7 +73,6 @@ foreach ([
     'pelaksanaan' => ['cycles', 'assignments', 'submissions_draft', 'submissions_submitted'],
     'evaluasi' => ['assessments_draft', 'assessments_finalized', 'reports'],
     'pengendalian' => ['meetings_resolved', 'decisions'],
-    'peningkatan' => ['follow_ups_open', 'follow_ups_in_progress', 'follow_ups_completed', 'follow_ups_overdue'],
 ] as $stage => $metrics) {
     check(strpos($management_model, "'" . $stage . "'") !== FALSE, 'Management stage missing: ' . $stage);
     foreach ($metrics as $metric) check(strpos($management_model, "'" . $metric . "'") !== FALSE, 'Management metric missing: ' . $metric);
@@ -82,8 +81,9 @@ foreach (['evidence', 'findings', 'overdue_follow_ups', 'target_revisions', 'rec
     check(strpos($management_model, "'" . $forbidden . "'") === FALSE, 'Unplanned management metric present: ' . $forbidden);
 }
 check(strpos($management_model, "state IN ('configured', 'closed')") !== FALSE, 'Management cycles must be configured or closed.');
+check(strpos($management_model, "'r.source_cycle_id IN (' . \$eligible_cycles . ')' => NULL") !== FALSE && strpos($management_model, "'aa.id = r.assessment_id'") === FALSE, 'Management reports must count immutable grouped reports by source cycle, not one assessment anchor.');
 check(strpos($management_model, "'m.status' => 'resolved'") !== FALSE, 'Management decisions must use resolved meetings.');
-check(strpos($management_model, "where_in('status', ['open', 'in_progress'])") !== FALSE && strpos($management_model, "where('due_date < CURDATE()", 0) !== FALSE, 'Management overdue predicate missing.');
+foreach (['spmi_rtm_follow_ups', 'follow_ups_open', 'follow_ups_in_progress', 'follow_ups_completed', 'follow_ups_overdue', 'lpmpi/spmi-follow-ups'] as $retired) check(strpos($management_model . $management_view, $retired) === FALSE, 'Retired management follow-up artifact remains: ' . $retired);
 foreach (['assignments', 'submissions_submitted', 'assessments_draft', 'assessments_finalized', 'due_soon', 'overdue', 'notifications'] as $metric) check(strpos($auditor_model, "'" . $metric . "'") !== FALSE || strpos($auditor_model, '$' . $metric) !== FALSE, 'Auditor metric missing: ' . $metric);
 foreach (['assignments', 'submissions_draft', 'submissions_submitted', 'due_soon', 'overdue', 'notifications'] as $metric) check(strpos($auditee_model, "'" . $metric . "'") !== FALSE || strpos($auditee_model, '$' . $metric) !== FALSE, 'Auditee metric missing: ' . $metric);
 check(strpos($auditor_model, "where('a.auditor_id', (int) \$user_id)") !== FALSE, 'Auditor owner filter missing.');

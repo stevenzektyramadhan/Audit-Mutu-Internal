@@ -40,14 +40,14 @@ class Spmi_reports extends Admin_Lpmpi_Controller
     {
         $data = $this->service->report((int) $id);
         if (!$data) { show_error('Laporan SPMI tidak ditemukan.', 404, 'Not Found'); return; }
-        $this->load->view('lpmpi/spmi_reports/detail', ['title' => 'Detail Laporan SPMI', 'page_title' => 'Detail Laporan SPMI', 'page_subtitle' => 'Beranda / Insights / Laporan SPMI / Detail', 'active_menu' => 'spmi_reports', 'report' => $data['report'], 'items' => $data['items'], 'standards' => $data['standards']]);
+        $this->load->view('lpmpi/spmi_reports/detail', ['title' => 'Detail Laporan SPMI', 'page_title' => 'Detail Laporan SPMI', 'page_subtitle' => 'Beranda / Insights / Laporan SPMI / Detail', 'active_menu' => 'spmi_reports', 'report' => $data['report'], 'items' => $data['items'], 'standards' => $data['standards'], 'contributors' => $data['contributors']]);
     }
 
     public function print_report($id)
     {
         $data = $this->service->report((int) $id);
         if (!$data) { show_error('Laporan SPMI tidak ditemukan.', 404, 'Not Found'); return; }
-        $this->load->view('lpmpi/spmi_reports/print', ['title' => 'Cetak Laporan SPMI', 'report' => $data['report'], 'items' => $data['items'], 'standards' => $data['standards']]);
+        $this->load->view('lpmpi/spmi_reports/print', ['title' => 'Cetak Laporan SPMI', 'report' => $data['report'], 'items' => $data['items'], 'standards' => $data['standards'], 'contributors' => $data['contributors']]);
     }
 
     public function export($id)
@@ -62,12 +62,12 @@ class Spmi_reports extends Admin_Lpmpi_Controller
         $spreadsheet->getProperties()->setCreator('AMI')->setTitle('Laporan SPMI')->setSubject('Snapshot laporan SPMI');
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Laporan SPMI');
-        $headers = ['A' => 'No', 'B' => 'Indikator', 'C' => 'Realisasi', 'D' => 'URL Bukti', 'E' => 'File Bukti', 'F' => 'MIME Bukti', 'G' => 'Ukuran Bukti', 'H' => 'SHA-256 Bukti', 'I' => 'Bukti Auditor', 'J' => 'Skor', 'K' => 'Deskriptor', 'L' => 'Jenis Temuan', 'M' => 'Temuan', 'N' => 'Rekomendasi', 'O' => 'Rencana perbaikan', 'P' => 'Tanggal bukti'];
+        $headers = ['A' => 'No', 'B' => 'Auditor penanggung jawab', 'C' => 'Email auditor', 'D' => 'Indikator', 'E' => 'Realisasi', 'F' => 'URL Bukti', 'G' => 'File Bukti', 'H' => 'MIME Bukti', 'I' => 'Ukuran Bukti', 'J' => 'SHA-256 Bukti', 'K' => 'Bukti Auditor', 'L' => 'Skor', 'M' => 'Deskriptor', 'N' => 'Jenis Temuan', 'O' => 'Temuan', 'P' => 'Rekomendasi', 'Q' => 'Rencana perbaikan', 'R' => 'Tanggal bukti'];
         foreach ($headers as $column => $label) $this->set_text($sheet, $column . '1', $label);
         $row = 2;
-        foreach ($data['standards'] as $standard) { $this->set_text($sheet, 'A' . $row, $standard['source_standard_code_snapshot'] . ' — ' . $standard['source_standard_title_snapshot']); $sheet->mergeCells('A' . $row . ':P' . $row); $sheet->getStyle('A' . $row)->getFont()->setBold(TRUE); $row++; foreach ($standard['items'] as $item) { $this->set_text($sheet, 'A' . $row, $item->standard_item_display_order ?: $item->display_order); $this->set_text($sheet, 'B' . $row, $item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); $this->set_text($sheet, 'C' . $row, $item->realization_snapshot); $this->set_text($sheet, 'D' . $row, isset($item->evidence_url_snapshot) ? $item->evidence_url_snapshot : NULL); $this->set_text($sheet, 'E' . $row, isset($item->evidence_file_original_name_snapshot) ? $item->evidence_file_original_name_snapshot : NULL); $this->set_text($sheet, 'F' . $row, isset($item->evidence_file_mime_type_snapshot) ? $item->evidence_file_mime_type_snapshot : NULL); $this->set_text($sheet, 'G' . $row, isset($item->evidence_file_size_bytes_snapshot) ? $item->evidence_file_size_bytes_snapshot : NULL); $this->set_text($sheet, 'H' . $row, isset($item->evidence_file_sha256_snapshot) ? $item->evidence_file_sha256_snapshot : NULL); $this->set_text($sheet, 'I' . $row, $this->auditor_evidence_text(isset($item->auditor_evidence_snapshot) ? $item->auditor_evidence_snapshot : NULL)); $sheet->setCellValue('J' . $row, (int) $item->score); $this->set_text($sheet, 'K' . $row, $item->descriptor_snapshot); $this->set_text($sheet, 'L' . $row, isset($item->finding_type_snapshot) ? $item->finding_type_snapshot : NULL); $this->set_text($sheet, 'M' . $row, $item->finding_snapshot); $this->set_text($sheet, 'N' . $row, $item->recommendation_snapshot); $this->set_text($sheet, 'O' . $row, isset($item->improvement_plan_snapshot) ? $item->improvement_plan_snapshot : NULL); $this->set_text($sheet, 'P' . $row, isset($item->evidence_date_snapshot) ? $item->evidence_date_snapshot : NULL); $row++; } }
-        $sheet->getStyle('A1:P' . max(1, $row - 1))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP)->setWrapText(TRUE);
-        $sheet->getStyle('A1:P1')->getFont()->setBold(TRUE);
+        foreach ($data['standards'] as $standard) { $this->set_text($sheet, 'A' . $row, $standard['source_standard_code_snapshot'] . ' — ' . $standard['source_standard_title_snapshot']); $sheet->mergeCells('A' . $row . ':R' . $row); $sheet->getStyle('A' . $row)->getFont()->setBold(TRUE); $row++; foreach ($standard['items'] as $item) { $this->set_text($sheet, 'A' . $row, $item->standard_item_display_order ?: $item->display_order); $this->set_text($sheet, 'B' . $row, isset($item->auditor_name_snapshot) ? $item->auditor_name_snapshot : $data['report']->auditor_name_snapshot); $this->set_text($sheet, 'C' . $row, isset($item->auditor_email_snapshot) ? $item->auditor_email_snapshot : NULL); $this->set_text($sheet, 'D' . $row, $item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); $this->set_text($sheet, 'E' . $row, $item->realization_snapshot); $this->set_text($sheet, 'F' . $row, isset($item->evidence_url_snapshot) ? $item->evidence_url_snapshot : NULL); $this->set_text($sheet, 'G' . $row, isset($item->evidence_file_original_name_snapshot) ? $item->evidence_file_original_name_snapshot : NULL); $this->set_text($sheet, 'H' . $row, isset($item->evidence_file_mime_type_snapshot) ? $item->evidence_file_mime_type_snapshot : NULL); $this->set_text($sheet, 'I' . $row, isset($item->evidence_file_size_bytes_snapshot) ? $item->evidence_file_size_bytes_snapshot : NULL); $this->set_text($sheet, 'J' . $row, isset($item->evidence_file_sha256_snapshot) ? $item->evidence_file_sha256_snapshot : NULL); $this->set_text($sheet, 'K' . $row, $this->auditor_evidence_text(isset($item->auditor_evidence_snapshot) ? $item->auditor_evidence_snapshot : NULL)); $sheet->setCellValue('L' . $row, (int) $item->score); $this->set_text($sheet, 'M' . $row, $item->descriptor_snapshot); $this->set_text($sheet, 'N' . $row, isset($item->finding_type_snapshot) ? $item->finding_type_snapshot : NULL); $this->set_text($sheet, 'O' . $row, $item->finding_snapshot); $this->set_text($sheet, 'P' . $row, $item->recommendation_snapshot); $this->set_text($sheet, 'Q' . $row, isset($item->improvement_plan_snapshot) ? $item->improvement_plan_snapshot : NULL); $this->set_text($sheet, 'R' . $row, isset($item->evidence_date_snapshot) ? $item->evidence_date_snapshot : NULL); $row++; } }
+        $sheet->getStyle('A1:R' . max(1, $row - 1))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP)->setWrapText(TRUE);
+        $sheet->getStyle('A1:R1')->getFont()->setBold(TRUE);
         $sheet->freezePane('A2');
         if ($data['items']) {
             $radar_sheet = $spreadsheet->createSheet();
@@ -110,6 +110,19 @@ class Spmi_reports extends Admin_Lpmpi_Controller
         $writer->setIncludeCharts(TRUE);
         $writer->save('php://output');
         $spreadsheet->disconnectWorksheets();
+        exit;
+    }
+
+    public function export_word($id)
+    {
+        $data = $this->service->report((int) $id);
+        if (!$data) { show_error('Laporan SPMI tidak ditemukan.', 404, 'Not Found'); return; }
+        $html = $this->load->view('lpmpi/spmi_reports/word', ['report' => $data['report'], 'items' => $data['items'], 'standards' => $data['standards'], 'contributors' => $data['contributors']], TRUE);
+        while (ob_get_level() > 0) @ob_end_clean();
+        header('Content-Type: application/msword; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="laporan_spmi.doc"');
+        header('Cache-Control: max-age=0');
+        echo "\xEF\xBB\xBF" . $html;
         exit;
     }
 

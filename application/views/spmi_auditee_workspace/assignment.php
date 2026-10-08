@@ -211,24 +211,20 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                         <?php echo form_close(); ?>
                                         <?php $upload_forms[] = ob_get_clean(); ?>
 
-                                        <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center tw-gap-2 tw-mb-3">
-                                            <input class="form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-2.5 tw-py-1.5 tw-text-xs tw-text-slate-700" type="file" id="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>">
-                                            <span data-evidence-selection-status role="status" aria-live="polite" class="tw-text-xs tw-text-slate-500">Belum ada file dipilih.</span>
-                                             <button type="submit" form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>" class="tw-button-secondary tw-text-xs tw-whitespace-nowrap">
-                                                 <?php echo $icon('upload-cloud'); ?>
-                                                 <span>Upload bukti item <?php echo html_escape((string) $item->display_order); ?></span>
-                                            </button>
-                                        </div>
+                                         <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center tw-gap-2 tw-mb-3">
+                                             <input class="form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-2.5 tw-py-1.5 tw-text-xs tw-text-slate-700" type="file" id="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>">
+                                             <span data-evidence-selection-status role="status" aria-live="polite" class="tw-text-xs tw-text-slate-500">Belum ada file dipilih.</span>
+                                         </div>
                                         <span role="alert" data-evidence-upload-error class="tw-block tw-text-xs tw-text-red-600 tw-mb-2"></span>
                                     <?php endif; ?>
 
                                     <!-- File List Cards -->
-                                    <?php if (empty($item->evidence)): ?>
-                                        <p class="tw-text-xs tw-text-slate-400 tw-italic tw-m-0">Belum ada berkas bukti yang diunggah.</p>
-                                    <?php else: ?>
-                                        <ul class="tw-space-y-2 tw-p-0 tw-m-0 tw-list-none">
-                                            <?php foreach ($item->evidence as $evidence): ?>
-                                                <li class="tw-flex tw-items-center tw-justify-between tw-gap-2 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50 tw-px-3 tw-py-2 tw-text-xs">
+                                     <ul class="tw-space-y-2 tw-p-0 tw-m-0 tw-list-none">
+                                         <?php if (empty($item->evidence)): ?>
+                                             <li data-evidence-empty-state class="tw-text-xs tw-text-slate-400 tw-italic">Belum ada berkas bukti yang diunggah.</li>
+                                         <?php else: ?>
+                                             <?php foreach ($item->evidence as $evidence): ?>
+                                                 <li class="tw-flex tw-items-center tw-justify-between tw-gap-2 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50 tw-px-3 tw-py-2 tw-text-xs">
                                                     <div class="tw-flex tw-items-center tw-gap-2 tw-min-w-0">
                                                         <span class="tw-text-blue-600"><?php echo $icon('file'); ?></span>
                                                         <a href="<?php echo site_url('auditee/spmi/evidence/' . (int) $evidence->id . '/download'); ?>" class="tw-font-medium tw-text-blue-600 hover:tw-underline tw-truncate">
@@ -247,10 +243,10 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                                             Hapus <?php echo html_escape($evidence->original_name); ?>
                                                         </button>
                                                     <?php endif; ?>
-                                                </li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    <?php endif; ?>
+                                                 </li>
+                                             <?php endforeach; ?>
+                                         <?php endif; ?>
+                                     </ul>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -304,23 +300,27 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
             <script>
             (function () {
                 var forms = document.querySelectorAll('form[id^="spmi-evidence-upload-"]');
-                forms.forEach(function (uploadForm) {
-                    var fileInput = document.querySelector('input[type="file"][form="' + uploadForm.id + '"]');
-                    var item = fileInput ? fileInput.closest('article') : null;
-                    var selectionStatus = item ? item.querySelector('[data-evidence-selection-status]') : null;
-                    if (fileInput) {
-                        fileInput.addEventListener('change', function () {
-                            if (selectionStatus) selectionStatus.textContent = fileInput.files.length ? fileInput.files[0].name : 'Belum ada file dipilih.';
-                        });
-                    }
-                    uploadForm.addEventListener('submit', function (event) {
-                        event.preventDefault();
-                        var button = document.querySelector('button[form="' + uploadForm.id + '"]');
-                        var error = item ? item.querySelector('[data-evidence-upload-error]') : null;
-                        if (!fileInput || !fileInput.files.length) return;
-                        if (button) button.disabled = true;
-                        if (error) error.textContent = '';
-                        fetch(uploadForm.action, { method: 'POST', body: new FormData(uploadForm), credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                 forms.forEach(function (uploadForm) {
+                     var fileInput = document.querySelector('input[type="file"][form="' + uploadForm.id + '"]');
+                     var item = fileInput ? fileInput.closest('article') : null;
+                     var selectionStatus = item ? item.querySelector('[data-evidence-selection-status]') : null;
+                     var error = item ? item.querySelector('[data-evidence-upload-error]') : null;
+                     var uploadInFlight = false;
+                     if (fileInput) {
+                         fileInput.addEventListener('change', function () {
+                             if (selectionStatus) selectionStatus.textContent = fileInput.files.length ? fileInput.files[0].name : 'Belum ada file dipilih.';
+                             if (error) error.textContent = '';
+                             if (!fileInput.files.length || uploadInFlight) return;
+                             uploadForm.requestSubmit();
+                         });
+                     }
+                     uploadForm.addEventListener('submit', function (event) {
+                         event.preventDefault();
+                         if (!fileInput || !fileInput.files.length || uploadInFlight) return;
+                         var uploadPayload = new FormData(uploadForm);
+                         uploadInFlight = true;
+                         fileInput.disabled = true;
+                         fetch(uploadForm.action, { method: 'POST', body: uploadPayload, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                             .then(function (response) { return response.json().then(function (payload) { return { ok: response.ok, payload: payload }; }); })
                             .then(function (result) {
                                 var payload = result.payload;
@@ -362,15 +362,17 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                 deleteButton.setAttribute('form', deleteFormId);
                                 deleteButton.textContent = 'Hapus ' + evidence.original_name;
                                 deleteButton.className = 'tw-text-[11px] tw-text-red-600 hover:tw-underline tw-bg-transparent tw-border-0 tw-p-0 tw-flex-shrink-0';
-                                entry.appendChild(deleteButton);
-                                var evidenceList = item ? item.querySelector('ul') : null;
-                                if (evidenceList) evidenceList.appendChild(entry);
+                                 entry.appendChild(deleteButton);
+                                 var evidenceList = item ? item.querySelector('ul') : null;
+                                 var emptyState = item ? item.querySelector('[data-evidence-empty-state]') : null;
+                                 if (emptyState) emptyState.remove();
+                                 if (evidenceList) evidenceList.appendChild(entry);
                                 fileInput.value = '';
                                 if (selectionStatus) selectionStatus.textContent = 'Bukti berhasil diunggah: ' + evidence.original_name;
-                            })
-                            .catch(function (uploadError) { if (error) error.textContent = uploadError.message; })
-                            .finally(function () { if (button) button.disabled = false; });
-                    });
+                             })
+                             .catch(function (uploadError) { if (error) error.textContent = uploadError.message; })
+                             .finally(function () { uploadInFlight = false; fileInput.disabled = false; });
+                     });
                 });
             }());
             </script>

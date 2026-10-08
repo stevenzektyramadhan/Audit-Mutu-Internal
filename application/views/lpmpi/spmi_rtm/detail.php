@@ -76,6 +76,10 @@ $icon = static function ($name) {
                         <?php echo $icon('printer'); ?>
                         <span>Print</span>
                     </a>
+                    <a class="btn-ami btn-outline-ami tw-button-secondary" href="<?php echo site_url('lpmpi/spmi-rtm/export-word/' . (int) $meeting->id); ?>">
+                        <?php echo $icon('file-text'); ?>
+                        <span>Export DOC</span>
+                    </a>
                     <?php if ($meeting->status === 'draft'): ?>
                         <a class="btn-ami tw-button-primary" href="<?php echo site_url('lpmpi/spmi-rtm/edit/' . (int) $meeting->id); ?>">
                             <?php echo $icon('edit'); ?>
@@ -94,6 +98,13 @@ $icon = static function ($name) {
                         <span><?php echo html_escape($meeting->meeting_date); ?></span>
                     </div>
                 </div>
+
+                <?php if ($meeting->photo_original_name): ?>
+                    <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100">
+                        <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Foto Dokumentasi</span>
+                        <a class="tw-text-sm tw-font-medium tw-text-blue-600 hover:tw-underline" href="<?php echo site_url('lpmpi/spmi-rtm/photo/' . (int) $meeting->id); ?>">Unduh <?php echo html_escape($meeting->photo_original_name); ?></a>
+                    </div>
+                <?php endif; ?>
 
                 <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100">
                     <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Lokasi Pertemuan</span>
@@ -233,7 +244,6 @@ $icon = static function ($name) {
                             <th class="tw-px-4 tw-py-3.5 tw-w-2/5">Keputusan</th>
                             <th class="tw-px-4 tw-py-3.5 tw-w-2/5">Tindakan</th>
                             <th class="tw-px-4 tw-py-3.5 tw-min-w-[180px]">Sumber</th>
-                            <th class="text-center tw-px-4 tw-py-3.5 tw-w-48 tw-text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="tw-divide-y tw-divide-slate-200">
@@ -270,21 +280,6 @@ $icon = static function ($name) {
                                     <?php else: ?>
                                         <span class="tw-text-xs tw-text-slate-400 tw-italic">-</span>
                                     <?php endif; ?></td>
-                                <td class="text-center tw-px-4 tw-py-4 tw-text-center">
-                                    <?php if ($meeting->status === "resolved" && (int) $decision->has_follow_up === 0): ?>
-                                        <a class="btn-ami btn-outline-ami ami-action-btn" href="<?php echo site_url("lpmpi/spmi-follow-ups/create/" . (int) $decision->id); ?>">
-                                            <?php echo $icon('plus'); ?>
-                                            <span>+ Tindak Lanjut</span>
-                                        </a>
-                                    <?php elseif ($meeting->status === "resolved"): ?>
-                                        <span class="tw-inline-flex tw-items-center tw-gap-1.5 tw-whitespace-nowrap tw-text-xs tw-font-medium tw-text-emerald-700 tw-bg-emerald-50 tw-px-2.5 tw-py-1 tw-rounded-full tw-border tw-border-emerald-200">
-                                            <?php echo $icon('check-circle'); ?>
-                                            <span>Sudah ditindaklanjuti</span>
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="tw-text-xs tw-text-slate-400 tw-italic">-</span>
-                                    <?php endif; ?>
-                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -334,22 +329,6 @@ $icon = static function ($name) {
                             </p>
                         </div>
 
-                        <?php if ($meeting->status === "resolved" && (int) $decision->has_follow_up === 0): ?>
-                            <div class="tw-pt-2 tw-border-t tw-border-slate-200">
-                                <a class="btn-ami btn-outline-ami ami-action-btn tw-button-primary tw-w-full tw-min-h-[44px] tw-text-sm tw-justify-center" href="<?php echo site_url("lpmpi/spmi-follow-ups/create/" . (int) $decision->id); ?>">
-                                    <?php echo $icon('plus'); ?>
-                                    <span>+ Tindak Lanjut</span>
-                                </a>
-                            </div>
-                        <?php elseif ($meeting->status === "resolved"): ?>
-                            <div class="tw-pt-2 tw-border-t tw-border-slate-200 tw-flex tw-items-center tw-justify-between">
-                                <span class="tw-text-xs tw-text-slate-500">Status Tindak Lanjut:</span>
-                                <span class="tw-inline-flex tw-items-center tw-gap-1 tw-text-xs tw-font-medium tw-text-emerald-700 tw-bg-emerald-50 tw-px-2.5 tw-py-1 tw-rounded-full tw-border tw-border-emerald-200">
-                                    <?php echo $icon('check-circle'); ?>
-                                    <span>Sudah ditindaklanjuti</span>
-                                </span>
-                            </div>
-                        <?php endif; ?>
                     </article>
                 <?php endforeach; ?>
             </div>

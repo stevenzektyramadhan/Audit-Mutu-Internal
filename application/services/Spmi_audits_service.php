@@ -35,10 +35,15 @@ class Spmi_audits_service
             $version = $this->model->version_for_update($source_version_id);
             if (!$version || !in_array($version->status, ['draft', 'review'], TRUE)) return $this->rollback('Versi sumber harus berstatus draft atau review.');
 
-            $standard_ids = $this->selected_standard_ids($data);
-            if ($standard_ids === NULL) return $this->rollback('Scope standar SPMI tidak valid.');
+            $auditee_id = $this->positive_id(isset($data['auditee_id']) ? $data['auditee_id'] : NULL);
+            $auditee = $auditee_id ? $this->model->user($auditee_id) : NULL;
+            if (!$auditee || $auditee->role !== 'auditee') return $this->rollback('Auditee wajib valid dan ber-role auditee.');
+
+            $standard_auditor_ids = $this->assignment_standard_auditors($data);
+            if ($standard_auditor_ids === NULL) return $this->rollback('Scope standar SPMI tidak valid.');
+            $standard_ids = array_keys($standard_auditor_ids);
             $standards = $this->model->standards_for_version_for_update($version->id, $standard_ids);
-            if (!$standards || ($standard_ids && count($standards) !== count($standard_ids))) return $this->rollback('Standar SPMI tidak ditemukan pada versi sumber.');
+            if (!$standards || count($standards) !== count($standard_ids)) return $this->rollback('Standar SPMI tidak ditemukan pada versi sumber.');
 
             $indicators_by_standard = [];
             foreach ($standards as $standard) {
@@ -49,12 +54,16 @@ class Spmi_audits_service
             $rubric_options = skor_audit_options();
             if (array_keys($rubric_options) !== [1, 2, 3, 4]) return $this->rollback('Skala skor audit global tidak valid.');
 
-            $auditor = $this->model->user((int) $data['auditor_id']);
-            $auditee = $this->model->user((int) $data['auditee_id']);
-            if (!$auditor || $auditor->role !== 'auditor' || !$auditee || $auditee->role !== 'auditee' || (int) $auditor->id === (int) $auditee->id) return $this->rollback('Auditor dan auditee wajib valid, ber-role tepat, dan berbeda.');
-            foreach ($standards as $standard) if ($this->model->assignment_by_tuple($cycle_id, $standard->id, $auditor->id, $auditee->id)) return $this->rollback('Tuple penugasan sudah digunakan pada siklus ini.');
+            $auditors = [];
+            foreach (array_unique($standard_auditor_ids) as $auditor_id) {
+                $auditor = $this->model->user($auditor_id);
+                if (!$auditor || $auditor->role !== 'auditor' || (int) $auditor->id === (int) $auditee->id) return $this->rollback('Auditor dan auditee wajib valid, ber-role tepat, dan berbeda.');
+                $auditors[$auditor_id] = $auditor;
+            }
+            foreach ($standards as $standard) if ($this->model->assignment_by_standard_auditee($cycle_id, $standard->id, $auditee->id)) return $this->rollback('Standar SPMI sudah ditugaskan kepada auditee pada siklus ini.');
 
             foreach ($standards as $standard) {
+                $auditor = $auditors[$standard_auditor_ids[(int) $standard->id]];
                 $assignment = ['cycle_id' => (int) $cycle_id, 'auditor_id' => (int) $auditor->id, 'auditee_id' => (int) $auditee->id, 'created_by' => (int) $user_id, 'source_version_id' => (int) $version->id, 'source_version_code' => $version->version_code, 'source_version_title' => $version->title, 'source_standard_id' => (int) $standard->id, 'source_standard_code' => $standard->standard_code, 'source_standard_title' => $standard->title, 'auditor_name' => $auditor->nama, 'auditor_email' => $auditor->email, 'auditee_name' => $auditee->nama, 'auditee_email' => $auditee->email];
                 $assignment_id = $this->model->insert_assignment($assignment);
                 if (!$assignment_id) return $this->rollback('Penugasan gagal dibuat.');
@@ -76,7 +85,7 @@ class Spmi_audits_service
     }
 
     public function delete_assignment($id) { $this->ci->db->trans_begin(); $assignment = $this->model->assignment($id); $cycle = $assignment ? $this->model->cycle($assignment->cycle_id, TRUE) : NULL; if (!$assignment || !$cycle || $cycle->state !== 'draft') return $this->rollback('Penugasan hanya dapat dihapus pada siklus draft.'); if ($this->model->assignment_workspace_descendant_exists($id)) return $this->rollback('Penugasan tidak dapat dihapus karena data workspace auditee atau auditor sudah ada.'); if (!$this->model->delete_assignment_children($id)) return $this->rollback('Snapshot penugasan gagal dihapus.'); return $this->finish($this->model->delete_assignment($id), 'Penugasan berhasil dihapus.'); }
-    private function selected_standard_ids($data) { if (!array_key_exists('source_standard_ids', $data) || $data['source_standard_ids'] === NULL || $data['source_standard_ids'] === []) return []; if (!is_array($data['source_standard_ids'])) return NULL; $ids = []; foreach ($data['source_standard_ids'] as $value) { $id = $this->positive_id($value); if (!$id) return NULL; $ids[$id] = $id; } return array_values($ids); }
+    private function assignment_standard_auditors($data) { if (!isset($data['assignment_groups']) || !is_array($data['assignment_groups'])) return NULL; $mapping = []; foreach ($data['assignment_groups'] as $group) { if (!is_array($group)) return NULL; if (!isset($group['source_standard_ids']) || $group['source_standard_ids'] === []) continue; if (!is_array($group['source_standard_ids'])) return NULL; $auditor_id = $this->positive_id(isset($group['auditor_id']) ? $group['auditor_id'] : NULL); if (!$auditor_id) return NULL; foreach ($group['source_standard_ids'] as $value) { $standard_id = $this->positive_id($value); if (!$standard_id || isset($mapping[$standard_id])) return NULL; $mapping[$standard_id] = $auditor_id; } } return $mapping ?: NULL; }
     private function positive_id($value) { return is_scalar($value) && preg_match('/^[1-9][0-9]*$/', (string) $value) ? (int) $value : 0; }
     private function cycle_data($data) { return ['cycle_code' => strtoupper(trim((string) (isset($data['cycle_code']) ? $data['cycle_code'] : ''))), 'title' => trim((string) (isset($data['title']) ? $data['title'] : '')), 'description' => trim((string) (isset($data['description']) ? $data['description'] : '')) ?: NULL, 'academic_year' => trim((string) (isset($data['academic_year']) ? $data['academic_year'] : '')), 'start_date' => trim((string) (isset($data['start_date']) ? $data['start_date'] : '')), 'end_date' => trim((string) (isset($data['end_date']) ? $data['end_date'] : ''))]; }
     private function valid_cycle($data) { return preg_match('/^[A-Z0-9._-]+$/', $data['cycle_code']) && strlen($data['cycle_code']) <= 64 && $data['title'] !== '' && strlen($data['title']) <= 200 && $data['academic_year'] !== '' && strlen($data['academic_year']) <= 20 && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['start_date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['end_date']) && $data['end_date'] >= $data['start_date']; }

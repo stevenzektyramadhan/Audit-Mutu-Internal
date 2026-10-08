@@ -13,7 +13,6 @@ module.exports = {
         './application/views/lpmpi/spmi_audits/*.php',
         './application/views/lpmpi/spmi_reports/**/*.php',
         './application/views/lpmpi/spmi_rtm/**/*.php',
-        './application/views/lpmpi/spmi_follow_ups/**/*.php',
         './application/views/account/**/*.php',
         './application/views/lpmpi/profil/**/*.php',
         './application/views/spmi_auditor_dashboard/**/*.php',

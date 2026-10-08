@@ -355,8 +355,8 @@ foreach ($items as $item) {
             <span class="meta-value"><?php echo html_escape($report->cycle_start_date_snapshot . ' — ' . $report->cycle_end_date_snapshot); ?></span>
         </div>
         <div class="meta-item">
-            <span class="meta-label">Auditor</span>
-            <span class="meta-value"><?php echo html_escape($report->auditor_name_snapshot); ?></span>
+            <span class="meta-label">Kontributor Auditor</span>
+            <span class="meta-value"><?php foreach ($contributors as $index => $contributor): ?><?php echo $index ? '<br>' : ''; ?><?php echo html_escape($contributor['name'] . ($contributor['email'] !== '' ? ' (' . $contributor['email'] . ')' : '')); ?><?php endforeach; ?></span>
         </div>
         <div class="meta-item">
             <span class="meta-label">Auditee</span>
@@ -429,6 +429,7 @@ foreach ($items as $item) {
     <thead>
         <tr>
             <th class="col-no">No</th>
+            <th class="col-question">Auditor</th>
             <th class="col-question">Indikator</th>
             <th class="col-evidence">Realisasi &amp; Bukti</th>
             <th class="col-score">Skor</th>
@@ -449,6 +450,7 @@ foreach ($items as $item) {
         ?>
             <tr>
                 <td class="col-no"><?php echo html_escape($item->standard_item_display_order ?: $item->display_order); ?></td>
+                <td class="col-question"><strong><?php echo html_escape((isset($item->auditor_name_snapshot) && trim((string) $item->auditor_name_snapshot) !== '') ? $item->auditor_name_snapshot : $report->auditor_name_snapshot); ?></strong><br><small><?php echo html_escape(isset($item->auditor_email_snapshot) ? $item->auditor_email_snapshot : ''); ?></small></td>
                 <td class="col-question">
                     <small style="color: #64748b;"><?php echo html_escape($item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); ?></small>
                 </td>

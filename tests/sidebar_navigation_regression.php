@@ -129,11 +129,12 @@ check(strpos($sidebar, "'key' => 'spmi_master'") === FALSE, 'SPMI master menu mu
 check(strpos($sidebar, "'key' => 'spmi_instruments'") === FALSE, 'Retired SPMI instrument menu must not remain in the sidebar.');
 check(substr_count($sidebar, "'key' => 'users', 'label' => 'Manajemen Pengguna', 'icon' => 'fa-users', 'url' => 'users', 'group' => 'Management'") === 2, 'Users menu must be shared by management roles.');
 check(strpos($sidebar, "'key' => 'akun', 'label' => 'Akun Auditor & Auditee'") === FALSE, 'Akun menu must be removed after consolidation.');
-check(substr_count($sidebar, "'group' => 'Insights'") === 6, 'Insights group count changed.');
+check(substr_count($sidebar, "'group' => 'Insights'") === 4, 'Insights group count changed.');
 check(substr_count($sidebar, "'key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'") === 2, 'Management SPMI dashboard menu must appear twice under Overview.');
 check(substr_count($sidebar, "'key' => 'spmi_auditor_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'auditor/spmi-dashboard', 'group' => 'Overview'") === 1, 'Auditor SPMI dashboard menu must appear once.');
 check(substr_count($sidebar, "'key' => 'spmi_auditee_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'auditee/spmi-dashboard', 'group' => 'Overview'") === 1, 'Auditee SPMI dashboard menu must appear once.');
 check(substr_count($sidebar, "'key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'") === 2, 'RTM SPMI menu must be shared by management roles.');
+foreach (['spmi_follow_ups', 'lpmpi/spmi-follow-ups', 'Tindak Lanjut RTM'] as $retired) check(strpos($sidebar, $retired) === FALSE, 'Retired follow-up sidebar artifact remains: ' . $retired);
 $upload_settings_contract = "['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings']";
 check(substr_count($sidebar, $upload_settings_contract) === 2, 'Upload settings menu must appear once in each management role.');
 check(strpos($sidebar, $upload_settings_contract, $super_admin_start) !== FALSE && strpos($sidebar, $upload_settings_contract, $super_admin_start) < $admin_lpmpi_start, 'Upload settings menu must be inside super_admin Settings menu.');

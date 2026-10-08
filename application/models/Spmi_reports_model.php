@@ -7,7 +7,7 @@ class Spmi_reports_model extends CI_Model
     {
         $filters = is_array($filters) ? $filters : ['academic_year' => '', 'cycle_id' => 0, 'version_id' => 0, 'auditee_id' => 0, 'q' => '', 'page' => 1];
         $options_query = function ($select, $group_by, $order_by, $positive_id_column = NULL) use ($filters) {
-            $query = $this->db->select($select, FALSE)->from('spmi_reports r')->where('r.report_scope', 'version');
+            $query = $this->db->select($select, FALSE)->from('spmi_reports r')->where_in('r.report_scope', ['version', 'version_auditee']);
             if ($filters['academic_year'] !== '') $query->where('r.academic_year_snapshot', $filters['academic_year']);
             if ($filters['cycle_id']) $query->where('r.source_cycle_id', (int) $filters['cycle_id']);
             if ($filters['version_id']) $query->where('r.source_version_id', (int) $filters['version_id']);
@@ -15,7 +15,7 @@ class Spmi_reports_model extends CI_Model
             return $query->group_by($group_by)->order_by($order_by[0], $order_by[1])->get()->result();
         };
         return [
-            'academic_years' => $this->db->select('academic_year_snapshot', FALSE)->from('spmi_reports')->where('report_scope', 'version')->where('academic_year_snapshot IS NOT NULL', NULL, FALSE)->where("TRIM(academic_year_snapshot) != ''", NULL, FALSE)->group_by('academic_year_snapshot')->order_by('academic_year_snapshot', 'DESC')->get()->result(),
+            'academic_years' => $this->db->select('academic_year_snapshot', FALSE)->from('spmi_reports')->where_in('report_scope', ['version', 'version_auditee'])->where('academic_year_snapshot IS NOT NULL', NULL, FALSE)->where("TRIM(academic_year_snapshot) != ''", NULL, FALSE)->group_by('academic_year_snapshot')->order_by('academic_year_snapshot', 'DESC')->get()->result(),
             'cycles' => $options_query('source_cycle_id, cycle_code_snapshot, cycle_title_snapshot', 'source_cycle_id, cycle_code_snapshot, cycle_title_snapshot', ['cycle_code_snapshot', 'DESC']),
             'versions' => $options_query('source_version_id, source_version_code_snapshot, source_version_title_snapshot', 'source_version_id, source_version_code_snapshot, source_version_title_snapshot', ['source_version_code_snapshot', 'DESC'], 'r.source_version_id'),
             'auditees' => $options_query('auditee_id_snapshot, auditee_name_snapshot', 'auditee_id_snapshot, auditee_name_snapshot', ['auditee_name_snapshot', 'ASC'], 'r.auditee_id_snapshot'),
@@ -31,7 +31,7 @@ class Spmi_reports_model extends CI_Model
 
     public function index_reports($filters, $limit, $offset)
     {
-        $query = $this->db->select('r.*, AVG(ri.score) AS average_score, COUNT(ri.id) AS item_count, COUNT(DISTINCT CONCAT(COALESCE(ri.source_standard_code_snapshot, r.source_standard_code_snapshot), "\\n", COALESCE(ri.source_standard_title_snapshot, r.source_standard_title_snapshot))) AS standard_count, SUM(CASE WHEN ri.finding_snapshot IS NOT NULL AND TRIM(ri.finding_snapshot) != "" THEN 1 ELSE 0 END) AS finding_count', FALSE)->from('spmi_reports r')->join('spmi_report_items ri', 'ri.report_id = r.id', 'left');
+        $query = $this->db->select('r.*, AVG(ri.score) AS average_score, COUNT(ri.id) AS item_count, COUNT(DISTINCT CONCAT(COALESCE(ri.source_standard_code_snapshot, r.source_standard_code_snapshot), "\\n", COALESCE(ri.source_standard_title_snapshot, r.source_standard_title_snapshot))) AS standard_count, COALESCE(GROUP_CONCAT(DISTINCT NULLIF(TRIM(ri.auditor_name_snapshot), "") ORDER BY ri.auditor_name_snapshot SEPARATOR ", "), r.auditor_name_snapshot) AS contributor_names, SUM(CASE WHEN ri.finding_snapshot IS NOT NULL AND TRIM(ri.finding_snapshot) != "" THEN 1 ELSE 0 END) AS finding_count', FALSE)->from('spmi_reports r')->join('spmi_report_items ri', 'ri.report_id = r.id', 'left');
         $this->apply_index_filters($query, $filters);
         return $query->group_by('r.id')->order_by('r.generated_at', 'DESC')->order_by('r.id', 'DESC')->limit((int) $limit, (int) $offset)->get()->result();
     }
@@ -52,13 +52,13 @@ class Spmi_reports_model extends CI_Model
 
     protected function apply_index_filters($query, $filters)
     {
-        $query->where('r.report_scope', 'version');
+        $query->where_in('r.report_scope', ['version', 'version_auditee']);
         if ($filters['academic_year'] !== '') $query->where('r.academic_year_snapshot', $filters['academic_year']);
         if ($filters['cycle_id']) $query->where('r.source_cycle_id', (int) $filters['cycle_id']);
         if ($filters['version_id']) $query->where('r.source_version_id', (int) $filters['version_id']);
         if ($filters['auditee_id']) $query->where('r.auditee_id_snapshot', (int) $filters['auditee_id']);
         if ($filters['q'] !== '') {
-            $query->group_start()->like('r.report_number', $filters['q'])->or_like('r.cycle_code_snapshot', $filters['q'])->or_like('r.cycle_title_snapshot', $filters['q'])->or_like('r.source_version_code_snapshot', $filters['q'])->or_like('r.source_version_title_snapshot', $filters['q'])->or_like('r.auditor_name_snapshot', $filters['q'])->or_like('r.auditee_name_snapshot', $filters['q'])->or_like('ri.source_standard_code_snapshot', $filters['q'])->or_like('ri.source_standard_title_snapshot', $filters['q'])->or_like('ri.indicator_code_snapshot', $filters['q'])->or_like('ri.indicator_title_snapshot', $filters['q'])->group_end();
+            $query->group_start()->like('r.report_number', $filters['q'])->or_like('r.cycle_code_snapshot', $filters['q'])->or_like('r.cycle_title_snapshot', $filters['q'])->or_like('r.source_version_code_snapshot', $filters['q'])->or_like('r.source_version_title_snapshot', $filters['q'])->or_like('r.auditor_name_snapshot', $filters['q'])->or_like('r.auditee_name_snapshot', $filters['q'])->or_like('ri.auditor_name_snapshot', $filters['q'])->or_like('ri.auditor_email_snapshot', $filters['q'])->or_like('ri.source_standard_code_snapshot', $filters['q'])->or_like('ri.source_standard_title_snapshot', $filters['q'])->or_like('ri.indicator_code_snapshot', $filters['q'])->or_like('ri.indicator_title_snapshot', $filters['q'])->group_end();
         }
         return $query;
     }
@@ -75,7 +75,7 @@ class Spmi_reports_model extends CI_Model
 
     public function finalized_versions()
     {
-        return $this->db->query("SELECT MAX(CASE WHEN s.id IS NOT NULL THEN aa.id END) AS anchor_assessment_id, a.cycle_id, a.source_version_id, a.auditor_id, a.auditee_id, c.cycle_code, c.title AS cycle_title, a.source_version_code, a.source_version_title, a.auditor_name, a.auditee_name, COUNT(DISTINCT a.id) AS standard_count, MAX(aa.finalized_at) AS finalized_at FROM spmi_audit_assignments a JOIN spmi_audit_cycles c ON c.id = a.cycle_id LEFT JOIN spmi_auditor_assessments aa ON aa.assignment_id = a.id AND aa.status = 'finalized' AND aa.finalized_at IS NOT NULL LEFT JOIN spmi_auditee_submissions s ON s.assignment_id = a.id AND s.version = aa.source_submission_version AND s.status IN ('submitted', 'resubmitted') LEFT JOIN spmi_reports r ON r.source_cycle_id = a.cycle_id AND r.source_version_id = a.source_version_id AND r.auditor_id_snapshot = a.auditor_id AND r.auditee_id_snapshot = a.auditee_id AND r.report_scope = 'version' WHERE c.state IN ('configured', 'closed') AND a.source_version_id IS NOT NULL AND r.id IS NULL GROUP BY a.cycle_id, a.source_version_id, a.auditor_id, a.auditee_id, c.cycle_code, c.title, a.source_version_code, a.source_version_title, a.auditor_name, a.auditee_name HAVING COUNT(DISTINCT a.id) = COUNT(DISTINCT CASE WHEN s.id IS NOT NULL THEN a.id END) ORDER BY finalized_at DESC")->result();
+        return $this->db->query("SELECT MAX(CASE WHEN s.id IS NOT NULL THEN aa.id END) AS anchor_assessment_id, a.cycle_id, a.source_version_id, a.auditee_id, c.cycle_code, c.title AS cycle_title, a.source_version_code, a.source_version_title, a.auditee_name, COUNT(DISTINCT a.id) AS standard_count, MAX(aa.finalized_at) AS finalized_at FROM spmi_audit_assignments a JOIN spmi_audit_cycles c ON c.id = a.cycle_id LEFT JOIN spmi_auditor_assessments aa ON aa.assignment_id = a.id AND aa.status = 'finalized' AND aa.finalized_at IS NOT NULL LEFT JOIN spmi_auditee_submissions s ON s.assignment_id = a.id AND s.version = aa.source_submission_version AND s.status IN ('submitted', 'resubmitted') LEFT JOIN spmi_reports r ON r.source_cycle_id = a.cycle_id AND r.source_version_id = a.source_version_id AND r.auditee_id_snapshot = a.auditee_id AND r.report_scope = 'version_auditee' WHERE c.state IN ('configured', 'closed') AND a.source_version_id IS NOT NULL AND r.id IS NULL GROUP BY a.cycle_id, a.source_version_id, a.auditee_id, c.cycle_code, c.title, a.source_version_code, a.source_version_title, a.auditee_name HAVING COUNT(DISTINCT a.id) = COUNT(DISTINCT CASE WHEN s.id IS NOT NULL THEN a.id END) ORDER BY finalized_at DESC")->result();
     }
 
     public function report_by_id($id)
@@ -88,9 +88,9 @@ class Spmi_reports_model extends CI_Model
         return $this->db->where('report_id', (int) $report_id)->order_by('display_order', 'ASC')->get('spmi_report_items')->result();
     }
 
-    public function version_report_for_update($cycle_id, $version_id, $auditor_id, $auditee_id)
+    public function version_auditee_report_for_update($cycle_id, $version_id, $auditee_id)
     {
-        return $this->db->query("SELECT * FROM spmi_reports WHERE source_cycle_id = ? AND source_version_id = ? AND auditor_id_snapshot = ? AND auditee_id_snapshot = ? AND report_scope = 'version' FOR UPDATE", [(int) $cycle_id, (int) $version_id, (int) $auditor_id, (int) $auditee_id])->row();
+        return $this->db->query("SELECT * FROM spmi_reports WHERE source_cycle_id = ? AND source_version_id = ? AND auditee_id_snapshot = ? AND report_scope = 'version_auditee' FOR UPDATE", [(int) $cycle_id, (int) $version_id, (int) $auditee_id])->row();
     }
 
     public function report_for_assessment_for_update($assessment_id)
@@ -103,9 +103,9 @@ class Spmi_reports_model extends CI_Model
         return $this->db->query('SELECT aa.*, a.cycle_id, a.source_version_id, a.source_version_code, a.source_version_title, a.source_standard_id, a.source_standard_code, a.source_standard_title, a.auditor_id, a.auditee_id, a.auditor_name, a.auditee_name, c.cycle_code, c.title AS cycle_title, c.start_date AS cycle_start_date, c.end_date AS cycle_end_date FROM spmi_auditor_assessments aa JOIN spmi_audit_assignments a ON a.id = aa.assignment_id JOIN spmi_auditee_submissions s ON s.assignment_id = a.id AND s.version = aa.source_submission_version JOIN spmi_audit_cycles c ON c.id = a.cycle_id WHERE aa.id = ? FOR UPDATE', [(int) $assessment_id])->row();
     }
 
-    public function assignments_for_version_report_for_update($cycle_id, $version_id, $auditor_id, $auditee_id)
+    public function assignments_for_version_auditee_report_for_update($cycle_id, $version_id, $auditee_id)
     {
-        return $this->db->query('SELECT a.*, s.display_order AS source_standard_display_order FROM spmi_audit_assignments a JOIN spmi_standards s ON s.id = a.source_standard_id WHERE a.cycle_id = ? AND a.source_version_id = ? AND a.auditor_id = ? AND a.auditee_id = ? ORDER BY s.display_order ASC FOR UPDATE', [(int) $cycle_id, (int) $version_id, (int) $auditor_id, (int) $auditee_id])->result();
+        return $this->db->query('SELECT a.*, u.email AS auditor_email, s.display_order AS source_standard_display_order FROM spmi_audit_assignments a JOIN spmi_standards s ON s.id = a.source_standard_id JOIN users u ON u.id = a.auditor_id WHERE a.cycle_id = ? AND a.source_version_id = ? AND a.auditee_id = ? ORDER BY s.display_order ASC, a.auditor_id ASC FOR UPDATE', [(int) $cycle_id, (int) $version_id, (int) $auditee_id])->result();
     }
 
     public function finalized_assessment_for_assignment_for_update($assignment_id)

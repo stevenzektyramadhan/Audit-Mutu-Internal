@@ -87,6 +87,9 @@ $icon = static function ($name) {
                         <?php echo $icon('file-spreadsheet'); ?>
                         <span>Export XLSX</span>
                     </a>
+                    <a class="ami-action-btn tw-button-secondary tw-h-10 tw-px-3.5 tw-text-sm" href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>">
+                        <span>Export Word</span>
+                    </a>
                 </div>
             </div>
 
@@ -114,9 +117,9 @@ $icon = static function ($name) {
                 </div>
 
                 <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100">
-                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Auditor</span>
+                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Kontributor Auditor</span>
                     <strong class="tw-text-slate-900 tw-font-medium">
-                        <?php echo html_escape($report->auditor_name_snapshot); ?>
+                        <?php foreach ($contributors as $index => $contributor): ?><?php echo $index ? '<br>' : ''; ?><?php echo html_escape($contributor['name'] . ($contributor['email'] !== '' ? ' (' . $contributor['email'] . ')' : '')); ?><?php endforeach; ?>
                     </strong>
                 </div>
 
@@ -165,6 +168,7 @@ $icon = static function ($name) {
                         <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-600">
                             <tr>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-12 tw-text-center">No</th>
+                                <th class="tw-px-4 tw-py-3.5 tw-w-40">Auditor</th>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-64">Indikator</th>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-72">Realisasi &amp; Bukti</th>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-36">Skor &amp; Deskriptor</th>
@@ -186,6 +190,11 @@ $icon = static function ($name) {
                                 <tr class="hover:tw-bg-slate-50/70 tw-align-top">
                                     <td class="tw-px-4 tw-py-4 tw-text-center tw-font-bold tw-text-slate-500 tw-text-xs">
                                         <?php echo html_escape($item->standard_item_display_order ?: $item->display_order); ?>
+                                    </td>
+
+                                    <td class="tw-px-4 tw-py-4 tw-text-xs tw-text-slate-700">
+                                        <?php echo html_escape((isset($item->auditor_name_snapshot) && trim((string) $item->auditor_name_snapshot) !== '') ? $item->auditor_name_snapshot : $report->auditor_name_snapshot); ?><br>
+                                        <span class="tw-text-slate-500"><?php echo html_escape(isset($item->auditor_email_snapshot) ? $item->auditor_email_snapshot : ''); ?></span>
                                     </td>
 
                                     <!-- Pertanyaan & Indikator -->
@@ -384,10 +393,11 @@ $icon = static function ($name) {
                                     <span class="tw-text-xs tw-text-slate-500">/ 4</span>
                                 </div>
                             </div>
-                            <div class="tw-mt-2 tw-text-xs tw-text-slate-500">
-                                <?php echo html_escape($item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); ?>
-                            </div>
-                        </div>
+                             <div class="tw-mt-2 tw-text-xs tw-text-slate-500">
+                                 <?php echo html_escape($item->indicator_code_snapshot . ' — ' . $item->indicator_title_snapshot); ?>
+                             </div>
+                             <div class="tw-mt-2 tw-text-xs tw-text-slate-600">Auditor: <?php echo html_escape((isset($item->auditor_name_snapshot) && trim((string) $item->auditor_name_snapshot) !== '') ? $item->auditor_name_snapshot : $report->auditor_name_snapshot); ?><?php if (isset($item->auditor_email_snapshot) && trim((string) $item->auditor_email_snapshot) !== ''): ?> · <?php echo html_escape($item->auditor_email_snapshot); ?><?php endif; ?></div>
+                         </div>
 
                         <!-- Realisasi & Bukti Section -->
                         <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100 tw-text-xs">

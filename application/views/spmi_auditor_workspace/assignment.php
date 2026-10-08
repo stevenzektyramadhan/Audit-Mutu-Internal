@@ -272,7 +272,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                             <option value="">Pilih skor</option>
                                             <?php for ($score = 1; $score <= 4; $score++): ?>
                                                 <option value="<?php echo $score; ?>" <?php echo (string) $current_score === (string) $score ? 'selected' : ''; ?>>
-                                                    Skor <?php echo $score; ?>
+                                                    <?php echo $score; ?>
                                                 </option>
                                             <?php endfor; ?>
                                         </select>
@@ -367,9 +367,6 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
 
                                     <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center tw-gap-2">
                                         <input class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-2.5 tw-py-1.5 tw-text-xs tw-text-slate-700" type="file" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="<?php echo $upload_form_id; ?>">
-                                        <button type="submit" form="<?php echo $upload_form_id; ?>" class="btn btn-primary btn-ami tw-button-secondary tw-text-xs tw-whitespace-nowrap">
-                                            <span>Upload bukti auditor</span>
-                                        </button>
                                     </div>
                                     <p class="tw-text-[11px] tw-text-slate-400 tw-mt-1 tw-mb-0">PDF, JPG, PNG maksimal <?php echo html_escape((string) $upload_limit_mib); ?> MiB; maks 5 file.</p>
                                 <?php endif; ?>
@@ -398,31 +395,59 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                 if (!form) return;
                 var csrfName = <?php echo json_encode($this->security->get_csrf_token_name()); ?>;
                 var urlBase = <?php echo json_encode(site_url('auditor/spmi/item/')); ?>;
+                var saveCard = function (card, button) {
+                    var status = card.querySelector('[data-autosave-status]');
+                    var data = new FormData();
+                    var csrf = form.querySelector('input[name="' + csrfName + '"]');
+                    data.append(csrfName, csrf ? csrf.value : '');
+                    data.append('version', form.querySelector('input[name="version"]').value);
+                    data.append('source_submission_version', form.querySelector('input[name="source_submission_version"]').value);
+                    card.querySelectorAll('[data-autosave-field]').forEach(function (field) { data.append(field.dataset.autosaveField, field.value); });
+                    status.textContent = 'Menyimpan...';
+                    if (button) button.disabled = true;
+                    return fetch(urlBase + card.dataset.autosaveCard + '/save', { method: 'POST', body: data, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                        .then(function (response) { return response.json().then(function (json) { return { ok: response.ok, json: json }; }); })
+                         .then(function (result) {
+                              var json = result.json;
+                              if (json.csrf && json.csrf.name && json.csrf.hash) document.querySelectorAll('input[name="' + json.csrf.name + '"]').forEach(function (input) { input.value = json.csrf.hash; input.defaultValue = json.csrf.hash; });
+                              if (!result.ok || !json.success) { status.textContent = json.message || 'Item gagal disimpan.'; return false; }
+                              document.querySelectorAll('input[name="version"]').forEach(function (input) { input.value = json.version; input.defaultValue = json.version; });
+                              status.textContent = json.message || 'Item tersimpan.';
+                              return true;
+                          })
+                         .catch(function () { status.textContent = 'Item gagal disimpan. Periksa koneksi lalu coba lagi.'; return false; })
+                         .finally(function () { if (button) button.disabled = false; });
+                };
                 form.querySelectorAll('[data-autosave-item]').forEach(function (button) {
                     button.addEventListener('click', function () {
                         var card = button.closest('[data-autosave-card]');
-                        var status = card.querySelector('[data-autosave-status]');
-                        var data = new FormData();
-                        var csrf = form.querySelector('input[name="' + csrfName + '"]');
-                        data.append(csrfName, csrf ? csrf.value : '');
-                        data.append('version', form.querySelector('input[name="version"]').value);
-                        data.append('source_submission_version', form.querySelector('input[name="source_submission_version"]').value);
-                        card.querySelectorAll('[data-autosave-field]').forEach(function (field) { data.append(field.dataset.autosaveField, field.value); });
-                        status.textContent = 'Menyimpan...';
-                        button.disabled = true;
-                        fetch(urlBase + button.dataset.autosaveItem + '/save', { method: 'POST', body: data, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                            .then(function (response) { return response.json().then(function (json) { return { ok: response.ok, json: json }; }); })
-                             .then(function (result) {
-                                  var json = result.json;
-                                  if (json.csrf && json.csrf.name && json.csrf.hash) document.querySelectorAll('input[name="' + json.csrf.name + '"]').forEach(function (input) { input.value = json.csrf.hash; input.defaultValue = json.csrf.hash; });
-                                  if (!result.ok || !json.success) { status.textContent = json.message || 'Item gagal disimpan.'; return; }
-                                  document.querySelectorAll('input[name="version"]').forEach(function (input) { input.value = json.version; input.defaultValue = json.version; });
-                                  status.textContent = json.message || 'Item tersimpan.';
-                              })
-                             .catch(function () { status.textContent = 'Item gagal disimpan. Periksa koneksi lalu coba lagi.'; })
-                             .finally(function () { button.disabled = false; });
+                        saveCard(card, button);
                     });
                 });
+                 document.addEventListener('submit', function (event) {
+                     var uploadForm = event.target;
+                     if (!uploadForm || !uploadForm.id || uploadForm.id.indexOf('auditor-evidence-upload-') !== 0) return;
+                     if (uploadForm.dataset.uploadInFlight === 'submitting') { event.preventDefault(); return; }
+                     event.preventDefault();
+                     var fileInput = document.querySelector('input[type="file"][form="' + uploadForm.id + '"]');
+                     var card = fileInput ? fileInput.closest('[data-autosave-card]') : null;
+                     if (!fileInput || !fileInput.files.length || !card) { uploadForm.dataset.uploadInFlight = ''; return; }
+                     uploadForm.dataset.uploadInFlight = 'submitting';
+                     saveCard(card, null).then(function (saved) {
+                          if (!saved) uploadForm.dataset.uploadInFlight = '';
+                         if (!saved) return;
+                         uploadForm.querySelectorAll('input[name="version"]').forEach(function (input) { input.value = form.querySelector('input[name="version"]').value; input.defaultValue = input.value; });
+                         HTMLFormElement.prototype.submit.call(uploadForm);
+                     }).catch(function () { uploadForm.dataset.uploadInFlight = ''; });
+                 });
+                 document.addEventListener('change', function (event) {
+                     var fileInput = event.target;
+                     if (!fileInput || fileInput.type !== 'file') return;
+                     var uploadForm = fileInput.form || document.getElementById(fileInput.getAttribute('form'));
+                     if (!uploadForm || !uploadForm.id || uploadForm.id.indexOf('auditor-evidence-upload-') !== 0) return;
+                     if (!fileInput.files.length || uploadForm.dataset.uploadInFlight === 'submitting') return;
+                     uploadForm.requestSubmit();
+                 });
             }());
             </script>
         <?php endif; ?>

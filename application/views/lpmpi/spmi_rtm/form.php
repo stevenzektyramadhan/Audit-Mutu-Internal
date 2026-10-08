@@ -52,7 +52,7 @@ $icon = static function ($name) {
             </p>
         </div>
 
-        <?php echo form_open($action, ['id' => 'rtm-form', 'class' => 'tw-space-y-6']); ?>
+        <?php echo form_open_multipart($action, ['id' => 'rtm-form', 'class' => 'tw-space-y-6']); ?>
             <!-- Section 1: Meeting Information -->
             <section class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm">
                 <h2 class="tw-text-base tw-font-bold tw-text-slate-950 tw-mb-4 tw-flex tw-items-center tw-gap-2">
@@ -90,6 +90,15 @@ $icon = static function ($name) {
                         <input id="location" name="location" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none" maxlength="200" value="<?php echo html_escape($meeting ? $meeting->location : ''); ?>" placeholder="Ruang Rapat Senat / Gedung Rektorat Lt. 2" required>
                     </div>
                 </div>
+            </section>
+
+            <section class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm">
+                <h2 class="tw-text-base tw-font-bold tw-text-slate-950 tw-mb-2">Foto dokumentasi (opsional)</h2>
+                <p class="tw-text-xs tw-text-slate-500 tw-mb-4">JPEG, PNG, atau WebP maksimal <?php echo html_escape((string) $upload_limit_mib); ?> MiB. Upload baru menggantikan foto sebelumnya.</p>
+                <?php if ($meeting && $meeting->photo_original_name): ?>
+                    <p class="tw-mb-3 tw-text-xs tw-text-slate-700">Foto saat ini: <a class="tw-font-semibold tw-text-blue-600 hover:tw-underline" href="<?php echo site_url('lpmpi/spmi-rtm/photo/' . (int) $meeting->id); ?>"><?php echo html_escape($meeting->photo_original_name); ?></a></p>
+                <?php endif; ?>
+                <input id="photo_file" name="photo_file" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" class="tw-block tw-w-full tw-text-sm tw-text-slate-700">
             </section>
 
             <!-- Section 2: Linked Reports -->
