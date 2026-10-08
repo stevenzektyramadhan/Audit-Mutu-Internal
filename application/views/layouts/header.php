@@ -35,9 +35,6 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
     <?php if (isset($active_menu) && $active_menu === 'spmi_rtm'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-rtm.css')); ?>">
     <?php endif; ?>
-    <?php if (isset($active_menu) && $active_menu === 'spmi_follow_ups'): ?>
-        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-follow-ups.css')); ?>">
-    <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'account'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/account.css')); ?>">
     <?php endif; ?>
