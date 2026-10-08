@@ -46,8 +46,8 @@ Penugasan SPMI memilih standar dan membuat snapshot indikator dengan kebutuhan b
 
 | Peran | Fokus kerja | Menu utama yang terlihat |
 |---|---|---|
-| Super Admin | Memantau ringkasan SPMI dan mengelola pengguna | `Dashboard SPMI`, `Manajemen Pengguna`, `Struktur Organisasi`, `Standar SPMI`, `Siklus & Penugasan SPMI`, `Laporan SPMI`, `RTM SPMI`, `Tindak Lanjut RTM`, `Akun Saya`, `Profil Lembaga` |
-| Admin LPMPI | Mengelola konfigurasi SPMI, laporan, RTM, tindak lanjut, dan arsip legacy | Menu Super Admin tanpa `Manajemen Pengguna`, plus akses ke `Arsip AMI Legacy` |
+| Super Admin | Memantau ringkasan SPMI dan mengelola pengguna | `Dashboard SPMI`, `Manajemen Pengguna`, `Struktur Organisasi`, `Standar SPMI`, `Siklus & Penugasan SPMI`, `Laporan SPMI`, `RTM SPMI`, `Akun Saya`, `Profil Lembaga` |
+| Admin LPMPI | Mengelola konfigurasi SPMI, laporan, RTM, dan arsip legacy | Menu Super Admin tanpa `Manajemen Pengguna`, plus akses ke `Arsip AMI Legacy` |
 | Auditee | Mengisi realisasi dan bukti pada workspace milik sendiri | `Dashboard SPMI`, `Workspace SPMI`, `Akun Saya` |
 | Auditor | Menilai submission milik sendiri, memberi skor, temuan, dan bukti auditor | `Dashboard SPMI`, `Penilaian SPMI`, `Akun Saya` |
 
@@ -305,22 +305,6 @@ Hasil yang diharapkan: data RTM tersimpan dan bisa dilihat dalam detail rapat.
 
 Catatan batas akses: RTM bersifat editable hanya pada `draft`. Saat status sudah bukan `draft`, data menjadi hanya baca.
 
-### Tindak Lanjut RTM
-
-![Daftar tindak lanjut RTM](assets/manual-pengguna/r-04-follow-ups.png)
-
-_R-04, `r-04-follow-ups.png`._
-
-Prasyarat: login sebagai Super Admin atau Admin LPMPI.
-
-Jalur menu: `Tindak Lanjut RTM`.
-
-Aksi utama: buat tindak lanjut, isi status penyelesaian, dan lihat detail progres.
-
-Hasil yang diharapkan: daftar tindak lanjut memperlihatkan status penyelesaian yang mutakhir.
-
-Catatan batas akses: tindak lanjut mengikuti mekanisme aplikasi dan hanya dapat diubah sesuai status yang diizinkan layar.
-
 ### Ringkasan PPEPP di Dashboard SPMI
 
 Prasyarat: login sebagai Super Admin atau Admin LPMPI.
@@ -531,23 +515,9 @@ Jalur menu: `RTM SPMI`.
 
 Aksi utama: buat rapat, hubungkan laporan, isi peserta, dan tulis keputusan.
 
-Hasil yang diharapkan: RTM tersimpan sebagai dokumen kerja dan menjadi dasar tindak lanjut.
+Hasil yang diharapkan: RTM tersimpan sebagai dokumen kerja.
 
 Catatan batas akses: saat status bukan `draft`, RTM tidak lagi dapat diubah.
-
-### Tindak Lanjut RTM, pengelolaan admin
-
-Tindak lanjut berfungsi untuk memantau keputusan RTM sampai status penyelesaiannya jelas.
-
-Prasyarat: RTM atau temuan yang perlu ditindaklanjuti sudah tercatat.
-
-Jalur menu: `Tindak Lanjut RTM`.
-
-Aksi utama: buat item tindak lanjut, ubah detail pelaksanaan, dan pantau statusnya.
-
-Hasil yang diharapkan: daftar tindak lanjut menunjukkan progres yang jelas.
-
-Catatan batas akses: perubahan mengikuti mekanisme edit aplikasi dan perlu dibaca sebagai status kerja, bukan sebagai approval bertingkat.
 
 ### Ringkasan PPEPP di Dashboard SPMI, pengelolaan admin
 
@@ -665,7 +635,6 @@ Itu perilaku yang benar. Arsip AMI Legacy memang hanya untuk baca.
 | AR-03 | `ar-03-score-finding-draft.png` | Draft skor dan temuan |
 | R-01 | `r-01-reports.png` | Laporan SPMI |
 | R-03 | `r-03-rtm.png` | RTM SPMI |
-| R-04 | `r-04-follow-ups.png` | Tindak lanjut RTM |
 | L-01 | `l-01-archive-overview.png` | Arsip AMI Legacy overview |
 | L-01 | `l-01-archive-preflight.png` | Arsip AMI Legacy preflight |
 
@@ -683,7 +652,6 @@ Itu perilaku yang benar. Arsip AMI Legacy memang hanya untuk baca.
 | `Siklus & Penugasan SPMI` | `lpmpi/spmi-audits` |
 | `Laporan SPMI` | `lpmpi/spmi-reports` |
 | `RTM SPMI` | `lpmpi/spmi-rtm` |
-| `Tindak Lanjut RTM` | `lpmpi/spmi-follow-ups` |
 | `Ringkasan PPEPP` | `lpmpi/spmi-dashboard?year=<tahun>` |
 | `Arsip AMI Legacy` | `lpmpi/legacy-ami-archive` |
 
