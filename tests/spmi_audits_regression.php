@@ -37,9 +37,13 @@ foreach (['spmi_audit_assignments', 'spmi_audit_assignment_items'] as $table) {
         spmi_audit_check(strpos(spmi_audit_table($schema, $table), '`' . $retired . '`') === FALSE, 'Bootstrap schema retains retired assignment field: ' . $table . '.' . $retired);
     }
 }
-foreach (['trans_begin', 'version_for_update', 'standards_for_version_for_update', 'source_standard_ids', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
+foreach (['trans_begin', 'version_for_update', 'standards_for_version_for_update', 'assignment_standard_auditors', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
     spmi_audit_check(strpos($service, $required) !== FALSE, 'Assignment service contract missing: ' . $required);
 }
+foreach (['assignment_groups', 'isset($mapping[$standard_id])', 'array_unique($standard_auditor_ids)', 'assignment_by_standard_auditee', 'Standar SPMI sudah ditugaskan kepada auditee pada siklus ini.'] as $required) {
+    spmi_audit_check(strpos($service, $required) !== FALSE, 'Grouped assignment distribution contract missing: ' . $required);
+}
+spmi_audit_check(strpos($service, "if (!isset(\$group['source_standard_ids']) || \$group['source_standard_ids'] === []) continue;") !== FALSE && strpos($service, "if (!is_array(\$group['source_standard_ids'])) return NULL;") !== FALSE && strpos($service, 'if (!$auditor_id) return NULL;') !== FALSE, 'Grouped assignment parser must ignore disabled unselected groups while requiring auditors for selected standards.');
 foreach (['packages()', 'package_for_update', 'package_questions', 'source_package_id', 'source_question_id'] as $retired) {
     spmi_audit_check(strpos($service . $model . $controller, $retired) === FALSE, 'Assignment flow retains package dependency: ' . $retired);
 }
@@ -50,9 +54,13 @@ spmi_audit_check(strpos($controller, "set_rules('source_standard_id'") === FALSE
 foreach (['versions()', 'standards_by_version()', 'standards_for_version_for_update'] as $required) {
     spmi_audit_check(strpos($model, $required) !== FALSE, 'Assignment model version scope contract missing: ' . $required);
 }
+spmi_audit_check(strpos($model, 'assignment_by_standard_auditee') !== FALSE && strpos($model, "'auditor_id' =>") === FALSE, 'Assignment duplicate lookup must ignore auditor and enforce one auditor per standard/auditee.');
 spmi_audit_check(strpos($model, 'ORDER BY s.display_order ASC FOR UPDATE') !== FALSE, 'Locked version standard resolver must preserve standard display order.');
-spmi_audit_check(strpos($form, 'name="source_version_id"') !== FALSE && strpos($form, "checkbox.name = 'source_standard_ids[]'") !== FALSE, 'Assignment form must select a version and submit an optional standard subset.');
+spmi_audit_check(strpos($form, 'name="source_version_id"') !== FALSE && strpos($form, "assignment_groups[' + index + '][source_standard_ids][]") !== FALSE && strpos($form, "assignment_groups[' + index + '][auditor_id]") !== FALSE, 'Assignment form must select a version and submit grouped standard/auditor mappings.');
 spmi_audit_check(strpos($form, '$versions') !== FALSE && strpos($form, '$standards_by_version') !== FALSE, 'Assignment form must receive version-scoped standard data.');
+spmi_audit_check(strpos($form, 'data-role-search') !== FALSE && strpos($form, 'type="search"') !== FALSE && strpos($form, 'data-role-search-status') !== FALSE && strpos($form, 'data-search="<?php echo html_escape(mb_strtolower($user->nama, \'UTF-8\')); ?>"') !== FALSE && strpos($form, '\'search\' => mb_strtolower($user->nama, \'UTF-8\')') !== FALSE, 'Assignment form must progressively enhance auditor and auditee selectors with escaped name search.');
+spmi_audit_check(strpos($form, "querySelectorAll('[data-role-search]')") !== FALSE && strpos($form, "search.addEventListener('input'") !== FALSE && strpos($form, 'option.hidden =') !== FALSE, 'Assignment form must filter native role options locally from name search.');
+spmi_audit_check(strpos($form, 'checkbox.addEventListener') !== FALSE && strpos($form, 'select.disabled = !checkbox.checked') !== FALSE, 'Assignment form must not require auditors for unselected standards.');
 spmi_audit_check(strpos($form, 'source_package') === FALSE, 'Assignment form must not expose a retired package picker.');
 spmi_audit_check(strpos($detail, 'source_standard_code') !== FALSE && strpos($detail, 'evidence_instruction') !== FALSE, 'Assignment detail must render standard and indicator evidence snapshots.');
 spmi_audit_check(strpos($detail, 'source_package') === FALSE && strpos($detail, 'question_text') === FALSE, 'Assignment detail must not render package/question snapshots.');

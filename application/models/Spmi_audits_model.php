@@ -10,7 +10,7 @@ class Spmi_audits_model extends CI_Model
     public function update_cycle($id, $data) { return $this->db->where('id', (int) $id)->update('spmi_audit_cycles', $data); }
     public function assignments($cycle_id) { return $this->db->where('cycle_id', (int) $cycle_id)->order_by('id', 'ASC')->get('spmi_audit_assignments')->result(); }
     public function assignment($id) { return $this->db->where('id', (int) $id)->get('spmi_audit_assignments')->row(); }
-    public function assignment_by_tuple($cycle_id, $standard_id, $auditor_id, $auditee_id) { return $this->db->where(['cycle_id' => (int) $cycle_id, 'source_standard_id' => (int) $standard_id, 'auditor_id' => (int) $auditor_id, 'auditee_id' => (int) $auditee_id])->get('spmi_audit_assignments')->row(); }
+    public function assignment_by_standard_auditee($cycle_id, $standard_id, $auditee_id) { return $this->db->where(['cycle_id' => (int) $cycle_id, 'source_standard_id' => (int) $standard_id, 'auditee_id' => (int) $auditee_id])->get('spmi_audit_assignments')->row(); }
     public function insert_assignment($data) { return $this->db->insert('spmi_audit_assignments', $data) ? $this->db->insert_id() : 0; }
     public function insert_item($data) { return $this->db->insert('spmi_audit_assignment_items', $data) ? $this->db->insert_id() : 0; }
     public function insert_rubric($data) { return $this->db->insert('spmi_audit_assignment_item_rubrics', $data); }
