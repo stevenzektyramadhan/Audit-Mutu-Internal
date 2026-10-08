@@ -11,6 +11,7 @@ class Upload_size_settings_service
         'spreadsheet_imports' => ['label' => 'Import Spreadsheet', 'limit_mib' => 2],
         'spmi_source_pdf' => ['label' => 'PDF Sumber SPMI', 'limit_mib' => 5],
         'institution_logo' => ['label' => 'Logo Lembaga', 'limit_mib' => 4],
+        'rtm_photos' => ['label' => 'Foto Dokumentasi RTM', 'limit_mib' => 5],
     ];
 
     protected $ci;

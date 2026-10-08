@@ -15,6 +15,7 @@ function upload_settings_check($condition, $message)
 }
 
 $migration = upload_settings_source('migrations/039_create_upload_size_settings.sql');
+$rtm_photo_migration = upload_settings_source('migrations/045_add_spmi_rtm_photo.sql');
 $schema = upload_settings_source('database_schema.sql');
 $model = upload_settings_source('application/models/Upload_size_settings_model.php');
 $service = upload_settings_source('application/services/Upload_size_settings_service.php');
@@ -42,9 +43,10 @@ $defaults = [
     "'spreadsheet_imports', 'Import Spreadsheet', 2",
     "'spmi_source_pdf', 'PDF Sumber SPMI', 5",
     "'institution_logo', 'Logo Lembaga', 4",
+    "'rtm_photos', 'Foto Dokumentasi RTM', 5",
 ];
 foreach ($defaults as $literal) {
-    upload_settings_check(strpos($migration, $literal) !== FALSE, 'Migration default missing: ' . $literal);
+    upload_settings_check(strpos($migration . $rtm_photo_migration, $literal) !== FALSE, 'Migration default missing: ' . $literal);
     upload_settings_check(strpos($schema, $literal) !== FALSE, 'Schema default missing: ' . $literal);
 }
 foreach ([
@@ -54,6 +56,7 @@ foreach ([
     "'spreadsheet_imports' => ['label' => 'Import Spreadsheet', 'limit_mib' => 2]",
     "'spmi_source_pdf' => ['label' => 'PDF Sumber SPMI', 'limit_mib' => 5]",
     "'institution_logo' => ['label' => 'Logo Lembaga', 'limit_mib' => 4]",
+    "'rtm_photos' => ['label' => 'Foto Dokumentasi RTM', 'limit_mib' => 5]",
 ] as $literal) {
     upload_settings_check(strpos($service, $literal) !== FALSE, 'Service rollout default missing: ' . $literal);
 }

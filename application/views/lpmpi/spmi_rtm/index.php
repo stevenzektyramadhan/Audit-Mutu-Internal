@@ -120,6 +120,9 @@ $icon = static function ($name) {
                                                 <span>Detail</span>
                                                 <?php echo $icon('arrow-right'); ?>
                                             </a>
+                                            <a class="ami-action-btn tw-button-secondary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-rtm/export-word/' . (int) $meeting->id); ?>">
+                                                <span>Export DOC</span>
+                                            </a>
                                             <?php if ($meeting->status === 'draft'): ?>
                                                 <a class="ami-action-btn tw-button-secondary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-rtm/edit/' . (int) $meeting->id); ?>">
                                                     <?php echo $icon('edit'); ?>
@@ -180,6 +183,9 @@ $icon = static function ($name) {
                                 <a class="ami-action-btn tw-button-secondary tw-flex-1 tw-min-h-[44px] tw-text-sm tw-justify-center" href="<?php echo site_url('lpmpi/spmi-rtm/detail/' . (int) $meeting->id); ?>">
                                     <span>Detail RTM</span>
                                     <?php echo $icon('arrow-right'); ?>
+                                </a>
+                                <a class="ami-action-btn tw-button-secondary tw-min-h-[44px] tw-px-4 tw-text-sm" href="<?php echo site_url('lpmpi/spmi-rtm/export-word/' . (int) $meeting->id); ?>">
+                                    <span>Export DOC</span>
                                 </a>
                                 <?php if ($meeting->status === 'draft'): ?>
                                     <a class="ami-action-btn tw-button-secondary tw-min-h-[44px] tw-px-4 tw-text-sm" href="<?php echo site_url('lpmpi/spmi-rtm/edit/' . (int) $meeting->id); ?>">
