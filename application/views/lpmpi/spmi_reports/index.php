@@ -68,6 +68,39 @@ $page_url = static function ($page) use ($filter_query) {
             <p class="tw-mt-1.5 tw-max-w-2xl tw-text-sm tw-text-slate-500">Kelola, tinjau, dan ekspor hasil audit mutu yang telah difinalisasi.</p>
         </header>
 
+        <!-- Summary Snapshot Strip -->
+        <section class="tw-mb-6" aria-labelledby="snapshot-summary-title">
+            <div class="tw-mb-3 tw-flex tw-items-baseline tw-justify-between">
+                <div>
+                    <h2 id="snapshot-summary-title" class="tw-text-base tw-font-bold tw-text-slate-900">Ringkasan snapshot</h2>
+                    <p class="tw-text-xs tw-text-slate-500">Data immutable dari laporan yang sesuai filter saat ini.</p>
+                </div>
+            </div>
+            <div class="tw-grid tw-grid-cols-2 tw-gap-3 md:tw-grid-cols-2 lg:tw-grid-cols-4">
+                <?php
+                $cards = [
+                    ['label' => 'Laporan', 'value' => (int) ($summary->report_count ?? 0), 'icon' => 'file-text'],
+                    ['label' => 'Auditee', 'value' => (int) ($summary->auditee_count ?? 0), 'icon' => 'users'],
+                    ['label' => 'Standar', 'value' => (int) ($summary->standard_count ?? 0), 'icon' => 'layers'],
+                    ['label' => 'Rata-rata skor', 'value' => $summary->average_score !== NULL && $summary->average_score !== '' ? number_format((float) $summary->average_score, 2, ',', '.') : '—', 'icon' => 'sparkles'],
+                ];
+                foreach ($cards as $card): ?>
+                    <div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm md:tw-p-5">
+                        <div class="tw-flex tw-items-center tw-gap-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">
+                            <span class="reports-metric-icon"><?php echo $icon($card['icon']); ?></span>
+                            <span><?php echo html_escape($card['label']); ?></span>
+                        </div>
+                        <div class="tw-mt-2 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950">
+                            <?php echo html_escape((string) $card['value']); ?>
+                            <?php if ($card['label'] === 'Rata-rata skor' && $card['value'] !== '—'): ?>
+                                <span class="tw-text-xs tw-font-normal tw-text-slate-400"> / 4</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
         <!-- Filter Area: Compact 2-row toolbar -->
         <section class="reports-filter tw-mb-6 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm md:tw-p-5" aria-labelledby="report-filter-title">
             <div class="tw-mb-3.5 tw-flex tw-items-center tw-justify-between">
@@ -159,41 +192,8 @@ $page_url = static function ($page) use ($filter_query) {
             <?php endif; ?>
         </section>
 
-        <!-- Summary Snapshot Strip -->
-        <section class="tw-mb-6" aria-labelledby="snapshot-summary-title">
-            <div class="tw-mb-3 tw-flex tw-items-baseline tw-justify-between">
-                <div>
-                    <h2 id="snapshot-summary-title" class="tw-text-base tw-font-bold tw-text-slate-900">Ringkasan snapshot</h2>
-                    <p class="tw-text-xs tw-text-slate-500">Data immutable dari laporan yang sesuai filter saat ini.</p>
-                </div>
-            </div>
-            <div class="tw-grid tw-grid-cols-2 tw-gap-3 md:tw-grid-cols-2 lg:tw-grid-cols-4">
-                <?php
-                $cards = [
-                    ['label' => 'Laporan', 'value' => (int) ($summary->report_count ?? 0), 'icon' => 'file-text'],
-                    ['label' => 'Auditee', 'value' => (int) ($summary->auditee_count ?? 0), 'icon' => 'users'],
-                    ['label' => 'Standar', 'value' => (int) ($summary->standard_count ?? 0), 'icon' => 'layers'],
-                    ['label' => 'Rata-rata skor', 'value' => $summary->average_score !== NULL && $summary->average_score !== '' ? number_format((float) $summary->average_score, 2, ',', '.') : '—', 'icon' => 'sparkles'],
-                ];
-                foreach ($cards as $card): ?>
-                    <div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm md:tw-p-5">
-                        <div class="tw-flex tw-items-center tw-gap-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">
-                            <span class="reports-metric-icon"><?php echo $icon($card['icon']); ?></span>
-                            <span><?php echo html_escape($card['label']); ?></span>
-                        </div>
-                        <div class="tw-mt-2 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950">
-                            <?php echo html_escape((string) $card['value']); ?>
-                            <?php if ($card['label'] === 'Rata-rata skor' && $card['value'] !== '—'): ?>
-                                <span class="tw-text-xs tw-font-normal tw-text-slate-400"> / 4</span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </section>
-
         <!-- Primary Content: Daftar Laporan -->
-        <section class="tw-mb-8" aria-labelledby="report-list-title">
+        <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm md:tw-p-5" aria-labelledby="report-list-title">
             <div class="tw-mb-3 tw-flex tw-flex-col tw-gap-1 sm:tw-flex-row sm:tw-items-end sm:tw-justify-between">
                 <div>
                     <h2 id="report-list-title" class="tw-text-lg tw-font-bold tw-text-slate-900">Daftar laporan</h2>
@@ -246,7 +246,7 @@ $page_url = static function ($page) use ($filter_query) {
                                             <div class="tw-mt-0.5 tw-text-xs tw-text-slate-500 tw-line-clamp-1"><?php echo html_escape($report->source_version_title_snapshot); ?></div>
                                         </td>
                                         <td class="tw-px-4 tw-py-3.5">
-                                            <div class="tw-font-medium tw-text-slate-800"><?php echo html_escape($report->auditor_name_snapshot); ?></div>
+                                            <div class="tw-font-medium tw-text-slate-800"><?php echo html_escape($report->contributor_names); ?></div>
                                         </td>
                                         <td class="tw-whitespace-nowrap tw-px-4 tw-py-3.5 tw-text-xs tw-text-slate-500">
                                             <?php echo html_escape($format_timestamp($report->assessment_finalized_at_snapshot)); ?>
@@ -270,12 +270,14 @@ $page_url = static function ($page) use ($filter_query) {
                                                             <?php echo $icon('file-spreadsheet'); ?>
                                                             <span>Export XLSX</span>
                                                         </a>
+                                                        <a class="reports-dropdown-item tw-flex tw-w-full tw-items-center tw-gap-2.5 tw-px-3.5 tw-py-2 tw-text-xs tw-font-medium tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900" href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>" role="menuitem"><span>Export Word</span></a>
                                                     </div>
                                                 </div>
                                                 <span class="tw-sr-only">
                                                     <a href="<?php echo site_url('lpmpi/spmi-reports/detail/' . (int) $report->id); ?>">Detail</a>
                                                     <a href="<?php echo site_url('lpmpi/spmi-reports/print/' . (int) $report->id); ?>">Print</a>
                                                     <a href="<?php echo site_url('lpmpi/spmi-reports/export/' . (int) $report->id); ?>">XLSX</a>
+                                                    <a href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>">Word</a>
                                                 </span>
                                             </div>
                                         </td>
@@ -311,7 +313,7 @@ $page_url = static function ($page) use ($filter_query) {
                                 </div>
                                 <div>
                                     <dt class="tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400 tw-text-[10px]">Auditor</dt>
-                                    <dd class="tw-mt-0.5 tw-font-medium tw-text-slate-800"><?php echo html_escape($report->auditor_name_snapshot); ?></dd>
+                                    <dd class="tw-mt-0.5 tw-font-medium tw-text-slate-800"><?php echo html_escape($report->contributor_names); ?></dd>
                                 </div>
                                 <div class="tw-col-span-2">
                                     <dt class="tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400 tw-text-[10px]">Versi SPMI</dt>
@@ -338,12 +340,14 @@ $page_url = static function ($page) use ($filter_query) {
                                                 <?php echo $icon('file-spreadsheet'); ?>
                                                 <span>Export XLSX</span>
                                             </a>
+                                            <a class="reports-dropdown-item tw-flex tw-w-full tw-items-center tw-gap-2.5 tw-px-3.5 tw-py-2.5 tw-text-xs tw-font-medium tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900" href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>" role="menuitem"><span>Export Word</span></a>
                                         </div>
                                     </div>
                                     <span class="tw-sr-only">
                                         <a href="<?php echo site_url('lpmpi/spmi-reports/detail/' . (int) $report->id); ?>">Detail</a>
                                         <a href="<?php echo site_url('lpmpi/spmi-reports/print/' . (int) $report->id); ?>">Print</a>
                                         <a href="<?php echo site_url('lpmpi/spmi-reports/export/' . (int) $report->id); ?>">XLSX</a>
+                                        <a href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>">Word</a>
                                     </span>
                                 </div>
                             </div>
@@ -462,46 +466,6 @@ $page_url = static function ($page) use ($filter_query) {
             </section>
         <?php endif; ?>
 
-        <!-- Analisis per Standar Section -->
-        <section class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm md:tw-p-6" aria-labelledby="standard-analysis-title">
-            <div class="tw-mb-4">
-                <h2 id="standard-analysis-title" class="tw-text-base tw-font-bold tw-text-slate-900">Analisis per standar</h2>
-                <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Rata-rata skor dan temuan dari snapshot laporan yang sesuai filter saat ini.</p>
-            </div>
-            <?php if (empty($standard_analysis)): ?>
-                <div class="tw-rounded-xl tw-border tw-border-dashed tw-border-slate-300 tw-p-6 tw-text-center tw-text-sm tw-text-slate-500">
-                    Belum ada data analisis standar pada snapshot dengan filter ini.
-                </div>
-            <?php else: ?>
-                <div class="tw-grid tw-gap-3.5 lg:tw-grid-cols-2">
-                    <?php foreach ($standard_analysis as $analysis):
-                        $score = max(0, min(4, (float) $analysis->average_score));
-                        $width = ($score / 4) * 100;
-                    ?>
-                        <article class="tw-rounded-xl tw-border tw-border-slate-200 tw-p-4 tw-transition-colors hover:tw-border-slate-300">
-                            <div class="tw-flex tw-items-start tw-justify-between tw-gap-3">
-                                <div>
-                                    <h3 class="tw-text-sm tw-font-bold tw-text-slate-900"><?php echo html_escape($analysis->standard_code); ?></h3>
-                                    <p class="tw-mt-0.5 tw-text-xs tw-text-slate-500 tw-line-clamp-2"><?php echo html_escape($analysis->standard_title); ?></p>
-                                </div>
-                                <span class="tw-whitespace-nowrap tw-font-mono tw-text-sm tw-font-bold tw-text-slate-900">
-                                    <?php echo html_escape(number_format($score, 2, ',', '.')); ?> <span class="tw-text-xs tw-font-normal tw-text-slate-400">/ 4</span>
-                                </span>
-                            </div>
-                            <div class="tw-mt-3" role="img" aria-label="Skor rata-rata <?php echo html_escape(number_format($score, 2, ',', '.')); ?> dari 4 untuk <?php echo html_escape($analysis->standard_code); ?>">
-                                <div class="tw-h-2 tw-overflow-hidden tw-rounded-full tw-bg-slate-100">
-                                    <div class="tw-h-full tw-rounded-full tw-bg-slate-700" style="width: <?php echo html_escape((string) $width); ?>%;"></div>
-                                </div>
-                            </div>
-                            <div class="tw-mt-3 tw-flex tw-flex-wrap tw-gap-x-4 tw-gap-y-1 tw-text-xs tw-text-slate-500">
-                                <span><?php echo html_escape((string) (int) $analysis->indicator_count); ?> indikator</span>
-                                <span><?php echo html_escape((string) (int) $analysis->finding_count); ?> temuan</span>
-                            </div>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </section>
     </div>
 </main>
 
