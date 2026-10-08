@@ -26,15 +26,9 @@ class Spmi_management_dashboard_model extends CI_Model
             'evaluasi' => [
                 'assessments_draft' => $count('spmi_auditor_assessments', ['a.cycle_id IN (' . $eligible_cycles . ')' => NULL, 'aa.status' => 'draft'], 'spmi_auditor_assessments aa', [['spmi_audit_assignments a', 'a.id = aa.assignment_id']]),
                 'assessments_finalized' => $count('spmi_auditor_assessments', ['a.cycle_id IN (' . $eligible_cycles . ')' => NULL, 'aa.status' => 'finalized'], 'spmi_auditor_assessments aa', [['spmi_audit_assignments a', 'a.id = aa.assignment_id']]),
-                'reports' => $count('spmi_reports', ['a.cycle_id IN (' . $eligible_cycles . ')' => NULL], 'spmi_reports r', [['spmi_auditor_assessments aa', 'aa.id = r.assessment_id'], ['spmi_audit_assignments a', 'a.id = aa.assignment_id']]),
+                'reports' => $count('spmi_reports', ['r.source_cycle_id IN (' . $eligible_cycles . ')' => NULL], 'spmi_reports r'),
             ],
             'pengendalian' => ['meetings_resolved' => $count('spmi_rtm_meetings', ['status' => 'resolved']), 'decisions' => $count('spmi_rtm_decisions', ['m.status' => 'resolved'], 'spmi_rtm_decisions d', [['spmi_rtm_meetings m', 'm.id = d.meeting_id']])],
-            'peningkatan' => [
-                'follow_ups_open' => $count('spmi_rtm_follow_ups', ['status' => 'open']),
-                'follow_ups_in_progress' => $count('spmi_rtm_follow_ups', ['status' => 'in_progress']),
-                'follow_ups_completed' => $count('spmi_rtm_follow_ups', ['status' => 'completed']),
-                'follow_ups_overdue' => (int) $this->db->select('COUNT(*) AS total', FALSE)->where_in('status', ['open', 'in_progress'])->where('due_date IS NOT NULL', NULL, FALSE)->where('due_date < CURDATE()', NULL, FALSE)->get('spmi_rtm_follow_ups')->row()->total,
-            ],
         ];
         $stages = $this->config->item('spmi_ppepp_stages', 'spmi_ppepp');
         $categories = $this->config->item('spmi_ppepp_categories', 'spmi_ppepp');
@@ -75,8 +69,6 @@ class Spmi_management_dashboard_model extends CI_Model
     protected function notifications($metrics)
     {
         $notifications = [];
-        $overdue = (int) $metrics['peningkatan']['follow_ups_overdue'];
-        if ($overdue > 0) $notifications[] = ['severity' => 'danger', 'title' => 'Tindak lanjut melewati tenggat', 'detail' => 'Tindak lanjut RTM perlu perhatian.', 'route' => 'lpmpi/spmi-follow-ups', 'count' => $overdue];
         $drafts = (int) $metrics['pelaksanaan']['submissions_draft'];
         if ($drafts > 0) $notifications[] = ['severity' => 'warning', 'title' => 'Submission masih draft', 'detail' => 'Submission SPMI belum dikirim auditee.', 'route' => 'lpmpi/spmi-audits', 'count' => $drafts];
         $assessment_drafts = (int) $metrics['evaluasi']['assessments_draft'];

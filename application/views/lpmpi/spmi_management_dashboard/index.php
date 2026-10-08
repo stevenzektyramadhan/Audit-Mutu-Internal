@@ -56,17 +56,12 @@ $spmi_icons = [
     'file-text' => '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M9 13h6M9 17h4"/>',
     'handshake' => '<path d="m5 12 3-3 4 4 4-4 3 3M3 14l3 3 3-3M21 14l-3 3-3-3M8 9l2-2h4l2 2"/>',
     'git-branch' => '<circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v3a6 6 0 0 0 6 6h3M18 9v3"/>',
-    'circle-dot' => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>',
-    'loader' => '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>',
-    'check-square' => '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 12 3 3 5-6"/>',
-    'alarm' => '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M19 3l3 3"/>',
 ];
 $spmi_metric_icons = [
     'standards' => 'badge', 'indicators' => 'gauge', 'targets' => 'flag', 'cycles' => 'calendar',
     'assignments' => 'user-check', 'submissions_draft' => 'file-text', 'submissions_submitted' => 'send',
     'assessments_draft' => 'clipboard', 'assessments_finalized' => 'clipboard-check', 'reports' => 'chart',
-    'meetings_resolved' => 'handshake', 'decisions' => 'git-branch', 'follow_ups_open' => 'circle-dot',
-    'follow_ups_in_progress' => 'loader', 'follow_ups_completed' => 'check-square', 'follow_ups_overdue' => 'alarm',
+    'meetings_resolved' => 'handshake', 'decisions' => 'git-branch',
 ];
 $spmi_icon = static function ($name) use ($spmi_icons) {
     return '<svg class="spmi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($spmi_icons[$name] ?? $spmi_icons['file']) . '</svg>';
@@ -85,7 +80,7 @@ $spmi_icon = static function ($name) use ($spmi_icons) {
 
     <section class="tw-mb-6 tw-grid tw-grid-cols-1 tw-gap-6 xl:tw-grid-cols-[1.15fr_.85fr]" aria-labelledby="spmi-activity-title">
          <div class="ami-panel spmi-activity-panel"><div class="ami-panel-body"><div class="tw-mb-4 tw-flex tw-items-center tw-justify-between tw-gap-4"><div><div class="spmi-eyebrow">Live feed</div><h3 id="spmi-activity-title">Aktivitas</h3></div><span class="spmi-heading-icon"><?php echo $spmi_icon('bolt'); ?></span></div><?php if (!$notifications): ?><div class="ami-empty">Belum ada notifikasi management SPMI.</div><?php else: foreach ($notifications as $notification): ?><?php $notification_tone = $notification['severity'] === 'danger' ? 'tone-rose' : ($notification['severity'] === 'warning' ? 'tone-amber' : 'tone-blue'); ?><a class="ami-task-card" href="<?php echo site_url($notification['route']); ?>"><div class="ami-task-icon <?php echo $notification_tone; ?>"><?php echo $spmi_icon('bell'); ?></div><div class="ami-task-main"><div class="ami-task-title"><?php echo html_escape($notification['title']); ?><span class="ami-status <?php echo $notification_tone; ?> tw-ml-2"><?php echo html_escape((string) $notification['count']); ?></span></div><div class="ami-task-meta"><?php echo html_escape($notification['detail']); ?></div></div></a><?php endforeach; endif; ?></div></div>
-         <div class="ami-panel spmi-attention-panel"><div class="ami-panel-body"><div class="tw-mb-4 tw-flex tw-items-center tw-justify-between tw-gap-4"><div><div class="spmi-eyebrow">Prioritas</div><h3>Perlu perhatian</h3></div><span class="spmi-heading-icon"><?php echo $spmi_icon('crosshairs'); ?></span></div><div class="tw-grid tw-gap-2"><?php foreach ([['label' => 'Submission masih draft', 'value' => $metrics['pelaksanaan']['submissions_draft'], 'icon' => 'file', 'tone' => 'tone-amber'], ['label' => 'Penilaian masih draft', 'value' => $metrics['evaluasi']['assessments_draft'], 'icon' => 'clipboard', 'tone' => 'tone-blue'], ['label' => 'Tindak lanjut overdue', 'value' => $metrics['peningkatan']['follow_ups_overdue'], 'icon' => 'triangle', 'tone' => 'tone-rose']] as $attention): ?><div class="tw-grid tw-grid-cols-[30px_1fr_auto] tw-items-center tw-gap-2.5 tw-rounded-md tw-border tw-p-3 spmi-attention-item"><span class="spmi-attention-icon <?php echo $attention['tone']; ?>"><?php echo $spmi_icon($attention['icon']); ?></span><span><?php echo html_escape($attention['label']); ?></span><strong><?php echo html_escape((string) $attention['value']); ?></strong></div><?php endforeach; ?></div></div></div>
+         <div class="ami-panel spmi-attention-panel"><div class="ami-panel-body"><div class="tw-mb-4 tw-flex tw-items-center tw-justify-between tw-gap-4"><div><div class="spmi-eyebrow">Prioritas</div><h3>Perlu perhatian</h3></div><span class="spmi-heading-icon"><?php echo $spmi_icon('crosshairs'); ?></span></div><div class="tw-grid tw-gap-2"><?php foreach ([['label' => 'Submission masih draft', 'value' => $metrics['pelaksanaan']['submissions_draft'], 'icon' => 'file', 'tone' => 'tone-amber'], ['label' => 'Penilaian masih draft', 'value' => $metrics['evaluasi']['assessments_draft'], 'icon' => 'clipboard', 'tone' => 'tone-blue']] as $attention): ?><div class="tw-grid tw-grid-cols-[30px_1fr_auto] tw-items-center tw-gap-2.5 tw-rounded-md tw-border tw-p-3 spmi-attention-item"><span class="spmi-attention-icon <?php echo $attention['tone']; ?>"><?php echo $spmi_icon($attention['icon']); ?></span><span><?php echo html_escape($attention['label']); ?></span><strong><?php echo html_escape((string) $attention['value']); ?></strong></div><?php endforeach; ?></div></div></div>
     </section>
 
     <section class="tw-mb-6 tw-grid tw-grid-cols-1 tw-gap-4 sm:tw-grid-cols-2 xl:tw-grid-cols-4" aria-label="KPI utama SPMI">

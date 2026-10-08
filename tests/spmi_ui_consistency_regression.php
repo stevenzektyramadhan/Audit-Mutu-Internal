@@ -10,13 +10,11 @@ $lists = [
     'application/views/lpmpi/spmi_indicators/index.php',
     'application/views/lpmpi/spmi_reports/index.php',
     'application/views/lpmpi/spmi_rtm/index.php',
-    'application/views/lpmpi/spmi_follow_ups/index.php',
 ];
 $details = [
     'application/views/lpmpi/spmi_indicators/indicator_detail.php',
     'application/views/lpmpi/spmi_reports/detail.php',
     'application/views/lpmpi/spmi_rtm/detail.php',
-    'application/views/lpmpi/spmi_follow_ups/detail.php',
     'application/views/lpmpi/spmi_standards/version_detail.php',
 ];
 
@@ -49,6 +47,6 @@ foreach ($details as $path) {
 }
 
 $rtm_detail = spmi_ui_source('application/views/lpmpi/spmi_rtm/detail.php');
-foreach (['lpmpi/spmi-follow-ups/create/', '$meeting->status === "resolved"', '(int) $decision->has_follow_up === 0'] as $literal) spmi_ui_check(strpos($rtm_detail, $literal) !== FALSE, 'SPMI UI RTM follow-up guard literal missing: ' . $literal);
+foreach (['lpmpi/spmi-follow-ups', 'has_follow_up', 'Tindak Lanjut'] as $literal) spmi_ui_check(strpos($rtm_detail, $literal) === FALSE, 'Retired RTM follow-up UI artifact remains: ' . $literal);
 
 fwrite(STDOUT, "SPMI UI consistency regression checks passed.\n");
