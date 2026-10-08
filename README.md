@@ -25,8 +25,8 @@ Business logic, ownership check, dan transaksi database ditempatkan pada service
 3. Siklus dikonfigurasi agar auditee dapat mengerjakan penugasan.
 4. Auditee mengisi realisasi dan bukti sesuai kebijakan bukti yang tersnapshot, lalu mengirimkannya.
 5. Auditor menilai, dapat mengembalikan untuk revisi, lalu memfinalisasi assessment.
-6. Setelah seluruh penugasan selesai dinilai, manajemen membuat laporan immutable per versi, auditor, dan auditee.
-7. Snapshot laporan digunakan dalam RTM dan tindak lanjut RTM.
+6. Setelah seluruh penugasan pada kombinasi siklus, versi, dan auditee selesai dinilai, manajemen membuat satu laporan immutable lintas auditor.
+7. Snapshot laporan digunakan dalam RTM.
 
 ### Status dan Transisi
 
@@ -38,7 +38,7 @@ Business logic, ownership check, dan transaksi database ditempatkan pada service
 | Assessment auditor | `draft -> finalized`. |
 | RTM | `draft -> resolved`; RTM resolved bersifat baca-saja. |
 
-Laporan dibuat hanya ketika seluruh penugasan untuk kombinasi siklus, versi, auditor, dan auditee telah memiliki assessment finalized. Laporan dan itemnya adalah snapshot immutable; laporan historis tetap dapat dibaca.
+Laporan baru dibuat hanya ketika seluruh penugasan untuk kombinasi siklus, versi, dan auditee telah memiliki assessment finalized. Laporan dan itemnya adalah snapshot immutable; setiap item menyimpan identitas auditor penanggung jawab, dan laporan historis tetap dapat dibaca.
 
 ### Kebijakan Bukti per Indikator
 
@@ -52,8 +52,8 @@ Dokumen PPEPP adalah arsip manajemen-only untuk tahap `Penetapan`, `Pelaksanaan`
 
 | Peran | Redirect login | Menu sidebar terlihat |
 |---|---|---|
-| `super_admin` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Master Data Organisasi & Staf; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
-| `admin_lpmpi` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Master Data Organisasi & Staf; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Tindak Lanjut RTM; Akun Saya; Profil Lembaga |
+| `super_admin` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Master Data Organisasi & Staf; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Akun Saya; Profil Lembaga |
+| `admin_lpmpi` | `lpmpi/spmi-dashboard` | Dashboard SPMI; Manajemen Pengguna; Master Data Organisasi & Staf; Standar SPMI; Siklus & Penugasan SPMI; Dokumen PPEPP; Laporan SPMI; RTM SPMI; Akun Saya; Profil Lembaga |
 | `auditor` | `auditor/spmi-dashboard` | Dashboard SPMI; Penilaian SPMI; Akun Saya |
 | `auditee` | `auditee/spmi-dashboard` | Dashboard SPMI; Workspace SPMI; Akun Saya |
 
@@ -202,7 +202,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-043`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-045`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
 
 #### Akun Administrator Pertama
 
@@ -230,7 +230,7 @@ Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `04
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `043` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `045` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -264,12 +264,14 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 30. `041_create_staf_prodi.sql`
 31. `042_link_profil_prodi_to_organization_units.sql`
 32. `043_add_spmi_report_academic_year_snapshot.sql`
+33. `044_add_spmi_version_auditee_report_scope.sql`
+34. `045_add_spmi_rtm_photo.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
 Migration `038_create_spmi_ppepp_documents.sql` bersifat aditif: menambahkan tabel metadata arsip dokumen PPEPP manajemen-only. File fisik PPEPP tetap berada di private storage kategori `ppepp_documents`; backup upgrade harus mencakup database dan `APP_PRIVATE_STORAGE_PATH`.
 
-Migration `039_create_upload_size_settings.sql` bersifat aditif: menambahkan pengaturan batas upload per kategori. Halaman `Pengaturan Upload` hanya tersedia untuk `super_admin` dan `admin_lpmpi`. Nilai awalnya adalah bukti SPMI 5 MiB, dokumen PPEPP 10 MiB, foto profil akun 2 MiB, import spreadsheet 2 MiB, PDF sumber SPMI 5 MiB, dan logo lembaga 4 MiB. Pengaturan berlaku pada uploader aktif terkait; validasi tipe file, private storage, ownership, serta alur Google Drive tidak berubah. Upload AMI legacy tidak termasuk cakupan ini, dan penyimpanan logo lembaga yang kompatibel dengan legacy tetap berada di lokasi semula.
+Migration `039_create_upload_size_settings.sql` bersifat aditif: menambahkan pengaturan batas upload per kategori. Halaman `Pengaturan Upload` hanya tersedia untuk `super_admin` dan `admin_lpmpi`. Nilai awalnya adalah bukti SPMI 5 MiB, dokumen PPEPP 10 MiB, foto profil akun 2 MiB, import spreadsheet 2 MiB, PDF sumber SPMI 5 MiB, logo lembaga 4 MiB, dan foto dokumentasi RTM 5 MiB. Pengaturan berlaku pada uploader aktif terkait; validasi tipe file, private storage, ownership, serta alur Google Drive tidak berubah. Upload AMI legacy tidak termasuk cakupan ini, dan penyimpanan logo lembaga yang kompatibel dengan legacy tetap berada di lokasi semula.
 
 Migration `040_create_login_rate_limit_buckets.sql` bersifat aditif: menambahkan bucket kegagalan login yang menyimpan HMAC identitas dan IP, bukan email atau IP mentah. Terapkan migration ini sekali setelah backup database, lalu smoke test login sebelum membuka traffic.
 
@@ -278,6 +280,10 @@ Migration `041_create_staf_prodi.sql` bersifat aditif: menambahkan relasi staf e
 Migration `042_link_profil_prodi_to_organization_units.sql` bersifat aditif: menambahkan link nullable `profil_prodi.organization_unit_id`, unique key, dan foreign key RESTRICT ke `organization_units.id`. Migration ini tidak melakukan auto-map, backfill, insert, update, delete, penghapusan UPPS, atau perubahan workflow; Prodi lama boleh tetap `NULL` sampai admin menghubungkan struktur organisasi secara eksplisit pada fase berikutnya. Terapkan sekali setelah backup database lengkap dan `APP_PRIVATE_STORAGE_PATH`, tanpa menonaktifkan foreign key checks.
 
 Migration `043_add_spmi_report_academic_year_snapshot.sql` bersifat aditif dan idempoten: menambahkan `spmi_reports.academic_year_snapshot` nullable serta index riwayat aman tanpa backfill. Laporan historis bernilai `NULL` tetap tampil pada riwayat semua tahun, tetapi tidak pernah diinfer dari siklus hidup dan tidak muncul saat tahun akademik tertentu dipilih.
+
+Migration `044_add_spmi_version_auditee_report_scope.sql` bersifat aditif dan idempoten: menambahkan scope laporan `version_auditee`, unique tuple baru per siklus/versi/auditee, serta snapshot ID/nama/email auditor pada setiap item laporan. Tidak ada row historis, unique index versi lama, atau data assessment yang diubah. Laporan baru dapat diekspor sebagai XLSX, print, atau Word-compatible UTF-8 HTML `.doc` tanpa membaca auditor/assessment hidup.
+
+Migration `045_add_spmi_rtm_photo.sql` bersifat aditif dan idempoten: menambahkan metadata nullable nama simpanan, nama asal, MIME, ukuran, dan SHA-256 untuk satu foto dokumentasi RTM serta kategori batas upload `rtm_photos` (default 5 MiB). Foto hanya dapat diunggah atau diganti saat RTM draft, disimpan private di bawah `APP_PRIVATE_STORAGE_PATH`, dan diunduh oleh pengguna LPMPI berwenang melalui endpoint aplikasi.
 
 Docker lokal memakai nilai `APP_ENCRYPTION_KEY` development yang dapat dioverride melalui environment. Deployment harus selalu menyediakan nilai acak dan rahasia sendiri; jangan gunakan nilai default Docker lokal di luar development.
 
