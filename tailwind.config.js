@@ -1,5 +1,6 @@
 module.exports = {
     content: [
+        './application/views/layouts/**/*.php',
         './application/views/lpmpi/spmi_management_dashboard/index.php',
         './application/views/dashboard/**/*.php',
         './application/views/users/index.php',
