@@ -1713,6 +1713,310 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
                 font-size: 11px;
             }
         }
+
+        /* Global Toast Notifications */
+        .ami-toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 420px;
+            width: calc(100vw - 32px);
+            pointer-events: none;
+        }
+
+        .ami-toast {
+            pointer-events: auto;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: amiToastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes amiToastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        .ami-toast.ami-toast-hiding {
+            opacity: 0;
+            transform: translateX(30px);
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            overflow: hidden;
+            border: none;
+        }
+
+        .ami-toast-icon {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -2px;
+        }
+
+        .ami-toast-success { border-left: 4px solid #10b981; }
+        .ami-toast-success .ami-toast-icon { background: #ecfdf5; color: #059669; }
+
+        .ami-toast-error { border-left: 4px solid #ef4444; }
+        .ami-toast-error .ami-toast-icon { background: #fef2f2; color: #dc2626; }
+
+        .ami-toast-warning { border-left: 4px solid #f59e0b; }
+        .ami-toast-warning .ami-toast-icon { background: #fffbeb; color: #d97706; }
+
+        .ami-toast-info { border-left: 4px solid #3b82f6; }
+        .ami-toast-info .ami-toast-icon { background: #eff6ff; color: #2563eb; }
+
+        .ami-toast-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ami-toast-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+
+        .ami-toast-message {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .ami-toast-close {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s, background-color 0.15s;
+        }
+
+        .ami-toast-close:hover {
+            color: #334155;
+            background: #f1f5f9;
+        }
+
+        /* Global Confirmation Modal */
+        .ami-confirm-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .ami-confirm-modal[hidden] {
+            display: none !important;
+        }
+
+        .ami-confirm-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            animation: amiFadeIn 0.2s ease-out;
+        }
+
+        @keyframes amiFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .ami-confirm-card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 28px 24px 24px 24px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.2), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+            animation: amiModalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes amiModalScaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .ami-confirm-badge {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            margin: 0 auto 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ami-confirm-badge.ami-badge-danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .ami-confirm-badge.ami-badge-warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .ami-confirm-badge.ami-badge-info {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .ami-confirm-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+        }
+
+        .ami-confirm-desc {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+            margin: 0 0 24px 0;
+            word-break: break-word;
+        }
+
+        .ami-confirm-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .ami-confirm-btn-cancel,
+        .ami-confirm-btn-submit {
+            flex: 1;
+            height: 44px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ami-confirm-btn-cancel {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+        }
+
+        .ami-confirm-btn-cancel:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            color: #0f172a;
+        }
+
+        .ami-confirm-btn-submit.ami-btn-danger {
+            background: #dc2626;
+            border: 1px solid #dc2626;
+            color: #ffffff;
+        }
+
+        .ami-confirm-btn-submit.ami-btn-danger:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+
+        .ami-confirm-btn-submit.ami-btn-warning {
+            background: #d97706;
+            border: 1px solid #d97706;
+            color: #ffffff;
+        }
+
+        .ami-confirm-btn-submit.ami-btn-warning:hover {
+            background: #b45309;
+            border-color: #b45309;
+        }
+
+        .ami-confirm-btn-submit.ami-btn-primary {
+            background: #1e3a8a;
+            border: 1px solid #1e3a8a;
+            color: #ffffff;
+        }
+
+        .ami-confirm-btn-submit.ami-btn-primary:hover {
+            background: #172554;
+            border-color: #172554;
+        }
+
+        body.ami-modal-lock {
+            overflow: hidden !important;
+        }
+
+        @media (max-width: 480px) {
+            .ami-toast-container {
+                top: 12px;
+                right: 16px;
+                left: 16px;
+                width: auto;
+            }
+
+            .ami-confirm-card {
+                padding: 20px 16px 16px 16px;
+            }
+
+            .ami-confirm-actions {
+                flex-direction: column-reverse;
+                gap: 8px;
+            }
+
+            .ami-confirm-btn-cancel,
+            .ami-confirm-btn-submit {
+                width: 100%;
+                flex: none;
+            }
+        }
     </style>
 </head>
 <body>
