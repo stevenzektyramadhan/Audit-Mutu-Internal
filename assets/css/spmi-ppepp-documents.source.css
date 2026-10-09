@@ -39,3 +39,57 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+#ppepp-documents-root .ppepp-primary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    color: #ffffff !important;
+    background-color: var(--ami-blue, #1e3a8a);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+#ppepp-documents-root .ppepp-primary-action:visited {
+    color: #ffffff !important;
+}
+
+#ppepp-documents-root .ppepp-primary-action:hover {
+    color: #ffffff !important;
+    background-color: #1e40af;
+    text-decoration: none;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+}
+
+#ppepp-documents-root .ppepp-primary-action:focus,
+#ppepp-documents-root .ppepp-primary-action:focus-visible {
+    color: #ffffff !important;
+    background-color: #1e40af;
+    outline: none;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--ami-link, #2563eb);
+}
+
+#ppepp-documents-root .ppepp-primary-action:active {
+    color: #ffffff !important;
+    background-color: #172554;
+    transform: translateY(1px);
+}
+
+#ppepp-documents-root .ppepp-primary-action svg {
+    color: #ffffff !important;
+    stroke: currentColor;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
