@@ -177,7 +177,7 @@ $page_url = static function ($page) use ($filter_query) {
                         <span class="tw-pointer-events-none tw-absolute tw-inset-y-0 tw-left-3 tw-flex tw-items-center tw-text-slate-400">
                             <?php echo $icon('search'); ?>
                         </span>
-                        <input name="q" value="<?php echo html_escape((string) ($filters['q'] ?? '')); ?>" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-pl-9 tw-pr-3 tw-text-sm tw-text-slate-900 placeholder:tw-text-slate-400 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200" type="search" placeholder="Cari nomor laporan, auditor, auditee, standar...">
+                        <input name="q" value="<?php echo html_escape((string) ($filters['q'] ?? '')); ?>" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-pl-9 tw-pr-3 tw-text-sm tw-text-slate-900 placeholder:tw-text-slate-400 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200" type="search" placeholder="Cari nomor laporan, kode atau judul versi SPMI, nama auditee, atau nama auditor...">
                     </div>
                     <div class="tw-flex tw-items-center tw-gap-2">
                         <button class="btn-ami tw-button-primary tw-h-11 tw-px-5 tw-text-sm" type="submit">Tampilkan</button>
@@ -193,13 +193,13 @@ $page_url = static function ($page) use ($filter_query) {
         </section>
 
         <!-- Primary Content: Daftar Laporan -->
-        <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm md:tw-p-5" aria-labelledby="report-list-title">
+        <section id="report-list" class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm md:tw-p-5" aria-labelledby="report-list-title" aria-busy="false">
             <div class="tw-mb-3 tw-flex tw-flex-col tw-gap-1 sm:tw-flex-row sm:tw-items-end sm:tw-justify-between">
                 <div>
                     <h2 id="report-list-title" class="tw-text-lg tw-font-bold tw-text-slate-900">Daftar laporan</h2>
                     <p class="tw-text-xs tw-text-slate-500"><?php echo html_escape((string) $result_count); ?> laporan ditemukan · Urutan terbaru berdasarkan waktu pembuatan snapshot.</p>
                 </div>
-                <p class="tw-text-xs tw-font-medium tw-text-slate-500" aria-live="polite">
+                <p id="report-list-status" class="tw-text-xs tw-font-medium tw-text-slate-500" aria-live="polite">
                     Halaman <?php echo html_escape((string) $current_page); ?> dari <?php echo html_escape((string) $page_count); ?>
                 </p>
             </div>
@@ -229,9 +229,9 @@ $page_url = static function ($page) use ($filter_query) {
                             </thead>
                             <tbody class="tw-divide-y tw-divide-slate-100">
                                 <?php foreach ($reports as $report): ?>
-                                    <tr class="hover:tw-bg-slate-50/80 tw-transition-colors">
+                                    <tr class="report-entry-row hover:tw-bg-slate-50/80 tw-transition-colors">
                                         <td class="tw-px-4 tw-py-3.5">
-                                            <span class="tw-block tw-font-mono tw-text-xs tw-font-bold tw-text-slate-900 tw-tracking-tight">
+                                            <span class="report-searchable-field tw-block tw-font-mono tw-text-xs tw-font-bold tw-text-slate-900 tw-tracking-tight">
                                                 <?php echo html_escape($report->report_number); ?>
                                             </span>
                                             <div class="tw-mt-1 tw-text-xs tw-text-slate-500">
@@ -239,14 +239,14 @@ $page_url = static function ($page) use ($filter_query) {
                                             </div>
                                         </td>
                                         <td class="tw-px-4 tw-py-3.5">
-                                            <div class="tw-font-medium tw-text-slate-900"><?php echo html_escape($report->auditee_name_snapshot); ?></div>
+                                            <div class="report-searchable-field tw-font-medium tw-text-slate-900"><?php echo html_escape($report->auditee_name_snapshot); ?></div>
                                         </td>
                                         <td class="tw-px-4 tw-py-3.5">
-                                            <div class="tw-font-medium tw-text-slate-900"><?php echo html_escape($report->source_version_code_snapshot); ?></div>
-                                            <div class="tw-mt-0.5 tw-text-xs tw-text-slate-500 tw-line-clamp-1"><?php echo html_escape($report->source_version_title_snapshot); ?></div>
+                                            <div class="report-searchable-field tw-font-medium tw-text-slate-900"><?php echo html_escape($report->source_version_code_snapshot); ?></div>
+                                            <div class="report-searchable-field tw-mt-0.5 tw-text-xs tw-text-slate-500 tw-line-clamp-1"><?php echo html_escape($report->source_version_title_snapshot); ?></div>
                                         </td>
                                         <td class="tw-px-4 tw-py-3.5">
-                                            <div class="tw-font-medium tw-text-slate-800"><?php echo html_escape($report->contributor_names); ?></div>
+                                            <div class="report-searchable-field tw-font-medium tw-text-slate-800"><?php echo html_escape($report->contributor_names); ?></div>
                                         </td>
                                         <td class="tw-whitespace-nowrap tw-px-4 tw-py-3.5 tw-text-xs tw-text-slate-500">
                                             <?php echo html_escape($format_timestamp($report->assessment_finalized_at_snapshot)); ?>
@@ -270,7 +270,10 @@ $page_url = static function ($page) use ($filter_query) {
                                                             <?php echo $icon('file-spreadsheet'); ?>
                                                             <span>Export XLSX</span>
                                                         </a>
-                                                        <a class="reports-dropdown-item tw-flex tw-w-full tw-items-center tw-gap-2.5 tw-px-3.5 tw-py-2 tw-text-xs tw-font-medium tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900" href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>" role="menuitem"><span>Export Word</span></a>
+                                                        <a class="reports-dropdown-item tw-flex tw-w-full tw-items-center tw-gap-2.5 tw-px-3.5 tw-py-2 tw-text-xs tw-font-medium tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900" href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>" role="menuitem">
+                                                            <?php echo $icon('file-text'); ?>
+                                                            <span>Export Word</span>
+                                                        </a>
                                                     </div>
                                                 </div>
                                                 <span class="tw-sr-only">
@@ -291,10 +294,10 @@ $page_url = static function ($page) use ($filter_query) {
                 <!-- Mobile Cards View -->
                 <div class="tw-grid tw-gap-3 md:tw-hidden">
                     <?php foreach ($reports as $report): ?>
-                        <article class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm">
+                        <article class="tw-rounded-2xl report-entry-card tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm">
                             <div class="tw-flex tw-items-start tw-justify-between tw-gap-2">
                                 <div>
-                                    <span class="tw-block tw-font-mono tw-text-xs tw-font-bold tw-text-slate-900 tw-tracking-tight tw-break-all">
+                                    <span class="report-searchable-field tw-block tw-font-mono tw-text-xs tw-font-bold tw-text-slate-900 tw-tracking-tight tw-break-all">
                                         <?php echo html_escape($report->report_number); ?>
                                     </span>
                                     <div class="tw-mt-1 tw-text-[11px] tw-text-slate-500">
@@ -309,15 +312,15 @@ $page_url = static function ($page) use ($filter_query) {
                             <dl class="tw-mt-3 tw-grid tw-grid-cols-2 tw-gap-2 tw-border-t tw-border-slate-100 tw-pt-3 tw-text-xs">
                                 <div>
                                     <dt class="tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400 tw-text-[10px]">Auditee</dt>
-                                    <dd class="tw-mt-0.5 tw-font-medium tw-text-slate-900"><?php echo html_escape($report->auditee_name_snapshot); ?></dd>
+                                    <dd class="report-searchable-field tw-mt-0.5 tw-font-medium tw-text-slate-900"><?php echo html_escape($report->auditee_name_snapshot); ?></dd>
                                 </div>
                                 <div>
                                     <dt class="tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400 tw-text-[10px]">Auditor</dt>
-                                    <dd class="tw-mt-0.5 tw-font-medium tw-text-slate-800"><?php echo html_escape($report->contributor_names); ?></dd>
+                                    <dd class="report-searchable-field tw-mt-0.5 tw-font-medium tw-text-slate-800"><?php echo html_escape($report->contributor_names); ?></dd>
                                 </div>
                                 <div class="tw-col-span-2">
                                     <dt class="tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400 tw-text-[10px]">Versi SPMI</dt>
-                                    <dd class="tw-mt-0.5 tw-text-slate-700"><?php echo html_escape($report->source_version_code_snapshot . ' — ' . $report->source_version_title_snapshot); ?></dd>
+                                    <dd class="report-searchable-field tw-mt-0.5 tw-text-slate-700"><?php echo html_escape($report->source_version_code_snapshot . ' — ' . $report->source_version_title_snapshot); ?></dd>
                                 </div>
                             </dl>
 
@@ -340,7 +343,10 @@ $page_url = static function ($page) use ($filter_query) {
                                                 <?php echo $icon('file-spreadsheet'); ?>
                                                 <span>Export XLSX</span>
                                             </a>
-                                            <a class="reports-dropdown-item tw-flex tw-w-full tw-items-center tw-gap-2.5 tw-px-3.5 tw-py-2.5 tw-text-xs tw-font-medium tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900" href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>" role="menuitem"><span>Export Word</span></a>
+                                            <a class="reports-dropdown-item tw-flex tw-w-full tw-items-center tw-gap-2.5 tw-px-3.5 tw-py-2.5 tw-text-xs tw-font-medium tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900" href="<?php echo site_url('lpmpi/spmi-reports/export-word/' . (int) $report->id); ?>" role="menuitem">
+                                                <?php echo $icon('file-text'); ?>
+                                                <span>Export Word</span>
+                                            </a>
                                         </div>
                                     </div>
                                     <span class="tw-sr-only">
@@ -528,6 +534,165 @@ $page_url = static function ($page) use ($filter_query) {
             closeAllDropdowns();
         }
     });
+
+    var reportList = root.querySelector('#report-list');
+    var searchInput = root.querySelector('input[name="q"]');
+    var form = root.querySelector('form[method="get"]');
+    var debounceTimer = null;
+    var requestController = null;
+
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function removeHighlights(container) {
+        var marks = container.querySelectorAll('mark.report-search-match');
+        for (var i = 0; i < marks.length; i++) {
+            var mark = marks[i];
+            var parent = mark.parentNode;
+            if (!parent) continue;
+            while (mark.firstChild) {
+                parent.insertBefore(mark.firstChild, mark);
+            }
+            parent.removeChild(mark);
+            parent.normalize();
+        }
+    }
+
+    function highlightTextNodes(element, regex) {
+        var child = element.firstChild;
+        while (child) {
+            var nextChild = child.nextSibling;
+            if (child.nodeType === 3) { // Node.TEXT_NODE
+                var text = child.nodeValue;
+                if (text && regex.test(text)) {
+                    regex.lastIndex = 0;
+                    var fragment = document.createDocumentFragment();
+                    var lastIndex = 0;
+                    var match;
+                    while ((match = regex.exec(text)) !== null) {
+                        var matchedText = match[0];
+                        if (!matchedText) break;
+                        var beforeMatch = text.slice(lastIndex, match.index);
+                        if (beforeMatch) {
+                            fragment.appendChild(document.createTextNode(beforeMatch));
+                        }
+                        var mark = document.createElement('mark');
+                        mark.className = 'report-search-match';
+                        mark.appendChild(document.createTextNode(matchedText));
+                        fragment.appendChild(mark);
+                        lastIndex = match.index + matchedText.length;
+                    }
+                    if (lastIndex < text.length) {
+                        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+                    }
+                    element.replaceChild(fragment, child);
+                }
+            } else if (child.nodeType === 1 && child.nodeName !== 'SCRIPT' && child.nodeName !== 'STYLE' && child.nodeName !== 'MARK') {
+                highlightTextNodes(child, regex);
+            }
+            child = nextChild;
+        }
+    }
+
+    function updateSearchHighlights() {
+        if (!searchInput) return;
+        var query = (searchInput.value || '').trim();
+        var targetFields = root.querySelectorAll('.report-searchable-field');
+
+        // Always clean existing marks first
+        for (var i = 0; i < targetFields.length; i++) {
+            removeHighlights(targetFields[i]);
+        }
+
+        if (!query) return;
+
+        var regex;
+        try {
+            regex = new RegExp(escapeRegExp(query), 'gi');
+        } catch (e) {
+            return;
+        }
+
+        for (var j = 0; j < targetFields.length; j++) {
+            highlightTextNodes(targetFields[j], regex);
+        }
+    }
+
+    function requestUrl(params) {
+        var requestParams = new URLSearchParams(params.toString());
+        requestParams.set('async', '1');
+        return window.location.pathname + '?' + requestParams.toString();
+    }
+
+    function setLoading(loading) {
+        if (!reportList) return;
+        reportList.setAttribute('aria-busy', loading ? 'true' : 'false');
+        var status = reportList.querySelector('#report-list-status');
+        if (status && loading) status.textContent = 'Memuat hasil laporan…';
+    }
+
+    function replaceReportList(html, params) {
+        var selectionStart = searchInput ? searchInput.selectionStart : null;
+        var selectionEnd = searchInput ? searchInput.selectionEnd : null;
+        var template = document.createElement('template');
+        template.innerHTML = html;
+        var nextList = template.content.querySelector('#report-list');
+        if (!nextList || !reportList) throw new Error('Daftar laporan tidak valid.');
+        reportList.replaceWith(nextList);
+        reportList = nextList;
+        history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params.toString() : ''));
+        reportList.setAttribute('aria-busy', 'false');
+        updateSearchHighlights();
+        if (searchInput) {
+            searchInput.focus({preventScroll: true});
+            if (selectionStart !== null && selectionEnd !== null) searchInput.setSelectionRange(selectionStart, selectionEnd);
+        }
+    }
+
+    function loadReports(params) {
+        if (requestController) requestController.abort();
+        requestController = new AbortController();
+        setLoading(true);
+        fetch(requestUrl(params), {credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'}, signal: requestController.signal})
+            .then(function (response) { if (!response.ok) throw new Error('HTTP ' + response.status); return response.text(); })
+            .then(function (html) { replaceReportList(html, params); setLoading(false); })
+            .catch(function (error) {
+                if (error.name === 'AbortError') return;
+                setLoading(false);
+                var status = reportList ? reportList.querySelector('#report-list-status') : null;
+                if (status) status.textContent = 'Hasil laporan gagal dimuat. Coba lagi.';
+            });
+    }
+
+    function filterParams() {
+        var params = new URLSearchParams(new FormData(form));
+        params.delete('page');
+        return params;
+    }
+
+    function scheduleLoad() {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        var params = filterParams();
+        debounceTimer = setTimeout(function () { loadReports(params); }, 300);
+    }
+
+    if (form && searchInput) searchInput.addEventListener('input', scheduleLoad);
+    if (form) form.querySelectorAll('select').forEach(function (control) { control.addEventListener('change', scheduleLoad); });
+    if (form) form.addEventListener('submit', function (event) { event.preventDefault(); if (debounceTimer) clearTimeout(debounceTimer); loadReports(filterParams()); });
+    root.addEventListener('click', function (event) {
+        var pageLink = event.target.closest('#report-list a[rel], #report-list a[aria-current]');
+        if (!pageLink || pageLink.getAttribute('aria-disabled') === 'true') return;
+        event.preventDefault();
+        var params = new URLSearchParams(pageLink.search);
+        params.delete('async');
+        loadReports(params);
+    });
+
+    // Run on initial load if query pre-filled
+    if (searchInput && searchInput.value && searchInput.value.trim() !== '') {
+        updateSearchHighlights();
+    }
 })();
 </script>
 

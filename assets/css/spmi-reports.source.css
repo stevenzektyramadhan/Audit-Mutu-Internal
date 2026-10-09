@@ -87,6 +87,14 @@
   color: var(--reports-blue);
 }
 
+#reports-root mark.report-search-match {
+  background-color: #fef08a; /* amber/yellow-200 subtle highlight */
+  color: #713f12; /* amber-900 high contrast */
+  padding: 0.05rem 0.2rem;
+  border-radius: 0.25rem;
+  font-weight: inherit;
+}
+
 @media (max-width: 767px) {
   #reports-root {
     padding: 1rem;

@@ -17,6 +17,11 @@ class Spmi_reports extends Admin_Lpmpi_Controller
     {
         $index_data = $this->service->index_data($this->input->get(NULL, TRUE));
 
+        if ($this->input->get('async', TRUE) === '1' || $this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+            echo $this->load->view('lpmpi/spmi_reports/report_list', ['index_data' => $index_data], TRUE);
+            return;
+        }
+
         $this->load->view('lpmpi/spmi_reports/index', [
             'title' => 'Laporan SPMI',
             'page_title' => 'Laporan SPMI',

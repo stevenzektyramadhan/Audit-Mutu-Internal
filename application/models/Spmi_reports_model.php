@@ -58,7 +58,14 @@ class Spmi_reports_model extends CI_Model
         if ($filters['version_id']) $query->where('r.source_version_id', (int) $filters['version_id']);
         if ($filters['auditee_id']) $query->where('r.auditee_id_snapshot', (int) $filters['auditee_id']);
         if ($filters['q'] !== '') {
-            $query->group_start()->like('r.report_number', $filters['q'])->or_like('r.cycle_code_snapshot', $filters['q'])->or_like('r.cycle_title_snapshot', $filters['q'])->or_like('r.source_version_code_snapshot', $filters['q'])->or_like('r.source_version_title_snapshot', $filters['q'])->or_like('r.auditor_name_snapshot', $filters['q'])->or_like('r.auditee_name_snapshot', $filters['q'])->or_like('ri.auditor_name_snapshot', $filters['q'])->or_like('ri.auditor_email_snapshot', $filters['q'])->or_like('ri.source_standard_code_snapshot', $filters['q'])->or_like('ri.source_standard_title_snapshot', $filters['q'])->or_like('ri.indicator_code_snapshot', $filters['q'])->or_like('ri.indicator_title_snapshot', $filters['q'])->group_end();
+            $query->group_start()
+                ->like('r.report_number', $filters['q'])
+                ->or_like('r.source_version_code_snapshot', $filters['q'])
+                ->or_like('r.source_version_title_snapshot', $filters['q'])
+                ->or_like('r.auditee_name_snapshot', $filters['q'])
+                ->or_like('r.auditor_name_snapshot', $filters['q'])
+                ->or_like('ri.auditor_name_snapshot', $filters['q'])
+                ->group_end();
         }
         return $query;
     }
