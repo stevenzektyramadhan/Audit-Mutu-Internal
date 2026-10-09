@@ -93,19 +93,41 @@
 
 #standards-root .std-back-link {
   align-items: center;
-  color: var(--std-blue);
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  color: #334155;
   display: inline-flex;
-  font-size: 13px;
-  font-weight: 700;
-  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 0.5rem;
   min-height: 44px;
+  padding: 0.5rem 0.875rem;
   text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   width: fit-content;
 }
 
 #standards-root .std-back-link:hover {
-  color: var(--std-text);
-  text-decoration: underline;
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+#standards-root .std-back-link:focus,
+#standards-root .std-back-link:focus-visible {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  outline: none;
+  text-decoration: none;
+}
+
+#standards-root .std-back-link svg {
+  color: currentColor;
+  flex-shrink: 0;
+  height: 18px;
+  width: 18px;
 }
 
 #standards-root .std-form-section {

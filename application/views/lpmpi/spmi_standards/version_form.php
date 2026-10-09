@@ -19,12 +19,15 @@ $fallback = static function ($property) use ($version) {
 <div id="standards-root" class="tw-mx-auto tw-max-w-2xl tw-w-full">
     <div class="std-form-shell">
         <div class="std-form-header">
-            <a class="std-back-link" href="<?php echo html_escape($back_url); ?>">
-                <svg class="std-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="m15 18-6-6 6-6" />
-                </svg>
-                Kembali
-            </a>
+            <div class="tw-mb-2">
+                <a class="std-back-link tw-inline-flex tw-items-center tw-gap-2 tw-min-h-[44px] tw-px-3.5 tw-rounded-lg tw-bg-white tw-border tw-border-slate-300 tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900 hover:tw-border-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500/20 focus:tw-border-blue-500 tw-text-sm tw-font-medium tw-transition-colors tw-w-fit tw-no-underline" href="<?php echo html_escape($back_url); ?>">
+                    <svg class="tw-w-[18px] tw-h-[18px] tw-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m12 19-7-7 7-7"/>
+                        <path d="M19 12H5"/>
+                    </svg>
+                    <span>Kembali</span>
+                </a>
+            </div>
             <p class="std-eyebrow">VERSI STANDAR</p>
             <h1><?php echo html_escape($page_heading); ?></h1>
             <p class="std-muted">Kelola identitas dan deskripsi versi standar SPMI.</p>
