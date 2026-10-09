@@ -111,6 +111,12 @@
   gap: 0.5rem !important;
 }
 
+#rtm-root header .ami-row-actions a,
+#rtm-root header .ami-row-actions button {
+  min-height: 44px;
+  white-space: nowrap !important;
+}
+
 #rtm-root .rtm-action-dropdown {
   position: relative;
   display: inline-flex;
