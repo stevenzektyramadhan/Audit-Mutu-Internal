@@ -4,6 +4,8 @@ Use this file as a concise work log for AMI/SPMI workflow decisions, changes, an
 
 ## Entries
 
+- 2026-10-09 - Sisyphus: Polished SPMI management forms and document action buttons across branches into PR #54 (`feature/ui-forms-and-cta-polish` targeting `dev`): added explicit top Back navigation (`[ ← Kembali ]`) returning to canonical index/detail routes without history reliance on Standar SPMI version form (`version_form.php`) and Siklus SPMI form (`cycle_form.php`); refined header hierarchy, centered compact form cards, and bottom action bars; fixed PPEPP document primary action button (`Tambah dokumen`) contrast with scoped `#ppepp-documents-root .ppepp-primary-action` ensuring crisp white text/icon across all pseudo-states. Recompiled Tailwind CSS targets. Full regression tests (SPMI audits, standards, PPEPP, sidebar, upload settings) and PHP lint passed 100%, zero backend/database changes.
+
 - 2026-10-06 - Sisyphus: Replaced the Word `.doc` export's unsupported VML radar with a self-contained 900x700 PHP GD PNG data URI after the user-provided export showed their viewer ignored VML and displayed only the fallback table. Immutable item snapshots, 0..4 score semantics, and escaped legend remain; lint, report regression, LibreOffice PDF image detection, Docker rebuild/template check, HTTP 200, and diff check passed. -> `.multibrain/context/2026-10-06-sisyphus-word-radar-png-compatibility.md`
 
 - 2026-10-06 - Sisyphus: Added a static, immutable-snapshot VML radar chart to native Word `.doc` export, with four 0..4 rings, score polygon, and escaped HTML score legend fallback. Superseded by the PNG compatibility correction after a viewer failed to render VML. -> `.multibrain/context/2026-10-06-sisyphus-word-radar-vml.md`
