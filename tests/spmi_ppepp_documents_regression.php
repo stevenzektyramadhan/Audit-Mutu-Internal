@@ -227,7 +227,8 @@ foreach (['.ppepp-document-description', 'overflow-wrap: anywhere;', 'overflow: 
     ppepp_check(strpos($header_view, $literal) !== FALSE, 'PPEPP description clamp contract missing: ' . $literal);
 }
 ppepp_check(strpos($index_view, 'ami-empty') !== FALSE && strpos($index_view, 'stage_label') !== FALSE && strpos($index_view, '$selected_year') !== FALSE && strpos($index_view, "create') . \$query") !== FALSE, 'PPEPP empty state must remain stage/year/query aware.');
-ppepp_check(strpos($footer_view, 'filterPpeppDocuments') !== FALSE && strpos($footer_view, 'card.textContent.toLowerCase()') !== FALSE && strpos($footer_view, "ppeppSearch.value = ''") !== FALSE, 'PPEPP search must filter rendered cards client-side with clear behavior.');
+ppepp_check(strpos($index_view, 'data-search-corpus') !== FALSE && strpos($index_view, "card.getAttribute('data-search-corpus')") !== FALSE && strpos($index_view, 'scheduleFilter') !== FALSE && strpos($index_view, 'setTimeout(runFilter, 300)') !== FALSE, 'PPEPP search must use its explicit document corpus with a debounced client-side filter.');
+ppepp_check(strpos($index_view, 'card.textContent.toLowerCase()') === FALSE && strpos($footer_view, 'filterPpeppDocuments') === FALSE, 'PPEPP search must have one owner and never match incidental card/action text.');
 ppepp_check(strpos($controller, "show_error('Dokumen PPEPP tidak ditemukan.', 404, 'Not Found')") !== FALSE, 'PPEPP controller must 404 missing edit/download documents.');
 foreach (['public function store()', 'public function update($id)', 'public function delete($id)'] as $method) {
     $pos = strpos($controller, $method);

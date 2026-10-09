@@ -249,8 +249,13 @@ include APPPATH . 'views/layouts/sidebar.php';
                 $category_label = isset($stage_categories[$document->category]) ? $stage_categories[$document->category] : $document->category;
                 $has_file = !empty($document->stored_name);
                 $has_url = !empty($document->external_url);
+                $search_corpus = implode(' ', [
+                    (string) $document->title,
+                    (string) $category_label,
+                    (string) ($document->uploader_name ?: ''),
+                ]);
                 ?>
-                <article class="ppepp-document-card tw-bg-white tw-rounded-xl tw-border tw-border-slate-200/90 tw-p-5 tw-shadow-sm hover:tw-shadow-md hover:tw-border-slate-300 tw-transition-all tw-flex tw-flex-col tw-justify-between tw-gap-4" data-ppepp-document-card data-document-category="<?php echo html_escape($document->category); ?>">
+                <article class="ppepp-document-card tw-bg-white tw-rounded-xl tw-border tw-border-slate-200/90 tw-p-5 tw-shadow-sm hover:tw-shadow-md hover:tw-border-slate-300 tw-transition-all tw-flex tw-flex-col tw-justify-between tw-gap-4" data-ppepp-document-card data-document-category="<?php echo html_escape($document->category); ?>" data-search-corpus="<?php echo html_escape($search_corpus); ?>">
                     <div class="tw-space-y-2.5">
                         <!-- Top meta badges -->
                         <div class="ppepp-document-card-top tw-flex tw-items-start tw-justify-between tw-gap-2">
@@ -357,6 +362,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     var ppeppNoMatch = document.getElementById('ppepp-document-no-match');
     var categoryPills = document.querySelectorAll('#ppepp-category-filter-bar .ppepp-filter-pill');
     var selectedCategory = 'all';
+    var filterTimer = null;
 
     function runFilter() {
         var query = ppeppSearch ? ppeppSearch.value.trim().toLowerCase() : '';
@@ -364,8 +370,8 @@ include APPPATH . 'views/layouts/sidebar.php';
         var visible = 0;
 
         cards.forEach(function(card) {
-            var text = card.textContent.toLowerCase();
-            var matchesQuery = query === '' || text.indexOf(query) !== -1;
+            var corpus = (card.getAttribute('data-search-corpus') || '').toLowerCase();
+            var matchesQuery = query === '' || corpus.indexOf(query) !== -1;
             var docCat = card.getAttribute('data-document-category') || '';
             var matchesCat = selectedCategory === 'all' || docCat === selectedCategory;
 
@@ -378,13 +384,19 @@ include APPPATH . 'views/layouts/sidebar.php';
         if (ppeppNoMatch) ppeppNoMatch.hidden = visible !== 0 || (query === '' && selectedCategory === 'all');
     }
 
+    function scheduleFilter() {
+        window.clearTimeout(filterTimer);
+        filterTimer = window.setTimeout(runFilter, 300);
+    }
+
     if (ppeppSearch) {
-        ppeppSearch.addEventListener('input', runFilter);
+        ppeppSearch.addEventListener('input', scheduleFilter);
     }
     if (ppeppClear) {
         ppeppClear.addEventListener('click', function() {
             ppeppSearch.value = '';
             ppeppSearch.focus();
+            window.clearTimeout(filterTimer);
             runFilter();
         });
     }

@@ -152,31 +152,6 @@
         });
     });
 
-    var ppeppSearch = document.getElementById('ppepp-document-search');
-    var ppeppClear = document.getElementById('ppepp-document-search-clear');
-    var ppeppNoMatch = document.getElementById('ppepp-document-no-match');
-    if (ppeppSearch && ppeppClear && ppeppNoMatch) {
-        var ppeppCards = document.querySelectorAll('[data-ppepp-document-card]');
-        function filterPpeppDocuments() {
-            var query = ppeppSearch.value.trim().toLowerCase();
-            var visible = 0;
-            ppeppCards.forEach(function (card) {
-                var matches = query === '' || card.textContent.toLowerCase().indexOf(query) !== -1;
-                card.hidden = !matches;
-                if (matches) visible++;
-            });
-            ppeppClear.hidden = query === '';
-            ppeppNoMatch.hidden = visible !== 0 || query === '';
-        }
-
-        ppeppSearch.addEventListener('input', filterPpeppDocuments);
-        ppeppClear.addEventListener('click', function () {
-            ppeppSearch.value = '';
-            ppeppSearch.focus();
-            filterPpeppDocuments();
-        });
-    }
-
     window.addEventListener('pageshow', restoreSubmitState);
 })();
 </script>
