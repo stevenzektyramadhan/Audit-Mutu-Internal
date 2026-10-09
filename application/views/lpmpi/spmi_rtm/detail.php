@@ -71,19 +71,19 @@ $icon = static function ($name) {
                     </h1>
                 </div>
 
-                <div class="ami-row-actions no-print tw-flex tw-flex-wrap tw-items-center tw-gap-2.5">
-                    <a class="btn-ami btn-outline-ami tw-button-secondary" href="<?php echo site_url('lpmpi/spmi-rtm/print/' . (int) $meeting->id); ?>">
+                <div class="ami-row-actions no-print tw-flex tw-flex-wrap sm:tw-flex-nowrap tw-items-center tw-justify-start sm:tw-justify-end tw-gap-2">
+                    <a class="btn-ami btn-outline-ami tw-button-secondary tw-min-h-[44px] tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-px-3.5 tw-py-2 tw-text-sm tw-font-semibold tw-whitespace-nowrap" href="<?php echo site_url('lpmpi/spmi-rtm/print/' . (int) $meeting->id); ?>">
                         <?php echo $icon('printer'); ?>
-                        <span>Print</span>
+                        <span class="tw-whitespace-nowrap">Print</span>
                     </a>
-                    <a class="btn-ami btn-outline-ami tw-button-secondary" href="<?php echo site_url('lpmpi/spmi-rtm/export-word/' . (int) $meeting->id); ?>">
+                    <a class="btn-ami btn-outline-ami tw-button-secondary tw-min-h-[44px] tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-px-3.5 tw-py-2 tw-text-sm tw-font-semibold tw-whitespace-nowrap" href="<?php echo site_url('lpmpi/spmi-rtm/export-word/' . (int) $meeting->id); ?>">
                         <?php echo $icon('file-text'); ?>
-                        <span>Export DOC</span>
+                        <span class="tw-whitespace-nowrap">Export DOC</span>
                     </a>
                     <?php if ($meeting->status === 'draft'): ?>
-                        <a class="btn-ami tw-button-primary" href="<?php echo site_url('lpmpi/spmi-rtm/edit/' . (int) $meeting->id); ?>">
+                        <a class="btn-ami tw-button-primary tw-min-h-[44px] tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-px-3.5 tw-py-2 tw-text-sm tw-font-semibold tw-whitespace-nowrap" href="<?php echo site_url('lpmpi/spmi-rtm/edit/' . (int) $meeting->id); ?>">
                             <?php echo $icon('edit'); ?>
-                            <span>Edit</span>
+                            <span class="tw-whitespace-nowrap">Edit</span>
                         </a>
                     <?php endif; ?>
                 </div>

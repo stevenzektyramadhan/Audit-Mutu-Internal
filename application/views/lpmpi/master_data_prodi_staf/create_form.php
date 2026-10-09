@@ -48,7 +48,13 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <h2 id="master-create-title" class="ami-section-title mb-1">Tambah Data Organisasi</h2>
                     <p class="master-create-intro">Pilih tipe data terlebih dahulu. Form akan menampilkan field yang sesuai dan mengirim ke workflow yang sudah tersedia.</p>
                 </div>
-                <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Kembali</a>
+                <a class="btn btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-min-h-[44px] tw-px-3.5 tw-py-2 tw-rounded-lg tw-bg-white tw-border tw-border-slate-300 tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900 hover:tw-border-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500/20 focus:tw-border-blue-500 tw-text-sm tw-font-semibold tw-transition-colors tw-w-fit tw-no-underline" href="<?php echo html_escape(site_url($return_url)); ?>">
+                    <svg class="tw-w-[18px] tw-h-[18px] tw-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m12 19-7-7 7-7"/>
+                        <path d="M19 12H5"/>
+                    </svg>
+                    <span>Kembali</span>
+                </a>
             </div>
 
             <?php if (validation_errors()): ?><div class="alert alert-danger" role="alert"><?php echo validation_errors(); ?></div><?php endif; ?>

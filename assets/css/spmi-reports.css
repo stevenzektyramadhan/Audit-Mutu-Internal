@@ -891,6 +891,10 @@
   align-items: baseline;
 }
 
+.tw-justify-start {
+  justify-content: flex-start;
+}
+
 .tw-justify-end {
   justify-content: flex-end;
 }
