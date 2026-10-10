@@ -79,7 +79,7 @@ th { background: #e7edf5; } .meta td { width: 25%; } .small { font-size: 8pt; }
 <h1>Laporan Audit Mutu Internal</h1>
 <p><strong>Nomor laporan:</strong> <?php echo html_escape($report->report_number); ?></p>
 <table class="meta">
-<tr><td><strong>Siklus</strong><br><?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?></td><td><strong>Periode</strong><br><?php echo html_escape($report->cycle_start_date_snapshot . ' — ' . $report->cycle_end_date_snapshot); ?></td><td><strong>Versi</strong><br><?php echo html_escape($report->source_version_code_snapshot . ' — ' . $report->source_version_title_snapshot); ?></td><td><strong>Auditee</strong><br><?php echo html_escape($report->auditee_name_snapshot); ?></td></tr>
+<tr><td><strong>Siklus</strong><br><?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?></td><td><strong>Periode</strong><br><?php echo html_escape($report->cycle_start_date_snapshot . ' — ' . $report->cycle_end_date_snapshot); ?></td><td><strong>Versi</strong><br><?php echo html_escape($report->source_version_code_snapshot . ' — ' . $report->source_version_title_snapshot); ?></td><td><strong>Auditi</strong><br><?php echo html_escape($report->auditee_name_snapshot); ?></td></tr>
 <tr><td colspan="2"><strong>Kontributor auditor</strong><br><?php foreach ($contributors as $contributor): ?><?php echo html_escape($contributor['name'] . ($contributor['email'] !== '' ? ' <' . $contributor['email'] . '>' : '')); ?><br><?php endforeach; ?></td><td colspan="2"><strong>Finalisasi M9 terakhir</strong><br><?php echo html_escape($report->assessment_finalized_at_snapshot); ?></td></tr>
 </table>
 <?php if ($radar_count > 0): ?>

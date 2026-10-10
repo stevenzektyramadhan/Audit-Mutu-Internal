@@ -359,7 +359,7 @@ foreach ($items as $item) {
             <span class="meta-value"><?php foreach ($contributors as $index => $contributor): ?><?php echo $index ? '<br>' : ''; ?><?php echo html_escape($contributor['name'] . ($contributor['email'] !== '' ? ' (' . $contributor['email'] . ')' : '')); ?><?php endforeach; ?></span>
         </div>
         <div class="meta-item">
-            <span class="meta-label">Auditee</span>
+            <span class="meta-label">Auditi</span>
             <span class="meta-value"><?php echo html_escape($report->auditee_name_snapshot); ?></span>
         </div>
         <div class="meta-item">

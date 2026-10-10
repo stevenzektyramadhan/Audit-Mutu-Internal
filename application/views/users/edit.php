@@ -6,8 +6,8 @@ include APPPATH . 'views/layouts/sidebar.php';
 
 $actor_role = (string) $this->session->userdata('role');
 $role_options = $actor_role === 'super_admin'
-    ? ['super_admin' => 'Super Admin', 'admin_lpmpi' => 'Admin LPMPI', 'auditor' => 'Auditor', 'auditee' => 'Auditee']
-    : ['auditor' => 'Auditor', 'auditee' => 'Auditee'];
+    ? ['super_admin' => 'Super Admin', 'admin_lpmpi' => 'Admin LPMPI', 'auditor' => 'Auditor', 'auditee' => 'Auditi']
+    : ['auditor' => 'Auditor', 'auditee' => 'Auditi'];
 $selected_role = set_value('role', $user->role);
 ?>
 

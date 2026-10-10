@@ -2,7 +2,7 @@
 <?php
 $reports_by_id = [];
 foreach ($reports as $report) $reports_by_id[(int) $report->report_id] = $report;
-$role_labels = ['super_admin' => 'Super Admin', 'admin_lpmpi' => 'Admin LPMPI', 'auditor' => 'Auditor', 'auditee' => 'Auditee'];
+$role_labels = ['super_admin' => 'Super Admin', 'admin_lpmpi' => 'Admin LPMPI', 'auditor' => 'Auditor', 'auditee' => 'Auditi'];
 ?>
 <!DOCTYPE html>
 <html lang="id">

@@ -80,7 +80,7 @@ $page_url = static function ($page) use ($filter_query) {
                 <?php
                 $cards = [
                     ['label' => 'Laporan', 'value' => (int) ($summary->report_count ?? 0), 'icon' => 'file-text'],
-                    ['label' => 'Auditee', 'value' => (int) ($summary->auditee_count ?? 0), 'icon' => 'users'],
+                    ['label' => 'Auditi', 'value' => (int) ($summary->auditee_count ?? 0), 'icon' => 'users'],
                     ['label' => 'Standar', 'value' => (int) ($summary->standard_count ?? 0), 'icon' => 'layers'],
                     ['label' => 'Rata-rata skor', 'value' => $summary->average_score !== NULL && $summary->average_score !== '' ? number_format((float) $summary->average_score, 2, ',', '.') : '—', 'icon' => 'sparkles'],
                 ];
@@ -158,10 +158,10 @@ $page_url = static function ($page) use ($filter_query) {
 
                     <label class="tw-block">
                         <span class="tw-mb-1 tw-flex tw-items-center tw-gap-1.5 tw-text-xs tw-font-semibold tw-text-slate-600">
-                            <?php echo $icon('users'); ?><span>Auditee</span>
+                            <?php echo $icon('users'); ?><span>Auditi</span>
                         </span>
                         <select name="auditee_id" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200">
-                            <option value="">Semua auditee</option>
+                            <option value="">Semua auditi</option>
                             <?php foreach (($options['auditees'] ?? []) as $auditee): ?>
                                 <option value="<?php echo html_escape((string) (int) $auditee->auditee_id_snapshot); ?>" <?php echo (int) ($filters['auditee_id'] ?? 0) === (int) $auditee->auditee_id_snapshot ? 'selected' : ''; ?>>
                                     <?php echo html_escape($auditee->auditee_name_snapshot); ?>
@@ -177,7 +177,7 @@ $page_url = static function ($page) use ($filter_query) {
                         <span class="tw-pointer-events-none tw-absolute tw-inset-y-0 tw-left-3 tw-flex tw-items-center tw-text-slate-400">
                             <?php echo $icon('search'); ?>
                         </span>
-                        <input name="q" value="<?php echo html_escape((string) ($filters['q'] ?? '')); ?>" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-pl-9 tw-pr-3 tw-text-sm tw-text-slate-900 placeholder:tw-text-slate-400 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200" type="search" placeholder="Cari nomor laporan, kode atau judul versi SPMI, nama auditee, atau nama auditor...">
+                        <input name="q" value="<?php echo html_escape((string) ($filters['q'] ?? '')); ?>" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-pl-9 tw-pr-3 tw-text-sm tw-text-slate-900 placeholder:tw-text-slate-400 focus:tw-border-slate-950 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-200" type="search" placeholder="Cari nomor laporan, kode atau judul versi SPMI, nama auditi, atau nama auditor...">
                     </div>
                     <div class="tw-flex tw-items-center tw-gap-2">
                         <button class="btn-ami tw-button-primary tw-h-11 tw-px-5 tw-text-sm" type="submit">Tampilkan</button>
@@ -220,7 +220,7 @@ $page_url = static function ($page) use ($filter_query) {
                             <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-500">
                                 <tr>
                                     <th class="tw-px-4 tw-py-3.5 tw-w-[28%]">Laporan</th>
-                                    <th class="tw-px-4 tw-py-3.5 tw-w-[20%]">Auditee</th>
+                                    <th class="tw-px-4 tw-py-3.5 tw-w-[20%]">Auditi</th>
                                     <th class="tw-px-4 tw-py-3.5 tw-w-[18%]">Versi SPMI</th>
                                     <th class="tw-px-4 tw-py-3.5 tw-w-[16%]">Auditor</th>
                                     <th class="tw-px-4 tw-py-3.5 tw-w-[10%]">Finalisasi</th>
@@ -311,7 +311,7 @@ $page_url = static function ($page) use ($filter_query) {
 
                             <dl class="tw-mt-3 tw-grid tw-grid-cols-2 tw-gap-2 tw-border-t tw-border-slate-100 tw-pt-3 tw-text-xs">
                                 <div>
-                                    <dt class="tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400 tw-text-[10px]">Auditee</dt>
+                                    <dt class="tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400 tw-text-[10px]">Auditi</dt>
                                     <dd class="report-searchable-field tw-mt-0.5 tw-font-medium tw-text-slate-900"><?php echo html_escape($report->auditee_name_snapshot); ?></dd>
                                 </div>
                                 <div>
@@ -413,7 +413,7 @@ $page_url = static function ($page) use ($filter_query) {
                                 <tr>
                                     <th class="tw-px-4 tw-py-3">Siklus</th>
                                     <th class="tw-px-4 tw-py-3">Versi / Standar</th>
-                                    <th class="tw-px-4 tw-py-3">Auditee</th>
+                                    <th class="tw-px-4 tw-py-3">Auditi</th>
                                     <th class="tw-px-4 tw-py-3">Finalisasi</th>
                                     <th class="tw-px-4 tw-py-3 tw-text-right">Aksi</th>
                                 </tr>

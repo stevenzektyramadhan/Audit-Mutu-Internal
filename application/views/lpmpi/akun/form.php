@@ -49,7 +49,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <select class="form-control bg-dark text-light border-secondary" id="role" name="role" required style="border-radius: 7px;" data-role-select>
                     <option value="">Pilih role...</option>
                     <option value="auditor" <?php echo set_select('role', 'auditor', $selected_role === 'auditor'); ?>>Auditor</option>
-                    <option value="auditee" <?php echo set_select('role', 'auditee', $selected_role === 'auditee'); ?>>Auditee</option>
+                    <option value="auditee" <?php echo set_select('role', 'auditee', $selected_role === 'auditee'); ?>>Auditi</option>
                 </select>
             </div>
 

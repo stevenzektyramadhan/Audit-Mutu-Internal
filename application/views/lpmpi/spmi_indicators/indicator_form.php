@@ -98,7 +98,7 @@ include APPPATH . 'views/layouts/sidebar.php';
             <section class="std-form-section" aria-labelledby="evidence-requirements-heading">
                 <div class="std-form-section-heading">
                     <h2 id="evidence-requirements-heading">Kebutuhan Bukti</h2>
-                    <p class="std-muted">Dokumen atau tautan bukti yang wajib diunggah auditee.</p>
+                    <p class="std-muted">Dokumen atau tautan bukti yang wajib diunggah auditi.</p>
                 </div>
 
                 <div class="std-form-field">

@@ -13,6 +13,7 @@ class Spmi_auditor_workspace_service
     public function assignments($user_id, $filters) { return $this->model->assignments($user_id, $this->filters($filters)); }
     public function cycle_options($user_id) { return $this->model->cycle_options($user_id); }
     public function attention_count($user_id) { return $this->model->attention_count($user_id); }
+    public function waiting_count($user_id) { return $this->model->waiting_count($user_id); }
 
     protected function filters($filters)
     {
@@ -40,6 +41,15 @@ class Spmi_auditor_workspace_service
         foreach ($assessment_items as $item) $by_item[(string) $item->assignment_item_id] = $item;
         foreach ($items as $item) { $item->rubrics = $this->model->rubrics($item->id, $user_id); $item->assessment = isset($by_item[(string) $item->id]) ? $by_item[(string) $item->id] : NULL; $item->evidence = $this->model->evidence($item->id, $user_id); $item->auditor_evidence = $item->assessment ? $this->model->auditor_evidence($item->assessment->id, $user_id) : []; if (!$item->assessment) $item->realization_snapshot = ''; }
         return ['assignment' => $assignment, 'assessment' => $assessment, 'items' => $items, 'revision_history' => $this->model->revision_history($assignment_id, $user_id)];
+    }
+
+    public function preview($assignment_id, $user_id)
+    {
+        $assignment = $this->model->configured_assignment_preview($assignment_id, $user_id);
+        if (!$assignment) return NULL;
+        $items = $this->model->preview_items($assignment_id, $user_id);
+        foreach ($items as $item) $item->rubrics = $this->model->rubrics($item->id, $user_id);
+        return ['assignment' => $assignment, 'items' => $items];
     }
 
     public function save($assignment_id, $user_id, $version, $source_submission_version, $values) { return $this->mutate($assignment_id, $user_id, $version, $source_submission_version, $values, FALSE); }

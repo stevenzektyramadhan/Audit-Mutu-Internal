@@ -60,7 +60,7 @@ $icon = static function ($name) {
             <dl class="row tw-hidden">
                 <dt class="col-sm-3">Siklus</dt><dd class="col-sm-9"><?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?></dd>
                 <dt class="col-sm-3">Sumber</dt><dd class="col-sm-9"><?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot); ?></dd>
-                <dt class="col-sm-3">Auditor / Auditee</dt><dd class="col-sm-9"><?php echo html_escape($report->auditor_name_snapshot . ' / ' . $report->auditee_name_snapshot); ?></dd>
+                <dt class="col-sm-3">Auditor / Auditi</dt><dd class="col-sm-9"><?php echo html_escape($report->auditor_name_snapshot . ' / ' . $report->auditee_name_snapshot); ?></dd>
                 <dt class="col-sm-3">Finalisasi</dt><dd class="col-sm-9"><?php echo html_escape($report->assessment_finalized_at_snapshot); ?></dd>
             </dl>
 
@@ -80,7 +80,7 @@ $icon = static function ($name) {
                 </div>
 
                 <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100">
-                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Auditor / Auditee</span>
+                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Auditor / Auditi</span>
                     <strong class="tw-text-slate-900 tw-font-medium">
                         <?php echo html_escape($report->auditor_name_snapshot . ' / ' . $report->auditee_name_snapshot); ?>
                     </strong>

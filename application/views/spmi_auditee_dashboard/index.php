@@ -31,8 +31,8 @@ $icon = static function ($name) {
 
         <!-- Header / Hero -->
         <div class="tw-mb-8">
-            <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Workspace Auditee</p>
-            <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950 tw-m-0">Dashboard SPMI Auditee</h1>
+            <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Workspace Auditi</p>
+            <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950 tw-m-0">Dashboard SPMI Auditi</h1>
             <p class="tw-mt-2 tw-max-w-2xl tw-text-sm tw-text-slate-500">
                 Ringkasan penugasan SPMI, pemantauan pengisian realisasi, dan pengunggahan bukti instrumen unit Anda.
             </p>
@@ -159,7 +159,7 @@ $icon = static function ($name) {
         <!-- Quick Access to Workspace SPMI -->
         <section class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center sm:tw-justify-between tw-gap-4 tw-rounded-2xl tw-border tw-border-blue-200 tw-bg-blue-50/70 tw-p-6">
             <div>
-                <h3 class="tw-text-base tw-font-bold tw-text-blue-950 tw-m-0">Buka Workspace SPMI Auditee</h3>
+                <h3 class="tw-text-base tw-font-bold tw-text-blue-950 tw-m-0">Buka Workspace SPMI Auditi</h3>
                 <p class="tw-mt-1 tw-text-xs tw-text-blue-800 tw-m-0">
                     Masuk ke ruang kerja penugasan untuk mengisi teks realisasi, melampirkan tautan bukti, dan mengunggah berkas instrumen.
                 </p>

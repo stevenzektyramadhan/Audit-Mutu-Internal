@@ -43,7 +43,7 @@ $icon = static function ($name) {
                             <?php echo html_escape($assignment->source_standard_code); ?>
                         </span>
                         <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-slate-100 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-semibold tw-text-slate-700">
-                            Auditee: <?php echo html_escape($assignment->auditee_name); ?>
+                            Auditi: <?php echo html_escape($assignment->auditee_name); ?>
                         </span>
                         <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-blue-50 tw-border tw-border-blue-200 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-blue-800">
                             Submission v<?php echo html_escape((string) $assignment->submission_version); ?> (<?php echo html_escape($assignment->submission_status); ?>)
@@ -89,7 +89,7 @@ $icon = static function ($name) {
             <?php elseif ($assignment->submission_status === 'returned_for_revision'): ?>
                 <div class="tw-mt-4 tw-flex tw-items-center tw-gap-2 tw-rounded-xl tw-border tw-border-amber-200 tw-bg-amber-50/80 tw-px-3.5 tw-py-2.5 tw-text-xs tw-text-amber-900">
                     <span class="tw-text-amber-600"><?php echo $icon('alert-triangle'); ?></span>
-                    <span>Penugasan ini telah dikembalikan untuk revisi. Ruang kerja berstatus hanya-baca sampai auditee mengirim ulang perbaikan.</span>
+                    <span>Penugasan ini telah dikembalikan untuk revisi. Ruang kerja berstatus hanya-baca sampai auditi mengirim ulang perbaikan.</span>
                 </div>
             <?php endif; ?>
         </header>
@@ -137,7 +137,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
 
                     <!-- 2-Column Responsive Body -->
                     <div class="tw-grid tw-gap-6 lg:tw-grid-cols-2 tw-p-6">
-                        <!-- LEFT COLUMN: Context & Auditee Evidence (Reference) -->
+                        <!-- LEFT COLUMN: Context & Auditi Evidence (Reference) -->
                         <div class="tw-space-y-4 tw-border-b lg:tw-border-b-0 lg:tw-border-r tw-border-slate-100 tw-pb-6 lg:tw-pb-0 lg:tw-pr-6">
                             <!-- Indikator -->
                             <div>
@@ -159,7 +159,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                 </div>
                             <?php endif; ?>
 
-                            <!-- Realisasi Submitted Auditee -->
+                            <!-- Realisasi Submitted Auditi -->
                             <div class="tw-rounded-xl tw-border tw-border-blue-100 tw-bg-blue-50/40 tw-p-4">
                                 <strong class="tw-block tw-text-xs tw-text-blue-900 tw-mb-1">Realisasi submitted:</strong>
                                 <p class="tw-text-xs tw-text-slate-800 tw-leading-relaxed tw-m-0">
@@ -167,7 +167,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                 </p>
                             </div>
 
-                            <!-- Link Bukti Auditee -->
+                            <!-- Link Bukti Auditi -->
                             <div class="tw-text-xs">
                                 <span class="tw-text-slate-500">Link bukti: </span>
                                 <?php if ($evidence_url === ''): ?>
@@ -182,13 +182,13 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                 <?php endif; ?>
                             </div>
 
-                            <!-- Berkas Bukti Auditee -->
+                            <!-- Berkas Bukti Auditi -->
                             <div>
                                 <span class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-400 tw-mb-2">
-                                    Bukti auditee:
+                                    Bukti auditi:
                                 </span>
                                 <?php if (empty($item->evidence)): ?>
-                                    <p class="tw-text-xs tw-text-slate-400 tw-italic tw-m-0">Tidak ada berkas bukti auditee.</p>
+                                    <p class="tw-text-xs tw-text-slate-400 tw-italic tw-m-0">Tidak ada berkas bukti auditi.</p>
                                 <?php else: ?>
                                     <ul class="tw-space-y-1.5 tw-p-0 tw-m-0 tw-list-none">
                                         <?php foreach ($item->evidence as $evidence): ?>
@@ -466,16 +466,16 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                     <h2 class="tw-text-base tw-font-bold tw-text-amber-950 tw-m-0">Kembalikan untuk revisi</h2>
                 </div>
                 <p class="tw-text-xs tw-text-amber-800 tw-leading-relaxed tw-mb-4">
-                    Jika terdapat bukti atau realisasi yang tidak lengkap dan memerlukan perbaikan dari auditee, Anda dapat mengembalikan penugasan ini.
+                    Jika terdapat bukti atau realisasi yang tidak lengkap dan memerlukan perbaikan dari auditi, Anda dapat mengembalikan penugasan ini.
                 </p>
 
-                <?php echo form_open('auditor/spmi/assignment/' . (int) $assignment->id . '/return', ['onsubmit' => "return confirm('Apakah Anda yakin ingin mengembalikan penugasan ini untuk revisi? Auditee akan diminta mengunggah perbaikan.');"]); ?>
+                <?php echo form_open('auditor/spmi/assignment/' . (int) $assignment->id . '/return', ['onsubmit' => "return confirm('Apakah Anda yakin ingin mengembalikan penugasan ini untuk revisi? Auditi akan diminta mengunggah perbaikan.');"]); ?>
                     <input type="hidden" name="submission_version" value="<?php echo html_escape((string) $assignment->submission_version); ?>">
                     <div class="tw-mb-3">
                         <label for="revision-reason" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-amber-900 tw-mb-1.5">
                             Alasan revisi <span class="tw-text-red-500">*</span>
                         </label>
-                        <textarea class="tw-w-full tw-rounded-lg tw-border tw-border-amber-300 tw-bg-white tw-p-3 tw-text-xs tw-text-slate-900 focus:tw-border-amber-600 focus:tw-outline-none" id="revision-reason" name="reason" rows="3" placeholder="Tuliskan catatan detail dan bagian bukti yang harus diperbaiki oleh auditee..." required></textarea>
+                        <textarea class="tw-w-full tw-rounded-lg tw-border tw-border-amber-300 tw-bg-white tw-p-3 tw-text-xs tw-text-slate-900 focus:tw-border-amber-600 focus:tw-outline-none" id="revision-reason" name="reason" rows="3" placeholder="Tuliskan catatan detail dan bagian bukti yang harus diperbaiki oleh auditi..." required></textarea>
                     </div>
                     <div class="tw-flex tw-justify-end">
                         <button type="submit" class="btn btn-ami ami-action-btn danger tw-button-danger tw-text-xs">

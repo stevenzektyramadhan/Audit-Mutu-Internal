@@ -10,6 +10,7 @@ class Spmi_auditor_dashboard_model extends CI_Model
         };
         $assignments = $base()->count_all_results();
         $submitted = $base()->join('spmi_auditee_submissions s', 's.assignment_id = a.id')->where_in('s.status', ['submitted', 'resubmitted'])->count_all_results();
+        $waiting = $this->waiting_count($user_id);
         $draft_assessments = $base()->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id')->where('aa.status', 'draft')->count_all_results();
         $finalized = $base()->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id')->where('aa.status', 'finalized')->count_all_results();
         $attention_count = $this->attention_count($user_id);
@@ -18,12 +19,17 @@ class Spmi_auditor_dashboard_model extends CI_Model
         $notifications = [];
         if ($overdue > 0) $notifications[] = ['severity' => 'danger', 'title' => 'Penugasan melewati tenggat', 'detail' => 'Penugasan SPMI perlu segera ditindaklanjuti.', 'route' => 'auditor/spmi-dashboard', 'count' => $overdue];
         if ($due_soon > 0) $notifications[] = ['severity' => 'warning', 'title' => 'Tenggat penugasan mendekat', 'detail' => 'Penugasan SPMI jatuh tempo dalam tujuh hari.', 'route' => 'auditor/spmi-dashboard', 'count' => $due_soon];
-        return ['assignments' => $assignments, 'submissions_submitted' => $submitted, 'assessments_draft' => $draft_assessments, 'assessments_finalized' => $finalized, 'attention_count' => $attention_count, 'due_soon' => $due_soon, 'overdue' => $overdue, 'notifications' => $notifications];
+        return ['assignments' => $assignments, 'submissions_submitted' => $submitted, 'submissions_waiting' => $waiting, 'assessments_draft' => $draft_assessments, 'assessments_finalized' => $finalized, 'attention_count' => $attention_count, 'due_soon' => $due_soon, 'overdue' => $overdue, 'notifications' => $notifications];
     }
 
     public function attention_count($user_id)
     {
         return (int) $this->db->select('COUNT(DISTINCT a.id) AS total', FALSE)->from('spmi_audit_assignments a')->join('spmi_audit_cycles c', 'c.id = a.cycle_id')->join('spmi_auditee_submissions s', 's.assignment_id = a.id')->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')->where('a.auditor_id', (int) $user_id)->where_in('c.state', ['configured', 'closed'])->where_in('s.status', ['submitted', 'resubmitted'])->group_start()->where('aa.status IS NULL', NULL, FALSE)->or_where('aa.status !=', 'finalized')->group_end()->get()->row()->total;
+    }
+
+    public function waiting_count($user_id)
+    {
+        return (int) $this->db->select('COUNT(DISTINCT a.id) AS total', FALSE)->from('spmi_audit_assignments a')->join('spmi_audit_cycles c', 'c.id = a.cycle_id')->join('spmi_auditee_submissions s', 's.assignment_id = a.id AND s.status IN ("submitted", "resubmitted", "returned_for_revision")', 'left')->where('a.auditor_id', (int) $user_id)->where('c.state', 'configured')->where('s.id IS NULL', NULL, FALSE)->get()->row()->total;
     }
 
     protected function due_count($user_id, $predicate)

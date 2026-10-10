@@ -41,7 +41,7 @@ include APPPATH . 'views/layouts/sidebar.php';
             <dd class="tw-mt-1 tw-text-slate-900"><?php echo html_escape($assignment->auditor_name . ' — ' . $assignment->auditor_email); ?></dd>
           </div>
           <div>
-            <dt class="tw-font-semibold tw-text-slate-500">Auditee snapshot</dt>
+            <dt class="tw-font-semibold tw-text-slate-500">Auditi snapshot</dt>
             <dd class="tw-mt-1 tw-text-slate-900"><?php echo html_escape($assignment->auditee_name . ' — ' . $assignment->auditee_email); ?></dd>
           </div>
         </dl>

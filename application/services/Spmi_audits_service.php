@@ -37,7 +37,7 @@ class Spmi_audits_service
 
             $auditee_id = $this->positive_id(isset($data['auditee_id']) ? $data['auditee_id'] : NULL);
             $auditee = $auditee_id ? $this->model->user($auditee_id) : NULL;
-            if (!$auditee || $auditee->role !== 'auditee') return $this->rollback('Auditee wajib valid dan ber-role auditee.');
+            if (!$auditee || $auditee->role !== 'auditee') return $this->rollback('Auditi wajib valid dan ber-role auditee.');
 
             $standard_auditor_ids = $this->assignment_standard_auditors($data);
             if ($standard_auditor_ids === NULL) return $this->rollback('Scope standar SPMI tidak valid.');
@@ -57,10 +57,10 @@ class Spmi_audits_service
             $auditors = [];
             foreach (array_unique($standard_auditor_ids) as $auditor_id) {
                 $auditor = $this->model->user($auditor_id);
-                if (!$auditor || $auditor->role !== 'auditor' || (int) $auditor->id === (int) $auditee->id) return $this->rollback('Auditor dan auditee wajib valid, ber-role tepat, dan berbeda.');
+                if (!$auditor || $auditor->role !== 'auditor' || (int) $auditor->id === (int) $auditee->id) return $this->rollback('Auditor dan auditi wajib valid, ber-role tepat, dan berbeda.');
                 $auditors[$auditor_id] = $auditor;
             }
-            foreach ($standards as $standard) if ($this->model->assignment_by_standard_auditee($cycle_id, $standard->id, $auditee->id)) return $this->rollback('Standar SPMI sudah ditugaskan kepada auditee pada siklus ini.');
+            foreach ($standards as $standard) if ($this->model->assignment_by_standard_auditee($cycle_id, $standard->id, $auditee->id)) return $this->rollback('Standar SPMI sudah ditugaskan kepada auditi pada siklus ini.');
 
             foreach ($standards as $standard) {
                 $auditor = $auditors[$standard_auditor_ids[(int) $standard->id]];
@@ -84,7 +84,7 @@ class Spmi_audits_service
         }
     }
 
-    public function delete_assignment($id) { $this->ci->db->trans_begin(); $assignment = $this->model->assignment($id); $cycle = $assignment ? $this->model->cycle($assignment->cycle_id, TRUE) : NULL; if (!$assignment || !$cycle || $cycle->state !== 'draft') return $this->rollback('Penugasan hanya dapat dihapus pada siklus draft.'); if ($this->model->assignment_workspace_descendant_exists($id)) return $this->rollback('Penugasan tidak dapat dihapus karena data workspace auditee atau auditor sudah ada.'); if (!$this->model->delete_assignment_children($id)) return $this->rollback('Snapshot penugasan gagal dihapus.'); return $this->finish($this->model->delete_assignment($id), 'Penugasan berhasil dihapus.'); }
+    public function delete_assignment($id) { $this->ci->db->trans_begin(); $assignment = $this->model->assignment($id); $cycle = $assignment ? $this->model->cycle($assignment->cycle_id, TRUE) : NULL; if (!$assignment || !$cycle || $cycle->state !== 'draft') return $this->rollback('Penugasan hanya dapat dihapus pada siklus draft.'); if ($this->model->assignment_workspace_descendant_exists($id)) return $this->rollback('Penugasan tidak dapat dihapus karena data workspace auditi atau auditor sudah ada.'); if (!$this->model->delete_assignment_children($id)) return $this->rollback('Snapshot penugasan gagal dihapus.'); return $this->finish($this->model->delete_assignment($id), 'Penugasan berhasil dihapus.'); }
     private function assignment_standard_auditors($data) { if (!isset($data['assignment_groups']) || !is_array($data['assignment_groups'])) return NULL; $mapping = []; foreach ($data['assignment_groups'] as $group) { if (!is_array($group)) return NULL; if (!isset($group['source_standard_ids']) || $group['source_standard_ids'] === []) continue; if (!is_array($group['source_standard_ids'])) return NULL; $auditor_id = $this->positive_id(isset($group['auditor_id']) ? $group['auditor_id'] : NULL); if (!$auditor_id) return NULL; foreach ($group['source_standard_ids'] as $value) { $standard_id = $this->positive_id($value); if (!$standard_id || isset($mapping[$standard_id])) return NULL; $mapping[$standard_id] = $auditor_id; } } return $mapping ?: NULL; }
     private function positive_id($value) { return is_scalar($value) && preg_match('/^[1-9][0-9]*$/', (string) $value) ? (int) $value : 0; }
     private function cycle_data($data) { return ['cycle_code' => strtoupper(trim((string) (isset($data['cycle_code']) ? $data['cycle_code'] : ''))), 'title' => trim((string) (isset($data['title']) ? $data['title'] : '')), 'description' => trim((string) (isset($data['description']) ? $data['description'] : '')) ?: NULL, 'academic_year' => trim((string) (isset($data['academic_year']) ? $data['academic_year'] : '')), 'start_date' => trim((string) (isset($data['start_date']) ? $data['start_date'] : '')), 'end_date' => trim((string) (isset($data['end_date']) ? $data['end_date'] : ''))]; }

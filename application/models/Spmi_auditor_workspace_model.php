@@ -8,15 +8,11 @@ class Spmi_auditor_workspace_model extends CI_Model
         $this->db->select('a.id, a.cycle_id, a.source_standard_code, a.source_standard_title, c.cycle_code, c.title AS cycle_title, c.state, c.end_date, s.status AS submission_status, aa.status AS assessment_status')
             ->from('spmi_audit_assignments a')
             ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')
-            ->join('spmi_auditee_submissions s', 's.assignment_id = a.id')
+            ->join('spmi_auditee_submissions s', "s.assignment_id = a.id AND s.status IN ('submitted', 'resubmitted', 'returned_for_revision')", 'left')
             ->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')
             ->where('a.auditor_id', (int) $user_id)
             ->where_in('c.state', ['configured', 'closed'])
-            ->group_start()
-                ->where('c.state !=', 'closed')
-                ->or_where('aa.id IS NOT NULL', NULL, FALSE)
-            ->group_end()
-            ->where_in('s.status', ['submitted', 'resubmitted', 'returned_for_revision']);
+            ->where("((c.state = 'configured' AND (s.status IN ('submitted', 'resubmitted', 'returned_for_revision') OR s.id IS NULL)) OR (c.state = 'closed' AND aa.id IS NOT NULL AND s.status IN ('submitted', 'resubmitted', 'returned_for_revision')))", NULL, FALSE);
 
         if (!empty($filters['cycle_id'])) {
             $this->db->where('a.cycle_id', (int) $filters['cycle_id']);
@@ -35,15 +31,11 @@ class Spmi_auditor_workspace_model extends CI_Model
             ->select('c.id, c.cycle_code, c.title, c.state, c.start_date')
             ->from('spmi_audit_assignments a')
             ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')
-            ->join('spmi_auditee_submissions s', 's.assignment_id = a.id')
+            ->join('spmi_auditee_submissions s', "s.assignment_id = a.id AND s.status IN ('submitted', 'resubmitted', 'returned_for_revision')", 'left')
             ->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')
             ->where('a.auditor_id', (int) $user_id)
             ->where_in('c.state', ['configured', 'closed'])
-            ->group_start()
-                ->where('c.state !=', 'closed')
-                ->or_where('aa.id IS NOT NULL', NULL, FALSE)
-            ->group_end()
-            ->where_in('s.status', ['submitted', 'resubmitted', 'returned_for_revision'])
+            ->where("((c.state = 'configured' AND (s.status IN ('submitted', 'resubmitted', 'returned_for_revision') OR s.id IS NULL)) OR (c.state = 'closed' AND aa.id IS NOT NULL AND s.status IN ('submitted', 'resubmitted', 'returned_for_revision')))", NULL, FALSE)
             ->order_by('c.start_date', 'DESC')
             ->order_by('c.id', 'ASC')
             ->get()->result();
@@ -70,11 +62,52 @@ class Spmi_auditor_workspace_model extends CI_Model
             ->get()->row()->total;
     }
 
+    public function waiting_count($user_id)
+    {
+        return (int) $this->db->select('COUNT(DISTINCT a.id) AS total', FALSE)
+            ->from('spmi_audit_assignments a')
+            ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')
+            ->join('spmi_auditee_submissions s', "s.assignment_id = a.id AND s.status IN ('submitted', 'resubmitted', 'returned_for_revision')", 'left')
+            ->where('a.auditor_id', (int) $user_id)
+            ->where('c.state', 'configured')
+            ->where('s.id IS NULL', NULL, FALSE)
+            ->get()->row()->total;
+    }
+
     public function assignment($assignment_id, $user_id, $for_update = FALSE)
     {
         $sql = 'SELECT a.*, c.cycle_code, c.title AS cycle_title, c.state, s.id AS submission_id, s.status AS submission_status, s.version AS submission_version, aa.id AS assessment_id, aa.status AS assessment_status, aa.version AS assessment_version, aa.source_submission_version FROM spmi_audit_assignments a JOIN spmi_audit_cycles c ON c.id = a.cycle_id JOIN spmi_auditee_submissions s ON s.assignment_id = a.id LEFT JOIN spmi_auditor_assessments aa ON aa.assignment_id = a.id AND aa.source_submission_version = s.version WHERE a.id = ? AND a.auditor_id = ? AND s.status IN (?, ?, ?) AND c.state IN (?, ?)';
         if ($for_update) $sql .= ' FOR UPDATE';
         return $this->db->query($sql, [(int) $assignment_id, (int) $user_id, 'submitted', 'resubmitted', 'returned_for_revision', 'configured', 'closed'])->row();
+    }
+
+    public function configured_assignment_preview($assignment_id, $user_id)
+    {
+        return $this->db->select('a.*, c.cycle_code, c.title AS cycle_title, c.state, c.start_date, c.end_date')
+            ->from('spmi_audit_assignments a')
+            ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')
+            ->join('spmi_auditee_submissions s', 's.assignment_id = a.id', 'left')
+            ->where('a.id', (int) $assignment_id)
+            ->where('a.auditor_id', (int) $user_id)
+            ->where('c.state', 'configured')
+            ->group_start()
+                ->where('s.id IS NULL', NULL, FALSE)
+                ->or_where('s.status', 'draft')
+            ->group_end()
+            ->get()->row();
+    }
+
+    public function preview_items($assignment_id, $user_id)
+    {
+        return $this->db->select('i.*')
+            ->from('spmi_audit_assignment_items i')
+            ->join('spmi_audit_assignments a', 'a.id = i.assignment_id')
+            ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')
+            ->where('a.id', (int) $assignment_id)
+            ->where('a.auditor_id', (int) $user_id)
+            ->where('c.state', 'configured')
+            ->order_by('i.display_order', 'ASC')
+            ->get()->result();
     }
 
     public function cycle_for_update($cycle_id) { return $this->db->query('SELECT * FROM spmi_audit_cycles WHERE id = ? FOR UPDATE', [(int) $cycle_id])->row(); }

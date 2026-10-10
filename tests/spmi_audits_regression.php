@@ -40,7 +40,7 @@ foreach (['spmi_audit_assignments', 'spmi_audit_assignment_items'] as $table) {
 foreach (['trans_begin', 'version_for_update', 'standards_for_version_for_update', 'assignment_standard_auditors', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
     spmi_audit_check(strpos($service, $required) !== FALSE, 'Assignment service contract missing: ' . $required);
 }
-foreach (['assignment_groups', 'isset($mapping[$standard_id])', 'array_unique($standard_auditor_ids)', 'assignment_by_standard_auditee', 'Standar SPMI sudah ditugaskan kepada auditee pada siklus ini.'] as $required) {
+foreach (['assignment_groups', 'isset($mapping[$standard_id])', 'array_unique($standard_auditor_ids)', 'assignment_by_standard_auditee', 'Standar SPMI sudah ditugaskan kepada auditi pada siklus ini.'] as $required) {
     spmi_audit_check(strpos($service, $required) !== FALSE, 'Grouped assignment distribution contract missing: ' . $required);
 }
 spmi_audit_check(strpos($service, "if (!isset(\$group['source_standard_ids']) || \$group['source_standard_ids'] === []) continue;") !== FALSE && strpos($service, "if (!is_array(\$group['source_standard_ids'])) return NULL;") !== FALSE && strpos($service, 'if (!$auditor_id) return NULL;') !== FALSE, 'Grouped assignment parser must ignore disabled unselected groups while requiring auditors for selected standards.');
@@ -78,7 +78,8 @@ foreach (['pending_auditee_count', 'pending_auditor_count', 'aa.source_submissio
 }
 spmi_audit_check(strpos($model, 'submission_status') !== FALSE && strpos($model, 'assessment_status') !== FALSE, 'Overdue LPMPI detail must read current submission and assessment states.');
 spmi_audit_check(strpos($cycle_index, "(string) \$cycle->end_date < date('Y-m-d')") !== FALSE && strpos($cycle_index, "\$cycle->state !== 'draft'") !== FALSE, 'Overdue LPMPI cycle summary must be informational for elapsed non-draft cycles only.');
-spmi_audit_check(strpos($cycle_index, 'Terlambat auditee:') !== FALSE && strpos($cycle_index, 'Terlambat auditor:') !== FALSE, 'Overdue LPMPI cycle labels missing.');
+spmi_audit_check(strpos($cycle_index, 'Terlambat auditi:') !== FALSE && strpos($cycle_index, 'Terlambat auditor:') !== FALSE, 'Overdue LPMPI cycle labels missing.');
 spmi_audit_check(strpos($cycle_detail, "(string) \$cycle->end_date < date('Y-m-d')") !== FALSE && strpos($cycle_detail, 'Terlambat: submission belum dikirim') !== FALSE && strpos($cycle_detail, 'Terlambat: penilaian belum difinalisasi') !== FALSE, 'Overdue LPMPI assignment labels missing.');
+spmi_audit_check(strpos($cycle_detail, "form_open('lpmpi/spmi-audits/cycle/transition/' . (int) \$cycle->id") !== FALSE && strpos($cycle_detail, 'name="state" value="closed"') !== FALSE && strpos($cycle_detail, '>Tutup siklus</button>') !== FALSE && strpos($cycle_detail, 'Siklus yang sudah ditutup tidak dapat dibuka kembali.') !== FALSE, 'Configured cycle close control must retain the POST endpoint, closed state, button, and non-reopen confirmation.');
 
 fwrite(STDOUT, "SPMI audits regression checks passed.\n");

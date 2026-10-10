@@ -10,7 +10,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
 <div class="ami-panel">
     <div class="ami-panel-body">
         <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0">Daftar Akun Auditee & Auditor</h2>
+            <h2 class="ami-section-title m-0">Daftar Akun Auditi & Auditor</h2>
             <a class="btn-ami btn-outline-ami" href="<?php echo site_url('lpmpi/akun/create'); ?>">
                 <i class="fas fa-plus" aria-hidden="true"></i> Tambah Akun
             </a>
@@ -26,7 +26,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
                 <select id="akun-role" name="role" class="form-control">
                     <option value="">Semua role</option>
                     <option value="auditor" <?php echo $filters['role'] === 'auditor' ? 'selected' : ''; ?>>Auditor</option>
-                    <option value="auditee" <?php echo $filters['role'] === 'auditee' ? 'selected' : ''; ?>>Auditee</option>
+                    <option value="auditee" <?php echo $filters['role'] === 'auditee' ? 'selected' : ''; ?>>Auditi</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary btn-ami"><i class="fas fa-filter" aria-hidden="true"></i>Terapkan</button>
@@ -42,7 +42,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
             <div class="ami-empty">
                 <div class="ami-empty-icon"><i class="fas fa-users" aria-hidden="true"></i></div>
                 <div class="ami-empty-title">Akun tidak ditemukan</div>
-                <div><?php echo $filters['q'] !== '' || $filters['role'] !== '' ? 'Coba ubah kata kunci atau filter role.' : 'Tambahkan akun auditor atau auditee terlebih dahulu.'; ?></div>
+                <div><?php echo $filters['q'] !== '' || $filters['role'] !== '' ? 'Coba ubah kata kunci atau filter role.' : 'Tambahkan akun auditor atau auditi terlebih dahulu.'; ?></div>
                 <?php if ($filters['q'] !== '' || $filters['role'] !== ''): ?>
                     <a href="<?php echo site_url('lpmpi/akun'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-undo" aria-hidden="true"></i>Reset filter</a>
                 <?php else: ?>

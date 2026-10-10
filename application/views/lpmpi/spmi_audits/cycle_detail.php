@@ -89,6 +89,10 @@ $mutable = $cycle->state === 'draft';
         <input type="hidden" name="state" value="draft">
         <button class="tw-button-secondary" type="submit">Kembalikan ke draft</button>
         </form>
+        <?php echo form_open('lpmpi/spmi-audits/cycle/transition/' . (int) $cycle->id, ['class' => 'tw-mt-2', 'onsubmit' => "return confirm('Tutup siklus? Siklus yang sudah ditutup tidak dapat dibuka kembali.');"]); ?>
+        <input type="hidden" name="state" value="closed">
+        <button class="tw-button-danger" type="submit">Tutup siklus</button>
+        </form>
       <?php endif; ?>
     </div>
 
@@ -97,7 +101,7 @@ $mutable = $cycle->state === 'draft';
       <section id="assignments" class="tw-mt-0">
         <div class="tw-mb-4">
           <h2 class="tw-text-xl tw-font-bold tw-text-slate-950">Assignments</h2>
-          <p class="tw-mt-1 tw-text-sm tw-text-slate-500">Identity snapshot dari standar, auditor, dan auditee.</p>
+          <p class="tw-mt-1 tw-text-sm tw-text-slate-500">Identity snapshot dari standar, auditor, dan auditi.</p>
         </div>
         <?php if (empty($assignments)): ?>
           <div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">Belum ada snapshot penugasan.</div>
@@ -115,7 +119,7 @@ $mutable = $cycle->state === 'draft';
                   <div>
                     <p class="tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Standar snapshot</p>
                     <h3 class="tw-mt-1 tw-font-bold tw-text-slate-950"><?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?></h3>
-                    <p class="tw-mt-3 tw-text-sm tw-text-slate-600">Auditor: <?php echo html_escape($assignment->auditor_name); ?> · Auditee: <?php echo html_escape($assignment->auditee_name); ?></p>
+                    <p class="tw-mt-3 tw-text-sm tw-text-slate-600">Auditor: <?php echo html_escape($assignment->auditor_name); ?> · Auditi: <?php echo html_escape($assignment->auditee_name); ?></p>
                     <?php if ($auditee_overdue): ?><span class="tw-mt-3 tw-inline-flex tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-1 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: submission belum dikirim</span><?php endif; ?>
                     <?php if ($auditor_overdue): ?><span class="tw-mt-3 tw-inline-flex tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-1 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: penilaian belum difinalisasi</span><?php endif; ?>
                   </div>

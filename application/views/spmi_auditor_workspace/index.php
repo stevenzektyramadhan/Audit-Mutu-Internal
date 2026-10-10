@@ -24,8 +24,19 @@ $icon = static function ($name) {
             <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Penilaian Mutu</p>
             <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950 tw-m-0">Penilaian SPMI</h1>
             <p class="tw-mt-2 tw-max-w-2xl tw-text-sm tw-text-slate-500">
-                Pilih penugasan yang sudah dikirim auditee dan siap untuk dinilai.
+                Pantau penugasan yang menunggu submission auditi dan buka penugasan yang sudah siap dinilai.
             </p>
+        </div>
+
+        <div class="tw-mb-6 tw-grid tw-gap-3 sm:tw-grid-cols-2">
+            <div class="tw-rounded-2xl tw-border tw-border-blue-200 tw-bg-blue-50/70 tw-p-4">
+                <div class="tw-text-2xl tw-font-bold tw-text-blue-950"><?php echo (int) $attention_count; ?></div>
+                <p class="tw-m-0 tw-text-xs tw-text-blue-800">Penugasan siap dinilai atau draft penilaian belum final.</p>
+            </div>
+            <div class="tw-rounded-2xl tw-border tw-border-amber-200 tw-bg-amber-50/70 tw-p-4">
+                <div class="tw-text-2xl tw-font-bold tw-text-amber-950"><?php echo (int) $waiting_count; ?></div>
+                <p class="tw-m-0 tw-text-xs tw-text-amber-800">Penugasan configured yang menunggu submission auditi.</p>
+            </div>
         </div>
 
         <!-- Filter & Search Toolbar -->
@@ -75,7 +86,7 @@ $icon = static function ($name) {
                     <?php echo $icon('clipboard-check'); ?>
                 </div>
                 <h2 class="tw-text-base tw-font-bold tw-text-slate-900">Belum ada penugasan SPMI yang dapat dinilai.</h2>
-                <p class="tw-mt-1.5 tw-text-sm tw-text-slate-500">Penugasan akan muncul di sini setelah auditee mengirimkan jawaban &amp; bukti instrumen.</p>
+                <p class="tw-mt-1.5 tw-text-sm tw-text-slate-500">Penugasan akan muncul di sini setelah siklus configured atau setelah auditi mengirimkan jawaban &amp; bukti instrumen.</p>
             </div>
         <?php else: ?>
             <!-- Desktop Table View -->
@@ -94,6 +105,7 @@ $icon = static function ($name) {
                             <?php foreach ($assignments as $assignment):
                                 $sub_status = strtolower((string) $assignment->submission_status);
                                 $ass_status = strtolower((string) $assignment->assessment_status);
+                                $is_waiting = $sub_status === '';
                                 $is_overdue = (string) $assignment->end_date < date('Y-m-d') && $ass_status !== 'finalized';
                             ?>
                                 <tr class="hover:tw-bg-slate-50">
@@ -112,11 +124,14 @@ $icon = static function ($name) {
                                             <span class="tw-font-medium tw-text-slate-800">
                                                 <?php
                                                 $clean_ass = $ass_status === 'finalized' ? 'Final' : ($ass_status === 'draft' ? 'Draft' : 'Belum dibuka');
-                                                $clean_sub = $sub_status === 'submitted' ? 'Dikirim' : ($sub_status === 'resubmitted' ? 'Dikirim ulang' : ($sub_status === 'returned_for_revision' ? 'Perlu revisi' : $assignment->submission_status));
+                                                $clean_sub = $sub_status === '' ? 'Menunggu submission auditi' : ($sub_status === 'submitted' ? 'Dikirim' : ($sub_status === 'resubmitted' ? 'Dikirim ulang' : ($sub_status === 'returned_for_revision' ? 'Perlu revisi' : $assignment->submission_status)));
                                                 ?>
-                                                <?php echo html_escape(($assignment->assessment_status ?: 'Belum dibuka') . ' / ' . $assignment->submission_status); ?>
+                                                <?php echo html_escape($is_waiting ? 'Menunggu auditi' : (($assignment->assessment_status ?: 'Belum dibuka') . ' / ' . $assignment->submission_status)); ?>
                                                 <span class="tw-text-xs tw-text-slate-400 tw-font-normal">(<?php echo html_escape($clean_ass . ' · ' . $clean_sub); ?>)</span>
                                             </span>
+                                            <?php if ($is_waiting): ?>
+                                                <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-amber-50 tw-border tw-border-amber-200 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-amber-800">Preview assignment</span>
+                                            <?php endif; ?>
                                             <?php if ($is_overdue): ?>
                                                 <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: penilaian belum difinalisasi</span>
                                             <?php endif; ?>
@@ -125,7 +140,7 @@ $icon = static function ($name) {
                                     <td class="tw-px-5 tw-py-4 tw-text-right">
                                         <div class="ami-row-actions tw-inline-flex tw-justify-end">
                                             <a class="ami-action-btn tw-button-primary tw-text-xs" href="<?php echo site_url('auditor/spmi/assignment/' . (int) $assignment->id); ?>">
-                                                <span>Buka</span>
+                                                <span><?php echo $is_waiting ? 'Preview' : 'Buka'; ?></span>
                                                 <?php echo $icon('arrow-right'); ?>
                                             </a>
                                         </div>
@@ -142,6 +157,7 @@ $icon = static function ($name) {
                 <?php foreach ($assignments as $assignment):
                     $sub_status = strtolower((string) $assignment->submission_status);
                     $ass_status = strtolower((string) $assignment->assessment_status);
+                    $is_waiting = $sub_status === '';
                     $is_overdue = (string) $assignment->end_date < date('Y-m-d') && $ass_status !== 'finalized';
                 ?>
                     <article class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm tw-space-y-3">
@@ -152,7 +168,7 @@ $icon = static function ($name) {
                             <span class="tw-text-xs tw-font-medium tw-text-slate-600">
                                 <?php
                                 $m_clean_ass = $ass_status === 'finalized' ? 'Final' : ($ass_status === 'draft' ? 'Draft' : 'Belum dibuka');
-                                echo html_escape(($assignment->assessment_status ?: 'Belum dibuka') . ' (' . $m_clean_ass . ')');
+                                echo html_escape($is_waiting ? 'Menunggu auditi' : (($assignment->assessment_status ?: 'Belum dibuka') . ' (' . $m_clean_ass . ')'));
                                 ?>
                             </span>
                         </div>
@@ -170,11 +186,11 @@ $icon = static function ($name) {
                         </div>
 
                         <div class="tw-pt-2 tw-border-t tw-border-slate-100 tw-flex tw-items-center tw-justify-between tw-text-xs">
-                            <span class="tw-text-slate-500">Submission Auditee:</span>
+                            <span class="tw-text-slate-500">Submission Auditi:</span>
                             <span class="tw-font-semibold tw-text-slate-800">
                                 <?php
-                                $m_clean_sub = $sub_status === 'submitted' ? 'Dikirim' : ($sub_status === 'resubmitted' ? 'Dikirim ulang' : ($sub_status === 'returned_for_revision' ? 'Perlu revisi' : $assignment->submission_status));
-                                echo html_escape($assignment->submission_status . ' (' . $m_clean_sub . ')');
+                                $m_clean_sub = $sub_status === '' ? 'Menunggu submission auditi' : ($sub_status === 'submitted' ? 'Dikirim' : ($sub_status === 'resubmitted' ? 'Dikirim ulang' : ($sub_status === 'returned_for_revision' ? 'Perlu revisi' : $assignment->submission_status)));
+                                echo html_escape($is_waiting ? $m_clean_sub : ($assignment->submission_status . ' (' . $m_clean_sub . ')'));
                                 ?>
                             </span>
                         </div>
@@ -182,7 +198,7 @@ $icon = static function ($name) {
                         <div class="tw-pt-2">
                             <div class="ami-row-actions">
                                 <a class="ami-action-btn tw-button-primary tw-w-full tw-min-h-[44px] tw-text-sm tw-justify-center" href="<?php echo site_url('auditor/spmi/assignment/' . (int) $assignment->id); ?>">
-                                    <span>Buka Ruang Kerja</span>
+                                    <span><?php echo $is_waiting ? 'Preview Penugasan' : 'Buka Ruang Kerja'; ?></span>
                                     <?php echo $icon('arrow-right'); ?>
                                 </a>
                             </div>
