@@ -84,7 +84,7 @@ $icon = static function ($name) {
                 Metrik Penugasan &amp; Penilaian
             </h2>
 
-            <div class="tw-grid tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-4">
+            <div class="tw-grid tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-4">
                 <!-- 1. Total Penugasan -->
                 <div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm">
                     <div class="tw-flex tw-items-center tw-justify-between tw-mb-3">
@@ -113,7 +113,21 @@ $icon = static function ($name) {
                     <p class="tw-mt-1 tw-text-[11px] tw-text-slate-500 tw-m-0">Siap untuk dievaluasi</p>
                 </div>
 
-                <!-- 3. Penilaian Draft -->
+                <!-- 3. Menunggu Auditi -->
+                <div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm">
+                    <div class="tw-flex tw-items-center tw-justify-between tw-mb-3">
+                        <span class="tw-text-xs tw-font-semibold tw-text-slate-500">Menunggu Auditi</span>
+                        <span class="tw-flex tw-h-8 tw-w-8 tw-items-center tw-justify-center tw-rounded-lg tw-bg-amber-50 tw-text-amber-600">
+                            <?php echo $icon('clock'); ?>
+                        </span>
+                    </div>
+                    <div class="tw-text-2xl sm:tw-text-3xl tw-font-bold tw-tracking-tight <?php echo (int) $dashboard['submissions_waiting'] > 0 ? 'tw-text-amber-600' : 'tw-text-slate-950'; ?>">
+                        <?php echo (int) $dashboard['submissions_waiting']; ?>
+                    </div>
+                    <p class="tw-mt-1 tw-text-[11px] tw-text-slate-500 tw-m-0">Configured, belum ada submission assessable</p>
+                </div>
+
+                <!-- 4. Penilaian Draft -->
                 <div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm">
                     <div class="tw-flex tw-items-center tw-justify-between tw-mb-3">
                         <span class="tw-text-xs tw-font-semibold tw-text-slate-500">Penilaian Draft</span>
@@ -127,7 +141,7 @@ $icon = static function ($name) {
                     <p class="tw-mt-1 tw-text-[11px] tw-text-slate-500 tw-m-0">Sedang dalam proses pengisian</p>
                 </div>
 
-                <!-- 4. Penilaian Final -->
+                <!-- 5. Penilaian Final -->
                 <div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm">
                     <div class="tw-flex tw-items-center tw-justify-between tw-mb-3">
                         <span class="tw-text-xs tw-font-semibold tw-text-slate-500">Penilaian Final</span>
@@ -141,7 +155,7 @@ $icon = static function ($name) {
                     <p class="tw-mt-1 tw-text-[11px] tw-text-slate-500 tw-m-0">Selesai &amp; terkunci resmi</p>
                 </div>
 
-                <!-- 5. Jatuh Tempo 7 Hari -->
+                <!-- 6. Jatuh Tempo 7 Hari -->
                 <div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm">
                     <div class="tw-flex tw-items-center tw-justify-between tw-mb-3">
                         <span class="tw-text-xs tw-font-semibold tw-text-slate-500">Jatuh Tempo 7 Hari</span>
@@ -155,7 +169,7 @@ $icon = static function ($name) {
                     <p class="tw-mt-1 tw-text-[11px] tw-text-slate-500 tw-m-0">Batas akhir dalam 7 hari</p>
                 </div>
 
-                <!-- 6. Terlambat -->
+                <!-- 7. Terlambat -->
                 <div class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm">
                     <div class="tw-flex tw-items-center tw-justify-between tw-mb-3">
                         <span class="tw-text-xs tw-font-semibold tw-text-slate-500">Terlambat</span>
@@ -176,7 +190,7 @@ $icon = static function ($name) {
             <div>
                 <h3 class="tw-text-base tw-font-bold tw-text-blue-950 tw-m-0">Buka Ruang Kerja Penilaian SPMI</h3>
                 <p class="tw-mt-1 tw-text-xs tw-text-blue-800 tw-m-0">
-                    Masuk ke daftar penugasan untuk melakukan penilaian instrumen, penilaian rubrik, dan verifikasi bukti auditee.
+                    Masuk ke daftar penugasan untuk melakukan penilaian instrumen, penilaian rubrik, dan verifikasi bukti auditi.
                 </p>
             </div>
             <a href="<?php echo site_url('auditor/spmi'); ?>" class="tw-button-primary tw-text-xs tw-whitespace-nowrap">

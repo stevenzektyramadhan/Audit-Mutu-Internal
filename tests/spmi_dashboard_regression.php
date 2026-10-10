@@ -84,7 +84,7 @@ check(strpos($management_model, "state IN ('configured', 'closed')") !== FALSE, 
 check(strpos($management_model, "'r.source_cycle_id IN (' . \$eligible_cycles . ')' => NULL") !== FALSE && strpos($management_model, "'aa.id = r.assessment_id'") === FALSE, 'Management reports must count immutable grouped reports by source cycle, not one assessment anchor.');
 check(strpos($management_model, "'m.status' => 'resolved'") !== FALSE, 'Management decisions must use resolved meetings.');
 foreach (['spmi_rtm_follow_ups', 'follow_ups_open', 'follow_ups_in_progress', 'follow_ups_completed', 'follow_ups_overdue', 'lpmpi/spmi-follow-ups'] as $retired) check(strpos($management_model . $management_view, $retired) === FALSE, 'Retired management follow-up artifact remains: ' . $retired);
-foreach (['assignments', 'submissions_submitted', 'assessments_draft', 'assessments_finalized', 'due_soon', 'overdue', 'notifications'] as $metric) check(strpos($auditor_model, "'" . $metric . "'") !== FALSE || strpos($auditor_model, '$' . $metric) !== FALSE, 'Auditor metric missing: ' . $metric);
+foreach (['assignments', 'submissions_submitted', 'submissions_waiting', 'assessments_draft', 'assessments_finalized', 'due_soon', 'overdue', 'notifications'] as $metric) check(strpos($auditor_model, "'" . $metric . "'") !== FALSE || strpos($auditor_model, '$' . $metric) !== FALSE, 'Auditor metric missing: ' . $metric);
 foreach (['assignments', 'submissions_draft', 'submissions_submitted', 'due_soon', 'overdue', 'notifications'] as $metric) check(strpos($auditee_model, "'" . $metric . "'") !== FALSE || strpos($auditee_model, '$' . $metric) !== FALSE, 'Auditee metric missing: ' . $metric);
 check(strpos($auditor_model, "where('a.auditor_id', (int) \$user_id)") !== FALSE, 'Auditor owner filter missing.');
 check(strpos($auditee_model, "where('a.auditee_id', (int) \$user_id)") !== FALSE, 'Auditee owner filter missing.');
@@ -121,6 +121,14 @@ foreach (['function dashboard_counts($year, $stages)', "select('stage, category,
 }
 check(strpos($auditor_view, 'print') === FALSE && strpos($auditor_view, 'export') === FALSE, 'Auditor dashboard must not expose print/export.');
 check(strpos($auditee_view, 'print') === FALSE && strpos($auditee_view, 'export') === FALSE, 'Auditee dashboard must not expose print/export.');
+check(strpos($auditor_model, '$waiting = $this->waiting_count($user_id);') !== FALSE && strpos($auditor_model, "'submissions_waiting' => $" . 'waiting') !== FALSE, 'Auditor dashboard must expose submissions_waiting from waiting_count.');
+$auditor_waiting_method = substr($auditor_model, strpos($auditor_model, 'public function waiting_count('), strpos($auditor_model, 'protected function due_count(') - strpos($auditor_model, 'public function waiting_count('));
+foreach (["COUNT(DISTINCT a.id) AS total", "join('spmi_audit_cycles c', 'c.id = a.cycle_id')", "join('spmi_auditee_submissions s', 's.assignment_id = a.id AND s.status IN (\"submitted\", \"resubmitted\", \"returned_for_revision\")', 'left')", "where('a.auditor_id', (int) $" . 'user_id)', "where('c.state', 'configured')", "where('s.id IS NULL', NULL, FALSE)"] as $literal) {
+    check(strpos($auditor_waiting_method, $literal) !== FALSE, 'Auditor dashboard waiting count configured-owner contract missing: ' . $literal);
+}
+check(strpos($auditor_view, "Menunggu Auditi") !== FALSE && strpos($auditor_view, "dashboard['submissions_waiting']") !== FALSE && strpos($auditor_view, 'Configured, belum ada submission assessable') !== FALSE, 'Auditor dashboard must render separate Menunggu Auditi KPI.');
+$auditor_attention_method = substr($auditor_model, strpos($auditor_model, 'public function attention_count('), strpos($auditor_model, 'public function waiting_count(') - strpos($auditor_model, 'public function attention_count('));
+check(strpos($auditor_attention_method, "where_in('s.status', ['submitted', 'resubmitted'])") !== FALSE && strpos($auditor_attention_method, "s.id IS NULL") === FALSE && strpos($auditor_attention_method, "where('c.state', 'configured')") === FALSE, 'Auditor attention count must stay separate from configured waiting assignments.');
 check(strpos($management_controller, "in_array(") !== FALSE && strpos($management_controller, "['=', '+', '-', '@']") !== FALSE, 'Export formula safety missing.');
 foreach ([
     "'key' => 'spmi_dashboard', 'label' => 'Dashboard SPMI', 'icon' => 'fa-tachometer-alt', 'url' => 'lpmpi/spmi-dashboard', 'group' => 'Overview'",
