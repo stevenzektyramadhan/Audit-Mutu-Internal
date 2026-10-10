@@ -91,7 +91,7 @@ class Spmi_auditee_workspace_service
         $new_status = $resubmit ? 'resubmitted' : ($submit ? 'submitted' : $status);
         $event_status = $resubmit ? ['status' => 'resubmitted'] : ['status' => $new_status];
         if (!$this->model->update_version($assignment->submission_id, $version, $event_status['status'], $submit, [$status]) || $this->ci->db->affected_rows() !== 1) return $this->rollback(self::CONFLICT);
-        if ($resubmit && !$this->model->add_revision_event(['submission_id' => (int) $assignment->submission_id, 'assignment_id' => (int) $assignment->id, 'actor_user_id' => (int) $user_id, 'reason' => 'Resubmitted by auditee.', 'submission_version' => (int) $version + 1, 'previous_status' => 'returned_for_revision', 'new_status' => 'resubmitted', 'previous_version' => (int) $version, 'resulting_version' => (int) $version + 1])) return $this->rollback('Riwayat revisi gagal disimpan.');
+        if ($resubmit && !$this->model->add_revision_event(['submission_id' => (int) $assignment->submission_id, 'assignment_id' => (int) $assignment->id, 'actor_user_id' => (int) $user_id, 'reason' => 'Dikirim ulang oleh auditi.', 'submission_version' => (int) $version + 1, 'previous_status' => 'returned_for_revision', 'new_status' => 'resubmitted', 'previous_version' => (int) $version, 'resulting_version' => (int) $version + 1])) return $this->rollback('Riwayat revisi gagal disimpan.');
         return $this->finish($resubmit ? 'Submission SPMI berhasil dikirim ulang.' : ($submit ? 'Submission SPMI berhasil dikirim.' : 'Draft SPMI berhasil disimpan.'));
     }
 
