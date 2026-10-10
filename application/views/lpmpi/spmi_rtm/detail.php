@@ -13,7 +13,7 @@ $role_labels = [
     'super_admin' => 'Super Admin',
     'admin_lpmpi' => 'Admin LPMPI',
     'auditor' => 'Auditor',
-    'auditee' => 'Auditee',
+    'auditee' => 'Auditi',
 ];
 
 $icon = static function ($name) {
@@ -32,8 +32,14 @@ $icon = static function ($name) {
         'alert-triangle' => '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
         'lock' => '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     ];
+
     return '<svg class="rtm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file-text']) . '</svg>';
 };
+
+$event_labels = [
+    'resolve' => 'Resolve',
+    'unresolve' => 'Unresolve',
+];
 ?>
 
 <main id="rtm-root" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
@@ -126,8 +132,20 @@ $icon = static function ($name) {
             <?php if ($meeting->status === 'resolved'): ?>
                 <div class="tw-mt-5 tw-flex tw-items-center tw-gap-2.5 tw-rounded-lg tw-border tw-border-emerald-200 tw-bg-emerald-50/70 tw-px-3.5 tw-py-2.5 tw-text-xs tw-text-emerald-900">
                     <span class="tw-text-emerald-600"><?php echo $icon('lock'); ?></span>
-                    <span>RTM resolved permanen dan hanya-baca. Seluruh butir keputusan dapat ditindaklanjuti.</span>
+                    <span>RTM resolved bersifat hanya-baca untuk akses normal. Recovery ke draft hanya dapat dilakukan oleh Super Admin dengan alasan tercatat.</span>
                 </div>
+                <?php if (($current_role ?? '') === 'super_admin'): ?>
+                    <div class="tw-mt-4 tw-rounded-xl tw-border tw-border-red-200 tw-bg-red-50/70 tw-p-4 no-print">
+                        <?php echo form_open('lpmpi/spmi-rtm/unresolve/' . (int) $meeting->id, ['class' => 'tw-space-y-3', 'onsubmit' => "return confirm('Kembalikan RTM resolved ini ke draft? Alasan recovery akan disimpan permanen pada riwayat.');"]); ?>
+                            <label class="tw-block tw-text-xs tw-font-bold tw-text-red-900" for="rtm-unresolve-reason">Alasan recovery ke draft <span aria-hidden="true">*</span></label>
+                            <textarea id="rtm-unresolve-reason" name="reason" required rows="3" class="tw-w-full tw-rounded-lg tw-border tw-border-red-200 tw-bg-white tw-p-3 tw-text-sm tw-text-slate-900" placeholder="Tuliskan alasan recovery RTM resolved ke draft."></textarea>
+                            <button class="btn-ami tw-button-danger tw-text-xs tw-py-2 tw-px-3.5" type="submit">
+                                <?php echo $icon('alert-triangle'); ?>
+                                <span>Kembalikan ke draft</span>
+                            </button>
+                        <?php echo form_close(); ?>
+                    </div>
+                <?php endif; ?>
             <?php else: ?>
                 <div class="tw-mt-5 tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center sm:tw-justify-between tw-gap-3 tw-rounded-lg tw-border tw-border-amber-200 tw-bg-amber-50/70 tw-px-4 tw-py-3 tw-text-xs tw-text-amber-900">
                     <div class="tw-flex tw-items-center tw-gap-2.5">
@@ -143,6 +161,46 @@ $icon = static function ($name) {
                 </div>
             <?php endif; ?>
         </header>
+
+        <section class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm" aria-labelledby="resolution-history-title">
+            <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
+                <div>
+                    <h2 id="resolution-history-title" class="tw-text-base tw-font-bold tw-text-slate-900 tw-m-0">Riwayat resolve RTM</h2>
+                    <p class="tw-mt-1 tw-text-xs tw-text-slate-500">Setiap resolve dan recovery tersimpan sebagai event immutable berurutan.</p>
+                </div>
+                <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-slate-100 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-slate-700">
+                    <?php echo count($resolution_events ?? []); ?> Event
+                </span>
+            </div>
+
+            <?php if (empty($resolution_events)): ?>
+                <p class="tw-text-sm tw-text-slate-500 tw-italic">Belum ada event resolve.</p>
+            <?php else: ?>
+                <ol class="tw-space-y-3 tw-p-0 tw-m-0 tw-list-none">
+                    <?php foreach ($resolution_events as $event): ?>
+                        <li class="tw-rounded-xl tw-border tw-border-slate-100 tw-bg-slate-50/80 tw-p-3.5">
+                            <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center sm:tw-justify-between tw-gap-1">
+                                <div class="tw-text-sm tw-font-bold tw-text-slate-900">
+                                    <?php echo html_escape($event_labels[$event->action] ?? $event->action); ?>
+                                    <span class="tw-text-xs tw-font-medium tw-text-slate-500">
+                                        <?php echo html_escape($event->status_from . ' -> ' . $event->status_to); ?>
+                                    </span>
+                                </div>
+                                <div class="tw-text-xs tw-text-slate-500"><?php echo html_escape($event->created_at); ?></div>
+                            </div>
+                            <div class="tw-mt-1 tw-text-xs tw-text-slate-600">
+                                Aktor: <?php echo html_escape($event->actor_name . ' <' . $event->actor_email . '>'); ?>
+                            </div>
+                            <?php if (trim((string) $event->reason) !== ''): ?>
+                                <div class="tw-mt-2 tw-rounded-lg tw-bg-white tw-border tw-border-slate-200 tw-p-3 tw-text-xs tw-leading-relaxed tw-text-slate-800">
+                                    <?php echo nl2br(html_escape($event->reason)); ?>
+                                </div>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+            <?php endif; ?>
+        </section>
 
         <!-- Two Column Grid: Linked Reports & Participants -->
         <div class="tw-mb-8 tw-grid tw-gap-6 lg:tw-grid-cols-2">

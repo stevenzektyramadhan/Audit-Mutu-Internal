@@ -36,7 +36,7 @@ Business logic, ownership check, dan transaksi database ditempatkan pada service
 | Siklus audit | `draft -> configured -> closed`; `configured -> draft` juga didukung. |
 | Submission auditee | `draft`, `submitted`, `returned_for_revision`, `resubmitted`. |
 | Assessment auditor | `draft -> finalized`. |
-| RTM | `draft -> resolved`; RTM resolved bersifat baca-saja. |
+| RTM | `draft -> resolved`; dalam kondisi normal RTM resolved bersifat baca-saja. Super admin dapat memulihkan `resolved -> draft` melalui POST dengan alasan tercatat dalam riwayat resolusi. |
 
 Laporan baru dibuat hanya ketika seluruh penugasan untuk kombinasi siklus, versi, dan auditee telah memiliki assessment finalized. Laporan dan itemnya adalah snapshot immutable; setiap item menyimpan identitas auditor penanggung jawab, dan laporan historis tetap dapat dibaca.
 
@@ -202,7 +202,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-045`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-046`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
 
 #### Akun Administrator Pertama
 
@@ -226,11 +226,11 @@ Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration ba
 
 #### Database baru
 
-Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `042` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
+Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `046` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `045` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `046` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -266,6 +266,7 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 32. `043_add_spmi_report_academic_year_snapshot.sql`
 33. `044_add_spmi_version_auditee_report_scope.sql`
 34. `045_add_spmi_rtm_photo.sql`
+35. `046_create_spmi_rtm_resolution_events.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
@@ -284,6 +285,8 @@ Migration `043_add_spmi_report_academic_year_snapshot.sql` bersifat aditif dan i
 Migration `044_add_spmi_version_auditee_report_scope.sql` bersifat aditif dan idempoten: menambahkan scope laporan `version_auditee`, unique tuple baru per siklus/versi/auditee, serta snapshot ID/nama/email auditor pada setiap item laporan. Tidak ada row historis, unique index versi lama, atau data assessment yang diubah. Laporan baru dapat diekspor sebagai XLSX, print, atau Word-compatible UTF-8 HTML `.doc` tanpa membaca auditor/assessment hidup.
 
 Migration `045_add_spmi_rtm_photo.sql` bersifat aditif dan idempoten: menambahkan metadata nullable nama simpanan, nama asal, MIME, ukuran, dan SHA-256 untuk satu foto dokumentasi RTM serta kategori batas upload `rtm_photos` (default 5 MiB). Foto hanya dapat diunggah atau diganti saat RTM draft, disimpan private di bawah `APP_PRIVATE_STORAGE_PATH`, dan diunduh oleh pengguna LPMPI berwenang melalui endpoint aplikasi.
+
+Migration `046_create_spmi_rtm_resolution_events.sql` bersifat aditif dan idempoten: menambahkan tabel riwayat immutable untuk setiap aksi `resolve` dan recovery `unresolve` RTM dengan FK RESTRICT ke rapat dan aktor. Recovery hanya tersedia via POST untuk `super_admin`, wajib alasan nonblank, mengubah status `resolved -> draft`, dan tidak menghapus laporan, peserta, keputusan, foto, atau riwayat sebelumnya.
 
 Docker lokal memakai nilai `APP_ENCRYPTION_KEY` development yang dapat dioverride melalui environment. Deployment harus selalu menyediakan nilai acak dan rahasia sendiri; jangan gunakan nilai default Docker lokal di luar development.
 

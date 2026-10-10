@@ -123,6 +123,7 @@ class User_model extends CI_Model
             ['table' => 'spmi_versions', 'fields' => ['created_by'], 'category' => 'versi SPMI'],
             ['table' => 'spmi_reports', 'fields' => ['generated_by'], 'category' => 'laporan SPMI'],
             ['table' => 'spmi_rtm_meetings', 'fields' => ['created_by', 'resolved_by'], 'category' => 'rapat RTM SPMI'],
+            ['table' => 'spmi_rtm_resolution_events', 'fields' => ['actor_user_id'], 'category' => 'riwayat resolve RTM SPMI'],
             ['table' => 'spmi_rtm_participants', 'fields' => ['user_id'], 'category' => 'peserta RTM SPMI'],
             ['table' => 'spmi_rtm_follow_ups', 'fields' => ['responsible_user_id', 'started_by', 'completed_by', 'created_by'], 'category' => 'tindak lanjut RTM SPMI'],
             ['table' => 'user_unit_assignments', 'fields' => ['user_id'], 'category' => 'penempatan unit organisasi'],
