@@ -232,7 +232,7 @@ $active_stage_meta = isset($stage_badges[$selected_stage]) ? $stage_badges[$sele
                     </div>
                     <input class="form-control tw-w-full tw-text-xs md:tw-text-sm tw-h-11 tw-pl-10 tw-pr-3.5 tw-rounded-lg tw-border tw-border-slate-200 focus:tw-border-blue-500 focus:tw-ring-2 focus:tw-ring-blue-100 tw-outline-none" id="ppepp-external-url" name="external_url" type="url" maxlength="500" value="<?php echo html_escape($document->external_url ?? ''); ?>" placeholder="https://drive.google.com/...">
                 </div>
-                <span class="tw-block tw-text-[11px] tw-text-slate-500">Tautan langsung file atau folder repositori eksternal yang dapat diakses oleh auditor/auditee.</span>
+                <span class="tw-block tw-text-[11px] tw-text-slate-500">Tautan langsung file atau folder repositori eksternal yang dapat diakses oleh auditor/auditi.</span>
             </div>
         </div>
 
