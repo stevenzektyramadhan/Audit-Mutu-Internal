@@ -94,6 +94,7 @@ $icon = static function ($name) {
                             <?php foreach ($assignments as $assignment):
                                 $sub_status = strtolower((string) $assignment->submission_status);
                                 $ass_status = strtolower((string) $assignment->assessment_status);
+                                $is_overdue = (string) $assignment->end_date < date('Y-m-d') && $ass_status !== 'finalized';
                             ?>
                                 <tr class="hover:tw-bg-slate-50">
                                     <td class="tw-px-5 tw-py-4">
@@ -116,6 +117,9 @@ $icon = static function ($name) {
                                                 <?php echo html_escape(($assignment->assessment_status ?: 'Belum dibuka') . ' / ' . $assignment->submission_status); ?>
                                                 <span class="tw-text-xs tw-text-slate-400 tw-font-normal">(<?php echo html_escape($clean_ass . ' · ' . $clean_sub); ?>)</span>
                                             </span>
+                                            <?php if ($is_overdue): ?>
+                                                <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: penilaian belum difinalisasi</span>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                     <td class="tw-px-5 tw-py-4 tw-text-right">
@@ -135,7 +139,11 @@ $icon = static function ($name) {
 
             <!-- Mobile Cards View -->
             <div class="tw-grid tw-gap-4 md:tw-hidden">
-                <?php foreach ($assignments as $assignment): ?>
+                <?php foreach ($assignments as $assignment):
+                    $sub_status = strtolower((string) $assignment->submission_status);
+                    $ass_status = strtolower((string) $assignment->assessment_status);
+                    $is_overdue = (string) $assignment->end_date < date('Y-m-d') && $ass_status !== 'finalized';
+                ?>
                     <article class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm tw-space-y-3">
                         <div class="tw-flex tw-items-center tw-justify-between tw-gap-2">
                             <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900 tw-bg-slate-100 tw-px-2 tw-py-0.5 tw-rounded tw-border tw-border-slate-200">
@@ -148,6 +156,9 @@ $icon = static function ($name) {
                                 ?>
                             </span>
                         </div>
+                        <?php if ($is_overdue): ?>
+                            <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: penilaian belum difinalisasi</span>
+                        <?php endif; ?>
 
                         <div>
                             <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-m-0">

@@ -13,6 +13,7 @@ $routes = rtm_source('application/config/routes.php');
 $sidebar = rtm_source('application/views/layouts/sidebar.php');
 $detail = rtm_source('application/views/lpmpi/spmi_rtm/detail.php');
 $word = rtm_source('application/views/lpmpi/spmi_rtm/word.php');
+$form = rtm_source('application/views/lpmpi/spmi_rtm/form.php');
 $views = rtm_source('application/views/lpmpi/spmi_rtm/index.php') . rtm_source('application/views/lpmpi/spmi_rtm/form.php') . rtm_source('application/views/lpmpi/spmi_rtm/detail.php') . rtm_source('application/views/lpmpi/spmi_rtm/print.php');
 
 foreach (['spmi_rtm_meetings', 'spmi_rtm_meeting_reports', 'spmi_rtm_participants', 'spmi_rtm_decisions', 'status` ENUM(\'draft\',\'resolved\')', 'name_snapshot', 'email_snapshot', 'role_snapshot', 'decision_text', 'action_text', 'UNIQUE KEY `uq_spmi_rtm_meetings_code`', 'UNIQUE KEY `uq_spmi_rtm_meeting_reports_report`', 'UNIQUE KEY `uq_spmi_rtm_participants_user`', 'UNIQUE KEY `uq_spmi_rtm_decisions_order', 'ON DELETE RESTRICT', 'ON UPDATE RESTRICT', 'ENGINE=InnoDB DEFAULT CHARSET=utf8'] as $literal) rtm_check(strpos($migration, $literal) !== FALSE, 'M11 migration contract missing: ' . $literal);
@@ -38,5 +39,6 @@ rtm_check(strpos($controller, 'export_word') !== FALSE && strpos($controller, 'a
 rtm_check(substr_count($views, 'lpmpi/spmi-rtm/export-word/') >= 3, 'RTM list and detail must expose the protected Word export action.');
 rtm_check(strpos($word, 'html_escape') !== FALSE && strpos($word, 'nl2br(html_escape(') !== FALSE && strpos($word, 'photo_stored_name') === FALSE && strpos($word, 'private_storage') === FALSE, 'RTM Word document must escape output and omit private photo storage data.');
 rtm_check(strpos($word, 'cycle_start_date_snapshot') === FALSE && strpos($word, 'cycle_end_date_snapshot') === FALSE && strpos($word, 'auditee_name_snapshot') === FALSE && strpos($word, 'report_number') !== FALSE && strpos($word, 'cycle_code_snapshot') !== FALSE && strpos($word, 'cycle_title_snapshot') !== FALSE, 'RTM Word report table must only use fields selected by meeting_reports().');
+foreach (['id="participant-search"', 'type="search"', 'aria-controls="participant-checklist"', 'hidden', 'autocomplete="off"', 'id="participant-search-status"', 'role="status"', 'aria-live="polite"', 'id="participant-checklist"', 'class="participant-row', 'data-search="<?php echo html_escape(mb_strtolower(', "'UTF-8'", 'participantSearch.value.trim().toLocaleLowerCase()', 'row.hidden = !matchesQuery && !checkbox.checked', 'participantSearch.hidden = false', 'participantSearch.addEventListener(\'input\', updateParticipantRows)', 'checkbox.addEventListener(\'change\', updateParticipantRows)', 'document.querySelectorAll(\'.user-checkbox\')', 'document.getElementById(\'participant_ids\')'] as $literal) rtm_check(strpos($form, $literal) !== FALSE, 'RTM participant search contract missing: ' . $literal);
 
 fwrite(STDOUT, "SPMI RTM regression checks passed.\n");

@@ -3,12 +3,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Spmi_audits_model extends CI_Model
 {
-    public function cycles() { return $this->db->order_by('start_date', 'DESC')->order_by('id', 'DESC')->get('spmi_audit_cycles')->result(); }
+    public function cycles() { return $this->db->select("c.*, COUNT(DISTINCT CASE WHEN s.id IS NULL OR s.status IN ('draft', 'returned_for_revision') THEN a.id END) AS pending_auditee_count, COUNT(DISTINCT CASE WHEN s.status IN ('submitted', 'resubmitted') AND (aa.id IS NULL OR aa.status != 'finalized') THEN a.id END) AS pending_auditor_count", FALSE)->from('spmi_audit_cycles c')->join('spmi_audit_assignments a', 'a.cycle_id = c.id', 'left')->join('spmi_auditee_submissions s', 's.assignment_id = a.id', 'left')->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')->group_by('c.id')->order_by('c.start_date', 'DESC')->order_by('c.id', 'DESC')->get()->result(); }
     public function cycle($id, $for_update = FALSE) { return $for_update ? $this->db->query('SELECT * FROM spmi_audit_cycles WHERE id = ' . (int) $id . ' FOR UPDATE')->row() : $this->db->where('id', (int) $id)->get('spmi_audit_cycles')->row(); }
     public function cycle_by_code($code, $exclude = 0) { $this->db->where('cycle_code', $code); if ($exclude) $this->db->where('id !=', (int) $exclude); return $this->db->get('spmi_audit_cycles')->row(); }
     public function insert_cycle($data) { return $this->db->insert('spmi_audit_cycles', $data) ? $this->db->insert_id() : 0; }
     public function update_cycle($id, $data) { return $this->db->where('id', (int) $id)->update('spmi_audit_cycles', $data); }
-    public function assignments($cycle_id) { return $this->db->where('cycle_id', (int) $cycle_id)->order_by('id', 'ASC')->get('spmi_audit_assignments')->result(); }
+    public function assignments($cycle_id) { return $this->db->select('a.*, s.status AS submission_status, aa.status AS assessment_status')->from('spmi_audit_assignments a')->join('spmi_auditee_submissions s', 's.assignment_id = a.id', 'left')->join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')->where('a.cycle_id', (int) $cycle_id)->order_by('a.id', 'ASC')->get()->result(); }
     public function assignment($id) { return $this->db->where('id', (int) $id)->get('spmi_audit_assignments')->row(); }
     public function assignment_by_standard_auditee($cycle_id, $standard_id, $auditee_id) { return $this->db->where(['cycle_id' => (int) $cycle_id, 'source_standard_id' => (int) $standard_id, 'auditee_id' => (int) $auditee_id])->get('spmi_audit_assignments')->row(); }
     public function insert_assignment($data) { return $this->db->insert('spmi_audit_assignments', $data) ? $this->db->insert_id() : 0; }

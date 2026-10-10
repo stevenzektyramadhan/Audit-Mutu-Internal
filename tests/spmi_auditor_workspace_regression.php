@@ -174,4 +174,9 @@ m9_check(strpos($dashboard_method, '$assignments = $base()->count_all_results();
 m9_check(strpos($dashboard_method, '$submitted = $base()->join(\'spmi_auditee_submissions s\', \'s.assignment_id = a.id\')->where_in(\'s.status\', [\'submitted\', \'resubmitted\'])->count_all_results();') !== FALSE, 'M17-07H dashboard submissions must count owner/cycle assignments with exactly submitted or resubmitted submissions.');
 foreach (['$workspace_base', "join('spmi_auditor_assessments aa', 'aa.assignment_id = a.id AND aa.source_submission_version = s.version', 'left')", 'aa.id', 'returned_for_revision', "where('c.state !=', 'closed')", "or_where('aa.id IS NOT NULL', NULL, FALSE)", "where(\"c.state != 'closed' OR aa.id IS NOT NULL\", NULL, FALSE)"] as $literal) m9_check(strpos($dashboard_method, $literal) === FALSE, 'M17-07H dashboard must not inherit workspace visibility predicate: ' . $literal);
 
+m9_check(strpos($assignments_method, 'c.end_date') !== FALSE, 'Overdue auditor status requires cycle end_date in the owned assignment read.');
+m9_check(strpos($index, "(string) \$assignment->end_date < date('Y-m-d')") !== FALSE, 'Overdue auditor status must use a strict past end_date rule.');
+m9_check(strpos($index, "\$ass_status !== 'finalized'") !== FALSE, 'Overdue auditor status must require a current-version finalized assessment.');
+m9_check(substr_count($index, 'Terlambat: penilaian belum difinalisasi') >= 2, 'Overdue auditor label must render in desktop and mobile views.');
+
 fwrite(STDOUT, "SPMI auditor workspace regression checks passed.\n");

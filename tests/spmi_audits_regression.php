@@ -73,4 +73,12 @@ spmi_audit_check(strpos($cycle_form, 'name="semester"') === FALSE && strpos($cyc
 spmi_audit_check(strpos($cycle_index, '$academic_year') !== FALSE && strpos($cycle_index, '$semester') === FALSE && strpos($cycle_index, 'Semester') === FALSE, 'Annual cycle index must render academic year without semester.');
 spmi_audit_check(strpos($cycle_detail, '$academic_year') !== FALSE && strpos($cycle_detail, '$semester') === FALSE && strpos($cycle_detail, 'Semester') === FALSE, 'Annual cycle detail must render academic year without semester.');
 
+foreach (['pending_auditee_count', 'pending_auditor_count', 'aa.source_submission_version = s.version'] as $required) {
+    spmi_audit_check(strpos($model, $required) !== FALSE, 'Overdue LPMPI model contract missing: ' . $required);
+}
+spmi_audit_check(strpos($model, 'submission_status') !== FALSE && strpos($model, 'assessment_status') !== FALSE, 'Overdue LPMPI detail must read current submission and assessment states.');
+spmi_audit_check(strpos($cycle_index, "(string) \$cycle->end_date < date('Y-m-d')") !== FALSE && strpos($cycle_index, "\$cycle->state !== 'draft'") !== FALSE, 'Overdue LPMPI cycle summary must be informational for elapsed non-draft cycles only.');
+spmi_audit_check(strpos($cycle_index, 'Terlambat auditee:') !== FALSE && strpos($cycle_index, 'Terlambat auditor:') !== FALSE, 'Overdue LPMPI cycle labels missing.');
+spmi_audit_check(strpos($cycle_detail, "(string) \$cycle->end_date < date('Y-m-d')") !== FALSE && strpos($cycle_detail, 'Terlambat: submission belum dikirim') !== FALSE && strpos($cycle_detail, 'Terlambat: penilaian belum difinalisasi') !== FALSE, 'Overdue LPMPI assignment labels missing.');
+
 fwrite(STDOUT, "SPMI audits regression checks passed.\n");
