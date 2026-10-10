@@ -192,6 +192,7 @@ $route['lpmpi/spmi-rtm/detail/(:num)'] = 'lpmpi/Spmi_rtm/detail/$1';
 $route['lpmpi/spmi-rtm/edit/(:num)'] = 'lpmpi/Spmi_rtm/edit/$1';
 $route['lpmpi/spmi-rtm/update/(:num)'] = 'lpmpi/Spmi_rtm/update/$1';
 $route['lpmpi/spmi-rtm/resolve/(:num)'] = 'lpmpi/Spmi_rtm/resolve/$1';
+$route['lpmpi/spmi-rtm/unresolve/(:num)'] = 'lpmpi/Spmi_rtm/unresolve/$1';
 $route['lpmpi/spmi-rtm/export-word/(:num)'] = 'lpmpi/Spmi_rtm/export_word/$1';
 $route['lpmpi/spmi-rtm/print/(:num)'] = 'lpmpi/Spmi_rtm/print_report/$1';
 $route['lpmpi/spmi-rtm/photo/(:num)'] = 'lpmpi/Spmi_rtm/download_photo/$1';
