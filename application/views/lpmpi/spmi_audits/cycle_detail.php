@@ -103,13 +103,21 @@ $mutable = $cycle->state === 'draft';
           <div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">Belum ada snapshot penugasan.</div>
         <?php else: ?>
           <div class="tw-grid tw-gap-3">
-            <?php foreach ($assignments as $assignment): ?>
+            <?php foreach ($assignments as $assignment):
+              $submission_status = (string) $assignment->submission_status;
+              $assessment_status = (string) $assignment->assessment_status;
+              $is_overdue = (string) $cycle->end_date < date('Y-m-d');
+              $auditee_overdue = $is_overdue && !in_array($submission_status, ['submitted', 'resubmitted'], TRUE);
+              $auditor_overdue = $is_overdue && in_array($submission_status, ['submitted', 'resubmitted'], TRUE) && $assessment_status !== 'finalized';
+            ?>
               <article class="tw-rounded-xl tw-border tw-border-slate-200 tw-bg-white tw-p-5">
                 <div class="tw-flex tw-flex-col tw-gap-3 md:tw-flex-row md:tw-items-start md:tw-justify-between">
                   <div>
                     <p class="tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Standar snapshot</p>
                     <h3 class="tw-mt-1 tw-font-bold tw-text-slate-950"><?php echo html_escape($assignment->source_standard_code . ' — ' . $assignment->source_standard_title); ?></h3>
                     <p class="tw-mt-3 tw-text-sm tw-text-slate-600">Auditor: <?php echo html_escape($assignment->auditor_name); ?> · Auditee: <?php echo html_escape($assignment->auditee_name); ?></p>
+                    <?php if ($auditee_overdue): ?><span class="tw-mt-3 tw-inline-flex tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-1 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: submission belum dikirim</span><?php endif; ?>
+                    <?php if ($auditor_overdue): ?><span class="tw-mt-3 tw-inline-flex tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-1 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: penilaian belum difinalisasi</span><?php endif; ?>
                   </div>
                   <div class="tw-flex tw-flex-wrap tw-gap-3">
                     <a class="tw-button-secondary" href="<?php echo site_url('lpmpi/spmi-audits/assignment/detail/' . (int) $assignment->id); ?>">Lihat snapshot</a>
