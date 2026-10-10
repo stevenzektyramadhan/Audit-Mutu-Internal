@@ -154,11 +154,15 @@ $icon = static function ($name) {
                     Centang seluruh pejabat, auditor, atau pimpinan unit yang hadir dalam RTM ini.
                 </p>
 
-                <div class="tw-max-h-64 tw-overflow-y-auto tw-rounded-xl tw-border tw-border-slate-200 tw-p-3 tw-space-y-2 tw-bg-slate-50/50">
+                <label for="participant-search" class="tw-sr-only">Cari peserta berdasarkan nama, email, atau peran</label>
+                <input id="participant-search" type="search" class="tw-mb-3 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none" placeholder="Cari nama, email, atau peran..." aria-controls="participant-checklist" autocomplete="off" hidden>
+                <div id="participant-search-status" class="tw-mb-3 tw-text-xs tw-text-slate-500" role="status" aria-live="polite" aria-atomic="true"></div>
+
+                <div id="participant-checklist" class="tw-max-h-64 tw-overflow-y-auto tw-rounded-xl tw-border tw-border-slate-200 tw-p-3 tw-space-y-2 tw-bg-slate-50/50">
                     <?php foreach ($users as $user):
                         $is_checked = in_array((int) $user->id, $participant_ids, TRUE);
                     ?>
-                        <label class="tw-flex tw-items-center tw-justify-between tw-gap-3 tw-p-2.5 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-white hover:tw-border-blue-300 tw-cursor-pointer tw-transition">
+                        <label class="participant-row tw-flex tw-items-center tw-justify-between tw-gap-3 tw-p-2.5 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-white hover:tw-border-blue-300 tw-cursor-pointer tw-transition" data-search="<?php echo html_escape(mb_strtolower($user->nama . ' ' . $user->email . ' ' . $user->role, 'UTF-8')); ?>">
                             <div class="tw-flex tw-items-center tw-gap-3 tw-min-w-0">
                                 <input type="checkbox" class="user-checkbox tw-h-4 tw-w-4 tw-rounded tw-border-slate-300 tw-text-blue-600 focus:tw-ring-blue-500" data-target-id="<?php echo (int) $user->id; ?>" <?php echo $is_checked ? 'checked' : ''; ?>>
                                 <div class="tw-min-w-0">
@@ -297,6 +301,39 @@ $icon = static function ($name) {
                 if (opt) opt.selected = this.checked;
             });
         });
+    }
+
+    var participantSearch = document.getElementById('participant-search');
+    var participantSearchStatus = document.getElementById('participant-search-status');
+    var participantRows = document.querySelectorAll('.participant-row');
+    var participantChecklist = document.getElementById('participant-checklist');
+    if (participantSearch && participantSearchStatus && participantChecklist) {
+        var updateParticipantRows = function () {
+            var query = participantSearch.value.trim().toLocaleLowerCase();
+            var matchCount = 0;
+
+            participantRows.forEach(function (row) {
+                var checkbox = row.querySelector('.user-checkbox');
+                var matchesQuery = !query || (row.getAttribute('data-search') || '').toLocaleLowerCase().indexOf(query) !== -1;
+                if (matchesQuery) matchCount++;
+                row.hidden = !matchesQuery && !checkbox.checked;
+            });
+
+            if (!query) {
+                participantSearchStatus.textContent = 'Menampilkan semua ' + participantRows.length + ' peserta.';
+            } else if (!matchCount) {
+                participantSearchStatus.textContent = 'Tidak ada peserta yang cocok.';
+            } else {
+                participantSearchStatus.textContent = 'Menampilkan ' + matchCount + ' peserta yang cocok.';
+            }
+        };
+
+        participantSearch.addEventListener('input', updateParticipantRows);
+        userCheckboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', updateParticipantRows);
+        });
+        participantSearch.hidden = false;
+        updateParticipantRows();
     }
 
     var addBtn = document.getElementById('btn-add-decision');
