@@ -24,7 +24,7 @@ $icon = static function ($name) {
             <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Pelaksanaan SPMI</p>
             <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950 tw-m-0">Workspace SPMI</h1>
             <p class="tw-mt-2 tw-max-w-2xl tw-text-sm tw-text-slate-500">
-                Ruang kerja pengisian realisasi capaian standar, pengunggahan berkas bukti, dan pemantauan status pengajuan auditee.
+                Ruang kerja pengisian realisasi capaian standar, pengunggahan berkas bukti, dan pemantauan status pengajuan auditi.
             </p>
         </div>
 
