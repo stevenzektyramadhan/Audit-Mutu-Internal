@@ -126,7 +126,7 @@ $icon = static function ($name) {
                 </div>
 
                 <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100">
-                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Auditee</span>
+                    <span class="tw-block tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Auditi</span>
                     <strong class="tw-text-slate-900 tw-font-medium">
                         <?php echo html_escape($report->auditee_name_snapshot); ?>
                     </strong>
@@ -209,15 +209,15 @@ $icon = static function ($name) {
                                     <!-- Realisasi & Bukti -->
                                     <td class="tw-px-4 tw-py-4">
                                         <!-- Realisasi -->
-                                        <div class="tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Realisasi Auditee:</div>
+                                        <div class="tw-text-xs tw-font-semibold tw-text-slate-500 tw-mb-1">Realisasi Auditi:</div>
                                         <div class="tw-text-xs tw-leading-relaxed tw-text-slate-800 tw-mb-3">
                                             <?php echo nl2br(html_escape($item->realization_snapshot)); ?>
                                         </div>
 
-                                        <!-- Bukti Auditee Section (Only when present) -->
+                                        <!-- Bukti Auditi Section (Only when present) -->
                                         <?php if ($url !== '' || $has_file): ?>
                                             <div class="tw-border-t tw-border-slate-100 tw-pt-2.5 tw-space-y-2">
-                                                <div class="tw-text-[11px] tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400">Bukti Auditee:</div>
+                                                <div class="tw-text-[11px] tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400">Bukti Auditi:</div>
 
                                                 <!-- URL Bukti -->
                                                 <?php if ($url !== ''): ?>
@@ -233,7 +233,7 @@ $icon = static function ($name) {
                                                     </div>
                                                 <?php endif; ?>
 
-                                                <!-- File Bukti Auditee -->
+                                                <!-- File Bukti Auditi -->
                                                 <?php if ($has_file): ?>
                                                     <div class="tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50/70 tw-p-2">
                                                         <div class="tw-flex tw-items-center tw-justify-between tw-gap-2">
@@ -403,15 +403,15 @@ $icon = static function ($name) {
 
                         <!-- Realisasi & Bukti Section -->
                         <div class="tw-rounded-xl tw-bg-slate-50 tw-p-3.5 tw-border tw-border-slate-100 tw-text-xs">
-                            <strong class="tw-block tw-text-slate-700 tw-mb-1">Realisasi Auditee:</strong>
+                            <strong class="tw-block tw-text-slate-700 tw-mb-1">Realisasi Auditi:</strong>
                             <p class="tw-text-slate-800 tw-leading-relaxed tw-mb-3">
                                 <?php echo nl2br(html_escape($item->realization_snapshot)); ?>
                             </p>
 
-                            <!-- Bukti Auditee Section (Only when present) -->
+                            <!-- Bukti Auditi Section (Only when present) -->
                             <?php if ($url !== '' || $has_file): ?>
                                 <div class="tw-border-t tw-border-slate-200/80 tw-pt-2.5 tw-space-y-2">
-                                    <div class="tw-text-[11px] tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400">Bukti Auditee:</div>
+                                    <div class="tw-text-[11px] tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-400">Bukti Auditi:</div>
 
                                     <!-- URL Bukti -->
                                     <?php if ($url !== ''): ?>
@@ -427,7 +427,7 @@ $icon = static function ($name) {
                                         </div>
                                     <?php endif; ?>
 
-                                    <!-- File Bukti Auditee -->
+                                    <!-- File Bukti Auditi -->
                                     <?php if ($has_file): ?>
                                         <div class="tw-rounded-lg tw-border tw-border-slate-200 tw-bg-white tw-p-2.5">
                                             <div class="tw-flex tw-items-center tw-justify-between tw-gap-2">
@@ -544,7 +544,7 @@ $icon = static function ($name) {
 
                         <!-- Rencana Perbaikan -->
                         <div class="tw-text-xs tw-border-t tw-border-slate-100 tw-pt-3">
-                            <strong class="tw-text-slate-700 tw-block tw-mb-1">Rencana Perbaikan Auditee:</strong>
+                            <strong class="tw-text-slate-700 tw-block tw-mb-1">Rencana Perbaikan Auditi:</strong>
                             <p class="tw-text-slate-800 tw-leading-relaxed tw-m-0">
                                 <?php echo nl2br(html_escape(spmi_report_value(isset($item->improvement_plan_snapshot) ? $item->improvement_plan_snapshot : NULL))); ?>
                             </p>
