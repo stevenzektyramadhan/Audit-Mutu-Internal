@@ -13,8 +13,10 @@ class Spmi_rtm_model extends CI_Model
     public function meeting_reports($meeting_id) { return $this->db->select('mr.*, r.report_number, r.cycle_code_snapshot, r.cycle_title_snapshot')->from('spmi_rtm_meeting_reports mr')->join('spmi_reports r', 'r.id = mr.report_id')->where('mr.meeting_id', (int) $meeting_id)->order_by('mr.id', 'ASC')->get()->result(); }
     public function participants($meeting_id) { return $this->db->where('meeting_id', (int) $meeting_id)->order_by('name_snapshot', 'ASC')->get('spmi_rtm_participants')->result(); }
     public function decisions($meeting_id) { return $this->db->where('meeting_id', (int) $meeting_id)->order_by('display_order', 'ASC')->get('spmi_rtm_decisions')->result(); }
+    public function resolution_events($meeting_id) { return $this->db->select('e.*, u.nama AS actor_name, u.email AS actor_email, u.role AS actor_role')->from('spmi_rtm_resolution_events e')->join('users u', 'u.id = e.actor_user_id')->where('e.meeting_id', (int) $meeting_id)->order_by('e.created_at', 'ASC')->order_by('e.id', 'ASC')->get()->result(); }
     public function insert_meeting($data) { return $this->db->insert('spmi_rtm_meetings', $data) ? (int) $this->db->insert_id() : 0; }
     public function update_meeting($id, $data) { return $this->db->where('id', (int) $id)->update('spmi_rtm_meetings', $data); }
+    public function insert_resolution_event($data) { return $this->db->insert('spmi_rtm_resolution_events', $data); }
     public function insert_report_link($data) { return $this->db->insert('spmi_rtm_meeting_reports', $data); }
     public function insert_participant($data) { return $this->db->insert('spmi_rtm_participants', $data); }
     public function insert_decision($data) { return $this->db->insert('spmi_rtm_decisions', $data); }
