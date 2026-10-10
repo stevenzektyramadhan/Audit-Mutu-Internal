@@ -8,7 +8,7 @@ class Spmi_rtm_service
 
     public function __construct() { $this->ci = &get_instance(); $this->ci->load->model('Spmi_rtm_model'); $this->model = $this->ci->Spmi_rtm_model; }
     public function meetings() { return $this->model->meetings(); }
-    public function meeting($id) { $meeting = $this->model->meeting($id); return $meeting ? ['meeting' => $meeting, 'reports' => $this->model->meeting_reports($id), 'participants' => $this->model->participants($id), 'decisions' => $this->model->decisions($id)] : NULL; }
+    public function meeting($id) { $meeting = $this->model->meeting($id); return $meeting ? ['meeting' => $meeting, 'reports' => $this->model->meeting_reports($id), 'participants' => $this->model->participants($id), 'decisions' => $this->model->decisions($id), 'resolution_events' => $this->model->resolution_events($id)] : NULL; }
     public function form_options() { return ['reports' => $this->model->reports(), 'users' => $this->model->users()]; }
     public function create($data, $file, $user_id) { return $this->save(NULL, $data, $file, $user_id); }
     public function update($id, $data, $file) { return $this->save($id, $data, $file, 0); }
@@ -71,8 +71,24 @@ class Spmi_rtm_service
         foreach ($reports as $report) if (!$this->model->report_for_update($report->report_id)) return $this->rollback('Laporan M10 tidak ditemukan.');
         $this->model->users_for_update(array_map(function ($participant) { return (int) $participant->user_id; }, $participants));
         foreach ($decisions as $decision) if (!trim((string) $decision->decision_text) || !trim((string) $decision->action_text)) return $this->rollback('Keputusan dan tindakan tidak boleh kosong.');
-        if (!$this->model->update_meeting($id, ['status' => 'resolved', 'resolved_by' => (int) $user_id, 'resolved_at' => date('Y-m-d H:i:s')])) return $this->rollback('RTM gagal diselesaikan.');
+        $now = date('Y-m-d H:i:s');
+        if (!$this->model->update_meeting($id, ['status' => 'resolved', 'resolved_by' => (int) $user_id, 'resolved_at' => $now])) return $this->rollback('RTM gagal diselesaikan.');
+        if (!$this->model->insert_resolution_event(['meeting_id' => (int) $id, 'action' => 'resolve', 'actor_user_id' => (int) $user_id, 'reason' => NULL, 'status_from' => 'draft', 'status_to' => 'resolved', 'created_at' => $now])) return $this->rollback('Riwayat resolve RTM gagal disimpan.');
         return $this->finish(['success' => TRUE, 'message' => 'RTM SPMI berhasil di-resolve.', 'id' => $id]);
+    }
+
+    public function unresolve($id, $user_id, $reason)
+    {
+        $reason = trim((string) $reason);
+        if ($reason === '') return ['success' => FALSE, 'message' => 'Alasan recovery RTM wajib diisi.'];
+        $this->ci->db->trans_begin();
+        $meeting = $this->model->meeting($id, TRUE);
+        if (!$meeting) return $this->rollback('RTM tidak ditemukan.');
+        if ($meeting->status !== 'resolved') return $this->rollback('Hanya RTM resolved yang dapat dikembalikan ke draft.');
+        $now = date('Y-m-d H:i:s');
+        if (!$this->model->update_meeting($id, ['status' => 'draft', 'resolved_by' => NULL, 'resolved_at' => NULL])) return $this->rollback('RTM gagal dikembalikan ke draft.');
+        if (!$this->model->insert_resolution_event(['meeting_id' => (int) $id, 'action' => 'unresolve', 'actor_user_id' => (int) $user_id, 'reason' => $reason, 'status_from' => 'resolved', 'status_to' => 'draft', 'created_at' => $now])) return $this->rollback('Riwayat recovery RTM gagal disimpan.');
+        return $this->finish(['success' => TRUE, 'message' => 'RTM SPMI berhasil dikembalikan ke draft.', 'id' => $id]);
     }
 
     protected function ids($ids) { $result = []; foreach ((array) $ids as $id) { if ((int) $id > 0) $result[(int) $id] = (int) $id; } return array_values($result); }
