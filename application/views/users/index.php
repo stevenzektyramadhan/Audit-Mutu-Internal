@@ -5,12 +5,12 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
 $role_tones = ['super_admin' => 'users-tone-violet', 'admin_lpmpi' => 'users-tone-blue', 'auditor' => 'users-tone-green', 'auditee' => 'users-tone-amber'];
-$role_labels = ['super_admin' => 'super_admin', 'admin_lpmpi' => 'admin_lpmpi', 'auditor' => 'auditor', 'auditee' => 'auditee'];
+$role_labels = ['super_admin' => 'super_admin', 'admin_lpmpi' => 'admin_lpmpi', 'auditor' => 'auditor', 'auditee' => 'Auditi'];
 $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
 $actor_role = (string) $this->session->userdata('role');
 $filter_roles = $actor_role === 'super_admin'
-    ? ['super_admin' => 'Super Admin', 'admin_lpmpi' => 'Admin LPMPI', 'auditor' => 'Auditor', 'auditee' => 'Auditee']
-    : ['auditor' => 'Auditor', 'auditee' => 'Auditee'];
+    ? ['super_admin' => 'Super Admin', 'admin_lpmpi' => 'Admin LPMPI', 'auditor' => 'Auditor', 'auditee' => 'Auditi']
+    : ['auditor' => 'Auditor', 'auditee' => 'Auditi'];
 $icon = static function ($name) {
     $paths = [
         'plus' => '<path d="M12 5v14M5 12h14"/>', 'filter' => '<path d="M4 5h16M7 12h10M10 19h4"/>',
@@ -37,7 +37,7 @@ $icon = static function ($name) {
             <div class="users-table-wrap">
                 <table class="users-table"><thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Dibuat</th><th>Aksi</th></tr></thead><tbody>
                 <?php if (!empty($users)): foreach ($users as $user): ?><tr><td data-label="Nama"><strong><?php echo html_escape($user->nama); ?></strong></td><td data-label="Email" class="users-muted"><?php echo html_escape($user->email); ?></td><td data-label="Role"><span class="users-badge <?php echo isset($role_tones[$user->role]) ? $role_tones[$user->role] : 'users-tone-blue'; ?>"><?php echo html_escape(isset($role_labels[$user->role]) ? $role_labels[$user->role] : $user->role); ?></span></td><td data-label="Dibuat" class="users-muted"><?php echo html_escape(format_tanggal_indo($user->created_at)); ?></td><td data-label="Aksi"><div class="tw-flex tw-flex-wrap tw-gap-2"><a href="<?php echo site_url('users/edit/'.$user->id); ?>" class="users-action" title="Edit pengguna"><?php echo $icon('edit'); ?><span>Edit</span></a><?php if ($user->role !== 'super_admin'): ?><?php echo form_open('users/delete/' . (int) $user->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Pengguna tidak dapat dihapus jika masih memiliki data terkait. Lanjutkan?');"]); ?><button type="submit" class="users-action users-action-danger" title="Hapus pengguna"><?php echo $icon('trash'); ?><span>Hapus</span></button><?php echo form_close(); ?><?php endif; ?></div></td></tr><?php endforeach; else: ?>
-                    <tr><td colspan="5"><div class="users-empty"><div class="users-empty-icon"><?php echo $icon('users'); ?></div><strong>Pengguna tidak ditemukan</strong><p><?php echo $filters['q'] !== '' || $filters['role'] !== '' ? 'Coba ubah kata kunci atau filter role.' : 'Tambahkan akun auditor atau auditee untuk memulai.'; ?></p><?php if ($filters['q'] !== '' || $filters['role'] !== ''): ?><a href="<?php echo site_url('users'); ?>" class="users-button users-button-secondary tw-inline-flex tw-items-center tw-gap-2"><?php echo $icon('undo'); ?>Reset filter</a><?php else: ?><a href="<?php echo site_url('users/create'); ?>" class="users-button users-button-primary tw-inline-flex tw-items-center tw-gap-2"><?php echo $icon('plus'); ?>Tambah pengguna</a><?php endif; ?><a href="<?php echo site_url('lpmpi/organization?tab=assignments'); ?>" class="users-button users-button-secondary tw-inline-flex tw-items-center tw-gap-2">Buka tab Penempatan</a></div></td></tr>
+                    <tr><td colspan="5"><div class="users-empty"><div class="users-empty-icon"><?php echo $icon('users'); ?></div><strong>Pengguna tidak ditemukan</strong><p><?php echo $filters['q'] !== '' || $filters['role'] !== '' ? 'Coba ubah kata kunci atau filter role.' : 'Tambahkan akun auditor atau auditi untuk memulai.'; ?></p><?php if ($filters['q'] !== '' || $filters['role'] !== ''): ?><a href="<?php echo site_url('users'); ?>" class="users-button users-button-secondary tw-inline-flex tw-items-center tw-gap-2"><?php echo $icon('undo'); ?>Reset filter</a><?php else: ?><a href="<?php echo site_url('users/create'); ?>" class="users-button users-button-primary tw-inline-flex tw-items-center tw-gap-2"><?php echo $icon('plus'); ?>Tambah pengguna</a><?php endif; ?><a href="<?php echo site_url('lpmpi/organization?tab=assignments'); ?>" class="users-button users-button-secondary tw-inline-flex tw-items-center tw-gap-2">Buka tab Penempatan</a></div></td></tr>
                 <?php endif; ?></tbody></table>
             </div>
             <?php if (!empty($users)): ?><p class="users-muted tw-mb-0 tw-mt-4">Menampilkan <?php echo count($users); ?> pengguna</p><?php endif; ?>

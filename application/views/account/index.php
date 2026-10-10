@@ -16,7 +16,7 @@ $role_labels = [
     'super_admin' => 'Super Admin',
     'admin_lpmpi' => 'Admin LPMPI',
     'auditor' => 'Auditor',
-    'auditee' => 'Auditee',
+    'auditee' => 'Auditi',
 ];
 $clean_role = isset($role_labels[$account->role]) ? $role_labels[$account->role] : ucfirst(str_replace('_', ' ', (string) $account->role));
 $profile_photo_limit_mib = isset($profile_photo_limit_mib) ? (int) $profile_photo_limit_mib : 2;
