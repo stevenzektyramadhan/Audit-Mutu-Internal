@@ -93,6 +93,7 @@ $icon = static function ($name) {
                         <tbody class="tw-divide-y tw-divide-slate-100">
                             <?php foreach ($assignments as $assignment):
                                 $status = strtolower((string) ($assignment->submission_status ?: 'draft'));
+                                $is_overdue = (string) $assignment->end_date < date('Y-m-d') && !in_array($status, ['submitted', 'resubmitted'], TRUE);
                             ?>
                                 <tr class="hover:tw-bg-slate-50">
                                     <td class="tw-px-5 tw-py-4">
@@ -123,6 +124,9 @@ $icon = static function ($name) {
                                                 Draft
                                             </span>
                                         <?php endif; ?>
+                                        <?php if ($is_overdue): ?>
+                                            <span class="tw-ml-2 tw-inline-flex tw-items-center tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: submission belum dikirim</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="tw-px-5 tw-py-4 tw-text-right">
                                         <div class="ami-row-actions tw-inline-flex tw-justify-end">
@@ -143,6 +147,7 @@ $icon = static function ($name) {
             <div class="tw-grid tw-gap-4 md:tw-hidden">
                 <?php foreach ($assignments as $assignment):
                     $status = strtolower((string) ($assignment->submission_status ?: 'draft'));
+                    $is_overdue = (string) $assignment->end_date < date('Y-m-d') && !in_array($status, ['submitted', 'resubmitted'], TRUE);
                 ?>
                     <article class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm tw-space-y-3">
                         <div class="tw-flex tw-items-center tw-justify-between tw-gap-2">
@@ -176,6 +181,9 @@ $icon = static function ($name) {
                                 <?php echo html_escape($assignment->cycle_title); ?>
                             </p>
                         </div>
+                        <?php if ($is_overdue): ?>
+                            <span class="tw-inline-flex tw-items-center tw-rounded-full tw-bg-rose-50 tw-border tw-border-rose-200 tw-px-2.5 tw-py-0.5 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat: submission belum dikirim</span>
+                        <?php endif; ?>
 
                         <div class="tw-pt-2">
                             <div class="ami-row-actions">

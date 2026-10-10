@@ -5,7 +5,7 @@ class Spmi_auditee_workspace_model extends CI_Model
 {
     public function assignments($user_id, $filters = [])
     {
-        $this->db->select("a.*, c.cycle_code, c.title AS cycle_title, c.state, s.id AS submission_id, COALESCE(s.status, 'draft') AS submission_status, s.version")
+        $this->db->select("a.*, c.cycle_code, c.title AS cycle_title, c.state, c.end_date, s.id AS submission_id, COALESCE(s.status, 'draft') AS submission_status, s.version")
             ->from('spmi_audit_assignments a')
             ->join('spmi_audit_cycles c', 'c.id = a.cycle_id')
             ->join('spmi_auditee_submissions s', 's.assignment_id = a.id', 'left')

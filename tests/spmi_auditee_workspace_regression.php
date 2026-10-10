@@ -170,4 +170,9 @@ preg_match('/public function confirmation_assignment\(\$assignment_id, \$user_id
 m8_check(!empty($confirm_model_match), 'M17-07F confirmation model block missing.');
 foreach (['FOR UPDATE', 'insert(', 'update(', 'delete('] as $side_effect) m8_check(strpos($confirm_model_match[0], $side_effect) === FALSE, 'M17-07F confirmation model accessor must be read-only, found side effect token: ' . $side_effect);
 
+m8_check(strpos($model, 'c.end_date') !== FALSE, 'Overdue auditee status requires cycle end_date in the owned assignment read.');
+m8_check(strpos($index, "(string) \$assignment->end_date < date('Y-m-d')") !== FALSE, 'Overdue auditee status must use a strict past end_date rule.');
+m8_check(strpos($index, "in_array(\$status, ['submitted', 'resubmitted'], TRUE)") !== FALSE, 'Overdue auditee status must treat only submitted/resubmitted work as complete.');
+m8_check(substr_count($index, 'Terlambat: submission belum dikirim') >= 2, 'Overdue auditee label must render in desktop and mobile views.');
+
 fwrite(STDOUT, "SPMI auditee workspace regression checks passed.\n");
