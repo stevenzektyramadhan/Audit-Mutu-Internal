@@ -9,5 +9,5 @@ Rules:
 
 ## Buckets
 
-- `ami-workflow` - SPMI/AMI workflow decisions, changes, and runtime verification. Last updated: 2026-10-10 (RTM resolution-event migration 046 applied to local Docker) -> `.multibrain/indexes/ami-workflow.md`
+- `ami-workflow` - SPMI/AMI workflow decisions, changes, and runtime verification. Last updated: 2026-10-10 (migration 047 applied locally; Super Admin-only Turnstile key management) -> `.multibrain/indexes/ami-workflow.md`
 - `agents` - Cross-agent handoffs and repository memory. Last updated: 2026-09-09 11:09 WIB -> `.multibrain/indexes/agents.md`
