@@ -10,6 +10,11 @@ class Auth extends CI_Controller {
         $this->load->helper(array('url', 'form'));
         require_once APPPATH . 'services/Auth_service.php';
         $this->auth_service = new Auth_service();
+        require_once APPPATH . 'services/System_settings_service.php';
+        $this->system_settings_service = new System_settings_service();
+        require_once APPPATH . 'services/Organization_logo_service.php';
+        $this->organization_logo_service = new Organization_logo_service();
+        $this->load->model('System_settings_model');
         $this->load->library('Audit_logger');
     }
 
@@ -19,7 +24,7 @@ class Auth extends CI_Controller {
             redirect($this->login_redirect());
         }
 
-        $this->load->view('auth/login');
+        $this->render_login();
     }
 
     public function login()
@@ -33,13 +38,22 @@ class Auth extends CI_Controller {
 
         if ($this->form_validation->run() === FALSE) {
             $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'validation']);
-            $this->load->view('auth/login');
+            $this->render_login();
             return;
         }
 
         $email = $this->input->post('email', TRUE);
         $password = $this->input->post('password', TRUE);
         $client_ip = $this->input->ip_address();
+        $turnstile = $this->system_settings_service->turnstile_public_settings();
+        if (!empty($turnstile['enabled'])) {
+            $captcha = $this->system_settings_service->verify_turnstile_response($this->input->post('cf-turnstile-response', TRUE), $client_ip);
+            if (empty($captcha['success'])) {
+                $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'turnstile']);
+                $this->render_login(['login_error' => $captcha['message']]);
+                return;
+            }
+        }
 
         $result = $this->auth_service->login($email, $password, $client_ip);
 
@@ -53,7 +67,7 @@ class Auth extends CI_Controller {
             set_status_header(429);
             header('Retry-After: ' . max(1, (int) $result['retry_after']));
             header('Cache-Control: no-store');
-            $this->load->view('auth/login', ['login_error' => 'Too many sign-in attempts. Please try again later.']);
+            $this->render_login(['login_error' => 'Too many sign-in attempts. Please try again later.']);
             return;
         }
 
@@ -76,7 +90,7 @@ class Auth extends CI_Controller {
 
     public function forgot_password()
     {
-        $this->load->view('auth/forgot_password');
+        $this->render_auth_view('auth/forgot_password');
     }
 
     public function send_password_reset()
@@ -151,6 +165,20 @@ class Auth extends CI_Controller {
 
         redirect($this->login_redirect());
         return TRUE;
+    }
+
+    private function render_login(array $data = [])
+    {
+        $data['turnstile'] = $this->system_settings_service->turnstile_public_settings();
+        $this->render_auth_view('auth/login', $data);
+    }
+
+    private function render_auth_view($view, array $data = [])
+    {
+        $profile = $this->System_settings_model->profile();
+        $data['organization_logo_url'] = $this->organization_logo_service->public_url($profile);
+        $data['organization_description'] = $profile && property_exists($profile, 'deskripsi') ? trim((string) $profile->deskripsi) : '';
+        $this->load->view($view, $data);
     }
 
     private function login_redirect()

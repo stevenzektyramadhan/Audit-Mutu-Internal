@@ -285,8 +285,8 @@ if (strpos($forgot_password_body, 'redirect_authenticated_user()') !== FALSE) {
 }
 require_contains(
     $forgot_password_body,
-    "load->view('auth/forgot_password')",
-    'forgot_password harus tetap menampilkan view GET form lupa kata sandi.'
+    "render_auth_view('auth/forgot_password')",
+    'forgot_password harus tetap menampilkan view GET form lupa kata sandi melalui renderer auth bersama.'
 );
 
 $send_password_reset_body = extract_method_body($auth_controller, 'public function send_password_reset()');
