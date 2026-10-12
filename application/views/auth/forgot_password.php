@@ -11,6 +11,7 @@ $icon = static function ($name) {
     ];
     return '<svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['mail']) . '</svg>';
 };
+$organization_description = isset($organization_description) ? trim((string) $organization_description) : '';
 ?><!DOCTYPE html>
 <html lang="id">
 <head>
@@ -32,7 +33,7 @@ $icon = static function ($name) {
                 <div class="tw-max-w-xl tw-text-white">
                     <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100">Audit Mutu Internal</p>
                     <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl">Pemulihan akses aman untuk kelancaran penjaminan mutu.</h2>
-                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200">Gunakan email institusi terdaftar untuk menerima tautan resmi pengaturan ulang kata sandi.</p>
+                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200"><?php if ($organization_description !== ''): ?><?php echo html_escape($organization_description); ?><?php else: ?>Gunakan email institusi terdaftar untuk menerima tautan resmi pengaturan ulang kata sandi.<?php endif; ?></p>
                 </div>
             </div>
         </section>
@@ -44,7 +45,7 @@ $icon = static function ($name) {
                     <div class="auth-brand-row tw-mb-5 tw-flex tw-items-center tw-gap-3 sm:tw-gap-3.5">
                         <img src="<?php echo html_escape(base_url('assets/img/Logo-UNMUH-BABEL-Web.png')); ?>" alt="Logo Universitas Muhammadiyah Bangka Belitung" class="auth-brand-unmuh">
                         <div class="auth-brand-sep" aria-hidden="true"></div>
-                        <img src="<?php echo html_escape(base_url('assets/img/logo-2.png')); ?>" alt="Logo LPM" class="auth-brand-lpm">
+                        <img src="<?php echo html_escape($organization_logo_url); ?>" alt="Logo LPM" class="auth-brand-lpm">
                     </div>
                     <p class="tw-mb-1.5 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.18em] tw-text-blue-700">Pemulihan Akun</p>
                     <h1 id="forgot-password-title" class="tw-m-0 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 sm:tw-text-3xl">

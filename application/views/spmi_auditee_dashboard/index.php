@@ -22,7 +22,7 @@ $icon = static function ($name) {
     <div class="tw-mx-auto tw-max-w-7xl">
         <!-- Banner Lembaga -->
         <div class="tw-mb-6 tw-flex tw-items-center tw-gap-4 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 tw-shadow-sm">
-            <img src="<?php echo base_url('assets/img/logo-2.png'); ?>" alt="Logo LPM" class="tw-h-12 tw-w-auto tw-object-contain tw-flex-shrink-0">
+            <img src="<?php echo html_escape($organization_logo_url); ?>" alt="Logo LPM" class="tw-h-12 tw-w-auto tw-object-contain tw-flex-shrink-0">
             <div>
                 <h2 class="tw-text-base tw-font-bold tw-text-slate-900 tw-m-0">Lembaga Penjaminan Mutu</h2>
                 <p class="tw-text-xs tw-text-slate-500 tw-m-0 tw-mt-0.5">Sistem Audit Mutu Internal Perguruan Tinggi</p>

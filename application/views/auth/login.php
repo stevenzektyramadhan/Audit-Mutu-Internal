@@ -13,6 +13,10 @@ $icon = static function ($name) {
     return '<svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['lock']) . '</svg>';
 };
 $login_error = isset($login_error) ? (string) $login_error : '';
+$organization_description = isset($organization_description) ? trim((string) $organization_description) : '';
+$turnstile = isset($turnstile) && is_array($turnstile) ? $turnstile : [];
+$turnstile_enabled = !empty($turnstile['enabled']) && !empty($turnstile['site_key']);
+$turnstile_site_key = $turnstile_enabled ? (string) $turnstile['site_key'] : '';
 ?><!DOCTYPE html>
 <html lang="id">
 <head>
@@ -33,7 +37,7 @@ $login_error = isset($login_error) ? (string) $login_error : '';
                 <div class="tw-max-w-xl tw-text-white">
                     <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100">Audit Mutu Internal</p>
                     <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl">Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.</h2>
-                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200">Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.</p>
+                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200"><?php if ($organization_description !== ''): ?><?php echo html_escape($organization_description); ?><?php else: ?>Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.<?php endif; ?></p>
                 </div>
             </div>
         </section>
@@ -44,7 +48,7 @@ $login_error = isset($login_error) ? (string) $login_error : '';
                     <div class="auth-brand-row tw-mb-5 tw-flex tw-items-center tw-gap-3 sm:tw-gap-3.5">
                         <img src="<?php echo html_escape(base_url('assets/img/Logo-UNMUH-BABEL-Web.png')); ?>" alt="Logo Universitas Muhammadiyah Bangka Belitung" class="auth-brand-unmuh">
                         <div class="auth-brand-sep" aria-hidden="true"></div>
-                        <img src="<?php echo html_escape(base_url('assets/img/logo-2.png')); ?>" alt="Logo LPM" class="auth-brand-lpm">
+                        <img src="<?php echo html_escape($organization_logo_url); ?>" alt="Logo LPM" class="auth-brand-lpm">
                     </div>
                     <p class="tw-mb-1.5 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.18em] tw-text-blue-700">Selamat datang</p>
                     <h1 class="tw-m-0 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 sm:tw-text-3xl">
@@ -123,6 +127,17 @@ $login_error = isset($login_error) ? (string) $login_error : '';
                     </div>
                     <?php echo form_error('password', '<div class="tw-mt-1.5 tw-text-xs tw-text-red-600 tw-font-medium">', '</div>'); ?>
                 </div>
+
+                <?php if ($turnstile_enabled): ?>
+                    <div class="tw-space-y-2" aria-labelledby="turnstile-label">
+                        <span id="turnstile-label" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700">Verifikasi keamanan</span>
+                        <div class="cf-turnstile" data-sitekey="<?php echo html_escape($turnstile_site_key); ?>"></div>
+                        <noscript>
+                            <p class="tw-text-xs tw-leading-5 tw-text-amber-700">Aktifkan JavaScript untuk menyelesaikan verifikasi keamanan sebelum masuk.</p>
+                        </noscript>
+                    </div>
+                    <script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+                <?php endif; ?>
 
                 <!-- Submit Button -->
                 <div class="tw-pt-2">

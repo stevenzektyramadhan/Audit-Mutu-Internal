@@ -32,7 +32,7 @@ include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
 <div class="ami-dashboard-logo-banner">
-    <img src="<?= base_url('assets/img/logo-2.png'); ?>" alt="Logo LPM" class="ami-dashboard-logo">
+    <img src="<?= html_escape($organization_logo_url); ?>" alt="Logo LPM" class="ami-dashboard-logo">
     <div>
         <div class="ami-dashboard-logo-title">Lembaga Penjaminan Mutu</div>
         <div class="ami-dashboard-logo-subtitle">Sistem Audit Mutu Internal Perguruan Tinggi</div>

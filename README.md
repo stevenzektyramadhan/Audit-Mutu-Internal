@@ -202,7 +202,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-046`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-047`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
 
 #### Akun Administrator Pertama
 
@@ -230,7 +230,7 @@ Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `04
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `046` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `047` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -267,6 +267,7 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 33. `044_add_spmi_version_auditee_report_scope.sql`
 34. `045_add_spmi_rtm_photo.sql`
 35. `046_create_spmi_rtm_resolution_events.sql`
+36. `047_create_system_settings.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
@@ -288,6 +289,8 @@ Migration `045_add_spmi_rtm_photo.sql` bersifat aditif dan idempoten: menambahka
 
 Migration `046_create_spmi_rtm_resolution_events.sql` bersifat aditif dan idempoten: menambahkan tabel riwayat immutable untuk setiap aksi `resolve` dan recovery `unresolve` RTM dengan FK RESTRICT ke rapat dan aktor. Recovery hanya tersedia via POST untuk `super_admin`, wajib alasan nonblank, mengubah status `resolved -> draft`, dan tidak menghapus laporan, peserta, keputusan, foto, atau riwayat sebelumnya.
 
+Migration `047_create_system_settings.sql` bersifat aditif dan idempoten: menambahkan `profil_lembaga.deskripsi` nullable serta tabel singleton `system_settings` untuk konfigurasi Cloudflare Turnstile. Secret Turnstile disimpan hanya sebagai ciphertext terautentikasi berbasis `APP_ENCRYPTION_KEY`/`encryption_key`; login publik hanya memakainya setelah site key valid dan secret dapat didekripsi.
+
 Docker lokal memakai nilai `APP_ENCRYPTION_KEY` development yang dapat dioverride melalui environment. Deployment harus selalu menyediakan nilai acak dan rahasia sendiri; jangan gunakan nilai default Docker lokal di luar development.
 
 Batas aplikasi maksimum 10 MiB. Nilai pengaturan tidak dapat melampaui batas efektif PHP: `upload_max_filesize` dan `post_max_size` dikurangi cadangan 1 MiB untuk multipart. Operator deployment tetap harus mengatur PHP/web server dengan ruang di atas batas file terbesar; halaman aplikasi tidak dapat menaikkan batas PHP yang sudah menolak request sebelum CodeIgniter berjalan.
@@ -301,7 +304,7 @@ CodeIgniter migrations tetap nonaktif. Direktori `migrations/` berisi raw SQL ma
 - Output dinamis di-escape dengan `html_escape()`.
 - Bukti disimpan private dan unduhan memvalidasi role serta ownership.
 - Audit log mencatat login, logout, dan percobaan mutasi POST; web server produksi harus menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, dan private storage.
-- Login `POST` dibatasi pada kegagalan kredensial tervalidasi: 5 percobaan per identitas dan 30 per IP dalam jendela 15 menit. Blokir mengembalikan respons generik HTTP 429 dengan `Retry-After`; bucket hanya menyimpan HMAC berbasis `APP_ENCRYPTION_KEY`. Saat berada di belakang reverse proxy, isi `proxy_ips` hanya dengan alamat/subnet proxy tepercaya agar IP klien dapat dikenali dengan benar. Rate limit aplikasi melengkapi, bukan menggantikan, WAF atau rate limit reverse proxy.
+- Login `POST` dibatasi pada kegagalan kredensial tervalidasi: 5 percobaan per identitas dan 30 per IP dalam jendela 15 menit. Jika Cloudflare Turnstile sudah dikonfigurasi lengkap, verifikasi Siteverify server-side wajib lulus sebelum kredensial diperiksa sehingga kegagalan CAPTCHA tidak menambah bucket rate limit. Blokir mengembalikan respons generik HTTP 429 dengan `Retry-After`; bucket hanya menyimpan HMAC berbasis `APP_ENCRYPTION_KEY`. Saat berada di belakang reverse proxy, isi `proxy_ips` hanya dengan alamat/subnet proxy tepercaya agar IP klien dapat dikenali dengan benar. Rate limit aplikasi melengkapi, bukan menggantikan, WAF atau rate limit reverse proxy.
 - SPMI adalah satu-satunya workflow aktif yang direpresentasikan oleh login redirect dan sidebar. Artefak AMI legacy serta route `lpmpi/legacy-ami-archive` tetap di luar lingkup operasional README ini.
 
 ## Batasan Saat Ini
@@ -312,6 +315,7 @@ Export PDF, email/notifikasi workflow, MFA, dan approval bertingkat belum tersed
 
 ```bash
 php tests/auth_login_regression.php
+php tests/system_settings_regression.php
 php tests/login_rate_limit_regression.php
 php tests/sidebar_navigation_regression.php
 php tests/spmi_audits_regression.php

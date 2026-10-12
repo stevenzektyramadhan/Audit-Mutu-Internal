@@ -67,7 +67,7 @@ mdos_check(strpos($migration, 'FOREIGN_KEY_CHECKS') === FALSE, 'Migration 042 ti
 foreach (['INSERT', 'UPDATE', 'DELETE'] as $verb) mdos_has_no_statement($migration, $verb, 'Migration 042 tidak boleh menjalankan DML: ' . $verb);
 
 mdos_check(strpos($schema, 'current parity migration 001-041') !== FALSE, 'Marker historis 001-041 harus tetap ada.');
-mdos_check(strpos($schema, 'current parity migration 001-043') !== FALSE, 'Marker parity 001-043 harus ada.');
+mdos_check(strpos($schema, 'current parity migration 001-047') !== FALSE, 'Marker parity 001-047 harus ada.');
 mdos_check(strpos($profil_prodi, '`organization_unit_id` INT NULL') !== FALSE, 'Bootstrap schema profil_prodi harus punya organization_unit_id nullable.');
 mdos_check(strpos($profil_prodi, 'UNIQUE KEY `uq_profil_prodi_organization_unit` (`organization_unit_id`)') !== FALSE, 'Bootstrap schema profil_prodi harus punya unique key organization_unit_id.');
 mdos_check(strpos($organization_units, "ENUM('university','faculty','upps','study_program','institute','bureau','unit')") !== FALSE, 'Bootstrap schema organization_units harus mempertahankan tipe UPPS.');
@@ -77,7 +77,7 @@ $fk_pos = strpos($schema, 'ADD CONSTRAINT `fk_profil_prodi_organization_unit`');
 mdos_check($organization_table_pos !== FALSE && $fk_pos !== FALSE && $organization_table_pos < $fk_pos, 'Bootstrap FK profil_prodi harus dideklarasikan setelah organization_units.');
 mdos_check(strpos($schema, 'FOREIGN KEY (`organization_unit_id`) REFERENCES `organization_units` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT') !== FALSE, 'Bootstrap FK profil_prodi harus RESTRICT untuk delete dan update.');
 
-mdos_check(strpos($readme, 'parity migration `001-043`') !== FALSE, 'README harus mendokumentasikan parity 001-043.');
+mdos_check(strpos($readme, 'parity migration `001-047`') !== FALSE, 'README harus mendokumentasikan parity 001-047.');
 mdos_check(strpos($readme, '`042_link_profil_prodi_to_organization_units.sql`') !== FALSE, 'README harus mencantumkan migration 042.');
 mdos_check(strpos($readme, 'nullable `profil_prodi.organization_unit_id`') !== FALSE, 'README harus menjelaskan link nullable.');
 mdos_check(strpos($readme, 'tidak melakukan auto-map') !== FALSE, 'README harus melarang auto-map fase 042.');

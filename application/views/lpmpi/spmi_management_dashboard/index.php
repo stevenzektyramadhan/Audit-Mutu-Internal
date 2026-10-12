@@ -70,7 +70,7 @@ $spmi_icon = static function ($name) use ($spmi_icons) {
 <div id="spmi-dashboard-root" class="tw-mx-auto tw-max-w-screen-2xl">
     <section class="tw-flex tw-flex-col tw-items-start tw-justify-between tw-gap-6 tw-rounded-lg tw-border tw-p-5 tw-mb-6 sm:tw-flex-row sm:tw-items-center sm:tw-p-7 ami-dashboard-logo-banner" aria-labelledby="spmi-dashboard-title">
         <div class="tw-flex tw-items-center tw-gap-4">
-            <img src="<?php echo html_escape(base_url('assets/img/logo-2.png')); ?>" alt="Logo LPM" class="tw-h-[52px] tw-w-[52px] tw-rounded-xl tw-bg-white tw-object-contain tw-p-1.5">
+            <img src="<?php echo html_escape($organization_logo_url); ?>" alt="Logo LPM" class="tw-h-[52px] tw-w-[52px] tw-rounded-xl tw-bg-white tw-object-contain tw-p-1.5">
             <div><div class="spmi-eyebrow">Sistem Penjaminan Mutu Internal</div><h2 id="spmi-dashboard-title">Dashboard SPMI</h2><p>Pulse PPEPP untuk membantu tim mutu menjaga ritme perbaikan.</p></div>
         </div>
         <a class="tw-inline-flex tw-items-center tw-gap-2 tw-whitespace-nowrap tw-rounded-md tw-border tw-px-4 tw-py-2.5 tw-font-bold spmi-export" href="<?php echo html_escape(site_url('lpmpi/spmi-dashboard/export?year=' . rawurlencode((string) $selected_year))); ?>"><?php echo $spmi_icon('download'); ?> Export XLSX Tahunan</a>

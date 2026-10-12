@@ -16,6 +16,7 @@ $menus = [
         ['key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'],
         ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'group' => 'Settings'],
         ['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings'],
+        ['key' => 'system_settings', 'label' => 'Pengaturan Sistem', 'icon' => 'fa-cog', 'url' => 'lpmpi/system-settings', 'group' => 'Settings'],
         ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Settings'],
     ],
     'admin_lpmpi' => [
@@ -27,6 +28,7 @@ $menus = [
         ['key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'],
         ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'group' => 'Settings'],
         ['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings'],
+        ['key' => 'system_settings', 'label' => 'Pengaturan Sistem', 'icon' => 'fa-cog', 'url' => 'lpmpi/system-settings', 'group' => 'Settings'],
         ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Settings'],
     ],
     'auditor' => [
@@ -74,7 +76,7 @@ if ($initial === '') {
 <aside class="ami-sidebar" id="ami-sidebar" aria-label="Navigasi utama">
     <div class="ami-brand">
         <a href="<?= site_url(); ?>" class="ami-brand-link">
-            <img src="<?= base_url('assets/img/logo-2.png'); ?>" alt="Logo LPM" class="ami-logo-img">
+            <img src="<?= html_escape($organization_logo_url); ?>" alt="Logo LPM" class="ami-logo-img">
             <div class="ami-brand-text">
                 <div class="ami-brand-title">AMI</div>
                 <div class="ami-brand-subtitle">Universitas Muhammadiyah Babel</div>

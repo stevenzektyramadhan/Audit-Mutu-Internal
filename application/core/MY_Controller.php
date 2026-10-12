@@ -13,6 +13,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class MY_Controller extends CI_Controller
 {
+    /** @var Organization_logo_service */
+    protected $organization_logo_service;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('System_settings_model');
+        require_once APPPATH . 'services/Organization_logo_service.php';
+        $this->organization_logo_service = new Organization_logo_service();
+        $this->load->vars(['organization_logo_url' => $this->organization_logo_service->public_url($this->System_settings_model->profile())]);
+    }
+
     /**
      * Cek apakah user sudah login.
      * Redirect ke halaman auth jika belum.
