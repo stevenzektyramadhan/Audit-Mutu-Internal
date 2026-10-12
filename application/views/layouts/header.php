@@ -53,6 +53,9 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
     <?php if (isset($active_menu) && $active_menu === 'upload_size_settings'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/upload-size-settings.css')); ?>">
     <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'system_settings'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/system-settings.css')); ?>">
+    <?php endif; ?>
     <style>
         :root {
             color-scheme: light;
