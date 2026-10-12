@@ -23,6 +23,7 @@ module.exports = {
         './application/views/auth/**/*.php',
         './application/views/lpmpi/spmi_ppepp_documents/**/*.php',
         './application/views/lpmpi/upload_size_settings/**/*.php',
+        './application/views/lpmpi/system_settings/**/*.php',
     ],
     prefix: 'tw-',
     corePlugins: {
