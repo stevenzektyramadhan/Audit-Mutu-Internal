@@ -22,6 +22,7 @@
 -- current parity migration 001-044
 -- current parity migration 001-045
 -- current parity migration 001-046
+-- current parity migration 001-047
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
@@ -163,6 +164,7 @@ CREATE TABLE IF NOT EXISTS `profil_lembaga` (
     `id_pt_pddikti` VARCHAR(255) NULL,
     `nama_pt_pddikti` VARCHAR(200) NULL,
     `nama_pt` VARCHAR(200) NULL,
+    `deskripsi` TEXT NULL,
     `kode_pt` VARCHAR(20) NULL,
     `nomor_sk_pt` VARCHAR(100) NULL,
     `tanggal_sk_pt` DATE NULL,
@@ -759,6 +761,18 @@ INSERT INTO `spmi_upload_size_settings` (`category`, `label`, `limit_mib`) VALUE
 ('spmi_source_pdf', 'PDF Sumber SPMI', 5),
 ('institution_logo', 'Logo Lembaga', 4),
 ('rtm_photos', 'Foto Dokumentasi RTM', 5);
+
+CREATE TABLE IF NOT EXISTS `system_settings` (
+    `id` TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+    `turnstile_site_key` VARCHAR(255) NULL,
+    `turnstile_secret_ciphertext` TEXT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `chk_system_settings_singleton` CHECK (`id` = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `system_settings` (`id`, `turnstile_site_key`, `turnstile_secret_ciphertext`) VALUES
+(1, NULL, NULL);
 
 CREATE TABLE IF NOT EXISTS `legacy_ami_archive_runs` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
