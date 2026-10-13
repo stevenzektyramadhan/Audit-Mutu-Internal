@@ -23,11 +23,13 @@ $migration = spmi_audit_source('migrations/034_retire_spmi_instruments.sql');
 $model = spmi_audit_source('application/models/Spmi_audits_model.php');
 $service = spmi_audit_source('application/services/Spmi_audits_service.php');
 $controller = spmi_audit_source('application/controllers/lpmpi/Spmi_audits.php');
+$header = spmi_audit_source('application/views/layouts/header.php');
 $form = spmi_audit_source('application/views/lpmpi/spmi_audits/assignment_form.php');
 $detail = spmi_audit_source('application/views/lpmpi/spmi_audits/assignment_detail.php');
 $cycle_form = spmi_audit_source('application/views/lpmpi/spmi_audits/cycle_form.php');
 $cycle_index = spmi_audit_source('application/views/lpmpi/spmi_audits/index.php');
 $cycle_detail = spmi_audit_source('application/views/lpmpi/spmi_audits/cycle_detail.php');
+$audits_css_source = spmi_audit_source('assets/css/spmi-audits.source.css');
 
 foreach (['spmi_audit_cycles', 'spmi_audit_assignments', 'spmi_audit_assignment_items', 'spmi_audit_assignment_item_rubrics', 'source_standard_id', 'source_indicator_id', 'evidence_policy'] as $required) {
     spmi_audit_check(strpos($schema, $required) !== FALSE, 'Indicator assignment schema missing: ' . $required);
@@ -56,7 +58,22 @@ foreach (['versions()', 'standards_by_version()', 'standards_for_version_for_upd
 }
 spmi_audit_check(strpos($model, 'assignment_by_standard_auditee') !== FALSE && strpos($model, "'auditor_id' =>") === FALSE, 'Assignment duplicate lookup must ignore auditor and enforce one auditor per standard/auditee.');
 spmi_audit_check(strpos($model, 'ORDER BY s.display_order ASC FOR UPDATE') !== FALSE, 'Locked version standard resolver must preserve standard display order.');
-spmi_audit_check(strpos($form, 'name="source_version_id"') !== FALSE && strpos($form, "assignment_groups[' + index + '][source_standard_ids][]") !== FALSE && strpos($form, "assignment_groups[' + index + '][auditor_id]") !== FALSE, 'Assignment form must select a version and submit grouped standard/auditor mappings.');
+spmi_audit_check(strpos($form, "form_open('lpmpi/spmi-audits/assignment/store/' . (int) \$cycle->id)") !== FALSE, 'Assignment form must submit via form_open POST action to the assignment store route.');
+foreach (['name="source_version_id"', 'name="auditee_id"', "assignment_groups[' + index + '][source_standard_ids][]", "assignment_groups[' + index + '][auditor_id]"] as $required) {
+    spmi_audit_check(strpos($form, $required) !== FALSE, 'Assignment form durable field contract missing: ' . $required);
+}
+spmi_audit_check(strpos($form, 'aria-live="polite"') !== FALSE && strpos($form, 'pilihan ditemukan.') !== FALSE && strpos($form, 'pilihan tersedia.') !== FALSE, 'Assignment form must announce selected/search result counts through an aria-live status.');
+spmi_audit_check(strpos($form, '<select id="source_version_id" name="source_version_id"') !== FALSE && strpos($form, '<select id="auditee_id" name="auditee_id"') !== FALSE && strpos($form, "checkbox.type = 'checkbox'") !== FALSE && strpos($form, "document.createElement('select')") !== FALSE, 'Assignment form must keep native select and checkbox controls as the no-custom-widget fallback.');
+spmi_audit_check(strpos($form, '<option value="">Pilih versi</option>') !== FALSE && strpos($form, 'Pilih versi terlebih dahulu.') !== FALSE, 'Assignment form must start with an explicit version choice and empty standard scope.');
+foreach (['$fallback_version_id', '$fallback_standards', 'initialVersion', 'versionSelect.value = initialVersion'] as $forbidden) {
+    spmi_audit_check(strpos($form, $forbidden) === FALSE, 'Assignment form must not automatically select a source version: ' . $forbidden);
+}
+spmi_audit_check(strpos($form, "select.setAttribute('aria-label', 'Auditor untuk '") !== FALSE, 'Assignment form must programmatically label dynamic per-standard auditor selects.');
+spmi_audit_check(strpos($form, "auditorCell.setAttribute('data-label', 'Auditor penanggung jawab')") !== FALSE && strpos($form, "statusCell.setAttribute('data-label', 'Status')") !== FALSE, 'Assignment form must expose dynamic auditor/status labels for responsive stacked cells.');
+spmi_audit_check(strpos($form, 'tw-p-4 md:tw-p-8') === FALSE, 'Assignment form must rely on ami-content for shell horizontal padding.');
+spmi_audit_check(strpos($header, "assets/css/spmi-audits.css') . '?v=' . (int) (file_exists(FCPATH . 'assets/css/spmi-audits.css') ? filemtime(FCPATH . 'assets/css/spmi-audits.css') : time())") !== FALSE, 'SPMI audits stylesheet URL must include an escaped file-version query derived from its modification time.');
+spmi_audit_check(strpos($audits_css_source, '@tailwind utilities;') !== FALSE && strpos($audits_css_source, '#audits-root { @tailwind utilities; }') === FALSE, 'SPMI audits utilities must be generated at top level so cycle and assignment layouts retain tw-* utilities.');
+spmi_audit_check(strpos($audits_css_source, '#audits-root .assignment-toggle input:focus-visible') !== FALSE, 'Assignment selected-only toggle must expose a visible keyboard focus treatment.');
 spmi_audit_check(strpos($form, '$versions') !== FALSE && strpos($form, '$standards_by_version') !== FALSE, 'Assignment form must receive version-scoped standard data.');
 spmi_audit_check(strpos($form, 'data-role-search') !== FALSE && strpos($form, 'type="search"') !== FALSE && strpos($form, 'data-role-search-status') !== FALSE && strpos($form, 'data-search="<?php echo html_escape(mb_strtolower($user->nama, \'UTF-8\')); ?>"') !== FALSE && strpos($form, '\'search\' => mb_strtolower($user->nama, \'UTF-8\')') !== FALSE, 'Assignment form must progressively enhance auditor and auditee selectors with escaped name search.');
 spmi_audit_check(strpos($form, "querySelectorAll('[data-role-search]')") !== FALSE && strpos($form, "search.addEventListener('input'") !== FALSE && strpos($form, 'option.hidden =') !== FALSE, 'Assignment form must filter native role options locally from name search.');
