@@ -27,7 +27,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/standards-management.css')); ?>">
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_audits'): ?>
-        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-audits.css')); ?>">
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-audits.css') . '?v=' . (int) (file_exists(FCPATH . 'assets/css/spmi-audits.css') ? filemtime(FCPATH . 'assets/css/spmi-audits.css') : time())); ?>">
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_reports'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-reports.css')); ?>">
