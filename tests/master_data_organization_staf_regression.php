@@ -67,7 +67,7 @@ mdos_check(strpos($migration, 'FOREIGN_KEY_CHECKS') === FALSE, 'Migration 042 ti
 foreach (['INSERT', 'UPDATE', 'DELETE'] as $verb) mdos_has_no_statement($migration, $verb, 'Migration 042 tidak boleh menjalankan DML: ' . $verb);
 
 mdos_check(strpos($schema, 'current parity migration 001-041') !== FALSE, 'Marker historis 001-041 harus tetap ada.');
-mdos_check(strpos($schema, 'current parity migration 001-047') !== FALSE, 'Marker parity 001-047 harus ada.');
+mdos_check(strpos($schema, 'current parity migration 001-048') !== FALSE, 'Marker parity 001-048 harus ada.');
 mdos_check(strpos($profil_prodi, '`organization_unit_id` INT NULL') !== FALSE, 'Bootstrap schema profil_prodi harus punya organization_unit_id nullable.');
 mdos_check(strpos($profil_prodi, 'UNIQUE KEY `uq_profil_prodi_organization_unit` (`organization_unit_id`)') !== FALSE, 'Bootstrap schema profil_prodi harus punya unique key organization_unit_id.');
 mdos_check(strpos($organization_units, "ENUM('university','faculty','upps','study_program','institute','bureau','unit')") !== FALSE, 'Bootstrap schema organization_units harus mempertahankan tipe UPPS.');
@@ -77,7 +77,7 @@ $fk_pos = strpos($schema, 'ADD CONSTRAINT `fk_profil_prodi_organization_unit`');
 mdos_check($organization_table_pos !== FALSE && $fk_pos !== FALSE && $organization_table_pos < $fk_pos, 'Bootstrap FK profil_prodi harus dideklarasikan setelah organization_units.');
 mdos_check(strpos($schema, 'FOREIGN KEY (`organization_unit_id`) REFERENCES `organization_units` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT') !== FALSE, 'Bootstrap FK profil_prodi harus RESTRICT untuk delete dan update.');
 
-mdos_check(strpos($readme, 'parity migration `001-047`') !== FALSE, 'README harus mendokumentasikan parity 001-047.');
+mdos_check(strpos($readme, 'parity migration `001-048`') !== FALSE, 'README harus mendokumentasikan parity 001-048.');
 mdos_check(strpos($readme, '`042_link_profil_prodi_to_organization_units.sql`') !== FALSE, 'README harus mencantumkan migration 042.');
 mdos_check(strpos($readme, 'nullable `profil_prodi.organization_unit_id`') !== FALSE, 'README harus menjelaskan link nullable.');
 mdos_check(strpos($readme, 'tidak melakukan auto-map') !== FALSE, 'README harus melarang auto-map fase 042.');
@@ -136,7 +136,13 @@ mdos_check(strpos($service, '$parent = $this->model->find_unit($parent_id)') !==
 mdos_check(strpos($service, "in_array($" . "type, ['faculty', 'bureau', 'unit', 'institute'], TRUE)") !== FALSE && strpos($service, 'Tipe unit Master Data tidak valid.') !== FALSE, 'Service generic Master harus menolak study_program/upps/university sebelum validasi parent.');
 mdos_check(strpos($service, "!$" . "unit || !$" . "this->is_canonical_generic_type($" . "unit->type)") !== FALSE && strpos($service, 'Unit Master Data tidak ditemukan.') !== FALSE, 'Toggle generic Master harus menolak root/study_program/upps di service.');
 mdos_check(strpos($service, 'return $unit && $this->is_canonical_generic_type($unit->type);') !== FALSE, 'Service penempatan non-Prodi harus memakai allowlist generic canonical untuk target aktif.');
-mdos_check(strpos($service, 'return $this->create_assignment($data);') !== FALSE && strpos($service, 'return $this->end_assignment($id, $until);') !== FALSE, 'Penempatan canonical harus reuse semantik transaksi/date create_assignment/end_assignment.');
+mdos_check(strpos($service, 'return $this->create_assignment($data);') !== FALSE && strpos($service, 'return $this->end_assignment($id, $until, TRUE);') !== FALSE, 'Penempatan canonical harus reuse semantik transaksi/date create_assignment/end_assignment.');
+foreach (['public function find_assignment($id, $for_update = FALSE)', 'SELECT * FROM user_unit_assignments WHERE id = ', 'FOR UPDATE'] as $literal) {
+    mdos_check(strpos($organization_model, $literal) !== FALSE, 'Model penempatan harus mendukung lock row exact: ' . $literal);
+}
+foreach (['public function end_assignment($id, $until, $non_prodi_only = FALSE)', 'trans_begin()', 'find_assignment($id, TRUE)', '$non_prodi_only && !$this->valid_non_prodi_unit', 'trans_rollback()', 'trans_complete()', 'Tanggal berakhir tidak valid.', 'Penempatan berhasil diakhiri.', 'Penempatan gagal diakhiri.'] as $literal) {
+    mdos_check(strpos($service, $literal) !== FALSE, 'End penempatan harus lock dan transaksi: ' . $literal);
+}
 mdos_check(strpos($service, 'Unit root tidak dapat diubah melalui Master Data.') !== FALSE, 'Master canonical tidak boleh mutasi unit root.');
 
 mdos_check(strpos($profil_model, 'public function get_prodi_master_data()') !== FALSE, 'Profil_model harus mempertahankan get_prodi_master_data untuk caller lama.');

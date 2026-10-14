@@ -103,9 +103,7 @@ class Organization_service
 
     public function end_canonical_non_prodi_assignment($id, $until)
     {
-        $assignment = $this->model->find_assignment($id);
-        if (!$assignment || !$this->valid_non_prodi_unit((int) $assignment->organization_unit_id)) return $this->fail('Penempatan non-Prodi tidak ditemukan.');
-        return $this->end_assignment($id, $until);
+        return $this->end_assignment($id, $until, TRUE);
     }
 
     private function valid_canonical_parent($type, $parent_id)
@@ -142,13 +140,15 @@ class Organization_service
         return $ok && $this->ci->db->trans_status() ? ['success' => TRUE, 'message' => 'Penempatan berhasil ditambahkan.'] : $this->fail('Penempatan gagal disimpan.');
     }
 
-    public function end_assignment($id, $until)
+    public function end_assignment($id, $until, $non_prodi_only = FALSE)
     {
-        $assignment = $this->model->find_assignment($id);
         $until = trim((string) $until);
-        if (!$assignment) return $this->fail('Penempatan tidak ditemukan.');
-        if (!$this->valid_date($until) || $until < $assignment->valid_from) return $this->fail('Tanggal berakhir tidak valid.');
-        return $this->model->end_assignment($id, $until) ? ['success' => TRUE, 'message' => 'Penempatan berhasil diakhiri.'] : $this->fail('Penempatan gagal diakhiri.');
+        $this->ci->db->trans_begin();
+        $assignment = $this->model->find_assignment($id, TRUE);
+        if (!$assignment) return $this->rollback('Penempatan tidak ditemukan.');
+        if ($non_prodi_only && !$this->valid_non_prodi_unit((int) $assignment->organization_unit_id)) return $this->rollback('Penempatan non-Prodi tidak ditemukan.');
+        if (!$this->valid_date($until) || $until < $assignment->valid_from) return $this->rollback('Tanggal berakhir tidak valid.');
+        return $this->finish($this->model->end_assignment($id, $until), 'Penempatan berhasil diakhiri.', 'Penempatan gagal diakhiri.');
     }
 
     private function valid_date($value)
@@ -184,5 +184,7 @@ class Organization_service
         return $ok && $this->ci->db->trans_status() ? ['success' => TRUE, 'message' => 'Kapabilitas role berhasil diperbarui.'] : $this->fail('Kapabilitas gagal diperbarui.');
     }
 
+    private function finish($success, $ok_message, $fail_message) { $this->ci->db->trans_complete(); return $success && $this->ci->db->trans_status() ? ['success' => TRUE, 'message' => $ok_message] : $this->fail($fail_message); }
+    private function rollback($message) { $this->ci->db->trans_rollback(); return $this->fail($message); }
     private function fail($message) { return ['success' => FALSE, 'message' => $message]; }
 }
