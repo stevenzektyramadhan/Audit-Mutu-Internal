@@ -202,7 +202,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-047`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-048`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
 
 #### Akun Administrator Pertama
 
@@ -230,7 +230,7 @@ Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `04
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `047` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `048` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -268,6 +268,7 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 34. `045_add_spmi_rtm_photo.sql`
 35. `046_create_spmi_rtm_resolution_events.sql`
 36. `047_create_system_settings.sql`
+37. `048_add_spmi_audit_cycle_organization_unit.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
@@ -290,6 +291,8 @@ Migration `045_add_spmi_rtm_photo.sql` bersifat aditif dan idempoten: menambahka
 Migration `046_create_spmi_rtm_resolution_events.sql` bersifat aditif dan idempoten: menambahkan tabel riwayat immutable untuk setiap aksi `resolve` dan recovery `unresolve` RTM dengan FK RESTRICT ke rapat dan aktor. Recovery hanya tersedia via POST untuk `super_admin`, wajib alasan nonblank, mengubah status `resolved -> draft`, dan tidak menghapus laporan, peserta, keputusan, foto, atau riwayat sebelumnya.
 
 Migration `047_create_system_settings.sql` bersifat aditif dan idempoten: menambahkan `profil_lembaga.deskripsi` nullable serta tabel singleton `system_settings` untuk konfigurasi Cloudflare Turnstile. Secret Turnstile disimpan hanya sebagai ciphertext terautentikasi berbasis `APP_ENCRYPTION_KEY`/`encryption_key`; login publik hanya memakainya setelah site key valid dan secret dapat didekripsi.
+
+Migration `048_add_spmi_audit_cycle_organization_unit.sql` bersifat aditif dan idempoten: menambahkan `spmi_audit_cycles.organization_unit_id` nullable, index, dan foreign key RESTRICT ke `organization_units`. Tidak ada backfill atau perubahan siklus/organisasi historis; siklus lama bernilai `NULL` tetap terbaca, tetapi tidak dapat menerima penugasan baru sampai unit aktif yang didukung ditetapkan pada draft.
 
 Docker lokal memakai nilai `APP_ENCRYPTION_KEY` development yang dapat dioverride melalui environment. Deployment harus selalu menyediakan nilai acak dan rahasia sendiri; jangan gunakan nilai default Docker lokal di luar development.
 
