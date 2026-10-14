@@ -4,6 +4,10 @@ include APPPATH . 'views/layouts/sidebar.php';
 
 $academic_year = isset($cycle->academic_year) ? trim((string) $cycle->academic_year) : '';
 $mutable = $cycle->state === 'draft';
+$cycle_unit_code = isset($cycle->organization_unit_code) ? trim((string) $cycle->organization_unit_code) : '';
+$cycle_unit_name = isset($cycle->organization_unit_name) ? trim((string) $cycle->organization_unit_name) : '';
+$cycle_unit_type = isset($cycle->organization_unit_type) ? trim((string) $cycle->organization_unit_type) : '';
+$cycle_unit_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas', 'bureau' => 'Biro', 'unit' => 'Unit', 'institute' => 'Lembaga'];
 ?>
 <main id="audits-root" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
   <div class="tw-mx-auto tw-max-w-7xl">
@@ -11,7 +15,8 @@ $mutable = $cycle->state === 'draft';
       <div>
         <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Siklus SPMI</p>
         <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950"><?php echo html_escape($cycle->cycle_code . ' — ' . $cycle->title); ?></h1>
-        <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Periode akademik: <?php echo html_escape($academic_year !== '' ? $academic_year : 'Periode akademik belum dicatat'); ?></p>
+           <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Periode akademik: <?php echo html_escape($academic_year !== '' ? $academic_year : 'Periode akademik belum dicatat'); ?></p>
+           <p class="tw-mt-2 tw-text-sm tw-text-slate-500">Unit organisasi: <?php if ($cycle_unit_code !== '' || $cycle_unit_name !== ''): ?><span class="tw-font-semibold tw-text-slate-700"><?php echo html_escape($cycle_unit_code . ' — ' . $cycle_unit_name); ?></span><span class="tw-ml-1">(<?php echo html_escape($cycle_unit_labels[$cycle_unit_type] ?? $cycle_unit_type); ?>)</span><?php else: ?><span class="tw-italic">Unit organisasi legacy belum dicatat.</span><?php endif; ?></p>
       </div>
       <?php if ($mutable): ?>
         <div class="tw-flex tw-flex-wrap tw-gap-2">

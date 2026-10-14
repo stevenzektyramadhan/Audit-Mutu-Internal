@@ -5,8 +5,10 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
 $cycle = isset($cycle) ? $cycle : NULL;
+$organization_units = isset($organization_units) && is_array($organization_units) ? $organization_units : [];
 $is_edit = !empty($cycle && isset($cycle->id));
 $academic_year = isset($cycle->academic_year) ? $cycle->academic_year : '';
+$organization_unit_id = isset($cycle->organization_unit_id) ? $cycle->organization_unit_id : '';
 
 $back_url = site_url('lpmpi/spmi-audits');
 
@@ -18,6 +20,7 @@ $page_subtitle = $is_edit
 $fallback = static function ($property) use ($cycle) {
     return $cycle ? $cycle->$property : '';
 };
+$unit_type_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas', 'bureau' => 'Biro', 'unit' => 'Unit', 'institute' => 'Lembaga'];
 ?>
 
 <main id="audits-root" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
@@ -62,13 +65,25 @@ $fallback = static function ($property) use ($cycle) {
                             <input id="title" name="title" class="tw-field" maxlength="200" value="<?php echo html_escape(set_value('title', $fallback('title'))); ?>" placeholder="Misal: Audit Mutu Internal Semester Ganjil 2026/2027" required>
                         </label>
 
-                        <label class="tw-block">
-                            <span class="tw-label">Tahun akademik</span>
-                            <input id="academic_year" name="academic_year" type="text" class="tw-field" maxlength="20" value="<?php echo html_escape(set_value('academic_year', $academic_year)); ?>" placeholder="2026/2027" required>
-                            <small class="tw-help">Contoh: 2026/2027</small>
-                        </label>
+                         <label class="tw-block">
+                             <span class="tw-label">Tahun akademik</span>
+                             <input id="academic_year" name="academic_year" type="text" class="tw-field" maxlength="20" value="<?php echo html_escape(set_value('academic_year', $academic_year)); ?>" placeholder="2026/2027" required>
+                             <small class="tw-help">Contoh: 2026/2027</small>
+                         </label>
 
-                        <label class="tw-block">
+                         <label class="tw-block">
+                             <span class="tw-label">Unit organisasi audit</span>
+                             <select id="organization_unit_id" name="organization_unit_id" class="tw-field" required>
+                                 <option value="">Pilih unit organisasi</option>
+                                 <?php foreach ($organization_units as $unit): ?>
+                                     <?php $unit_type = (string) $unit->type; ?>
+                                     <option value="<?php echo (int) $unit->id; ?>" <?php echo set_select('organization_unit_id', $unit->id, (string) set_value('organization_unit_id', $organization_unit_id) === (string) $unit->id); ?>><?php echo html_escape(($unit_type_labels[$unit_type] ?? $unit_type) . ' — ' . $unit->code . ' — ' . $unit->name); ?></option>
+                                 <?php endforeach; ?>
+                             </select>
+                             <small class="tw-help">Unit aktif yang menjadi lingkup audit siklus ini.</small>
+                         </label>
+
+                         <label class="tw-block">
                             <span class="tw-label">Deskripsi</span>
                             <textarea id="description" name="description" class="tw-field tw-min-h-[120px] tw-resize-y" placeholder="Tambahkan catatan tujuan pelaksanaan atau ruang lingkup audit..."><?php echo html_escape(set_value('description', $fallback('description'))); ?></textarea>
                         </label>
