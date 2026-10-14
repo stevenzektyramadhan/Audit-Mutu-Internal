@@ -157,7 +157,7 @@ class Organization_model extends CI_Model
     public function get_users() { return $this->db->order_by('nama', 'ASC')->get('users')->result(); }
     public function find_user($id) { return $this->db->where('id', (int) $id)->get('users')->row(); }
     public function create_assignment($data) { return $this->db->insert('user_unit_assignments', $data); }
-    public function find_assignment($id) { return $this->db->where('id', (int) $id)->get('user_unit_assignments')->row(); }
+    public function find_assignment($id, $for_update = FALSE) { $sql = 'SELECT * FROM user_unit_assignments WHERE id = ' . (int) $id; return $for_update ? $this->db->query($sql . ' FOR UPDATE')->row() : $this->db->query($sql)->row(); }
     public function end_assignment($id, $until) { return $this->db->where('id', (int) $id)->update('user_unit_assignments', ['valid_until' => $until]); }
     public function clear_primary($user_id) { return $this->db->where(['user_id' => (int) $user_id, 'valid_until' => NULL])->update('user_unit_assignments', ['is_primary' => 0]); }
 

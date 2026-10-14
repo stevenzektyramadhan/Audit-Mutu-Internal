@@ -20,6 +20,7 @@ function spmi_audit_table($schema, $table)
 
 $schema = spmi_audit_source('database_schema.sql');
 $migration = spmi_audit_source('migrations/034_retire_spmi_instruments.sql');
+$cycle_unit_migration = spmi_audit_source('migrations/048_add_spmi_audit_cycle_organization_unit.sql');
 $model = spmi_audit_source('application/models/Spmi_audits_model.php');
 $service = spmi_audit_source('application/services/Spmi_audits_service.php');
 $controller = spmi_audit_source('application/controllers/lpmpi/Spmi_audits.php');
@@ -39,7 +40,7 @@ foreach (['spmi_audit_assignments', 'spmi_audit_assignment_items'] as $table) {
         spmi_audit_check(strpos(spmi_audit_table($schema, $table), '`' . $retired . '`') === FALSE, 'Bootstrap schema retains retired assignment field: ' . $table . '.' . $retired);
     }
 }
-foreach (['trans_begin', 'version_for_update', 'standards_for_version_for_update', 'assignment_standard_auditors', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists'] as $required) {
+foreach (['trans_begin', 'version_for_update', 'standards_for_version_for_update', 'assignment_standard_auditors', 'standard_indicators', 'skor_audit_options()', "'evidence_policy' => \$indicator->evidence_policy", 'array_keys($rubric_options) !== [1, 2, 3, 4]', 'Standar SPMI belum memiliki indikator.', 'assignment_workspace_descendant_exists', 'locked_unit_user_by_role($unit, $auditee_id, \'auditee\')'] as $required) {
     spmi_audit_check(strpos($service, $required) !== FALSE, 'Assignment service contract missing: ' . $required);
 }
 foreach (['assignment_groups', 'isset($mapping[$standard_id])', 'array_unique($standard_auditor_ids)', 'assignment_by_standard_auditee', 'Standar SPMI sudah ditugaskan kepada auditi pada siklus ini.'] as $required) {
@@ -98,5 +99,30 @@ spmi_audit_check(strpos($cycle_index, "(string) \$cycle->end_date < date('Y-m-d'
 spmi_audit_check(strpos($cycle_index, 'Terlambat auditi:') !== FALSE && strpos($cycle_index, 'Terlambat auditor:') !== FALSE, 'Overdue LPMPI cycle labels missing.');
 spmi_audit_check(strpos($cycle_detail, "(string) \$cycle->end_date < date('Y-m-d')") !== FALSE && strpos($cycle_detail, 'Terlambat: submission belum dikirim') !== FALSE && strpos($cycle_detail, 'Terlambat: penilaian belum difinalisasi') !== FALSE, 'Overdue LPMPI assignment labels missing.');
 spmi_audit_check(strpos($cycle_detail, "form_open('lpmpi/spmi-audits/cycle/transition/' . (int) \$cycle->id") !== FALSE && strpos($cycle_detail, 'name="state" value="closed"') !== FALSE && strpos($cycle_detail, '>Tutup siklus</button>') !== FALSE && strpos($cycle_detail, 'Siklus yang sudah ditutup tidak dapat dibuka kembali.') !== FALSE, 'Configured cycle close control must retain the POST endpoint, closed state, button, and non-reopen confirmation.');
+spmi_audit_check(strpos($cycle_form, 'name="organization_unit_id"') !== FALSE && strpos($cycle_form, '$organization_units') !== FALSE && strpos($cycle_form, 'set_select(\'organization_unit_id\'') !== FALSE, 'Cycle form must render the required active organization-unit select with posted-value preservation.');
+spmi_audit_check(strpos($form, '$auditees') !== FALSE && strpos($form, 'cycle-organization-unit') !== FALSE && strpos($form, 'data-role-search="auditee_id"') !== FALSE, 'Assignment form must display the selected cycle unit and retain the controller-scoped native auditee selector.');
+spmi_audit_check(strpos($cycle_detail, 'organization_unit_code') !== FALSE && strpos($cycle_detail, 'organization_unit_name') !== FALSE && strpos($cycle_detail, 'organization_unit_type') !== FALSE && strpos($cycle_detail, 'legacy belum dicatat') !== FALSE, 'Cycle detail must render escaped persisted unit identity with a read-only legacy fallback.');
+foreach (['`organization_unit_id` INT NULL', 'KEY `idx_spmi_audit_cycles_organization_unit` (`organization_unit_id`)', 'FOREIGN KEY (`organization_unit_id`) REFERENCES `organization_units` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT'] as $required) {
+    spmi_audit_check(strpos(spmi_audit_table($schema, 'spmi_audit_cycles'), $required) !== FALSE, 'Cycle organization-unit bootstrap contract missing: ' . $required);
+}
+foreach (['INFORMATION_SCHEMA.COLUMNS', 'INFORMATION_SCHEMA.STATISTICS', 'INFORMATION_SCHEMA.TABLE_CONSTRAINTS', 'ADD COLUMN `organization_unit_id` INT NULL', 'ADD KEY `idx_spmi_audit_cycles_organization_unit` (`organization_unit_id`)', 'ADD CONSTRAINT `fk_spmi_audit_cycles_organization_unit`', 'FOREIGN KEY (`organization_unit_id`) REFERENCES `organization_units` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT'] as $required) {
+    spmi_audit_check(strpos($cycle_unit_migration, $required) !== FALSE, 'Migration 048 organization-unit contract missing: ' . $required);
+}
+foreach (['INSERT', 'UPDATE', 'DELETE'] as $forbidden) {
+    spmi_audit_check(preg_match('/(?:^|[;$])\s*' . $forbidden . '\b/i', $cycle_unit_migration) !== 1, 'Migration 048 must not modify historical data: ' . $forbidden);
+}
+spmi_audit_check(strpos($cycle_unit_migration, 'FOREIGN_KEY_CHECKS') === FALSE, 'Migration 048 must not disable foreign key checks.');
+foreach (['active_supported_units()', 'active_supported_unit($payload[\'organization_unit_id\'], TRUE)', "['study_program', 'faculty', 'bureau', 'unit', 'institute']", "'organization_unit_id' => \$this->positive_id", "set_rules('organization_unit_id', 'Unit organisasi audit', 'required|integer|greater_than[0]')"] as $required) {
+    spmi_audit_check(strpos($service . $model . $controller, $required) !== FALSE, 'Cycle active supported-unit contract missing: ' . $required);
+}
+foreach (['from(\'staf_prodi sp\')', 'pp.organization_unit_id', "where('sp.status', 'active')", "from('user_unit_assignments uua')", 'uua.valid_from <= CURDATE()', 'uua.valid_until > CURDATE()', 'distinct()', 'unit_user_by_role($unit, $auditee_id, \'auditee\')'] as $required) {
+    spmi_audit_check(strpos($model . $service, $required) !== FALSE, 'Cycle unit membership/forged auditee contract missing: ' . $required);
+}
+foreach (['public function locked_unit_user_by_role', 'FROM staf_prodi sp', 'JOIN profil_prodi pp ON pp.id = sp.id_prodi', 'pp.organization_unit_id = ', "sp.status = 'active'", 'FROM user_unit_assignments uua', 'uua.valid_from <= CURDATE()', 'uua.valid_until IS NULL OR uua.valid_until > CURDATE()', 'u.role = ', 'FOR UPDATE'] as $required) {
+    spmi_audit_check(strpos($model, $required) !== FALSE, 'Locked auditee eligibility contract missing: ' . $required);
+}
+spmi_audit_check(strpos($service, "public function auditors() { return \$this->model->users_by_role('auditor'); }") !== FALSE && strpos($controller, 'auditors()') !== FALSE && strpos($controller, 'auditors($cycle)') === FALSE, 'Assignment auditor candidates must remain role-only and independent from the cycle unit.');
+spmi_audit_check(strpos($service, 'public function auditees($cycle)') !== FALSE && strpos($service, "unit_users_by_role(\$unit, 'auditee')") !== FALSE && strpos($controller, 'auditees($cycle)') !== FALSE, 'Assignment auditee candidates must remain scoped to the selected cycle unit.');
+spmi_audit_check(strpos($service, 'cycle_has_assignments($id)') !== FALSE && strpos($model, 'cycle_has_assignments($cycle_id)') !== FALSE && strpos($service, 'Unit organisasi tidak dapat diubah karena siklus sudah memiliki penugasan.') !== FALSE, 'Update cycle must reject organization unit change when assignments already exist.');
 
 fwrite(STDOUT, "SPMI audits regression checks passed.\n");
