@@ -343,13 +343,14 @@ CREATE TABLE IF NOT EXISTS `spmi_indicator_targets` (
     CONSTRAINT `fk_spmi_indicator_targets_indicator` FOREIGN KEY (`indicator_id`) REFERENCES `spmi_indicators` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/* Current parity migration 001-035; versioned SPMI instruments are retired. */
+/* current parity migration 001-048; versioned SPMI instruments are retired. */
 CREATE TABLE IF NOT EXISTS `spmi_audit_cycles` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `cycle_code` VARCHAR(64) NOT NULL,
     `title` VARCHAR(200) NOT NULL,
     `description` TEXT NULL,
     `academic_year` VARCHAR(20) NULL,
+    `organization_unit_id` INT NULL,
     `semester` ENUM('ganjil','genap') NULL,
     `start_date` DATE NOT NULL,
     `end_date` DATE NOT NULL,
@@ -359,6 +360,8 @@ CREATE TABLE IF NOT EXISTS `spmi_audit_cycles` (
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uq_spmi_audit_cycles_code` (`cycle_code`),
     KEY `idx_spmi_audit_cycles_state_start` (`state`, `start_date`),
+    KEY `idx_spmi_audit_cycles_organization_unit` (`organization_unit_id`),
+    CONSTRAINT `fk_spmi_audit_cycles_organization_unit` FOREIGN KEY (`organization_unit_id`) REFERENCES `organization_units` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT `fk_spmi_audit_cycles_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
