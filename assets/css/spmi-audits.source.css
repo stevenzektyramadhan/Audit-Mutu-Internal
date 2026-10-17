@@ -74,6 +74,35 @@
     transform: translateX(-2px);
   }
 
+  #audits-root .audits-back-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    width: fit-content;
+  }
+  #audits-root .audits-back-btn:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #94a3b8;
+    text-decoration: none;
+  }
+  #audits-root .audits-back-btn:focus-visible {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
   #audits-root { color: var(--ami-text); }
   #audits-root .assignment-page { max-width: 1080px; margin: 0 auto; }
   #audits-root .assignment-back { display: inline-flex; align-items: center; gap: var(--ami-space-sm); color: var(--ami-blue); font-size: 13px; font-weight: 700; margin-bottom: var(--ami-space-lg); }

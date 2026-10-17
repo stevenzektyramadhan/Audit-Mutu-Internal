@@ -2487,10 +2487,6 @@
     grid-template-columns: 1fr 200px;
   }
 
-  .sm\:tw-grid-cols-\[minmax\(0\2c 1fr\)_minmax\(14rem\2c 18rem\)\] {
-    grid-template-columns: minmax(0,1fr) minmax(14rem,18rem);
-  }
-
   .sm\:tw-flex-row {
     flex-direction: row;
   }

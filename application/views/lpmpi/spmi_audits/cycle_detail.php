@@ -11,6 +11,15 @@ $cycle_unit_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas
 ?>
 <main id="audits-root" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
   <div class="tw-mx-auto tw-max-w-7xl">
+    <div class="tw-mb-4">
+      <a class="audits-back-btn tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-min-h-[44px] tw-px-3.5 tw-py-2 tw-rounded-lg tw-bg-white tw-border tw-border-slate-300 tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900 hover:tw-border-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500/20 focus:tw-border-blue-500 tw-text-sm tw-font-semibold tw-transition-colors tw-w-fit tw-no-underline" href="<?php echo html_escape(site_url('lpmpi/spmi-audits')); ?>">
+        <svg class="tw-w-[18px] tw-h-[18px] tw-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m12 19-7-7 7-7"/>
+          <path d="M19 12H5"/>
+        </svg>
+        <span>Kembali</span>
+      </a>
+    </div>
     <div class="tw-mb-6 tw-flex tw-flex-col tw-gap-4 md:tw-flex-row md:tw-items-end md:tw-justify-between">
       <div>
         <p class="tw-mb-2 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.2em] tw-text-slate-500">Siklus SPMI</p>
