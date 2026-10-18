@@ -25,16 +25,35 @@ class System_settings_service
         $logo = $this->logo_service->preview_urls($profile);
         $site_key = $settings ? trim((string) $settings->turnstile_site_key) : '';
         $ciphertext = $settings ? trim((string) $settings->turnstile_secret_ciphertext) : '';
+        $turnstile = $this->turnstile_configuration($site_key, $ciphertext);
+        $app_name = ($settings && property_exists($settings, 'app_name') && $settings->app_name !== NULL && trim((string) $settings->app_name) !== '')
+            ? trim((string) $settings->app_name)
+            : 'Audit Mutu Internal';
+        $app_short_name = ($settings && property_exists($settings, 'app_short_name') && $settings->app_short_name !== NULL && trim((string) $settings->app_short_name) !== '')
+            ? trim((string) $settings->app_short_name)
+            : 'AMI';
+        $login_hero_title = ($settings && property_exists($settings, 'login_hero_title') && $settings->login_hero_title !== NULL && trim((string) $settings->login_hero_title) !== '')
+            ? trim((string) $settings->login_hero_title)
+            : 'Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.';
+        $login_hero_description = ($settings && property_exists($settings, 'login_hero_description') && $settings->login_hero_description !== NULL && trim((string) $settings->login_hero_description) !== '')
+            ? trim((string) $settings->login_hero_description)
+            : 'Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.';
 
         return [
+            'app_name' => $app_name,
+            'app_short_name' => $app_short_name,
+            'login_hero_title' => $login_hero_title,
+            'login_hero_description' => $login_hero_description,
             'organization_name' => $profile ? (string) $profile->nama_pt : '',
             'organization_description' => $profile && property_exists($profile, 'deskripsi') ? (string) $profile->deskripsi : '',
             'organization_logo_local_url' => $logo['local_url'],
             'organization_logo_fallback_url' => $logo['fallback_url'],
             'institution_logo_limit_bytes' => $this->logo_service->limit_bytes(),
-            'turnstile_site_key' => $site_key,
-            'turnstile_secret_configured' => $ciphertext !== '' && $this->decrypt_secret($ciphertext) !== NULL,
-            'turnstile_enabled' => $this->turnstile_is_enabled($site_key, $ciphertext),
+            'turnstile_site_key' => $turnstile['enabled'] ? $site_key : '',
+            'turnstile_secret_configured' => $turnstile['secret_configured'],
+            'turnstile_enabled' => $turnstile['enabled'],
+            'turnstile_state' => $turnstile['state'],
+            'turnstile_configuration_invalid' => $turnstile['configuration_invalid'],
         ];
     }
 
@@ -43,6 +62,38 @@ class System_settings_service
         $can_manage_turnstile = (string) $actor_role === 'super_admin';
         $organization_name = trim((string) ($data['organization_name'] ?? ''));
         $organization_description = trim((string) ($data['organization_description'] ?? ''));
+        $app_name = trim((string) ($data['app_name'] ?? ''));
+        $app_short_name = trim((string) ($data['app_short_name'] ?? ''));
+        $login_hero_title = trim((string) ($data['login_hero_title'] ?? ''));
+        $login_hero_description = trim((string) ($data['login_hero_description'] ?? ''));
+
+        if ($app_name === '') {
+            $app_name = 'Audit Mutu Internal';
+        }
+        if (mb_strlen($app_name, 'UTF-8') > 150) {
+            return ['success' => FALSE, 'message' => 'Nama aplikasi maksimal 150 karakter.'];
+        }
+
+        if ($app_short_name === '') {
+            $app_short_name = 'AMI';
+        }
+        if (mb_strlen($app_short_name, 'UTF-8') > 30) {
+            return ['success' => FALSE, 'message' => 'Singkatan nama aplikasi maksimal 30 karakter.'];
+        }
+
+        if ($login_hero_title === '') {
+            $login_hero_title = 'Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.';
+        }
+        if (mb_strlen($login_hero_title, 'UTF-8') > 255) {
+            return ['success' => FALSE, 'message' => 'Judul utama login maksimal 255 karakter.'];
+        }
+
+        if ($login_hero_description === '') {
+            $login_hero_description = 'Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.';
+        }
+        if (mb_strlen($login_hero_description, 'UTF-8') > 1000) {
+            return ['success' => FALSE, 'message' => 'Deskripsi login maksimal 1000 karakter.'];
+        }
 
         if ($organization_name === '' || mb_strlen($organization_name, 'UTF-8') > 200) {
             return ['success' => FALSE, 'message' => 'Nama organisasi wajib diisi dan maksimal 200 karakter.'];
@@ -78,6 +129,13 @@ class System_settings_service
             return $this->rollback('Pengaturan sistem gagal disimpan.', $candidate['file_name']);
         }
 
+        $settings_data = [
+            'app_name' => $app_name,
+            'app_short_name' => $app_short_name,
+            'login_hero_title' => $login_hero_title,
+            'login_hero_description' => $login_hero_description,
+        ];
+
         if ($can_manage_turnstile) {
             $settings = $this->model->settings_for_update();
             $ciphertext = $settings ? (string) $settings->turnstile_secret_ciphertext : NULL;
@@ -87,14 +145,12 @@ class System_settings_service
                 if ($ciphertext === NULL) return $this->rollback('Secret key Turnstile gagal dienkripsi. Periksa konfigurasi APP_ENCRYPTION_KEY.', $candidate['file_name']);
             }
 
-            $settings_data = [
-                'turnstile_site_key' => $site_key === '' ? NULL : $site_key,
-                'turnstile_secret_ciphertext' => $ciphertext === '' ? NULL : $ciphertext,
-            ];
+            $settings_data['turnstile_site_key'] = $site_key === '' ? NULL : $site_key;
+            $settings_data['turnstile_secret_ciphertext'] = $ciphertext === '' ? NULL : $ciphertext;
+        }
 
-            if (!$this->model->upsert_settings($settings_data)) {
-                return $this->rollback('Pengaturan sistem gagal disimpan.', $candidate['file_name']);
-            }
+        if (!$this->model->upsert_settings($settings_data)) {
+            return $this->rollback('Pengaturan sistem gagal disimpan.', $candidate['file_name']);
         }
 
         $result = $this->finish(['success' => TRUE, 'message' => 'Pengaturan sistem berhasil disimpan.'], $candidate['file_name']);
@@ -109,10 +165,13 @@ class System_settings_service
         $settings = $this->model->settings();
         $site_key = $settings ? trim((string) $settings->turnstile_site_key) : '';
         $ciphertext = $settings ? trim((string) $settings->turnstile_secret_ciphertext) : '';
+        $turnstile = $this->turnstile_configuration($site_key, $ciphertext);
 
         return [
-            'enabled' => $this->turnstile_is_enabled($site_key, $ciphertext),
-            'site_key' => $this->turnstile_is_enabled($site_key, $ciphertext) ? $site_key : '',
+            'enabled' => $turnstile['enabled'],
+            'state' => $turnstile['state'],
+            'configuration_invalid' => $turnstile['configuration_invalid'],
+            'site_key' => $turnstile['enabled'] ? $site_key : '',
         ];
     }
 
@@ -126,12 +185,16 @@ class System_settings_service
         $settings = $this->model->settings();
         $site_key = $settings ? trim((string) $settings->turnstile_site_key) : '';
         $ciphertext = $settings ? trim((string) $settings->turnstile_secret_ciphertext) : '';
-        if (!$this->turnstile_is_enabled($site_key, $ciphertext)) {
+        $turnstile = $this->turnstile_configuration($site_key, $ciphertext);
+        if ($turnstile['state'] === 'disabled') {
             return ['success' => TRUE, 'message' => 'Turnstile tidak aktif.'];
+        }
+        if (!$turnstile['enabled']) {
+            return ['success' => FALSE, 'message' => 'Verifikasi keamanan gagal. Silakan coba lagi.'];
         }
 
         $secret = $this->decrypt_secret($ciphertext);
-        if ($secret === NULL || $secret === '') {
+        if (!$this->is_plausible_turnstile_secret($secret)) {
             return ['success' => FALSE, 'message' => 'Verifikasi keamanan gagal. Silakan coba lagi.'];
         }
 
@@ -185,9 +248,44 @@ class System_settings_service
         return ['success' => TRUE, 'message' => 'Verifikasi keamanan berhasil.'];
     }
 
-    protected function turnstile_is_enabled($site_key, $ciphertext)
+    protected function turnstile_configuration($site_key, $ciphertext)
     {
-        return $this->is_plausible_turnstile_key($site_key) && $this->decrypt_secret($ciphertext) !== NULL;
+        $site_key = trim((string) $site_key);
+        $secret = $this->decrypt_secret($ciphertext);
+        $secret_configured = $this->is_plausible_turnstile_secret($secret);
+        if ($site_key === '') {
+            return [
+                'state' => 'disabled',
+                'enabled' => FALSE,
+                'configuration_invalid' => FALSE,
+                'secret_configured' => $secret_configured,
+            ];
+        }
+
+        if (!$this->is_plausible_turnstile_key($site_key)) {
+            return [
+                'state' => 'configuration_invalid',
+                'enabled' => FALSE,
+                'configuration_invalid' => TRUE,
+                'secret_configured' => $secret_configured,
+            ];
+        }
+
+        if (!$secret_configured) {
+            return [
+                'state' => 'configuration_invalid',
+                'enabled' => FALSE,
+                'configuration_invalid' => TRUE,
+                'secret_configured' => FALSE,
+            ];
+        }
+
+        return [
+            'state' => 'enabled',
+            'enabled' => TRUE,
+            'configuration_invalid' => FALSE,
+            'secret_configured' => TRUE,
+        ];
     }
 
     protected function is_plausible_turnstile_key($value)

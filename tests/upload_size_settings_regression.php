@@ -129,14 +129,9 @@ foreach ([
 upload_settings_check(substr_count($routes, 'upload-size-settings') === 2, 'Upload settings must expose exactly index and update routes.');
 
 $menu = "['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings']";
-upload_settings_check(substr_count($sidebar, $menu) === 2, 'Upload settings sidebar menu must appear once for each management role.');
-$super_admin_start = strpos($sidebar, "'super_admin' => [");
-$admin_lpmpi_start = strpos($sidebar, "'admin_lpmpi' => [");
-$auditor_start = strpos($sidebar, "'auditor' => [");
-$auditee_start = strpos($sidebar, "'auditee' => [");
-upload_settings_check(strpos($sidebar, $menu, $super_admin_start) !== FALSE && strpos($sidebar, $menu, $super_admin_start) < $admin_lpmpi_start, 'Upload settings menu must be inside super_admin menu.');
-upload_settings_check(strpos($sidebar, $menu, $admin_lpmpi_start) !== FALSE && strpos($sidebar, $menu, $admin_lpmpi_start) < $auditor_start, 'Upload settings menu must be inside admin_lpmpi menu.');
-upload_settings_check(strpos($sidebar, $menu, $auditor_start) === FALSE || strpos($sidebar, $menu, $auditor_start) > $auditee_start, 'Upload settings menu must not be available to auditor.');
-upload_settings_check(strpos($sidebar, $menu, $auditee_start) === FALSE, 'Upload settings menu must not be available to auditee.');
+upload_settings_check(strpos($sidebar, $menu) === FALSE, 'Upload settings must be consolidated into Pengaturan Sistem tabs and removed from sidebar.');
+$system_settings_menu = "['key' => 'system_settings', 'label' => 'Pengaturan Sistem', 'icon' => 'fa-cog', 'url' => 'lpmpi/system-settings', 'group' => 'Settings']";
+upload_settings_check(substr_count($sidebar, $system_settings_menu) === 2, 'System settings entry must be available for management roles.');
+upload_settings_check(strpos($sidebar, "\$active_menu === 'upload_size_settings'") !== FALSE, 'System settings sidebar entry must highlight when upload_size_settings is active.');
 
 fwrite(STDOUT, "Upload size settings regression checks passed.\n");

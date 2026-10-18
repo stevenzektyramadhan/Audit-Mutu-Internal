@@ -767,6 +767,10 @@ INSERT INTO `spmi_upload_size_settings` (`category`, `label`, `limit_mib`) VALUE
 
 CREATE TABLE IF NOT EXISTS `system_settings` (
     `id` TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+    `app_name` VARCHAR(150) NULL DEFAULT 'Audit Mutu Internal',
+    `app_short_name` VARCHAR(30) NULL DEFAULT 'AMI',
+    `login_hero_title` VARCHAR(255) NULL DEFAULT 'Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.',
+    `login_hero_description` TEXT NULL,
     `turnstile_site_key` VARCHAR(255) NULL,
     `turnstile_secret_ciphertext` TEXT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
