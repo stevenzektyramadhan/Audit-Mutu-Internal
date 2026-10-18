@@ -38,6 +38,8 @@ if ($profil && !empty($profil->akreditasi)) {
     }
 }
 
+$deskripsi_lembaga = $profil && property_exists($profil, 'deskripsi') ? trim((string) $profil->deskripsi) : '';
+
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
@@ -300,6 +302,65 @@ include APPPATH . 'views/layouts/sidebar.php';
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Tentang Lembaga Section -->
+    <div class="tw-mb-4 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-5 sm:tw-p-6 tw-shadow-sm">
+        <div class="tw-flex tw-items-center tw-justify-between tw-pb-3.5 tw-border-b tw-border-slate-100 tw-mb-4">
+            <div class="tw-flex tw-items-center tw-gap-2.5">
+                <span class="tw-inline-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-lg tw-bg-blue-50 tw-text-blue-700">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                </span>
+                <div>
+                    <h2 class="tw-text-base tw-font-bold tw-text-slate-900 tw-m-0">Tentang Lembaga</h2>
+                    <p class="tw-text-xs tw-text-slate-500 tw-m-0 tw-mt-0.5">Ringkasan profil institusi, visi, misi, atau gambaran umum perguruan tinggi.</p>
+                </div>
+            </div>
+            <?php if ($can_manage): ?>
+                <a href="<?php echo html_escape(site_url('lpmpi/system-settings')); ?>" class="tw-hidden sm:tw-inline-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1.5 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50 hover:tw-bg-slate-100 tw-text-xs tw-font-semibold tw-text-slate-700 tw-transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                        <path d="m15 5 4 4"/>
+                    </svg>
+                    <span>Ubah di Pengaturan</span>
+                </a>
+            <?php endif; ?>
+        </div>
+
+        <?php if ($deskripsi_lembaga !== ''): ?>
+            <div class="tw-text-sm tw-text-slate-700 tw-leading-relaxed tw-whitespace-pre-line tw-break-words">
+                <?php echo html_escape($deskripsi_lembaga); ?>
+            </div>
+        <?php else: ?>
+            <div class="tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-gap-4 tw-p-4 sm:tw-p-5 tw-rounded-xl tw-border tw-border-dashed tw-border-slate-200 tw-bg-slate-50/60 tw-text-center sm:tw-text-left">
+                <div class="tw-w-10 tw-h-10 tw-rounded-full tw-bg-slate-100 tw-text-slate-400 tw-flex tw-items-center tw-justify-center tw-shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                </div>
+                <div class="tw-flex-1">
+                    <div class="tw-text-sm tw-font-semibold tw-text-slate-800">Belum ada deskripsi profil lembaga</div>
+                    <div class="tw-text-xs tw-text-slate-500 tw-mt-0.5">Deskripsi atau ringkasan institusi belum ditambahkan pada pengaturan sistem.</div>
+                </div>
+                <?php if ($can_manage): ?>
+                    <a href="<?php echo html_escape(site_url('lpmpi/system-settings')); ?>" class="tw-inline-flex tw-items-center tw-gap-1.5 tw-px-3.5 tw-py-2 tw-rounded-lg tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-text-xs tw-font-semibold tw-shadow-sm tw-transition-colors">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M5 12h14"/>
+                            <path d="M12 5v14"/>
+                        </svg>
+                        <span>Tambah Deskripsi</span>
+                    </a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <div class="ami-panel mb-3">

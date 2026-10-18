@@ -15,7 +15,6 @@ $menus = [
         ['key' => 'spmi_reports', 'label' => 'Laporan SPMI', 'icon' => 'fa-file-alt', 'url' => 'lpmpi/spmi-reports', 'group' => 'Insights'],
         ['key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'],
         ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'group' => 'Settings'],
-        ['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings'],
         ['key' => 'system_settings', 'label' => 'Pengaturan Sistem', 'icon' => 'fa-cog', 'url' => 'lpmpi/system-settings', 'group' => 'Settings'],
         ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Settings'],
     ],
@@ -27,7 +26,6 @@ $menus = [
         ['key' => 'spmi_reports', 'label' => 'Laporan SPMI', 'icon' => 'fa-file-alt', 'url' => 'lpmpi/spmi-reports', 'group' => 'Insights'],
         ['key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'],
         ['key' => 'account', 'label' => 'Akun Saya', 'icon' => 'fa-user-circle', 'url' => 'account', 'group' => 'Settings'],
-        ['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings'],
         ['key' => 'system_settings', 'label' => 'Pengaturan Sistem', 'icon' => 'fa-cog', 'url' => 'lpmpi/system-settings', 'group' => 'Settings'],
         ['key' => 'profil', 'label' => 'Profil Lembaga', 'icon' => 'fa-university', 'url' => 'profil', 'group' => 'Settings'],
     ],
@@ -75,11 +73,11 @@ if ($initial === '') {
 ?>
 <aside class="ami-sidebar" id="ami-sidebar" aria-label="Navigasi utama">
     <div class="ami-brand">
-        <a href="<?= site_url(); ?>" class="ami-brand-link">
+        <a href="<?= site_url(); ?>" class="ami-brand-link" title="<?= html_escape($organization_name ?? 'Universitas Muhammadiyah Babel'); ?>">
             <img src="<?= html_escape($organization_logo_url); ?>" alt="Logo LPM" class="ami-logo-img">
             <div class="ami-brand-text">
-                <div class="ami-brand-title">AMI</div>
-                <div class="ami-brand-subtitle">Universitas Muhammadiyah Babel</div>
+                <div class="ami-brand-title"><?= html_escape($app_short_name ?? 'AMI'); ?></div>
+                <div class="ami-brand-subtitle" title="<?= html_escape($organization_name ?? 'Universitas Muhammadiyah Babel'); ?>"><?= html_escape($organization_name ?? 'Universitas Muhammadiyah Babel'); ?></div>
             </div>
         </a>
         <button type="button" class="ami-sidebar-close" data-sidebar-close aria-label="Tutup menu">
@@ -149,7 +147,11 @@ if ($initial === '') {
                     </a>
                 <?php endforeach; ?>
             <?php else: ?>
-                <a class="ami-nav-link <?php echo $active_menu === $menu['key'] ? 'active' : ''; ?>" href="<?php echo site_url($menu['url']); ?>">
+                <?php
+                $is_menu_active = ($active_menu === $menu['key'])
+                    || ($menu['key'] === 'system_settings' && $active_menu === 'upload_size_settings');
+                ?>
+                <a class="ami-nav-link <?php echo $is_menu_active ? 'active' : ''; ?>" href="<?php echo site_url($menu['url']); ?>"<?php echo $is_menu_active ? ' aria-current="page"' : ''; ?>>
                     <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
                     <span><?php echo html_escape($menu['label']); ?></span>
                     <?php if (isset($menu_badges[$menu['key']]) && (int) $menu_badges[$menu['key']] > 0): ?>
