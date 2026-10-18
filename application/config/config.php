@@ -486,6 +486,11 @@ $config['cookie_samesite'] 	= 'Lax';
 if (ENVIRONMENT === 'production') {
 	$private_storage = getenv('APP_PRIVATE_STORAGE_PATH');
 	$private_storage_path = $private_storage !== FALSE ? realpath(trim($private_storage)) : FALSE;
+	$public_uploads = getenv('APP_PUBLIC_UPLOADS_PATH');
+	$public_uploads_path = $public_uploads !== FALSE && trim($public_uploads) !== ''
+		? realpath(trim($public_uploads))
+		: realpath(FCPATH . 'uploads');
+	$public_uploads_valid = $public_uploads_path !== FALSE && is_dir($public_uploads_path) && is_writable($public_uploads_path);
 	$web_root = realpath(FCPATH);
 	$log_path = $config['log_path'] !== '' ? realpath($config['log_path']) : FALSE;
 	$drive_config_unused = $config['google_drive_evidence_folder_id'] === ''
@@ -511,6 +516,7 @@ if (ENVIRONMENT === 'production') {
 		&& is_writable($private_storage_path)
 		&& strpos($private_storage_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0
 		&& strpos($log_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0
+		&& $public_uploads_valid
 		&& $drive_config_valid;
 
 	if (!$production_config_valid) {

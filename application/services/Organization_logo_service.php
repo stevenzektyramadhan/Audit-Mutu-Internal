@@ -87,6 +87,10 @@ class Organization_logo_service
     {
         $file_name = basename((string) $file_name);
         if ($file_name === '') return;
+        if (function_exists('delete_public_upload')) {
+            delete_public_upload('profil', $file_name);
+            return;
+        }
         $path = $this->upload_dir() . $file_name;
         if (is_file($path)) @unlink($path);
     }
@@ -110,6 +114,9 @@ class Organization_logo_service
 
     protected function upload_dir()
     {
+        if (function_exists('public_uploads_dir')) {
+            return public_uploads_dir('profil');
+        }
         return FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'profil' . DIRECTORY_SEPARATOR;
     }
 }
