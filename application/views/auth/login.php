@@ -14,6 +14,8 @@ $icon = static function ($name) {
 };
 $login_error = isset($login_error) ? (string) $login_error : '';
 $organization_description = isset($organization_description) ? trim((string) $organization_description) : '';
+$app_name = isset($app_name) && trim((string) $app_name) !== '' ? trim((string) $app_name) : 'Audit Mutu Internal';
+$app_short_name = isset($app_short_name) && trim((string) $app_short_name) !== '' ? trim((string) $app_short_name) : 'AMI';
 $turnstile = isset($turnstile) && is_array($turnstile) ? $turnstile : [];
 $turnstile_enabled = !empty($turnstile['enabled']) && !empty($turnstile['site_key']);
 $turnstile_site_key = $turnstile_enabled ? (string) $turnstile['site_key'] : '';
@@ -22,8 +24,8 @@ $turnstile_site_key = $turnstile_enabled ? (string) $turnstile['site_key'] : '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - AMI Sistem Penjaminan Mutu Internal</title>
-    <meta name="description" content="Login ke Sistem Audit Mutu Internal Perguruan Tinggi">
+    <title>Login - <?php echo html_escape($app_short_name); ?> Sistem Penjaminan Mutu Internal</title>
+    <meta name="description" content="Login ke Sistem <?php echo html_escape($app_name); ?> Perguruan Tinggi">
     <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
     <?php $auth_css_ver = file_exists(FCPATH . 'assets/css/auth.css') ? filemtime(FCPATH . 'assets/css/auth.css') : time(); ?>
     <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/auth.css?v=' . $auth_css_ver)); ?>">
@@ -35,9 +37,9 @@ $turnstile_site_key = $turnstile_enabled ? (string) $turnstile['site_key'] : '';
             <div class="auth-visual-overlay" aria-hidden="true"></div>
             <div class="auth-visual-content tw-relative tw-z-10 tw-flex tw-h-full tw-min-h-[220px] tw-flex-col tw-justify-end tw-p-6 sm:tw-p-10 lg:tw-p-14">
                 <div class="tw-max-w-xl tw-text-white">
-                    <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100">Audit Mutu Internal</p>
-                    <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl">Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.</h2>
-                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200"><?php if ($organization_description !== ''): ?><?php echo html_escape($organization_description); ?><?php else: ?>Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.<?php endif; ?></p>
+                    <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100"><?php echo html_escape($app_name); ?></p>
+                    <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl tw-break-words"><?php echo html_escape(!empty($login_hero_title) ? $login_hero_title : 'Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.'); ?></h2>
+                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200 tw-break-words"><?php echo html_escape(!empty($login_hero_description) ? $login_hero_description : 'Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.'); ?></p>
                 </div>
             </div>
         </section>

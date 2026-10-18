@@ -14,6 +14,7 @@ $migration = read_source('migrations/032_create_password_reset_tokens.sql');
 $schema = read_source('database_schema.sql');
 $token_model = read_source('application/models/Password_reset_token_model.php');
 $user_model = read_source('application/models/User_model.php');
+$rate_limit_model = read_source('application/models/Login_rate_limit_model.php');
 $auth_service = read_source('application/services/Auth_service.php');
 $auth_controller = read_source('application/controllers/Auth.php');
 $routes = read_source('application/config/routes.php');
@@ -112,9 +113,33 @@ foreach ([
     'find_active_by_hash_for_update',
     'expires_at > NOW() FOR UPDATE',
     'invalidate_active_for_user',
+    'invalidate_active_by_hash($token_hash)',
 ] as $contract) {
     if (strpos($token_model, $contract) === FALSE) {
         throw new RuntimeException('Model token reset kehilangan kontrak: ' . $contract);
+    }
+}
+
+foreach ([
+    'public function request_password_reset($email, $client_ip)',
+    "'password-reset-identity:'",
+    "'password-reset-ip:'",
+    'private function consume_request_budget($email, $client_ip, $identity_purpose, $ip_purpose, $identity_limit, $ip_limit, $window_minutes, $error_message)',
+    'hash_hmac(\'sha256\', $identity_purpose . $identity, $key)',
+    'hash_hmac(\'sha256\', $ip_purpose . (string) $client_ip, $key)',
+    '$this->login_rate_limit_model->consume_request_budget(',
+] as $contract) {
+    if (strpos($auth_service, $contract) === FALSE) {
+        throw new RuntimeException('Auth service kehilangan kontrak budget reset: ' . $contract);
+    }
+}
+foreach ([
+    'public function consume_request_budget($identity_hash, $ip_hash, $identity_limit, $ip_limit, $window_minutes)',
+    "record_request('identity', \$identity_hash, \$identity_limit, \$window_minutes)",
+    "record_request('ip', \$ip_hash, \$ip_limit, \$window_minutes)",
+] as $contract) {
+    if (strpos($rate_limit_model, $contract) === FALSE) {
+        throw new RuntimeException('Model budget reset kehilangan kontrak: ' . $contract);
     }
 }
 
@@ -234,6 +259,36 @@ if (strpos($send_password_reset_email_body, '@file_get_contents(') !== FALSE) {
     throw new RuntimeException('Auth service tidak boleh memakai suppressor @ pada pengiriman email reset HTTPS.');
 }
 
+$request_password_reset_body = extract_method_body($auth_service, 'public function request_password_reset($email, $client_ip)');
+$reset_budget_pos = strpos($request_password_reset_body, '$budget = $this->consume_request_budget(');
+$reset_lookup_pos = strpos($request_password_reset_body, '$this->user_model->find_by_email($email)');
+$reset_token_pos = strpos($request_password_reset_body, 'bin2hex(random_bytes(32))');
+$reset_email_pos = strpos($request_password_reset_body, '$this->send_password_reset_email($user, $token)');
+if ($reset_budget_pos === FALSE || $reset_lookup_pos === FALSE || $reset_token_pos === FALSE || $reset_email_pos === FALSE || !($reset_budget_pos < $reset_lookup_pos && $reset_lookup_pos < $reset_token_pos && $reset_token_pos < $reset_email_pos)) {
+    throw new RuntimeException('Budget reset harus berjalan sebelum lookup pengguna, token, dan email.');
+}
+foreach (["'password-reset-identity:'", "'password-reset-ip:'", '3,', '10,', '60,'] as $contract) {
+    if (strpos($request_password_reset_body, $contract) === FALSE) {
+        throw new RuntimeException('Budget reset kehilangan batas atau purpose HMAC: ' . $contract);
+    }
+}
+$reset_budget_deny_pos = strpos($request_password_reset_body, "if (empty(\$budget['allowed']))");
+$reset_budget_deny_return_pos = strpos($request_password_reset_body, 'return $generic_result;', $reset_budget_deny_pos === FALSE ? 0 : $reset_budget_deny_pos);
+if ($reset_budget_deny_pos === FALSE || $reset_budget_deny_return_pos === FALSE || $reset_budget_deny_return_pos > $reset_lookup_pos) {
+    throw new RuntimeException('Budget reset yang diblokir harus mengembalikan respons generik sebelum lookup pengguna.');
+}
+$reset_transaction_begin_pos = strpos($request_password_reset_body, '$this->ci->db->trans_begin();');
+$reset_transaction_commit_pos = strpos($request_password_reset_body, '$this->ci->db->trans_commit()');
+if ($reset_transaction_begin_pos === FALSE || $reset_transaction_commit_pos === FALSE || !($reset_transaction_begin_pos < $reset_transaction_commit_pos && $reset_transaction_commit_pos < $reset_email_pos)) {
+    throw new RuntimeException('Transaksi token reset harus selesai sebelum panggilan Brevo.');
+}
+if (strpos($request_password_reset_body, '$this->invalidate_password_reset_token($token);') === FALSE) {
+    throw new RuntimeException('Kegagalan Brevo harus membatalkan hanya token reset yang baru dibuat.');
+}
+if (strpos($request_password_reset_body, '$this->invalidate_password_reset_tokens((int) $user->id);', $reset_email_pos) !== FALSE) {
+    throw new RuntimeException('Kegagalan Brevo tidak boleh membatalkan token reset yang lebih baru.');
+}
+
 if (strpos($auth_controller, "['token' => \$token]") === FALSE) {
     throw new RuntimeException('Controller reset password harus mengirim token mentah ke view.');
 }
@@ -300,7 +355,7 @@ require_contains(
 );
 foreach ([
     "set_rules('email', 'Email', 'required|valid_email')",
-    'request_password_reset($this->input->post(\'email\', TRUE))',
+    'request_password_reset($this->input->post(\'email\', TRUE), $this->input->ip_address())',
     "set_flashdata('success', 'Jika alamat email terdaftar, instruksi pengaturan ulang kata sandi telah dikirim.')",
     "redirect('auth/forgot-password')",
 ] as $contract) {

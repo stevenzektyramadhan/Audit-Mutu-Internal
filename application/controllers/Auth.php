@@ -46,7 +46,21 @@ class Auth extends CI_Controller {
         $password = $this->input->post('password', TRUE);
         $client_ip = $this->input->ip_address();
         $turnstile = $this->system_settings_service->turnstile_public_settings();
+        if (!empty($turnstile['configuration_invalid'])) {
+            $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'turnstile_configuration']);
+            $this->render_login(['login_error' => 'Verifikasi keamanan gagal. Silakan coba lagi.']);
+            return;
+        }
         if (!empty($turnstile['enabled'])) {
+            $budget = $this->auth_service->consume_login_request_budget($email, $client_ip);
+            if (empty($budget['allowed'])) {
+                $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'rate_limited']);
+                set_status_header(429);
+                header('Retry-After: ' . max(1, (int) $budget['retry_after']));
+                header('Cache-Control: no-store');
+                $this->render_login(['login_error' => 'Too many sign-in attempts. Please try again later.']);
+                return;
+            }
             $captcha = $this->system_settings_service->verify_turnstile_response($this->input->post('cf-turnstile-response', TRUE), $client_ip);
             if (empty($captcha['success'])) {
                 $this->audit_logger->log('auth.login', 'failure', 'auth', 'login', ['reason' => 'turnstile']);
@@ -101,7 +115,7 @@ class Auth extends CI_Controller {
 
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
         if ($this->form_validation->run() !== FALSE) {
-            $this->auth_service->request_password_reset($this->input->post('email', TRUE));
+            $this->auth_service->request_password_reset($this->input->post('email', TRUE), $this->input->ip_address());
         }
 
         $this->session->set_flashdata('success', 'Jika alamat email terdaftar, instruksi pengaturan ulang kata sandi telah dikirim.');
@@ -176,8 +190,27 @@ class Auth extends CI_Controller {
     private function render_auth_view($view, array $data = [])
     {
         $profile = $this->System_settings_model->profile();
+        $settings = $this->System_settings_model->settings();
+        $app_name = ($settings && property_exists($settings, 'app_name') && $settings->app_name !== NULL && trim((string) $settings->app_name) !== '')
+            ? trim((string) $settings->app_name)
+            : 'Audit Mutu Internal';
+        $app_short_name = ($settings && property_exists($settings, 'app_short_name') && $settings->app_short_name !== NULL && trim((string) $settings->app_short_name) !== '')
+            ? trim((string) $settings->app_short_name)
+            : 'AMI';
+        $login_hero_title = ($settings && property_exists($settings, 'login_hero_title') && $settings->login_hero_title !== NULL && trim((string) $settings->login_hero_title) !== '')
+            ? trim((string) $settings->login_hero_title)
+            : 'Budaya mutu tumbuh dari proses yang jelas dan bukti yang tepercaya.';
+        $login_hero_description = ($settings && property_exists($settings, 'login_hero_description') && $settings->login_hero_description !== NULL && trim((string) $settings->login_hero_description) !== '')
+            ? trim((string) $settings->login_hero_description)
+            : 'Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.';
+
         $data['organization_logo_url'] = $this->organization_logo_service->public_url($profile);
+        $data['organization_name'] = ($profile && !empty($profile->nama_pt)) ? trim((string) $profile->nama_pt) : 'Universitas Muhammadiyah Babel';
         $data['organization_description'] = $profile && property_exists($profile, 'deskripsi') ? trim((string) $profile->deskripsi) : '';
+        $data['login_hero_title'] = $login_hero_title;
+        $data['login_hero_description'] = $login_hero_description;
+        $data['app_name'] = $app_name;
+        $data['app_short_name'] = $app_short_name;
         $this->load->view($view, $data);
     }
 

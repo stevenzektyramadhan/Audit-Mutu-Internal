@@ -12,13 +12,15 @@ $icon = static function ($name) {
     return '<svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['mail']) . '</svg>';
 };
 $organization_description = isset($organization_description) ? trim((string) $organization_description) : '';
+$app_name = isset($app_name) && trim((string) $app_name) !== '' ? trim((string) $app_name) : 'Audit Mutu Internal';
+$app_short_name = isset($app_short_name) && trim((string) $app_short_name) !== '' ? trim((string) $app_short_name) : 'AMI';
 ?><!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lupa Password - AMI Sistem Penjaminan Mutu Internal</title>
-    <meta name="description" content="Pengaturan Ulang Kata Sandi Akun AMI Perguruan Tinggi">
+    <title>Lupa Password - <?php echo html_escape($app_short_name); ?> Sistem Penjaminan Mutu Internal</title>
+    <meta name="description" content="Pengaturan Ulang Kata Sandi Akun <?php echo html_escape($app_short_name); ?> Perguruan Tinggi">
     <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
     <?php $auth_css_ver = file_exists(FCPATH . 'assets/css/auth.css') ? filemtime(FCPATH . 'assets/css/auth.css') : time(); ?>
     <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/auth.css?v=' . $auth_css_ver)); ?>">
@@ -31,7 +33,7 @@ $organization_description = isset($organization_description) ? trim((string) $or
             <div class="auth-visual-overlay" aria-hidden="true"></div>
             <div class="auth-visual-content tw-relative tw-z-10 tw-flex tw-h-full tw-min-h-[220px] tw-flex-col tw-justify-end tw-p-6 sm:tw-p-10 lg:tw-p-14">
                 <div class="tw-max-w-xl tw-text-white">
-                    <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100">Audit Mutu Internal</p>
+                    <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100"><?php echo html_escape($app_name); ?></p>
                     <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl">Pemulihan akses aman untuk kelancaran penjaminan mutu.</h2>
                     <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200"><?php if ($organization_description !== ''): ?><?php echo html_escape($organization_description); ?><?php else: ?>Gunakan email institusi terdaftar untuk menerima tautan resmi pengaturan ulang kata sandi.<?php endif; ?></p>
                 </div>

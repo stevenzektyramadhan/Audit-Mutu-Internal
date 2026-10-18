@@ -202,7 +202,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-048`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
+`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-050`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
 
 #### Akun Administrator Pertama
 
@@ -226,11 +226,11 @@ Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration ba
 
 #### Database baru
 
-Import `database_schema.sql`; jangan lanjutkan dengan migration `001` sampai `046` karena bootstrap schema sudah memuat struktur yang dibutuhkan.
+Import `database_schema.sql`; jangan lanjutkan dengan migration individual karena bootstrap schema sudah memuat struktur yang dibutuhkan sampai `050`.
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `048` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `050` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
@@ -269,6 +269,8 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 35. `046_create_spmi_rtm_resolution_events.sql`
 36. `047_create_system_settings.sql`
 37. `048_add_spmi_audit_cycle_organization_unit.sql`
+38. `049_add_app_branding_settings.sql`
+39. `050_add_login_hero_settings.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
@@ -294,6 +296,8 @@ Migration `047_create_system_settings.sql` bersifat aditif dan idempoten: menamb
 
 Migration `048_add_spmi_audit_cycle_organization_unit.sql` bersifat aditif dan idempoten: menambahkan `spmi_audit_cycles.organization_unit_id` nullable, index, dan foreign key RESTRICT ke `organization_units`. Tidak ada backfill atau perubahan siklus/organisasi historis; siklus lama bernilai `NULL` tetap terbaca, tetapi tidak dapat menerima penugasan baru sampai unit aktif yang didukung ditetapkan pada draft.
 
+Migration `049_add_app_branding_settings.sql` dan `050_add_login_hero_settings.sql` bersifat aditif dan idempoten: menambahkan branding aplikasi serta konten hero login pada singleton `system_settings`. Keduanya menggunakan guard `INFORMATION_SCHEMA.COLUMNS`, memberi nilai default aman pada instalasi lama, dan dapat dijalankan kembali tanpa kolom duplikat.
+
 Docker lokal memakai nilai `APP_ENCRYPTION_KEY` development yang dapat dioverride melalui environment. Deployment harus selalu menyediakan nilai acak dan rahasia sendiri; jangan gunakan nilai default Docker lokal di luar development.
 
 Batas aplikasi maksimum 10 MiB. Nilai pengaturan tidak dapat melampaui batas efektif PHP: `upload_max_filesize` dan `post_max_size` dikurangi cadangan 1 MiB untuk multipart. Operator deployment tetap harus mengatur PHP/web server dengan ruang di atas batas file terbesar; halaman aplikasi tidak dapat menaikkan batas PHP yang sudah menolak request sebelum CodeIgniter berjalan.
@@ -307,7 +311,7 @@ CodeIgniter migrations tetap nonaktif. Direktori `migrations/` berisi raw SQL ma
 - Output dinamis di-escape dengan `html_escape()`.
 - Bukti disimpan private dan unduhan memvalidasi role serta ownership.
 - Audit log mencatat login, logout, dan percobaan mutasi POST; web server produksi harus menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, dan private storage.
-- Login `POST` dibatasi pada kegagalan kredensial tervalidasi: 5 percobaan per identitas dan 30 per IP dalam jendela 15 menit. Jika Cloudflare Turnstile sudah dikonfigurasi lengkap, verifikasi Siteverify server-side wajib lulus sebelum kredensial diperiksa sehingga kegagalan CAPTCHA tidak menambah bucket rate limit. Blokir mengembalikan respons generik HTTP 429 dengan `Retry-After`; bucket hanya menyimpan HMAC berbasis `APP_ENCRYPTION_KEY`. Saat berada di belakang reverse proxy, isi `proxy_ips` hanya dengan alamat/subnet proxy tepercaya agar IP klien dapat dikenali dengan benar. Rate limit aplikasi melengkapi, bukan menggantikan, WAF atau rate limit reverse proxy.
+- Login `POST` dibatasi pada kegagalan kredensial tervalidasi: 5 percobaan per identitas dan 30 per IP dalam jendela 15 menit. Jika Cloudflare Turnstile dikonfigurasi lengkap, request login valid juga memakai budget sebelum Siteverify: 10 per identitas dan 60 per IP dalam 15 menit. Bucket request memakai HMAC purpose terpisah, sehingga kegagalan CAPTCHA tidak menambah bucket kegagalan kredensial. Site key kosong berarti Turnstile sengaja nonaktif; site key terisi dengan secret hilang, tidak dapat dibaca, atau tidak valid gagal tertutup sebelum Siteverify maupun pemeriksaan kredensial. Blokir login mengembalikan respons generik HTTP 429 dengan `Retry-After`; bucket hanya menyimpan HMAC berbasis `APP_ENCRYPTION_KEY`. Request reset password valid dibatasi 3 per identitas dan 10 per IP dalam 60 menit sebelum lookup akun, token, atau pengiriman email; respons publik tetap generik. Saat berada di belakang reverse proxy, isi `proxy_ips` hanya dengan alamat/subnet proxy tepercaya agar IP klien dapat dikenali dengan benar. Rate limit aplikasi melengkapi, bukan menggantikan, WAF atau rate limit reverse proxy.
 - SPMI adalah satu-satunya workflow aktif yang direpresentasikan oleh login redirect dan sidebar. Artefak AMI legacy serta route `lpmpi/legacy-ami-archive` tetap di luar lingkup operasional README ini.
 
 ## Batasan Saat Ini

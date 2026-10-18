@@ -50,7 +50,6 @@ class Auth_service
                     throw new RuntimeException('Unable to record login failure.');
                 }
                 $transaction_started = FALSE;
-                $this->login_rate_limit_model->clear_expired();
                 $retry_after = $this->login_rate_limit_model->is_blocked($identity_hash, $ip_hash);
                 if ($retry_after > 0) {
                     return ['success' => FALSE, 'rate_limited' => TRUE, 'retry_after' => $retry_after, 'message' => 'Too many sign-in attempts. Please try again later.'];
@@ -95,9 +94,37 @@ class Auth_service
         return ['success' => true, 'message' => 'Login berhasil.'];
     }
 
-    public function request_password_reset($email)
+    public function consume_login_request_budget($email, $client_ip)
+    {
+        return $this->consume_request_budget(
+            $email,
+            $client_ip,
+            'login-request-identity:',
+            'login-request-ip:',
+            10,
+            60,
+            15,
+            'Login request rate limit operation failed.'
+        );
+    }
+
+    public function request_password_reset($email, $client_ip)
     {
         $generic_result = ['success' => TRUE, 'message' => 'Jika alamat email terdaftar, instruksi pengaturan ulang kata sandi telah dikirim.'];
+        $budget = $this->consume_request_budget(
+            $email,
+            $client_ip,
+            'password-reset-identity:',
+            'password-reset-ip:',
+            3,
+            10,
+            60,
+            'Password reset request budget operation failed.'
+        );
+        if (empty($budget['allowed'])) {
+            return $generic_result;
+        }
+
         $user = $this->user_model->find_by_email($email);
 
         if (!$user) {
@@ -120,28 +147,25 @@ class Auth_service
 
         $this->ci->db->trans_begin();
         try {
-            $this->password_reset_token_model->invalidate_active_for_user((int) $user->id);
+            if (!$this->password_reset_token_model->invalidate_active_for_user((int) $user->id)) {
+                throw new RuntimeException('Unable to invalidate password reset tokens.');
+            }
             if (!$this->password_reset_token_model->create((int) $user->id, hash('sha256', $token), date('Y-m-d H:i:s', time() + 3600))) {
                 throw new RuntimeException('Unable to store password reset token.');
             }
-
-            if (!$this->send_password_reset_email($user, $token)) {
-                if (!$this->password_reset_token_model->invalidate_active_for_user((int) $user->id)) {
-                    throw new RuntimeException('Unable to invalidate password reset token.');
-                }
-                $this->ci->db->trans_commit();
-                log_message('error', 'Password reset email delivery failed.');
-                return $generic_result;
-            }
-
-            if (!$this->ci->db->trans_status()) {
+            if (!$this->ci->db->trans_status() || !$this->ci->db->trans_commit()) {
                 throw new RuntimeException('Unable to complete password reset request transaction.');
             }
-            $this->ci->db->trans_commit();
         } catch (Throwable $exception) {
             $this->ci->db->trans_rollback();
             $this->invalidate_password_reset_tokens((int) $user->id);
             log_message('error', 'Password reset request could not be completed.');
+            return $generic_result;
+        }
+
+        if (!$this->send_password_reset_email($user, $token)) {
+            $this->invalidate_password_reset_token($token);
+            log_message('error', 'Password reset email delivery failed.');
         }
 
         return $generic_result;
@@ -199,6 +223,47 @@ class Auth_service
         } catch (Throwable $exception) {
             $this->ci->db->trans_rollback();
             log_message('error', 'Password reset token invalidation failed.');
+        }
+    }
+
+    private function invalidate_password_reset_token($token)
+    {
+        $this->ci->db->trans_begin();
+        try {
+            if (!$this->password_reset_token_model->invalidate_active_by_hash(hash('sha256', $token))
+                || !$this->ci->db->trans_status()
+                || !$this->ci->db->trans_commit()) {
+                throw new RuntimeException('Unable to invalidate password reset token.');
+            }
+        } catch (Throwable $exception) {
+            $this->ci->db->trans_rollback();
+            log_message('error', 'Password reset token invalidation failed.');
+        }
+    }
+
+    private function consume_request_budget($email, $client_ip, $identity_purpose, $ip_purpose, $identity_limit, $ip_limit, $window_minutes, $error_message)
+    {
+        $identity = strtolower(trim($email));
+        $key = (string) $this->ci->config->item('encryption_key');
+        if ($key === '') {
+            log_message('error', $error_message);
+            return ['allowed' => FALSE, 'retry_after' => max(1, (int) $window_minutes * 60)];
+        }
+
+        $identity_hash = hash_hmac('sha256', $identity_purpose . $identity, $key);
+        $ip_hash = hash_hmac('sha256', $ip_purpose . (string) $client_ip, $key);
+
+        try {
+            return $this->login_rate_limit_model->consume_request_budget(
+                $identity_hash,
+                $ip_hash,
+                $identity_limit,
+                $ip_limit,
+                $window_minutes
+            );
+        } catch (Throwable $exception) {
+            log_message('error', $error_message);
+            return ['allowed' => FALSE, 'retry_after' => max(1, (int) $window_minutes * 60)];
         }
     }
 

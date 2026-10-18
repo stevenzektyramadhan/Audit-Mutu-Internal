@@ -70,7 +70,7 @@ foreach ([
     check(strpos($sidebar, $first_menu_contract) !== FALSE, 'Each role must begin with its SPMI dashboard menu.');
 }
 
-check(substr_count($sidebar, "'group' => 'Settings'") === 10, 'Settings group must cover account, upload, system setting, and management profile entries.');
+check(substr_count($sidebar, "'group' => 'Settings'") === 8, 'Settings group must cover account, system setting, and management profile entries.');
 check(substr_count($sidebar, "'key' => 'spmi_workspace', 'label' => 'Workspace SPMI', 'icon' => 'fa-laptop-house', 'url' => 'auditee/spmi', 'group' => 'Work'") === 1, 'SPMI workspace menu must be auditee-only.');
 check(substr_count($sidebar, "'group' => 'Management'") === 6, 'Management group count changed.');
 $master_data_contract = "['key' => 'master_data_prodi_staf', 'label' => 'Master Data Organisasi & Staf', 'icon' => 'fa-graduation-cap', 'url' => 'lpmpi/master-data-prodi-staf', 'group' => 'Management']";
@@ -136,17 +136,14 @@ check(substr_count($sidebar, "'key' => 'spmi_auditee_dashboard', 'label' => 'Das
 check(substr_count($sidebar, "'key' => 'spmi_rtm', 'label' => 'RTM SPMI', 'icon' => 'fa-users-cog', 'url' => 'lpmpi/spmi-rtm', 'group' => 'Insights'") === 2, 'RTM SPMI menu must be shared by management roles.');
 foreach (['spmi_follow_ups', 'lpmpi/spmi-follow-ups', 'Tindak Lanjut RTM'] as $retired) check(strpos($sidebar, $retired) === FALSE, 'Retired follow-up sidebar artifact remains: ' . $retired);
 $upload_settings_contract = "['key' => 'upload_size_settings', 'label' => 'Pengaturan Upload', 'icon' => 'fa-upload', 'url' => 'lpmpi/upload-size-settings', 'group' => 'Settings']";
-check(substr_count($sidebar, $upload_settings_contract) === 2, 'Upload settings menu must appear once in each management role.');
-check(strpos($sidebar, $upload_settings_contract, $super_admin_start) !== FALSE && strpos($sidebar, $upload_settings_contract, $super_admin_start) < $admin_lpmpi_start, 'Upload settings menu must be inside super_admin Settings menu.');
-check(strpos($sidebar, $upload_settings_contract, $admin_lpmpi_start) !== FALSE && strpos($sidebar, $upload_settings_contract, $admin_lpmpi_start) < $auditor_start, 'Upload settings menu must be inside admin_lpmpi Settings menu.');
-check(strpos($sidebar, $upload_settings_contract, $auditor_start) === FALSE || strpos($sidebar, $upload_settings_contract, $auditor_start) > $auditee_start, 'Upload settings menu must not be available to auditor.');
-check(strpos($sidebar, $upload_settings_contract, $auditee_start) === FALSE, 'Upload settings menu must not be available to auditee.');
+check(strpos($sidebar, $upload_settings_contract) === FALSE, 'Upload settings must be consolidated into Pengaturan Sistem tabs and removed from sidebar.');
 $system_settings_contract = "['key' => 'system_settings', 'label' => 'Pengaturan Sistem', 'icon' => 'fa-cog', 'url' => 'lpmpi/system-settings', 'group' => 'Settings']";
 check(substr_count($sidebar, $system_settings_contract) === 2, 'System settings menu must appear once in each management role.');
 check(strpos($sidebar, $system_settings_contract, $super_admin_start) !== FALSE && strpos($sidebar, $system_settings_contract, $super_admin_start) < $admin_lpmpi_start, 'System settings menu must be inside super_admin Settings menu.');
 check(strpos($sidebar, $system_settings_contract, $admin_lpmpi_start) !== FALSE && strpos($sidebar, $system_settings_contract, $admin_lpmpi_start) < $auditor_start, 'System settings menu must be inside admin_lpmpi Settings menu.');
 check(strpos($sidebar, $system_settings_contract, $auditor_start) === FALSE || strpos($sidebar, $system_settings_contract, $auditor_start) > $auditee_start, 'System settings menu must not be available to auditor.');
 check(strpos($sidebar, $system_settings_contract, $auditee_start) === FALSE, 'System settings menu must not be available to auditee.');
+check(strpos($sidebar, "\$active_menu === 'upload_size_settings'") !== FALSE, 'System settings menu must highlight when upload_size_settings is active.');
 check(strpos($sidebar, "'key' => 'spmi_ppepp_recap'") === FALSE, 'PPEPP recap menu must be removed from sidebar.');
 foreach (['tugas_audit', 'penugasan', 'penetapan', 'periode', 'standar', 'pertanyaan', 'instrumen', 'hasil_audit', 'laporan', 'legacy_ami_archive', 'penilaian', 'tugas_saya', 'pengisian', 'hasil_penilaian'] as $legacy_key) {
     check(strpos($sidebar, "'key' => '{$legacy_key}'") === FALSE, 'Legacy sidebar menu must be hidden: ' . $legacy_key);

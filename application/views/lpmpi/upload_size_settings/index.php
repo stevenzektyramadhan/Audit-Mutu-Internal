@@ -52,7 +52,7 @@ $category_details = [
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
-                PENGATURAN SISTEM
+                <span>PENGATURAN SISTEM</span>
             </div>
             <h1 class="tw-text-2xl tw-font-bold tw-text-slate-900 tw-tracking-tight">Pengaturan Ukuran Upload</h1>
             <p class="tw-text-sm tw-text-slate-500 tw-mt-1">
@@ -60,6 +60,23 @@ $category_details = [
             </p>
         </div>
     </div>
+
+    <!-- Shared Settings Navigation Tabs -->
+    <nav class="tw-flex tw-items-center tw-gap-1 sm:tw-gap-2 tw-border-b tw-border-slate-200 tw-pb-px tw-overflow-x-auto tw-no-scrollbar" aria-label="Tab Pengaturan">
+        <a href="<?php echo html_escape(site_url('lpmpi/system-settings')); ?>" class="tw-inline-flex tw-items-center tw-gap-2 tw-px-3.5 sm:tw-px-4 tw-py-2.5 tw-text-xs sm:tw-text-sm tw-font-medium tw-border-b-2 tw-border-transparent tw-text-slate-600 hover:tw-text-slate-900 hover:tw-bg-slate-50 tw-rounded-t-lg tw-transition-colors tw-whitespace-nowrap focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-300">
+            <svg class="tw-w-4 tw-h-4 tw-text-slate-400 tw-shrink-0" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>Pengaturan Sistem</span>
+        </a>
+        <a href="<?php echo html_escape(site_url('lpmpi/upload-size-settings')); ?>" class="tw-inline-flex tw-items-center tw-gap-2 tw-px-3.5 sm:tw-px-4 tw-py-2.5 tw-text-xs sm:tw-text-sm tw-font-semibold tw-border-b-2 tw-border-blue-600 tw-text-blue-700 tw-bg-blue-50/50 tw-rounded-t-lg tw-transition-colors tw-whitespace-nowrap focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500/20" aria-current="page">
+            <svg class="tw-w-4 tw-h-4 tw-text-blue-600 tw-shrink-0" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            <span>Ukuran Upload</span>
+        </a>
+    </nav>
 
     <!-- Runtime Limits Callout -->
     <div class="tw-bg-slate-50 tw-border tw-border-slate-200 tw-rounded-2xl tw-p-5 tw-shadow-sm">
@@ -109,28 +126,30 @@ $category_details = [
                 ];
             ?>
                 <div class="tw-bg-white tw-border tw-border-slate-200 tw-rounded-2xl tw-p-5 tw-shadow-sm hover:tw-shadow-md tw-transition-shadow tw-flex tw-flex-col tw-justify-between tw-space-y-4">
-                    <div class="tw-space-y-2.5">
-                        <div class="tw-flex tw-items-start tw-justify-between tw-gap-3">
+                    <div class="tw-space-y-3">
+                        <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-start sm:tw-justify-between tw-gap-2">
                             <div class="tw-flex tw-items-center tw-gap-3">
                                 <div class="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-slate-50 tw-border tw-border-slate-100 tw-flex tw-items-center tw-justify-center tw-flex-shrink-0">
                                     <?php echo $meta['icon']; ?>
                                 </div>
-                                <div>
-                                    <h3 class="tw-text-sm tw-font-bold tw-text-slate-900"><?php echo html_escape($setting['label']); ?></h3>
-                                    <code class="tw-text-[11px] tw-font-mono tw-text-slate-400"><?php echo html_escape($category); ?></code>
+                                <div class="tw-min-w-0">
+                                    <h3 class="tw-text-sm tw-font-bold tw-text-slate-900 tw-truncate"><?php echo html_escape($setting['label']); ?></h3>
+                                    <code class="tw-text-[11px] tw-font-mono tw-text-slate-400 tw-block tw-truncate"><?php echo html_escape($category); ?></code>
                                 </div>
                             </div>
-                            <?php if ($is_clamped): ?>
-                                <span class="tw-inline-flex tw-items-center tw-px-2 tw-py-0.5 tw-rounded-md tw-text-[11px] tw-font-semibold tw-bg-amber-50 tw-text-amber-700 tw-border tw-border-amber-200" title="Nilai tersimpan <?php echo html_escape((string) $limit_mib); ?> MiB, namun server membatasi maksimal <?php echo html_escape((string) $php_ceiling_mib); ?> MiB">
-                                    Tersimpan <?php echo html_escape((string) $limit_mib); ?>M · Efektif <?php echo html_escape((string) $effective_limit); ?>M
-                                </span>
-                            <?php else: ?>
-                                <span class="tw-inline-flex tw-items-center tw-px-2 tw-py-0.5 tw-rounded-md tw-text-[11px] tw-font-medium tw-bg-slate-100 tw-text-slate-700">
-                                    Efektif <?php echo html_escape((string) $effective_limit); ?> MiB
-                                </span>
-                            <?php endif; ?>
+                            <div class="tw-self-start sm:tw-self-auto tw-shrink-0">
+                                <?php if ($is_clamped): ?>
+                                    <span class="tw-inline-flex tw-items-center tw-px-2 tw-py-0.5 tw-rounded-md tw-text-[10px] tw-font-semibold tw-bg-amber-50 tw-text-amber-700 tw-border tw-border-amber-200" title="Nilai tersimpan <?php echo html_escape((string) $limit_mib); ?> MiB, namun server membatasi maksimal <?php echo html_escape((string) $php_ceiling_mib); ?> MiB">
+                                        Tersimpan <?php echo html_escape((string) $limit_mib); ?>M · Efektif <?php echo html_escape((string) $effective_limit); ?>M
+                                    </span>
+                                <?php else: ?>
+                                    <span class="tw-inline-flex tw-items-center tw-px-2 tw-py-0.5 tw-rounded-md tw-text-[10px] tw-font-medium tw-bg-slate-100 tw-text-slate-700">
+                                        Efektif <?php echo html_escape((string) $effective_limit); ?> MiB
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <p class="tw-text-xs tw-text-slate-500 tw-leading-relaxed">
+                        <p class="tw-text-xs tw-text-slate-500 tw-leading-relaxed tw-line-clamp-2">
                             <?php echo html_escape($meta['desc']); ?>
                         </p>
                     </div>
@@ -142,7 +161,7 @@ $category_details = [
                         <div class="tw-relative tw-rounded-xl tw-shadow-sm">
                             <input
                                 id="input-<?php echo html_escape($category); ?>"
-                                class="tw-block tw-w-full tw-rounded-xl tw-border-slate-300 tw-pr-14 tw-pl-3.5 tw-py-2.5 tw-text-sm tw-font-medium tw-text-slate-900 focus:tw-border-blue-600 focus:tw-ring-1 focus:tw-ring-blue-600 tw-transition-colors"
+                                class="tw-block tw-w-full tw-min-h-[44px] tw-rounded-xl tw-border-slate-300 tw-pr-14 tw-pl-3.5 tw-py-2.5 tw-text-sm tw-font-medium tw-text-slate-900 focus:tw-border-blue-600 focus:tw-ring-1 focus:tw-ring-blue-600 tw-transition-colors"
                                 name="<?php echo html_escape($category); ?>"
                                 type="number"
                                 min="1"
@@ -163,16 +182,16 @@ $category_details = [
         <!-- Submit Bar -->
         <div class="tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-between tw-gap-4 tw-bg-white tw-border tw-border-slate-200 tw-rounded-2xl tw-p-4 tw-shadow-sm">
             <div class="tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-slate-500">
-                <svg class="tw-w-4 tw-h-4 tw-text-slate-400" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="tw-w-4 tw-h-4 tw-text-slate-400 tw-shrink-0" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Perubahan langsung berlaku pada uploader terkait setelah disimpan.
+                <span>Perubahan langsung berlaku pada uploader terkait setelah disimpan.</span>
             </div>
-            <button type="submit" class="tw-w-full sm:tw-w-auto tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-px-5 tw-py-2.5 tw-rounded-xl tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-font-semibold tw-text-sm tw-shadow-sm hover:tw-shadow tw-transition-all focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-600 focus:tw-ring-offset-2">
+            <button type="submit" class="tw-w-full sm:tw-w-auto tw-inline-flex tw-min-h-[44px] tw-items-center tw-justify-center tw-gap-2 tw-px-5 tw-py-2.5 tw-rounded-xl tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-font-semibold tw-text-sm tw-shadow-sm hover:tw-shadow tw-transition-all focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-600 focus:tw-ring-offset-2">
                 <svg class="tw-w-4 tw-h-4" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                 </svg>
-                <span>Simpan pengaturan</span>
+                <span>Simpan Pengaturan</span>
             </button>
         </div>
     </div>

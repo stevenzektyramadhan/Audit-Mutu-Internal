@@ -12,6 +12,25 @@ function system_settings_check($condition, $message)
     if (!$condition) throw new RuntimeException($message);
 }
 
+function system_settings_method_body($source, $signature)
+{
+    $start = strpos($source, $signature);
+    if ($start === FALSE) throw new RuntimeException('Method missing: ' . $signature);
+    $body_start = strpos($source, '{', $start);
+    if ($body_start === FALSE) throw new RuntimeException('Method body missing: ' . $signature);
+
+    $depth = 1;
+    $offset = $body_start + 1;
+    while ($offset < strlen($source) && $depth > 0) {
+        if ($source[$offset] === '{') $depth++;
+        if ($source[$offset] === '}') $depth--;
+        $offset++;
+    }
+    if ($depth !== 0) throw new RuntimeException('Method braces are unbalanced: ' . $signature);
+
+    return substr($source, $body_start + 1, $offset - $body_start - 2);
+}
+
 $migration = system_settings_source('migrations/047_create_system_settings.sql');
 $schema = system_settings_source('database_schema.sql');
 $model = system_settings_source('application/models/System_settings_model.php');
@@ -81,8 +100,17 @@ foreach ([
     'mb_strlen($organization_name, \'UTF-8\') > 200',
     '\'deskripsi\' => $organization_description === \'\' ? NULL : $organization_description',
     "'turnstile_secret_configured'",
-    '\'enabled\' => $this->turnstile_is_enabled($site_key, $ciphertext)',
-    '\'site_key\' => $this->turnstile_is_enabled($site_key, $ciphertext) ? $site_key : \'\'',
+    "'turnstile_state'",
+    "'turnstile_configuration_invalid'",
+    "'state' => \$turnstile['state']",
+    "'enabled' => \$turnstile['enabled']",
+    "'site_key' => \$turnstile['enabled'] ? \$site_key : ''",
+    'protected function turnstile_configuration($site_key, $ciphertext)',
+    "'state' => 'disabled'",
+    "'state' => 'configuration_invalid'",
+    "'state' => 'enabled'",
+    "if (\$site_key === '')",
+    '$this->is_plausible_turnstile_secret($secret)',
     'strlen($token) > 2048',
     "'Content-Type: application/x-www-form-urlencoded'",
     "'timeout' => 5",
@@ -96,13 +124,29 @@ foreach ([
     'openssl_encrypt((string) $secret, \'aes-256-gcm\'',
     'openssl_decrypt($ciphertext, \'aes-256-gcm\'',
     'hash(\'sha256\', $configured, TRUE)',
-    'decrypt_secret($ciphertext) !== NULL',
+    '$secret = $this->decrypt_secret($ciphertext)',
     'trans_begin()',
     'trans_commit()',
     'trans_rollback()',
 ] as $literal) {
     system_settings_check(strpos($service, $literal) !== FALSE, 'Service security/validation contract missing: ' . $literal);
 }
+$turnstile_public_settings_body = system_settings_method_body($service, 'public function turnstile_public_settings()');
+system_settings_check(strpos($turnstile_public_settings_body, "'site_key' => \$turnstile['enabled'] ? \$site_key : ''") !== FALSE, 'Public Turnstile settings must hide site key unless enabled.');
+system_settings_check(strpos($turnstile_public_settings_body, 'turnstile_secret_ciphertext') !== FALSE && strpos($turnstile_public_settings_body, "'secret' =>") === FALSE, 'Public Turnstile settings may read ciphertext but must never expose a secret.');
+$turnstile_verify_body = system_settings_method_body($service, 'public function verify_turnstile_response($token, $remote_ip = \'\')');
+foreach ([
+    "if (\$turnstile['state'] === 'disabled')",
+    "if (!\$turnstile['enabled'])",
+    "'timeout' => 5",
+    "\$warning || !is_string(\$response) || \$this->parse_http_status_code(\$headers) !== 200",
+    'json_decode($response, TRUE)',
+    "!is_array(\$decoded) || !isset(\$decoded['success']) || \$decoded['success'] !== TRUE",
+    "['success' => FALSE, 'message' => 'Verifikasi keamanan gagal. Silakan coba lagi.']",
+] as $literal) {
+    system_settings_check(strpos($turnstile_verify_body, $literal) !== FALSE, 'Turnstile must fail closed for: ' . $literal);
+}
+system_settings_check(strpos($turnstile_verify_body, 'file_get_contents(self::TURNSTILE_SITEVERIFY_URL') > strpos($turnstile_verify_body, "if (!\$turnstile['enabled'])"), 'Invalid configured Turnstile must fail before Siteverify.');
 foreach ([
     'class Organization_logo_service',
     "require_once APPPATH . 'services/Upload_size_settings_service.php'",
@@ -200,13 +244,17 @@ foreach ([
     '$data[\'turnstile\'] = $this->system_settings_service->turnstile_public_settings();',
     '$this->system_settings_service->verify_turnstile_response($this->input->post(\'cf-turnstile-response\', TRUE), $client_ip)',
     "['reason' => 'turnstile']",
+    "['reason' => 'turnstile_configuration']",
     '$this->render_login([\'login_error\' => $captcha[\'message\']]);',
 ] as $literal) {
     system_settings_check(strpos($auth_controller, $literal) !== FALSE, 'Auth Turnstile integration missing: ' . $literal);
 }
 $captcha_pos = strpos($auth_controller, 'verify_turnstile_response');
 $login_pos = strpos($auth_controller, '$result = $this->auth_service->login($email, $password, $client_ip);');
+$turnstile_configuration_pos = strpos($auth_controller, "if (!empty(\$turnstile['configuration_invalid']))");
 system_settings_check($captcha_pos !== FALSE && $login_pos !== FALSE && $captcha_pos < $login_pos, 'Turnstile verification must happen before credential login/rate-limit mutation.');
+$turnstile_configuration_return_pos = strpos($auth_controller, 'return;', $turnstile_configuration_pos === FALSE ? 0 : $turnstile_configuration_pos);
+system_settings_check($turnstile_configuration_pos !== FALSE && $turnstile_configuration_pos < $captcha_pos && $turnstile_configuration_pos < $login_pos && $turnstile_configuration_return_pos !== FALSE && $turnstile_configuration_return_pos < $captcha_pos, 'Configured-invalid Turnstile must fail closed before Siteverify and credential login.');
 $failure_pos = strpos($auth_controller, "['reason' => 'turnstile']");
 system_settings_check($failure_pos !== FALSE && $failure_pos < $login_pos, 'CAPTCHA failure must return before credential login.');
 
@@ -244,6 +292,12 @@ foreach ([
     'Secret key tidak dapat dibaca kembali.',
     '$turnstile_secret_configured',
     '$turnstile_enabled',
+    '$turnstile_state',
+    '$turnstile_configuration_invalid',
+    'Konfigurasi tidak valid',
+    'Tidak dikonfigurasi',
+    'Konfigurasi Turnstile tidak valid atau tidak dapat dibaca.',
+    'Nilai tersimpan tidak ditampilkan.',
     'Secret tersimpan',
     'CAPTCHA login',
     'html_escape(set_value(\'organization_name\'',
@@ -281,13 +335,14 @@ foreach (['.tw-bg-slate-900', '.tw-rounded-2xl'] as $literal) {
 
 foreach ([
     '`047_create_system_settings.sql`',
-    '001-047',
     'profil_lembaga.deskripsi',
     'Cloudflare Turnstile',
-    'kegagalan CAPTCHA tidak menambah bucket rate limit',
+    'kegagalan CAPTCHA tidak menambah bucket kegagalan kredensial',
+    'Request reset password valid dibatasi 3 per identitas dan 10 per IP dalam 60 menit',
     'php tests/system_settings_regression.php',
 ] as $literal) {
     system_settings_check(strpos($readme, $literal) !== FALSE, 'README system settings documentation missing: ' . $literal);
 }
+system_settings_check(strpos($readme, '001-047') !== FALSE || strpos($readme, '001-048') !== FALSE || strpos($readme, '001-050') !== FALSE, 'README system settings documentation missing migration range.');
 
 fwrite(STDOUT, "System settings regression checks passed.\n");

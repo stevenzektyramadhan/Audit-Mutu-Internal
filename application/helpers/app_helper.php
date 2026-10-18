@@ -49,6 +49,7 @@ if (!function_exists('private_storage_dir')) {
     function private_storage_dir($category)
     {
         $categories = ['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos', 'spmi_source', 'ppepp_documents'];
+        $categories[] = 'rtm_photos';
         $categories[] = 'audit_evidence';
         if (!in_array($category, $categories, TRUE)) {
             throw new InvalidArgumentException('Kategori penyimpanan tidak valid.');
@@ -60,6 +61,48 @@ if (!function_exists('private_storage_dir')) {
             : sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'ami-private-storage';
 
         return rtrim($root, '/\\') . DIRECTORY_SEPARATOR . $category . DIRECTORY_SEPARATOR;
+    }
+}
+
+if (!function_exists('public_uploads_dir')) {
+    function public_uploads_dir($category = '')
+    {
+        $allowed = ['profil'];
+        if ($category !== '' && !in_array($category, $allowed, TRUE)) {
+            throw new InvalidArgumentException('Kategori public uploads tidak valid.');
+        }
+
+        $configured = getenv('APP_PUBLIC_UPLOADS_PATH');
+        $root = $configured !== FALSE && trim($configured) !== ''
+            ? rtrim(trim($configured), '/\\')
+            : rtrim(FCPATH . 'uploads', '/\\');
+
+        if ($category === '') {
+            return $root . DIRECTORY_SEPARATOR;
+        }
+
+        return $root . DIRECTORY_SEPARATOR . $category . DIRECTORY_SEPARATOR;
+    }
+}
+
+if (!function_exists('public_uploads_path')) {
+    function public_uploads_path($category, $stored_name)
+    {
+        $stored_name = (string) $stored_name;
+        if ($stored_name === '' || basename($stored_name) !== $stored_name) {
+            return NULL;
+        }
+
+        $path = public_uploads_dir($category) . $stored_name;
+        return is_file($path) ? $path : NULL;
+    }
+}
+
+if (!function_exists('delete_public_upload')) {
+    function delete_public_upload($category, $stored_name)
+    {
+        $path = public_uploads_path($category, $stored_name);
+        return $path === NULL || unlink($path);
     }
 }
 

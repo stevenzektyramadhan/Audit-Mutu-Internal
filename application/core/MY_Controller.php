@@ -22,7 +22,22 @@ class MY_Controller extends CI_Controller
         $this->load->model('System_settings_model');
         require_once APPPATH . 'services/Organization_logo_service.php';
         $this->organization_logo_service = new Organization_logo_service();
-        $this->load->vars(['organization_logo_url' => $this->organization_logo_service->public_url($this->System_settings_model->profile())]);
+        $profile = $this->System_settings_model->profile();
+        $settings = $this->System_settings_model->settings();
+        $organization_name = ($profile && !empty($profile->nama_pt)) ? trim((string) $profile->nama_pt) : 'Universitas Muhammadiyah Babel';
+        $app_name = ($settings && property_exists($settings, 'app_name') && $settings->app_name !== NULL && trim((string) $settings->app_name) !== '')
+            ? trim((string) $settings->app_name)
+            : 'Audit Mutu Internal';
+        $app_short_name = ($settings && property_exists($settings, 'app_short_name') && $settings->app_short_name !== NULL && trim((string) $settings->app_short_name) !== '')
+            ? trim((string) $settings->app_short_name)
+            : 'AMI';
+
+        $this->load->vars([
+            'organization_logo_url' => $this->organization_logo_service->public_url($profile),
+            'organization_name'     => $organization_name,
+            'app_name'              => $app_name,
+            'app_short_name'        => $app_short_name,
+        ]);
     }
 
     /**

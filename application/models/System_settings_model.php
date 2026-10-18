@@ -39,6 +39,11 @@ class System_settings_model extends CI_Model
     public function upsert_settings(array $data)
     {
         $data['id'] = 1;
+        // Filter out fields that do not exist in the table schema to prevent SQL error 1054 if migrations are pending
+        $fields = $this->db->list_fields('system_settings');
+        if (is_array($fields) && !empty($fields)) {
+            $data = array_intersect_key($data, array_flip($fields));
+        }
         $exists = $this->db->where('id', 1)->count_all_results('system_settings') > 0;
         if ($exists) {
             unset($data['id']);

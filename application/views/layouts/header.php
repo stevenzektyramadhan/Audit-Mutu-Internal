@@ -1,9 +1,11 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-$title = isset($title) ? $title : 'Dashboard AMI';
+$app_short_name = isset($app_short_name) && trim((string) $app_short_name) !== '' ? trim((string) $app_short_name) : 'AMI';
+$app_name = isset($app_name) && trim((string) $app_name) !== '' ? trim((string) $app_name) : 'Audit Mutu Internal';
+$title = isset($title) ? $title : ('Dashboard ' . $app_short_name);
 $page_title = isset($page_title) ? $page_title : 'Dashboard';
-$page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal Perguruan Tinggi';
+$page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguruan Tinggi');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -124,7 +126,22 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             border-bottom: 1px solid var(--ami-sidebar-soft);
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
+        }
+
+        .ami-brand-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1 1 auto;
+            text-decoration: none !important;
+        }
+
+        .ami-brand-text {
+            min-width: 0;
+            flex: 1 1 auto;
         }
 
         .ami-logo {
@@ -151,6 +168,18 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : 'Audit Mutu Internal P
             font-size: 14px;
             font-weight: 700;
             line-height: 1.22;
+        }
+
+        .ami-brand-subtitle {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 11px;
+            line-height: 1.3;
+            margin-top: 1px;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .ami-user {
