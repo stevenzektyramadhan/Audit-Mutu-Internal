@@ -42,6 +42,8 @@ AGENTS.md
 
 # Local development notes
 .clinerules
+.multibrain/
+.opencode/
 docs/DATABASE.md
 docs/DATABASE.MD
 docs/TASK.md
@@ -58,6 +60,7 @@ docs/assets/manual-pengguna/*
 !docs/assets/manual-pengguna/*.png
 
 # Local dummy data and feature-testing fixtures
+/database_dummy.sql
 /test-data/
 output/
 /outputs/

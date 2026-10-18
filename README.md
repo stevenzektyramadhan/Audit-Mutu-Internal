@@ -112,7 +112,7 @@ Ganti `APP_BASE_URL` dengan URL proyek yang dipakai, selalu dengan garis miring 
    mysql -u root < database_schema.sql
    ```
 
-   `database_dummy.sql` adalah seed AMI legacy, bukan kebutuhan alur SPMI dan tidak membuat akun SPMI. Jangan import file ini untuk onboarding SPMI.
+`database_dummy.sql` adalah seed AMI legacy lokal, bukan kebutuhan alur SPMI dan tidak dilacak Git. Jangan import file ini untuk onboarding SPMI.
 3. Set variabel database. Nilai default lokal adalah `DB_HOST=localhost`, `DB_USERNAME=root`, `DB_PASSWORD=` kosong, dan `DB_DATABASE=ami`.
 4. Buka URL yang memakai `/index.php`, misalnya `http://localhost/AMI/index.php`.
 
@@ -125,7 +125,7 @@ docker compose up -d --build
 docker compose logs --tail=100 app
 ```
 
-Pada volume database baru, Compose saat ini menjalankan `database_schema.sql` sebagai `01-schema.sql`, lalu `database_dummy.sql` sebagai `02-demo.sql`. File kedua tersebut hanya seed AMI legacy, tidak membuat pengguna, dan tidak diperlukan oleh alur SPMI. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
+Pada volume database baru, Compose menjalankan `database_schema.sql` sebagai `01-schema.sql`. Seed AMI legacy `database_dummy.sql` bersifat opsional dan tidak dilacak Git. Jika file lokal tersedia dan seed diperlukan, jalankan `docker compose -f compose.yaml -f compose.demo.yaml up -d --build`; fresh clone tanpa file dummy tetap berjalan dengan schema saja. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
 
 Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host berbeda. Compose tidak memublikasikan port MySQL ke host. Sesi, upload, database, dan private storage berada dalam named volume; `docker compose down` mempertahankannya, sedangkan `docker compose down -v` menghapusnya. Image Docker menyalin `docker/php-upload.ini` ke `$PHP_INI_DIR/conf.d/99-upload.ini`; nilai `upload_max_filesize = 11M` dan `post_max_size = 12M` hanya memberi ruang overhead request PHP, bukan menaikkan batas aplikasi PPEPP yang tetap tepat 10 MiB.
 
@@ -310,7 +310,7 @@ CodeIgniter migrations tetap nonaktif. Direktori `migrations/` berisi raw SQL ma
 - Service menjalankan ownership check, business rule, dan transaksi yang diperlukan.
 - Output dinamis di-escape dengan `html_escape()`.
 - Bukti disimpan private dan unduhan memvalidasi role serta ownership.
-- Audit log mencatat login, logout, dan percobaan mutasi POST; web server produksi harus menolak akses ke `application/`, `system/`, `.git/`, `.multibrain/`, log, dan private storage.
+- Audit log mencatat login, logout, dan percobaan mutasi POST; web server produksi harus menolak akses ke `application/`, `system/`, `.git/`, log, dan private storage.
 - Login `POST` dibatasi pada kegagalan kredensial tervalidasi: 5 percobaan per identitas dan 30 per IP dalam jendela 15 menit. Jika Cloudflare Turnstile dikonfigurasi lengkap, request login valid juga memakai budget sebelum Siteverify: 10 per identitas dan 60 per IP dalam 15 menit. Bucket request memakai HMAC purpose terpisah, sehingga kegagalan CAPTCHA tidak menambah bucket kegagalan kredensial. Site key kosong berarti Turnstile sengaja nonaktif; site key terisi dengan secret hilang, tidak dapat dibaca, atau tidak valid gagal tertutup sebelum Siteverify maupun pemeriksaan kredensial. Blokir login mengembalikan respons generik HTTP 429 dengan `Retry-After`; bucket hanya menyimpan HMAC berbasis `APP_ENCRYPTION_KEY`. Request reset password valid dibatasi 3 per identitas dan 10 per IP dalam 60 menit sebelum lookup akun, token, atau pengiriman email; respons publik tetap generik. Saat berada di belakang reverse proxy, isi `proxy_ips` hanya dengan alamat/subnet proxy tepercaya agar IP klien dapat dikenali dengan benar. Rate limit aplikasi melengkapi, bukan menggantikan, WAF atau rate limit reverse proxy.
 - SPMI adalah satu-satunya workflow aktif yang direpresentasikan oleh login redirect dan sidebar. Artefak AMI legacy serta route `lpmpi/legacy-ami-archive` tetap di luar lingkup operasional README ini.
 
@@ -342,5 +342,4 @@ Untuk Docker, jalankan `docker compose config --quiet` dan `curl -i http://127.0
 - `docs/plan/rencana-evidence-policy-dan-import-akun.md`
 - `docs/plan/m17-spmi-workspace-parity-master-plan.md`
 - `docs/product/spmi-workspace-parity-contract.md`
-- `.multibrain/session.md`
-- `.multibrain/indexes/ami-workflow.md`
+- `docs/DEPLOYMENT_NON_DOCKER.md`

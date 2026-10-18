@@ -1,6 +1,0 @@
-# System Settings and Turnstile
-
-- Added optional Cloudflare Turnstile protection to the shared `Auth` login route. It renders and verifies only when both persisted keys are valid; Siteverify runs before credential authentication, so CAPTCHA failures do not change credential rate-limit buckets.
-- Added management-only `lpmpi/system-settings` for `super_admin` and `admin_lpmpi`. It updates the existing organization name, an additive organization description, and the Turnstile site key. The secret is write-only, retained when its replacement input is blank, and stored as AES-256-GCM ciphertext derived from `APP_ENCRYPTION_KEY`.
-- Added raw additive migration `047_create_system_settings.sql`, bootstrap-schema/README parity, focused regression coverage, and navigation entry. Migration 047 was applied to the active local Docker MySQL on 2026-10-10 after backups at `/tmp/opencode/ami-system-settings-20261010/`.
-- Validation: PHP lint; focused auth/settings/sidebar/schema guards; affected SPMI/legacy regressions; Compose rebuild; anonymous login HTTP 200 and protected settings redirect HTTP 307. The live schema has nullable `profil_lembaga.deskripsi` and singleton `system_settings` row `id=1` with both Turnstile fields empty. PHP LSP was unavailable because it is not installed.
