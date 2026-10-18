@@ -343,6 +343,6 @@ foreach ([
 ] as $literal) {
     system_settings_check(strpos($readme, $literal) !== FALSE, 'README system settings documentation missing: ' . $literal);
 }
-system_settings_check(strpos($readme, '001-047') !== FALSE || strpos($readme, '001-048') !== FALSE, 'README system settings documentation missing migration range.');
+system_settings_check(strpos($readme, '001-047') !== FALSE || strpos($readme, '001-048') !== FALSE || strpos($readme, '001-050') !== FALSE, 'README system settings documentation missing migration range.');
 
 fwrite(STDOUT, "System settings regression checks passed.\n");
