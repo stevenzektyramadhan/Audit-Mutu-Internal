@@ -47,6 +47,25 @@ if (strpos($auth_controller, 'redirect($this->login_redirect());') === FALSE) {
 }
 
 foreach ([
+    "if (!empty(\$turnstile['configuration_invalid']))",
+    "['reason' => 'turnstile_configuration']",
+    '$this->auth_service->consume_login_request_budget($email, $client_ip)',
+    '$this->system_settings_service->verify_turnstile_response(',
+] as $expected_turnstile_hardening) {
+    if (strpos($auth_controller, $expected_turnstile_hardening) === FALSE) {
+        throw new RuntimeException('Hardening login Turnstile kehilangan kontrak: ' . $expected_turnstile_hardening);
+    }
+}
+
+$invalid_turnstile = strpos($auth_controller, "if (!empty(\$turnstile['configuration_invalid']))");
+$preverify_budget = strpos($auth_controller, '$this->auth_service->consume_login_request_budget($email, $client_ip)');
+$siteverify = strpos($auth_controller, '$this->system_settings_service->verify_turnstile_response(');
+$credential_login = strpos($auth_controller, '$this->auth_service->login($email, $password, $client_ip)');
+if ($invalid_turnstile === FALSE || $preverify_budget === FALSE || $siteverify === FALSE || $credential_login === FALSE || !($invalid_turnstile < $preverify_budget && $preverify_budget < $siteverify && $siteverify < $credential_login)) {
+    throw new RuntimeException('Login harus gagal tertutup untuk konfigurasi Turnstile invalid dan membatasi request sebelum Siteverify atau kredensial.');
+}
+
+foreach ([
     'application/views/auth/login.php',
     'application/views/auth/forgot_password.php',
     'application/views/auth/reset_password.php',

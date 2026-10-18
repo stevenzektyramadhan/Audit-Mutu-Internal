@@ -37,4 +37,12 @@ class Password_reset_token_model extends CI_Model
             ->where('consumed_at IS NULL', NULL, FALSE)
             ->update($this->table, ['consumed_at' => date('Y-m-d H:i:s')]);
     }
+
+    public function invalidate_active_by_hash($token_hash)
+    {
+        return $this->db
+            ->where('token_hash', $token_hash)
+            ->where('consumed_at IS NULL', NULL, FALSE)
+            ->update($this->table, ['consumed_at' => date('Y-m-d H:i:s')]);
+    }
 }
