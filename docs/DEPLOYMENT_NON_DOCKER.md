@@ -6,6 +6,13 @@ Panduan ini adalah dokumentasi resmi untuk tim infrastruktur & sysadmin dalam me
 
 ## 1. Arsitektur & Persyaratan Server
 
+> **Batas dokumen:** `compose.yaml` hanya untuk development lokal. Jangan deploy
+> kredensial Compose, named volume Docker, atau nilai `local-development-only-key`
+> ke server produksi.
+
+Seed `database_dummy.sql` bersifat lokal dan opsional. File tersebut tidak dilacak
+Git dan tidak diperlukan untuk instalasi schema atau deployment produksi.
+
 ### A. Komponen Perangkat Lunak
 - **Sistem Operasi**: Ubuntu 22.04 LTS / 24.04 LTS atau Debian 12
 - **Web Server**: Nginx (direkomendasikan) atau Apache 2.4+
@@ -36,6 +43,24 @@ Restart PHP-FPM:
 ```bash
 sudo systemctl restart php8.3-fpm
 ```
+
+### D. Siapkan Rilis Aplikasi
+
+Gunakan user deployment terpisah dan direktori rilis yang bukan home directory
+operator. File `.env.example` adalah referensi; aplikasi tidak memuat file `.env`
+secara otomatis. Nilai production harus masuk ke pool PHP-FPM pada bagian 4.
+
+```bash
+sudo install -d -o www-data -g www-data /var/www/ami
+sudo -u www-data git clone <URL_REPOSITORY_REVIEWED> /var/www/ami
+cd /var/www/ami
+composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
+```
+
+Gunakan tag atau commit yang sudah direview, bukan branch kerja yang berubah.
+Jangan menyimpan `.env`, private key, dump database, atau backup pada document root.
 
 ---
 
@@ -78,22 +103,24 @@ Aplikasi mendukung dua metode penempatan `APP_PUBLIC_UPLOADS_PATH`:
    APP_PUBLIC_UPLOADS_PATH=/var/ami-storage/public_uploads
    ```
    Dan lakukan salah satu dari dua cara berikut untuk melayani `/uploads/profil/`:
-   - **Metode Symlink (Paling Mudah)**:
-     ```bash
-     sudo mkdir -p /var/ami-storage/public_uploads/profil
-     sudo chown -R www-data:www-data /var/ami-storage/public_uploads
-     sudo rm -rf /var/www/ami/uploads
-     sudo ln -s /var/ami-storage/public_uploads /var/www/ami/uploads
-     ```
+    - **Metode Symlink (Paling Mudah)**:
+      ```bash
+      sudo mkdir -p /var/ami-storage/public_uploads/profil
+      sudo chown -R www-data:www-data /var/ami-storage/public_uploads
+      # Pindahkan terlebih dahulu logo lama bila ada; jangan hapus uploads secara buta.
+      sudo rsync -a /var/www/ami/uploads/profil/ /var/ami-storage/public_uploads/profil/
+      sudo mv /var/www/ami/uploads /var/www/ami/uploads.before-external-storage
+      sudo ln -s /var/ami-storage/public_uploads /var/www/ami/uploads
+      ```
    - **Metode Web Server Alias (Nginx)**:
      Jangan gunakan `location ^~ /uploads/profil/`: prefix `^~` melewati regex penolak script global. Letakkan dua blok berikut **setelah** blok penolak script uploads dan **sebelum** `location /`:
      ```nginx
-     # Hanya format logo yang diizinkan aplikasi. $1 wajib dipakai bersama alias regex.
+      # Hanya format logo yang diizinkan aplikasi. $1 wajib dipakai bersama alias regex.
       location ~* ^/uploads/profil/([A-Za-z0-9][A-Za-z0-9._-]*\.(?:gif|jpe?g|png))$ {
-         alias /var/ami-storage/public_uploads/profil/$1;
-         expires 30d;
-         add_header Cache-Control "public, no-transform";
-     }
+          alias /var/ami-storage/public_uploads/profil/$1;
+          expires 30d;
+          add_header Cache-Control "public, no-transform";
+      }
 
      # Tolak direktori, extension lain, traversal, dan file executable.
      location /uploads/profil/ {
@@ -130,9 +157,9 @@ sudo chmod 0775 /var/www/ami/uploads/profil
 ## 3. Konfigurasi Web Server
 
 ### Opsi A: Nginx + PHP-FPM (Sangat Direkomendasikan)
-Salin konfigurasi yang telah disediakan di `docker/nginx-production.conf`:
+Salin template deployment yang disediakan di `deploy/nginx/ami.conf`. Template ini bukan bagian dari runtime Docker development:
 ```bash
-sudo cp /var/www/ami/docker/nginx-production.conf /etc/nginx/sites-available/ami.conf
+sudo cp /var/www/ami/deploy/nginx/ami.conf /etc/nginx/sites-available/ami.conf
 sudo ln -s /etc/nginx/sites-available/ami.conf /etc/nginx/sites-enabled/
 ```
 Edit nama domain, path sertifikat SSL, dan path socket PHP-FPM di `/etc/nginx/sites-available/ami.conf`.
@@ -143,7 +170,7 @@ sudo systemctl reload nginx
 ```
 
 *Keamanan bawaan Nginx*:
-- Blokir folder sensitif: `application/`, `system/`, `migrations/`, `tests/`, `backups/`, `.git/`, `.multibrain/`.
+- Blokir folder sensitif: `application/`, `system/`, `migrations/`, `tests/`, `backups/`, `.git/`.
 - Blokir file `.env*`, `.sql`, `.json`, `.lock`, `.yaml`.
 - Blokir eksekusi script PHP di dalam `/uploads/`.
 - Routing otomatis ke `index.php`.
@@ -207,20 +234,32 @@ env[CI_ENV] = 'production'
 env[APP_BASE_URL] = 'https://ami.unmuhbabel.ac.id/'
 env[APP_ENCRYPTION_KEY] = 'generate_key_32_karakter_acak_hex_atau_string'
 env[APP_COOKIE_SECURE] = 'true'
+env[APP_LOG_THRESHOLD] = '1'
 env[DB_HOST] = '127.0.0.1'
 env[DB_USERNAME] = 'ami_user'
 env[DB_PASSWORD] = 'password_database_rahasia'
 env[DB_DATABASE] = 'ami'
 env[APP_PRIVATE_STORAGE_PATH] = '/var/ami-storage/private'
+env[APP_PUBLIC_UPLOADS_PATH] = '/var/ami-storage/public_uploads'
 env[APP_LOG_PATH] = '/var/log/ami/'
 env[SPMI_EVIDENCE_STORAGE_BACKEND] = 'local'
 
 ; Email Transaksional (Brevo API)
-env[MAIL_TRANSPORT] = 'brevo'
 env[BREVO_API_KEY] = 'xkeysib-xxxxxxxxxxxxxxxxxxxx'
-env[BREVO_SENDER_EMAIL] = 'lpmpi@unmuhbabel.ac.id'
-env[BREVO_SENDER_NAME] = 'LPMPI UNMUH BABEL'
+env[MAIL_FROM_ADDRESS] = 'no-reply@example.org'
+env[MAIL_FROM_NAME] = 'AMI Administrator'
+
+; Opsional: override endpoint PDDIKTI, dipisahkan koma
+; env[PDDIKTI_BASE_URLS] = 'https://api.example.org,https://api-backup.example.org'
 ```
+
+`MAIL_TRANSPORT`, `SMTP_*`, `BREVO_SENDER_EMAIL`, dan `BREVO_SENDER_NAME` bukan
+kontrak runtime saat ini. Reset password memakai Brevo HTTPS API dan hanya membaca
+`BREVO_API_KEY`, `MAIL_FROM_ADDRESS`, serta `MAIL_FROM_NAME`.
+
+Jika `APP_PUBLIC_UPLOADS_PATH` tidak diset, aplikasi memakai `FCPATH/uploads`.
+Jika diset, path harus sudah ada dan writable; web server harus memakai pemetaan
+allowlist `/uploads/profil/` pada bagian 3. Jangan letakkan `.env` di webroot.
 
 *Kunci Enkripsi (`APP_ENCRYPTION_KEY`)*:
 Generate kunci acak:
@@ -228,6 +267,11 @@ Generate kunci acak:
 php -r 'echo bin2hex(random_bytes(32)) . PHP_EOL;'
 ```
 > **PENTING**: Kunci ini digunakan untuk enkripsi AES-256-GCM token Cloudflare Turnstile dan hash rate limiting. Jangan pernah mengubah kunci ini setelah deployment karena ciphertext Turnstile tidak akan bisa didekripsi jika kunci berubah.
+
+Database menggunakan `mysqli` tanpa TLS aplikasi (`encrypt => FALSE`). Tempatkan
+MySQL pada localhost, private subnet, atau jaringan terenkripsi. Jika DB melintasi
+jaringan tidak tepercaya, tambahkan konfigurasi TLS MySQL dan CA secara terpisah
+sebelum go-live.
 
 ---
 
@@ -264,7 +308,9 @@ npm run build
    *Catatan*: `database_schema.sql` memuat baris `CREATE DATABASE IF NOT EXISTS ami` dan `USE ami;`. Jika Anda menggunakan nama database yang berbeda (misal `ami_prod`), pastikan menyesuaikan atau menghapus baris `USE ami;` di bagian atas file sebelum impor.
 
 3. Verifikasi migrasi:
-   Jika mengimpor `database_schema.sql` terbaru, seluruh skema telah terpasang. Menjalankan migrasi `049` dan `050` setelahnya tetap aman karena keduanya bersifat idempotent (menggunakan guard pengecekan kolom):
+   Bootstrap saat ini mencakup parity `001-050`. Jangan jalankan migration lama
+   lagi setelah fresh import. Menjalankan 049 dan 050 ulang tetap aman karena
+   idempoten (guard `INFORMATION_SCHEMA.COLUMNS`):
    ```bash
    mysql -u ami_user -p ami < migrations/049_add_app_branding_settings.sql
    mysql -u ami_user -p ami < migrations/050_add_login_hero_settings.sql
@@ -275,11 +321,33 @@ npm run build
    ```bash
    mysqldump -u ami_user -p ami > backup_ami_$(date +%Y%m%d_%H%M%S).sql
    ```
-2. Jalankan migrasi secara berurutan sesuai file pada folder `migrations/`. Migrasi 049 dan 050 bersifat idempotent dan aman dijalankan ulang:
+2. Tidak ada tabel migration tracker otomatis. Bandingkan riwayat deployment,
+   schema, dan daftar file; lalu jalankan **semua migration yang belum diterapkan**
+   secara numerik, satu per satu, berhenti pada error pertama. Jangan menjalankan
+   `database_schema.sql` pada database existing.
+3. Untuk deployment yang telah mencapai 048, jalankan 049 dan 050 berikut. Keduanya
+   idempoten dan aman dijalankan ulang:
    ```bash
    mysql -u ami_user -p ami < migrations/049_add_app_branding_settings.sql
    mysql -u ami_user -p ami < migrations/050_add_login_hero_settings.sql
    ```
+
+### C. Backup, Restore, dan Rollback
+
+Sebelum setiap upgrade, backup database **dan** `APP_PRIVATE_STORAGE_PATH`; backup
+harus terenkripsi dan diuji restore pada host terpisah.
+
+```bash
+mysqldump --single-transaction --routines --events --triggers -u ami_user -p ami \
+  > /secure-backups/ami-$(date +%F-%H%M%S).sql
+sudo tar -C /var/ami-storage -czf /secure-backups/ami-private-$(date +%F-%H%M%S).tgz private
+```
+
+Jika migration gagal, hentikan traffic, restore database dan private storage dari
+backup pasangan yang sama, lalu investigasi pada salinan DB. Jangan melakukan
+rollback SQL manual tanpa prosedur migration yang diuji. `APP_ENCRYPTION_KEY` harus
+dipertahankan pada restore; menggantinya membuat ciphertext Turnstile dan HMAC bucket
+lama tidak dapat dipakai.
 
 ---
 
@@ -298,3 +366,26 @@ Jalankan checklist verifikasi berikut setelah server aktif:
    - Unduh kembali dokumen tersebut melalui aplikasi untuk memastikan download handler berfungsi.
    - Pastikan URL langsung ke storage tidak dapat diakses publik.
 5. **Ekspor Laporan**: Uji fitur cetak dan ekspor XLSX/Word pada Laporan SPMI untuk memastikan ekstensi PhpSpreadsheet dan XML bekerja optimal.
+
+## 8. Checklist Handoff IT
+
+Sebelum DNS atau traffic dibuka, operator harus menyediakan dan memverifikasi:
+
+1. Domain HTTPS, sertifikat, `APP_BASE_URL` berakhiran `/`, dan socket PHP-FPM yang benar.
+2. Nilai unik rahasia untuk `APP_ENCRYPTION_KEY`, `DB_PASSWORD`, dan `BREVO_API_KEY`; tidak boleh masuk Git, shell history, atau webroot.
+3. Semua `env[...]` di pool PHP-FPM, lalu `systemctl restart php8.3-fpm` dan `systemctl reload nginx` atau `apache2`.
+4. Ownership/permission storage sesuai bagian 2; private storage dan log berada di luar webroot.
+5. Konfigurasi Nginx: ganti domain, root, sertifikat, `fastcgi_pass`, dan alias public upload; jalankan `nginx -t` sebelum reload. Untuk Apache, jalankan `apachectl -t` dan pastikan `AllowOverride All` pada document root.
+6. Backup database/private storage sukses dan restore drill tercatat.
+7. Smoke test bagian 7 untuk login, upload, download berotorisasi, reset password, dan export laporan.
+
+## 9. Troubleshooting Cepat
+
+| Gejala | Periksa | Tindakan aman |
+| --- | --- | --- |
+| HTTP 503 saat boot | PHP-FPM `env[...]`, path log/private/public | Pastikan path ada, writable, dan variabel produksi lengkap; restart PHP-FPM. |
+| Reset password tidak mengirim email | `BREVO_API_KEY`, `MAIL_FROM_ADDRESS`, log aplikasi | Verifikasi sender Brevo; jangan log atau tampilkan API key. |
+| Logo 404 | `APP_PUBLIC_UPLOADS_PATH`, regex alias/symlink | Uji hanya URL `.gif/.jpg/.jpeg/.png`; jangan membuat alias `/uploads/` yang luas. |
+| Upload gagal sebelum aplikasi | `client_max_body_size`, `upload_max_filesize`, `post_max_size` | Selaraskan limit web server/PHP di atas batas aplikasi, restart layanan. |
+| IP semua pengguna sama | reverse proxy dan `proxy_ips` | Tambahkan hanya proxy tepercaya pada konfigurasi aplikasi; jangan percaya header client langsung. |
+| Turnstile menjadi tidak valid | `APP_ENCRYPTION_KEY` berubah atau secret rusak | Super Admin masukkan ulang site key dan secret; jangan pernah menampilkan ciphertext/plaintext. |
