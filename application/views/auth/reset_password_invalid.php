@@ -1,48 +1,51 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<!DOCTYPE html>
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+$app_name = isset($app_name) && trim((string) $app_name) !== '' ? trim((string) $app_name) : 'Audit Mutu Internal';
+$app_short_name = isset($app_short_name) && trim((string) $app_short_name) !== '' ? trim((string) $app_short_name) : 'AMI';
+$organization_logo_url = isset($organization_logo_url) && trim((string) $organization_logo_url) !== '' ? (string) $organization_logo_url : base_url('assets/img/Logo-UNMUH-BABEL-Web.png');
+?><!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tautan Tidak Berlaku - AMI</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-    <style>
-        :root { --auth-bg: #f3f5f8; --auth-card: #fff; --auth-text: #1a1a2e; --auth-muted: #555770; --auth-green: #1b5e20; --auth-green-hover: #145218; }
-        *, *::before, *::after { box-sizing: border-box; }
-        body { min-height: 100vh; margin: 0; display: flex; flex-direction: column; background: var(--auth-bg); color: var(--auth-text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        .auth-bg { position: fixed; inset: 0; z-index: 0; background: url('<?php echo html_escape(base_url('assets/img/unmuh-foto.jpg')); ?>') center/cover; }
-        .auth-bg::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, .35); }
-        .auth-navbar, .auth-footer { position: fixed; left: 0; right: 0; z-index: 2; display: flex; align-items: center; padding: 0 28px; background: rgba(27, 94, 32, .9); color: rgba(255, 255, 255, .85); }
-        .auth-navbar { top: 0; height: 56px; }
-        .auth-footer { bottom: 0; min-height: 44px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
-        .auth-brand { color: #fff; font-size: 20px; font-weight: 800; text-decoration: none; }
-        .auth-content { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 60px; }
-        .auth-card { width: 100%; max-width: 460px; padding: 36px; background: var(--auth-card); border: 1px solid rgba(0, 0, 0, .08); border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, .15); text-align: center; }
-        h1 { margin: 0 0 12px; color: var(--auth-green); font-size: 28px; font-weight: 800; }
-        .auth-copy { margin: 0; color: var(--auth-muted); font-size: 14px; line-height: 1.6; }
-        .auth-actions { display: grid; gap: 12px; margin-top: 28px; }
-        .auth-button, .auth-link { display: block; min-height: 48px; padding: 14px 20px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; }
-        .auth-button { background: var(--auth-green); color: #fff; }
-        .auth-button:hover, .auth-button:focus { background: var(--auth-green-hover); color: #fff; outline: 3px solid rgba(27, 94, 32, .2); outline-offset: 2px; }
-        .auth-link { border: 1px solid #d1d5db; color: var(--auth-muted); }
-        .auth-link:hover, .auth-link:focus { border-color: var(--auth-green); color: var(--auth-green); text-decoration: underline; outline: 0; }
-        @media (max-width: 576px) { .auth-navbar, .auth-footer { padding: 0 16px; } .auth-card { padding: 28px 24px; border-radius: 12px; } }
-    </style>
+    <title>Tautan Tidak Berlaku - <?php echo html_escape($app_short_name); ?></title>
+    <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
+    <?php $auth_css_ver = file_exists(FCPATH . 'assets/css/auth.css') ? filemtime(FCPATH . 'assets/css/auth.css') : time(); ?>
+    <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/auth.css?v=' . $auth_css_ver)); ?>">
 </head>
-<body>
-<div class="auth-bg" aria-hidden="true"></div>
-<nav class="auth-navbar"><a class="auth-brand" href="<?php echo site_url('auth'); ?>">AMI System</a></nav>
-<main class="auth-content">
-    <section class="auth-card" aria-labelledby="invalid-reset-title">
-        <h1 id="invalid-reset-title">Tautan Tidak Berlaku</h1>
-        <p class="auth-copy">Tautan pengaturan ulang password tidak dapat digunakan. Minta tautan baru untuk melanjutkan.</p>
-        <div class="auth-actions">
-            <a class="auth-button" href="<?php echo site_url('auth/forgot-password'); ?>">Minta Tautan Baru</a>
-            <a class="auth-link" href="<?php echo site_url('auth'); ?>">Kembali ke login</a>
-        </div>
-    </section>
-</main>
-<footer class="auth-footer"><span>&copy; <?php echo date('Y'); ?> University Internal Audit System. All Rights Reserved.</span></footer>
+<body id="auth-root" class="tw-m-0 tw-min-h-screen tw-bg-slate-50 tw-text-slate-900 tw-font-sans">
+    <main class="auth-shell">
+        <section class="auth-visual" aria-label="Identitas Sistem Penjaminan Mutu Internal">
+            <img src="<?php echo html_escape(base_url('assets/img/unmuh-foto.jpg')); ?>" alt="Lingkungan kampus" class="auth-visual-image">
+            <div class="auth-visual-overlay" aria-hidden="true"></div>
+            <div class="auth-visual-content tw-relative tw-z-10 tw-flex tw-h-full tw-min-h-[220px] tw-flex-col tw-justify-end tw-p-6 sm:tw-p-10 lg:tw-p-14">
+                <div class="tw-max-w-xl tw-text-white">
+                    <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100"><?php echo html_escape($app_name); ?></p>
+                    <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl">Pemulihan akses aman.</h2>
+                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200">Minta tautan pengaturan ulang baru untuk melanjutkan.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="auth-form-side tw-px-5 tw-py-10 sm:tw-px-10 lg:tw-px-14" aria-label="Status tautan pengaturan ulang">
+            <div class="auth-panel">
+                <div class="auth-brand-row tw-mb-5 tw-flex tw-items-center tw-gap-3 sm:tw-gap-3.5">
+                    <img src="<?php echo html_escape(base_url('assets/img/Logo-UNMUH-BABEL-Web.png')); ?>" alt="Logo Universitas Muhammadiyah Bangka Belitung" class="auth-brand-unmuh">
+                    <div class="auth-brand-sep" aria-hidden="true"></div>
+                    <img src="<?php echo html_escape($organization_logo_url); ?>" alt="Logo LPM" class="auth-brand-lpm">
+                    <span class="tw-text-xs tw-font-bold tw-text-slate-700"><?php echo html_escape($app_short_name); ?> System</span>
+                </div>
+                <p class="tw-mb-1.5 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.18em] tw-text-blue-700">Pemulihan Akun</p>
+                <h1 id="invalid-reset-title" class="tw-m-0 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 sm:tw-text-3xl">Tautan Tidak Berlaku</h1>
+                <p class="tw-mb-0 tw-mt-2 tw-text-sm tw-leading-6 tw-text-slate-500">Tautan pengaturan ulang password tidak dapat digunakan. Minta tautan baru untuk melanjutkan.</p>
+                <div class="tw-mt-7 tw-grid tw-gap-3">
+                    <a class="tw-button-primary tw-w-full tw-min-h-[48px] tw-text-sm" href="<?php echo site_url('auth/forgot-password'); ?>">Minta Tautan Baru</a>
+                    <a class="tw-flex tw-min-h-[48px] tw-items-center tw-justify-center tw-rounded-xl tw-border tw-border-slate-300 tw-px-5 tw-py-3 tw-text-sm tw-font-semibold tw-text-slate-600 hover:tw-border-blue-600 hover:tw-text-blue-600 tw-transition" href="<?php echo site_url('auth'); ?>">Kembali ke login</a>
+                </div>
+                <div class="tw-mt-8 tw-border-t tw-border-slate-200 tw-pt-5 tw-text-center tw-text-xs tw-text-slate-400">&copy; <?php echo date('Y'); ?> University Internal Audit System. All Rights Reserved.</div>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
