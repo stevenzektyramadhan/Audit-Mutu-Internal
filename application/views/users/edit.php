@@ -16,7 +16,7 @@ $selected_role = set_value('role', $user->role);
         <div class="users-surface-body">
             <div class="form-header">
                 <a href="<?php echo site_url('users'); ?>" class="users-back-link">
-                    <svg class="users-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg class="users-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="m15 18-6-6 6-6"/>
                     </svg>
                     Kembali ke Pengguna
@@ -33,7 +33,7 @@ $selected_role = set_value('role', $user->role);
             <?php echo form_open('users/update/' . (int) $user->id); ?>
                 <div class="form-section">
                     <div class="form-section-heading">
-                        <svg class="users-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg class="users-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="12" cy="8" r="3"/><path d="M5 20c.8-3.2 3.1-5 7-5s6.2 1.8 7 5"/>
                         </svg>
                         <span><strong>Informasi Akun</strong><small>Data dasar untuk identitas pengguna.</small></span>
@@ -52,7 +52,7 @@ $selected_role = set_value('role', $user->role);
                             <div class="users-password">
                                 <input type="password" class="users-control" id="password" name="password">
                                 <button type="button" class="users-password-toggle" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false">
-                                    <svg class="users-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <svg class="users-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
                                         <circle cx="12" cy="12" r="3"/>
                                     </svg>
@@ -65,7 +65,7 @@ $selected_role = set_value('role', $user->role);
 
                 <div class="form-section">
                     <div class="form-section-heading">
-                        <svg class="users-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="users-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M12 3 4 7v5c0 4.4 3.4 7.7 8 9 4.6-1.3 8-4.6 8-9V7l-8-4Z"/><path d="m9 12 2 2 4-4"/>
                         </svg>
                         <span><strong>Hak Akses</strong><small>Tentukan peran akun pengguna.</small></span>

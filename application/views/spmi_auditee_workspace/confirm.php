@@ -24,7 +24,7 @@ $icon = static function ($name) {
         'file' => '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>',
         'send' => '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
     ];
-    return '<svg class="adte-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file']) . '</svg>';
+    return '<svg class="adte-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file']) . '</svg>';
 };
 ?>
 
@@ -78,7 +78,7 @@ $icon = static function ($name) {
                     <input type="hidden" name="realization[<?php echo $item_id; ?>]" value="<?php echo html_escape((string) $realization); ?>">
                     <input type="hidden" name="evidence_url[<?php echo $item_id; ?>]" value="<?php echo html_escape((string) $evidence_url); ?>">
 
-                    <article class="card mb-3 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm tw-overflow-hidden">
+                    <article class="ami-panel mb-3 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm tw-overflow-hidden">
                         <div class="tw-border-b tw-border-slate-100 tw-bg-slate-50/70 tw-p-4 tw-flex tw-items-center tw-justify-between">
                             <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-900">
 Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo html_escape($item->indicator_code); ?>

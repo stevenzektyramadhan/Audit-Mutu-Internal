@@ -29,7 +29,7 @@ $icon = static function ($name) {
         'user' => '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
         'check' => '<polyline points="20 6 9 17 4 12"/>',
     ];
-    return '<svg class="adte-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['shield-check']) . '</svg>';
+    return '<svg class="adte-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['shield-check']) . '</svg>';
 };
 ?>
 
@@ -57,11 +57,11 @@ $icon = static function ($name) {
                 <?php echo html_escape($report->report_number); ?>
             </h1>
 
-            <dl class="row tw-hidden">
-                <dt class="col-sm-3">Siklus</dt><dd class="col-sm-9"><?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?></dd>
-                <dt class="col-sm-3">Sumber</dt><dd class="col-sm-9"><?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot); ?></dd>
-                <dt class="col-sm-3">Auditor / Auditi</dt><dd class="col-sm-9"><?php echo html_escape($report->auditor_name_snapshot . ' / ' . $report->auditee_name_snapshot); ?></dd>
-                <dt class="col-sm-3">Finalisasi</dt><dd class="col-sm-9"><?php echo html_escape($report->assessment_finalized_at_snapshot); ?></dd>
+            <dl class="tw-flex tw-flex-wrap tw-hidden">
+                    <dt class="tw-font-semibold">Siklus</dt><dd><?php echo html_escape($report->cycle_code_snapshot . ' — ' . $report->cycle_title_snapshot); ?></dd>
+                    <dt class="tw-font-semibold">Sumber</dt><dd><?php echo html_escape($report->source_version_code_snapshot . ' / ' . $report->source_standard_code_snapshot); ?></dd>
+                    <dt class="tw-font-semibold">Auditor / Auditi</dt><dd><?php echo html_escape($report->auditor_name_snapshot . ' / ' . $report->auditee_name_snapshot); ?></dd>
+                    <dt class="tw-font-semibold">Finalisasi</dt><dd><?php echo html_escape($report->assessment_finalized_at_snapshot); ?></dd>
             </dl>
 
             <div class="tw-mt-6 tw-grid tw-gap-4 sm:tw-grid-cols-2 lg:tw-grid-cols-4 tw-text-sm">
@@ -115,7 +115,7 @@ $icon = static function ($name) {
             <!-- Desktop View: Table -->
             <div class="tw-hidden md:tw-block tw-overflow-hidden tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm">
                 <div class="tw-overflow-x-auto">
-                    <table class="table ami-table tw-w-full tw-text-left tw-text-sm">
+                    <table class="ami-table tw-w-full tw-text-left tw-text-sm">
                         <thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-font-semibold tw-uppercase tw-tracking-wider tw-text-slate-600">
                             <tr>
                                 <th class="tw-px-4 tw-py-3.5 tw-w-12 tw-text-center">No</th>

@@ -19,7 +19,7 @@ $icon = static function ($name) {
         'upload-cloud' => '<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>',
         'history' => '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
     ];
-    return '<svg class="adte-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file']) . '</svg>';
+    return '<svg class="adte-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file']) . '</svg>';
 };
 ?>
 <main id="auditee-root" data-ui-contract="ami-row-actions ami-action-btn" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
@@ -113,7 +113,7 @@ $icon = static function ($name) {
 
         <!-- List of Assignment Items -->
         <div class="tw-space-y-6">
-            <?php foreach ($items as $item): ?><article class="card mb-3 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm tw-overflow-hidden">
+<?php foreach ($items as $item): ?><article class="card mb-3 ami-panel tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm tw-overflow-hidden">
                 <?php
                 $file_capable = in_array($item->evidence_policy, ['file', 'either', 'both'], TRUE);
                 $url_capable = in_array($item->evidence_policy, ['url', 'either', 'both'], TRUE);
@@ -173,7 +173,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                 <label for="realization-<?php echo (int) $item->assignment_item_id; ?>" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700 tw-mb-1.5">
                                     Realisasi
                                 </label>
-                                <textarea class="form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-p-3 tw-text-xs tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none <?php echo $editable ? '' : 'tw-bg-slate-50 tw-text-slate-700'; ?>" id="realization-<?php echo (int) $item->assignment_item_id; ?>" name="realization[<?php echo (int) $item->assignment_item_id; ?>]" rows="4" placeholder="Jelaskan implementasi dan pemenuhan standar..." <?php echo $editable ? '' : 'readonly'; ?>><?php echo html_escape($item->realization); ?></textarea>
+                                <textarea class="ami-form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-p-3 tw-text-xs tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none <?php echo $editable ?'' : 'tw-bg-slate-50 tw-text-slate-700'; ?>" id="realization-<?php echo (int) $item->assignment_item_id; ?>" name="realization[<?php echo (int) $item->assignment_item_id; ?>]" rows="4" placeholder="Jelaskan implementasi dan pemenuhan standar..." <?php echo $editable ? '' : 'readonly'; ?>><?php echo html_escape($item->realization); ?></textarea>
                             </div>
 
                             <!-- Input URL Bukti (Jika didukung kebijakan) -->
@@ -182,7 +182,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                     <label for="evidence-url-<?php echo (int) $item->assignment_item_id; ?>" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700 tw-mb-1.5">
                                         URL bukti
                                     </label>
-                                    <input class="form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-xs tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none" type="url" id="evidence-url-<?php echo (int) $item->assignment_item_id; ?>" name="evidence_url[<?php echo (int) $item->assignment_item_id; ?>]" value="<?php echo html_escape($item->evidence_url); ?>" placeholder="https://drive.google.com/...">
+                                    <input class="ami-form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-xs tw-text-slate-900 focus:tw-border-slate-950 focus:tw-outline-none" type="url" id="evidence-url-<?php echo (int) $item->assignment_item_id; ?>" name="evidence_url[<?php echo (int) $item->assignment_item_id; ?>]" value="<?php echo html_escape($item->evidence_url); ?>" placeholder="https://drive.google.com/...">
                                 </div>
                             <?php elseif (!$editable && $item->evidence_url): ?>
                                 <div class="tw-rounded-xl tw-border tw-border-slate-100 tw-bg-slate-50 tw-p-3 tw-text-xs">
@@ -212,7 +212,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                         <?php $upload_forms[] = ob_get_clean(); ?>
 
                                          <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center tw-gap-2 tw-mb-3">
-                                             <input class="form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-2.5 tw-py-1.5 tw-text-xs tw-text-slate-700" type="file" id="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>">
+                                             <input class="ami-form-control tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-2.5 tw-py-1.5 tw-text-xs tw-text-slate-700" type="file" id="evidence-file-<?php echo (int) $item->assignment_item_id; ?>" name="evidence" accept="application/pdf,image/jpeg,image/png" required form="spmi-evidence-upload-<?php echo (int) $item->assignment_item_id; ?>">
                                              <span data-evidence-selection-status role="status" aria-live="polite" class="tw-text-xs tw-text-slate-500">Belum ada file dipilih.</span>
                                          </div>
                                         <span role="alert" data-evidence-upload-error class="tw-block tw-text-xs tw-text-red-600 tw-mb-2"></span>
