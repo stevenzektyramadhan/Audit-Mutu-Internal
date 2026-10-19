@@ -24,6 +24,9 @@ module.exports = {
         './application/views/lpmpi/spmi_ppepp_documents/**/*.php',
         './application/views/lpmpi/upload_size_settings/**/*.php',
         './application/views/lpmpi/system_settings/**/*.php',
+        './application/views/lpmpi/penetapan/**/*.php',
+        './application/views/pertanyaan/**/*.php',
+        './application/views/pertanyaan/index.php',
     ],
     prefix: 'tw-',
     corePlugins: {
