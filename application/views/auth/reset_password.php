@@ -1,81 +1,87 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<!DOCTYPE html>
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+$icon = static function ($name) {
+    $paths = [
+        'eye' => '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+        'eye-off' => '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>'
+    ];
+    return '<svg width="20" height="20" class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['eye']) . '</svg>';
+};
+$app_name = isset($app_name) && trim((string) $app_name) !== '' ? trim((string) $app_name) : 'Audit Mutu Internal';
+$app_short_name = isset($app_short_name) && trim((string) $app_short_name) !== '' ? trim((string) $app_short_name) : 'AMI';
+$organization_logo_url = isset($organization_logo_url) && trim((string) $organization_logo_url) !== '' ? (string) $organization_logo_url : base_url('assets/img/Logo-UNMUH-BABEL-Web.png');
+?><!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atur Ulang Password - AMI</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-    <style>
-        :root { --auth-bg: #f3f5f8; --auth-card: #ffffff; --auth-text: #1a1a2e; --auth-muted: #555770; --auth-label: #374151; --auth-border: #d1d5db; --auth-green: #1b5e20; --auth-green-hover: #145218; }
-        *, *::before, *::after { box-sizing: border-box; }
-        body { min-height: 100vh; margin: 0; display: flex; flex-direction: column; background: var(--auth-bg); color: var(--auth-text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        .auth-bg { position: fixed; inset: 0; z-index: 0; background: url('<?php echo html_escape(base_url('assets/img/unmuh-foto.jpg')); ?>') center/cover; }
-        .auth-bg::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, .35); }
-        .auth-navbar, .auth-footer { position: fixed; left: 0; right: 0; z-index: 2; display: flex; align-items: center; padding: 0 28px; background: rgba(27, 94, 32, .9); color: rgba(255, 255, 255, .85); }
-        .auth-navbar { top: 0; height: 56px; }
-        .auth-footer { bottom: 0; min-height: 44px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
-        .auth-brand { color: #fff; font-size: 20px; font-weight: 800; text-decoration: none; }
-        .auth-content { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 60px; }
-        .auth-card { width: 100%; max-width: 460px; padding: 36px; background: var(--auth-card); border: 1px solid rgba(0, 0, 0, .08); border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, .15); }
-        h1 { margin: 0 0 8px; color: var(--auth-green); font-size: 28px; font-weight: 800; text-align: center; }
-        .auth-intro { margin: 0 0 28px; color: var(--auth-muted); font-size: 14px; line-height: 1.6; text-align: center; }
-        .auth-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: var(--auth-label); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-        .auth-input-wrap { position: relative; }
-        .auth-input { width: 100%; height: 50px; padding: 0 48px 0 16px; border: 1.5px solid var(--auth-border); border-radius: 10px; color: var(--auth-text); font: inherit; font-size: 15px; }
-        .auth-input:focus { border-color: var(--auth-green); box-shadow: 0 0 0 3px rgba(27, 94, 32, .15); outline: 0; }
-        .auth-toggle { position: absolute; top: 6px; right: 6px; width: 38px; height: 38px; border: 0; border-radius: 8px; background: transparent; color: #9ca3af; cursor: pointer; }
-        .auth-toggle:hover, .auth-toggle:focus { background: rgba(27, 94, 32, .08); color: var(--auth-green); outline: 0; }
-        .auth-guidance { display: block; margin-top: 6px; color: var(--auth-muted); font-size: 12px; }
-        .auth-error { display: block; margin-top: 6px; color: #ef4444; font-size: 12px; font-weight: 500; }
-        .auth-alert { margin-bottom: 20px; padding: 12px 16px; border: 1px solid #fecaca; border-radius: 10px; background: #fef2f2; color: #991b1b; font-size: 13px; }
-        .auth-button { width: 100%; min-height: 52px; margin-top: 8px; border: 0; border-radius: 10px; background: var(--auth-green); color: #fff; font: inherit; font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
-        .auth-button:hover, .auth-button:focus { background: var(--auth-green-hover); outline: 3px solid rgba(27, 94, 32, .2); outline-offset: 2px; }
-        .auth-link { display: block; margin-top: 20px; color: var(--auth-muted); font-size: 14px; font-weight: 600; text-align: center; text-decoration: none; }
-        .auth-link:hover, .auth-link:focus { color: var(--auth-green); text-decoration: underline; }
-        @media (max-width: 576px) { .auth-navbar, .auth-footer { padding: 0 16px; } .auth-card { padding: 28px 24px; border-radius: 12px; } }
-    </style>
+    <title>Atur Ulang Password - <?php echo html_escape($app_short_name); ?></title>
+    <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
+    <?php $auth_css_ver = file_exists(FCPATH . 'assets/css/auth.css') ? filemtime(FCPATH . 'assets/css/auth.css') : time(); ?>
+    <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/auth.css?v=' . $auth_css_ver)); ?>">
 </head>
-<body>
-<div class="auth-bg" aria-hidden="true"></div>
-<nav class="auth-navbar"><a class="auth-brand" href="<?php echo site_url('auth'); ?>">AMI System</a></nav>
-<main class="auth-content">
-    <section class="auth-card" aria-labelledby="reset-password-title">
-        <h1 id="reset-password-title">Atur Ulang Password</h1>
-        <p class="auth-intro">Buat password baru untuk akun Anda.</p>
-
-        <?php if (validation_errors()): ?>
-            <div class="auth-alert" role="alert"><?php echo html_escape(strip_tags(validation_errors())); ?></div>
-        <?php endif; ?>
-
-        <?php echo form_open('auth/reset-password/submit'); ?>
-            <input type="hidden" name="token" value="<?php echo html_escape(isset($token) ? $token : ''); ?>">
-            <div class="auth-group">
-                <label for="password">Password baru</label>
-                <div class="auth-input-wrap">
-                    <input class="auth-input" type="password" id="password" name="password" autocomplete="new-password" required>
-                    <button class="auth-toggle" type="button" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false"><span aria-hidden="true">&#128065;</span></button>
+<body id="auth-root" class="tw-m-0 tw-min-h-screen tw-bg-slate-50 tw-text-slate-900 tw-font-sans">
+    <main class="auth-shell">
+        <section class="auth-visual" aria-label="Identitas Sistem Penjaminan Mutu Internal">
+            <img src="<?php echo html_escape(base_url('assets/img/unmuh-foto.jpg')); ?>" alt="Lingkungan kampus" class="auth-visual-image">
+            <div class="auth-visual-overlay" aria-hidden="true"></div>
+            <div class="auth-visual-content tw-relative tw-z-10 tw-flex tw-h-full tw-min-h-[220px] tw-flex-col tw-justify-end tw-p-6 sm:tw-p-10 lg:tw-p-14">
+                <div class="tw-max-w-xl tw-text-white">
+                    <p class="tw-m-0 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.22em] tw-text-blue-100"><?php echo html_escape($app_name); ?></p>
+                    <h2 class="tw-mb-0 tw-mt-3 tw-text-2xl tw-font-bold tw-leading-tight sm:tw-text-3xl lg:tw-text-4xl">Atur ulang akses dengan aman.</h2>
+                    <p class="tw-mb-0 tw-mt-3 tw-max-w-lg tw-text-sm tw-leading-6 tw-text-slate-200">Buat password baru untuk melanjutkan akses ke sistem penjaminan mutu internal.</p>
                 </div>
-                <small class="auth-guidance">Gunakan minimal 12 karakter.</small>
-                <?php if (form_error('password')): ?><small class="auth-error"><?php echo html_escape(strip_tags(form_error('password'))); ?></small><?php endif; ?>
             </div>
-            <div class="auth-group">
-                <label for="password_confirmation">Konfirmasi password baru</label>
-                <div class="auth-input-wrap">
-                    <input class="auth-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
-                    <button class="auth-toggle" type="button" data-password-toggle="password_confirmation" aria-label="Tampilkan password" aria-pressed="false"><span aria-hidden="true">&#128065;</span></button>
-                </div>
-                <?php if (form_error('password_confirmation')): ?><small class="auth-error"><?php echo html_escape(strip_tags(form_error('password_confirmation'))); ?></small><?php endif; ?>
-            </div>
-            <button class="auth-button" type="submit">Simpan Password</button>
-        <?php echo form_close(); ?>
+        </section>
 
-        <a class="auth-link" href="<?php echo site_url('auth'); ?>">Kembali ke login</a>
-    </section>
-</main>
-<footer class="auth-footer"><span>&copy; <?php echo date('Y'); ?> University Internal Audit System. All Rights Reserved.</span></footer>
+        <section class="auth-form-side tw-px-5 tw-py-10 sm:tw-px-10 lg:tw-px-14" aria-label="Form atur ulang password">
+            <div class="auth-panel">
+                <div class="tw-mb-6">
+                    <div class="auth-brand-row tw-mb-5 tw-flex tw-items-center tw-gap-3 sm:tw-gap-3.5">
+                        <img src="<?php echo html_escape(base_url('assets/img/Logo-UNMUH-BABEL-Web.png')); ?>" alt="Logo Universitas Muhammadiyah Bangka Belitung" class="auth-brand-unmuh">
+                        <div class="auth-brand-sep" aria-hidden="true"></div>
+                        <img src="<?php echo html_escape($organization_logo_url); ?>" alt="Logo LPM" class="auth-brand-lpm">
+                        <span class="tw-text-xs tw-font-bold tw-text-slate-700"><?php echo html_escape($app_short_name); ?> System</span>
+                    </div>
+                    <p class="tw-mb-1.5 tw-text-xs tw-font-bold tw-uppercase tw-tracking-[0.18em] tw-text-blue-700">Pemulihan Akun</p>
+                    <h1 id="reset-password-title" class="tw-m-0 tw-text-2xl tw-font-bold tw-tracking-tight tw-text-slate-950 sm:tw-text-3xl">Atur Ulang Password</h1>
+                    <p class="tw-mb-0 tw-mt-2 tw-text-sm tw-leading-6 tw-text-slate-500">Buat password baru untuk akun Anda.</p>
+                </div>
+
+                <?php if (validation_errors()): ?>
+                    <div class="tw-mb-5 tw-rounded-xl tw-border tw-border-red-200 tw-bg-red-50 tw-p-3.5 tw-text-xs tw-text-red-800" role="alert">
+                        <span class="tw-font-medium"><?php echo html_escape(strip_tags(validation_errors())); ?></span>
+                    </div>
+                <?php endif; ?>
+
+                <?php echo form_open('auth/reset-password/submit', ['class' => 'tw-space-y-4']); ?>
+                    <input type="hidden" name="token" value="<?php echo html_escape(isset($token) ? $token : ''); ?>">
+                    <div>
+                        <label for="password" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700 tw-mb-1.5">Password baru</label>
+                        <div class="tw-relative tw-w-full">
+                            <input class="tw-block tw-h-12 tw-w-full tw-min-w-0 tw-rounded-xl tw-border tw-border-slate-300 tw-bg-white tw-px-3.5 tw-pr-12 tw-text-sm tw-text-slate-900 focus:tw-border-blue-600 focus:tw-outline-none focus:tw-ring-4 focus:tw-ring-blue-100 tw-transition" type="password" id="password" name="password" autocomplete="new-password" required>
+                            <button class="tw-absolute tw-right-0.5 tw-top-1/2 tw-flex tw-h-11 tw-w-11 -tw-translate-y-1/2 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-transparent tw-p-0 tw-text-slate-400 tw-transition hover:tw-bg-slate-100/80 hover:tw-text-slate-700 focus:tw-bg-slate-100 focus:tw-text-slate-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-200" type="button" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false"><span aria-hidden="true"><?php echo $icon('eye'); ?></span></button>
+                        </div>
+                        <small class="tw-mt-1.5 tw-block tw-text-xs tw-text-slate-500">Gunakan minimal 12 karakter.</small>
+                        <?php if (form_error('password')): ?><small class="tw-mt-1.5 tw-block tw-text-xs tw-font-medium tw-text-red-600"><?php echo html_escape(strip_tags(form_error('password'))); ?></small><?php endif; ?>
+                    </div>
+                    <div>
+                        <label for="password_confirmation" class="tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wider tw-text-slate-700 tw-mb-1.5">Konfirmasi password baru</label>
+                        <div class="tw-relative tw-w-full">
+                            <input class="tw-block tw-h-12 tw-w-full tw-min-w-0 tw-rounded-xl tw-border tw-border-slate-300 tw-bg-white tw-px-3.5 tw-pr-12 tw-text-sm tw-text-slate-900 focus:tw-border-blue-600 focus:tw-outline-none focus:tw-ring-4 focus:tw-ring-blue-100 tw-transition" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
+                            <button class="tw-absolute tw-right-0.5 tw-top-1/2 tw-flex tw-h-11 tw-w-11 -tw-translate-y-1/2 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-transparent tw-p-0 tw-text-slate-400 tw-transition hover:tw-bg-slate-100/80 hover:tw-text-slate-700 focus:tw-bg-slate-100 focus:tw-text-slate-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-200" type="button" data-password-toggle="password_confirmation" aria-label="Tampilkan password" aria-pressed="false"><span aria-hidden="true"><?php echo $icon('eye'); ?></span></button>
+                        </div>
+                        <?php if (form_error('password_confirmation')): ?><small class="tw-mt-1.5 tw-block tw-text-xs tw-font-medium tw-text-red-600"><?php echo html_escape(strip_tags(form_error('password_confirmation'))); ?></small><?php endif; ?>
+                    </div>
+                    <div class="tw-pt-2"><button class="tw-button-primary tw-w-full tw-min-h-[44px] tw-text-sm tw-shadow-md tw-shadow-blue-900/10" type="submit">Simpan Password</button></div>
+                <?php echo form_close(); ?>
+
+                <div class="tw-mt-6 tw-text-center"><a class="tw-text-xs tw-font-semibold tw-text-slate-600 hover:tw-text-blue-600 tw-transition" href="<?php echo site_url('auth'); ?>">Kembali ke login</a></div>
+                <div class="tw-mt-8 tw-border-t tw-border-slate-200 tw-pt-5 tw-text-center tw-text-xs tw-text-slate-400">&copy; <?php echo date('Y'); ?> University Internal Audit System. All Rights Reserved.</div>
+            </div>
+        </section>
+    </main>
 <script>
 (function () {
     document.querySelectorAll('[data-password-toggle]').forEach(function (toggle) {

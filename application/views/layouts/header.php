@@ -14,7 +14,6 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo html_escape($title); ?></title>
     <link rel="icon" href="<?php echo html_escape(base_url('favicon.ico')); ?>" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <?php if (isset($active_menu) && $active_menu === 'spmi_dashboard'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-dashboard.css')); ?>">
@@ -30,6 +29,9 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_audits'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-audits.css') . '?v=' . (int) (file_exists(FCPATH . 'assets/css/spmi-audits.css') ? filemtime(FCPATH . 'assets/css/spmi-audits.css') : time())); ?>">
+    <?php endif; ?>
+    <?php if (isset($active_menu) && $active_menu === 'pertanyaan'): ?>
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/pertanyaan.css') . '?v=' . (int) (file_exists(FCPATH . 'assets/css/pertanyaan.css') ? filemtime(FCPATH . 'assets/css/pertanyaan.css') : time())); ?>">
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_reports'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-reports.css')); ?>">
@@ -918,11 +920,11 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
             color: var(--ami-text);
         }
 
-        .ami-content a:not(.btn) {
+        .ami-content a:not(.btn):not([class*="btn"]):not([class*="button"]):not(.ami-action-btn):not(.ppepp-primary-action) {
             color: #4da3ff;
         }
 
-        .ami-content a:not(.btn):hover {
+        .ami-content a:not(.btn):not([class*="btn"]):not([class*="button"]):not(.ami-action-btn):not(.ppepp-primary-action):hover {
             color: #82c0ff;
         }
 
@@ -1072,6 +1074,67 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
             overflow: hidden;
         }
 
+        .ami-alert {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            font-size: 13px;
+        }
+
+        .ami-alert-danger {
+            background: rgba(153, 53, 86, 0.2);
+            color: #ffc0d5;
+        }
+
+        .ami-alert-info {
+            background: #e6f1fb;
+            color: #185fa5;
+        }
+
+        .ami-alert-warning {
+            background: #faeeda;
+            color: #854f0b;
+        }
+
+        .ami-alert-success {
+            background: #eaf3de;
+            color: #315d13;
+        }
+
+        .ami-table-wrap {
+            overflow-x: auto;
+        }
+
+        .ami-muted {
+            color: var(--ami-muted);
+        }
+
+        .ami-font-bold {
+            font-weight: 700;
+        }
+
+        .ami-form-group {
+            margin-bottom: 16px;
+        }
+
+        .ami-form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .ami-form-control {
+            display: block;
+            width: 100%;
+            min-height: 38px;
+            padding: 8px 12px;
+            border: 1px solid #4a4f57;
+            border-radius: 4px;
+            background-color: #191b1f;
+            color: var(--ami-text);
+        }
+
         .ami-panel-body {
             padding: 16px;
         }
@@ -1111,26 +1174,31 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
             color: var(--ami-text);
         }
 
-        .ami-content .form-control {
+        .ami-content .form-control,
+        .ami-content .ami-form-control {
             background-color: #191b1f;
             border-color: #4a4f57;
             color: var(--ami-text);
         }
 
-        .ami-content .form-control:focus {
+        .ami-content .form-control:focus,
+        .ami-content .ami-form-control:focus {
             background-color: #191b1f;
             border-color: #4da3ff;
             color: #ffffff;
             box-shadow: 0 0 0 .2rem rgba(77, 163, 255, 0.18);
         }
 
-        .ami-content .form-control::placeholder {
+        .ami-content .form-control::placeholder,
+        .ami-content .ami-form-control::placeholder {
             color: #858b94;
             opacity: 1;
         }
 
         .ami-content .form-control:disabled,
-        .ami-content .form-control[readonly] {
+        .ami-content .form-control[readonly],
+        .ami-content .ami-form-control:disabled,
+        .ami-content .ami-form-control[readonly] {
             background-color: #25282d;
             color: #c7cbd1;
             opacity: 1;
@@ -1166,15 +1234,22 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
             font-weight: 700;
         }
 
-        .ami-content select.form-control option {
+        .ami-content select.form-control option,
+        .ami-content select.ami-form-control option {
             background: #191b1f;
             color: var(--ami-text);
         }
 
         .ami-content .btn-primary,
         .ami-content .btn-primary:hover,
-        .ami-content .btn-primary:focus {
-            color: #ffffff;
+        .ami-content .btn-primary:focus,
+        .ami-content .btn-primary:visited {
+            color: #ffffff !important;
+        }
+
+        .ami-content .btn-primary svg {
+            color: #ffffff !important;
+            stroke: currentColor;
         }
 
         .ami-status {
@@ -1296,10 +1371,51 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
             color: #ffc0d5;
         }
 
+        .ami-flash-warning {
+            background: rgba(133, 79, 11, 0.16);
+            border: 1px solid rgba(133, 79, 11, 0.30);
+            color: var(--ami-amber);
+        }
+
         .ami-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
+        }
+
+        .ami-grid-4,
+        .ami-grid-2 {
+            display: grid;
+            gap: 16px;
+        }
+
+        .ami-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .ami-grid-2 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+        .ami-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .ami-grid-3-9 { grid-template-columns: minmax(0, 1fr) minmax(0, 3fr); }
+
+        .ami-hidden { display: none !important; }
+        .ami-mb-0 { margin-bottom: 0 !important; }
+        .ami-mb-1 { margin-bottom: 4px !important; }
+        .ami-mb-2 { margin-bottom: 8px !important; }
+        .ami-mb-3 { margin-bottom: 16px !important; }
+        .ami-mt-2 { margin-top: 8px !important; }
+        .ami-mt-3 { margin-top: 16px !important; }
+        .ami-pt-3 { padding-top: 16px !important; }
+        .ami-mr-2 { margin-right: 8px !important; }
+        .ami-flex { display: flex; }
+        .ami-flex-wrap { flex-wrap: wrap; }
+        .ami-align-start { align-items: flex-start; }
+        .ami-align-end { align-items: flex-end; }
+        .ami-justify-between { justify-content: space-between; }
+        .ami-justify-end { justify-content: flex-end; }
+        .ami-inline-block { display: inline-block; }
+
+        @media (max-width: 767px) {
+            .ami-grid-4,
+            .ami-grid-2,
+            .ami-grid-3,
+            .ami-grid-3-9 { grid-template-columns: 1fr; }
         }
 
         .ami-filter-bar {
@@ -1513,11 +1629,11 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
             box-shadow: 0 8px 22px rgba(32, 39, 51, 0.07);
         }
 
-        .ami-content a:not(.btn) {
+        .ami-content a:not(.btn):not([class*="btn"]):not([class*="button"]):not(.ami-action-btn):not(.ppepp-primary-action) {
             color: var(--ami-blue);
         }
 
-        .ami-content a:not(.btn):hover {
+        .ami-content a:not(.btn):not([class*="btn"]):not([class*="button"]):not(.ami-action-btn):not(.ppepp-primary-action):hover {
             color: #0e4a80;
         }
 

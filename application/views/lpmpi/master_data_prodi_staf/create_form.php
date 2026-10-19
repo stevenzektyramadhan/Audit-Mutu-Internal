@@ -29,9 +29,9 @@ include APPPATH . 'views/layouts/sidebar.php';
     .master-create-branch[hidden] { display: none; }
     .master-create-branch legend { color: var(--ami-text); font-size: 15px; font-weight: 700; padding: 0 var(--ami-space-xs); width: auto; margin-bottom: 12px; }
     .master-create-hint { color: var(--ami-muted); display: block; font-size: 12px; line-height: 1.45; margin-top: 5px; }
-    .master-create-root .form-control { height: 44px; border-radius: 8px; border: 1px solid var(--ami-border); font-size: 13.5px; }
-    .master-create-root select.form-control { height: 44px; }
-    .master-create-root .form-control:focus { border-color: var(--ami-link); box-shadow: 0 0 0 .2rem var(--ami-link-soft); outline: none; }
+    .master-create-root .ami-form-control { height: 44px; border-radius: 8px; border: 1px solid var(--ami-border); font-size: 13.5px; }
+    .master-create-root select.ami-form-control { height: 44px; }
+    .master-create-root .ami-form-control:focus { border-color: var(--ami-link); box-shadow: 0 0 0 .2rem var(--ami-link-soft); outline: none; }
     .master-create-status { color: var(--ami-muted); margin: var(--ami-space-sm) 0 0; font-size: 12.5px; font-weight: 500; }
     .master-create-status:focus { outline: 2px solid var(--ami-link); outline-offset: 3px; }
     .master-create-empty-state { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 32px 20px; text-align: center; background: #f8fafc; margin-top: 16px; }
@@ -48,7 +48,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <h2 id="master-create-title" class="ami-section-title mb-1">Tambah Data Organisasi</h2>
                     <p class="master-create-intro">Pilih tipe data terlebih dahulu. Form akan menampilkan field yang sesuai dan mengirim ke workflow yang sudah tersedia.</p>
                 </div>
-                <a class="btn btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-min-h-[44px] tw-px-3.5 tw-py-2 tw-rounded-lg tw-bg-white tw-border tw-border-slate-300 tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900 hover:tw-border-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500/20 focus:tw-border-blue-500 tw-text-sm tw-font-semibold tw-transition-colors tw-w-fit tw-no-underline" href="<?php echo html_escape(site_url($return_url)); ?>">
+                <a class="btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-min-h-[44px] tw-px-3.5 tw-py-2 tw-rounded-lg tw-bg-white tw-border tw-border-slate-300 tw-text-slate-700 hover:tw-bg-slate-50 hover:tw-text-slate-900 hover:tw-border-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500/20 focus:tw-border-blue-500 tw-text-sm tw-font-semibold tw-transition-colors tw-w-fit tw-no-underline" href="<?php echo html_escape(site_url($return_url)); ?>">
                     <svg class="tw-w-[18px] tw-h-[18px] tw-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="m12 19-7-7 7-7"/>
                         <path d="M19 12H5"/>
@@ -57,12 +57,12 @@ include APPPATH . 'views/layouts/sidebar.php';
                 </a>
             </div>
 
-            <?php if (validation_errors()): ?><div class="alert alert-danger" role="alert"><?php echo validation_errors(); ?></div><?php endif; ?>
+             <?php if (validation_errors()): ?><div class="ami-alert ami-alert-danger" role="alert"><?php echo validation_errors(); ?></div><?php endif; ?>
 
             <?php echo form_open($unit_store_action, ['id' => 'master-create-form', 'novalidate' => 'novalidate']); ?>
-                <div class="form-group mb-3">
-                    <label for="entity-type" class="font-weight-bold">Tipe Data</label>
-                    <select class="form-control" id="entity-type" name="entity_type" aria-describedby="entity-type-hint" required>
+                <div class="ami-form-group mb-3">
+                    <label for="entity-type" class="tw-font-bold">Tipe Data</label>
+                    <select class="ami-form-control" id="entity-type" name="entity_type" aria-describedby="entity-type-hint" required>
                         <option value="">Pilih tipe data...</option>
                         <?php foreach ($entity_types as $type => $label): ?><option value="<?php echo html_escape($type); ?>" <?php echo set_select('entity_type', $type, $selected_entity_type === $type); ?>><?php echo html_escape($label); ?></option><?php endforeach; ?>
                     </select>
@@ -72,39 +72,39 @@ include APPPATH . 'views/layouts/sidebar.php';
 
                 <div id="master-create-placeholder" class="master-create-empty-state">
                     <div class="master-create-empty-icon"><i class="fas fa-layer-group" aria-hidden="true"></i></div>
-                    <div class="font-weight-bold text-slate-700 mb-1">Belum Ada Tipe yang Dipilih</div>
-                    <div class="text-muted small">Pilih Fakultas, Biro, Unit, Lembaga, atau Program Studi pada dropdown di atas untuk membuka formulir input.</div>
+                    <div class="tw-font-bold text-slate-700 mb-1">Belum Ada Tipe yang Dipilih</div>
+                    <div class="ami-muted tw-text-xs">Pilih Fakultas, Biro, Unit, Lembaga, atau Program Studi pada dropdown di atas untuk membuka formulir input.</div>
                 </div>
 
                 <fieldset id="generic-branch" class="master-create-branch" hidden disabled>
                     <legend>Data organisasi</legend>
                     <input type="hidden" id="generic-type" name="type" value="<?php echo html_escape(set_value('type', '')); ?>" disabled>
-                    <div class="form-row">
-                        <div class="form-group col-md-4"><label for="unit-code" class="font-weight-bold">Kode Unit</label><input class="form-control" id="unit-code" name="code" maxlength="64" value="<?php echo html_escape(set_value('code')); ?>" required><small class="master-create-hint">Gunakan kode singkat yang unik untuk struktur organisasi.</small></div>
-                        <div class="form-group col-md-8"><label for="unit-name" class="font-weight-bold">Nama Unit</label><input class="form-control" id="unit-name" name="name" maxlength="200" value="<?php echo html_escape(set_value('name')); ?>" required></div>
+                    <div class="tw-flex tw-flex-wrap tw-gap-4">
+                        <div class="ami-form-group tw-w-full md:tw-w-1/3"><label for="unit-code" class="tw-font-bold">Kode Unit</label><input class="ami-form-control" id="unit-code" name="code" maxlength="64" value="<?php echo html_escape(set_value('code')); ?>" required><small class="master-create-hint">Gunakan kode singkat yang unik untuk struktur organisasi.</small></div>
+                        <div class="ami-form-group tw-w-full md:tw-w-2/3"><label for="unit-name" class="tw-font-bold">Nama Unit</label><input class="ami-form-control" id="unit-name" name="name" maxlength="200" value="<?php echo html_escape(set_value('name')); ?>" required></div>
                     </div>
-                    <div class="form-group mb-0"><label for="unit-parent" class="font-weight-bold">Parent Unit</label><select class="form-control" id="unit-parent" name="parent_id" required><option value="">Pilih parent aktif...</option><?php foreach ($units as $parent): ?><?php $parent_type = (string) (isset($parent->type) ? $parent->type : ''); $valid_parent = isset($parent_types[$parent_type]) && (int) $parent->is_active === 1; ?><?php if ($valid_parent): ?><option value="<?php echo (int) $parent->id; ?>" data-parent-type="<?php echo html_escape($parent_type); ?>" <?php echo set_select('parent_id', $parent->id, (string) $selected_parent === (string) $parent->id); ?>><?php echo html_escape($parent_types[$parent_type] . ' — ' . $parent->code . ' — ' . $parent->name); ?></option><?php endif; ?><?php endforeach; ?></select><small id="unit-parent-hint" class="master-create-hint">Pilih parent aktif sesuai tipe organisasi.</small></div>
+                    <div class="ami-form-group mb-0"><label for="unit-parent" class="tw-font-bold">Parent Unit</label><select class="ami-form-control" id="unit-parent" name="parent_id" required><option value="">Pilih parent aktif...</option><?php foreach ($units as $parent): ?><?php $parent_type = (string) (isset($parent->type) ? $parent->type : ''); $valid_parent = isset($parent_types[$parent_type]) && (int) $parent->is_active === 1; ?><?php if ($valid_parent): ?><option value="<?php echo (int) $parent->id; ?>" data-parent-type="<?php echo html_escape($parent_type); ?>" <?php echo set_select('parent_id', $parent->id, (string) $selected_parent === (string) $parent->id); ?>><?php echo html_escape($parent_types[$parent_type] . ' — ' . $parent->code . ' — ' . $parent->name); ?></option><?php endif; ?><?php endforeach; ?></select><small id="unit-parent-hint" class="master-create-hint">Pilih parent aktif sesuai tipe organisasi.</small></div>
                 </fieldset>
 
                 <fieldset id="prodi-branch" class="master-create-branch" hidden disabled>
                     <legend>Data Program Studi</legend>
                     <input type="hidden" name="require_faculty" value="1" disabled>
-                    <div class="form-row">
-                        <div class="form-group col-md-4"><label for="kode-prodi" class="font-weight-bold">Kode Prodi</label><input type="text" class="form-control" id="kode-prodi" name="kode_prodi" maxlength="20" value="<?php echo html_escape(set_value('kode_prodi')); ?>" required></div>
-                        <div class="form-group col-md-8"><label for="nama-prodi" class="font-weight-bold">Nama Program Studi</label><input type="text" class="form-control" id="nama-prodi" name="nama_prodi" maxlength="200" value="<?php echo html_escape(set_value('nama_prodi')); ?>" required></div>
+                    <div class="tw-flex tw-flex-wrap tw-gap-4">
+                        <div class="ami-form-group tw-w-full md:tw-w-1/3"><label for="kode-prodi" class="tw-font-bold">Kode Prodi</label><input type="text" class="ami-form-control" id="kode-prodi" name="kode_prodi" maxlength="20" value="<?php echo html_escape(set_value('kode_prodi')); ?>" required></div>
+                        <div class="ami-form-group tw-w-full md:tw-w-2/3"><label for="nama-prodi" class="tw-font-bold">Nama Program Studi</label><input type="text" class="ami-form-control" id="nama-prodi" name="nama_prodi" maxlength="200" value="<?php echo html_escape(set_value('nama_prodi')); ?>" required></div>
                     </div>
-                    <div class="form-group"><label for="prodi-faculty" class="font-weight-bold">Fakultas</label><select class="form-control" id="prodi-faculty" name="faculty_id" required><option value="">Pilih Fakultas aktif...</option><?php foreach ($faculties as $faculty): ?><option value="<?php echo (int) $faculty->id; ?>" <?php echo set_select('faculty_id', $faculty->id); ?>><?php echo html_escape($faculty->code . ' — ' . $faculty->name); ?></option><?php endforeach; ?></select><small class="master-create-hint">Pilih Fakultas secara eksplisit sebagai parent Program Studi.</small></div>
-                    <div class="form-row">
-                        <div class="form-group col-md-4"><label for="prodi-status" class="font-weight-bold">Status</label><input type="text" class="form-control" id="prodi-status" name="status" maxlength="50" value="<?php echo html_escape(set_value('status')); ?>" placeholder="Contoh: Aktif"></div>
-                        <div class="form-group col-md-4"><label for="prodi-jenjang" class="font-weight-bold">Jenjang</label><input type="text" class="form-control" id="prodi-jenjang" name="jenjang" maxlength="20" value="<?php echo html_escape(set_value('jenjang')); ?>" placeholder="Contoh: D3, S1, S2" required></div>
-                        <div class="form-group col-md-4"><label for="prodi-akreditasi" class="font-weight-bold">Akreditasi</label><input type="text" class="form-control" id="prodi-akreditasi" name="akreditasi" maxlength="50" value="<?php echo html_escape(set_value('akreditasi')); ?>"></div>
+                    <div class="ami-form-group"><label for="prodi-faculty" class="tw-font-bold">Fakultas</label><select class="ami-form-control" id="prodi-faculty" name="faculty_id" required><option value="">Pilih Fakultas aktif...</option><?php foreach ($faculties as $faculty): ?><option value="<?php echo (int) $faculty->id; ?>" <?php echo set_select('faculty_id', $faculty->id); ?>><?php echo html_escape($faculty->code . ' — ' . $faculty->name); ?></option><?php endforeach; ?></select><small class="master-create-hint">Pilih Fakultas secara eksplisit sebagai parent Program Studi.</small></div>
+                    <div class="tw-flex tw-flex-wrap tw-gap-4">
+                        <div class="ami-form-group tw-w-full md:tw-w-1/3"><label for="prodi-status" class="tw-font-bold">Status</label><input type="text" class="ami-form-control" id="prodi-status" name="status" maxlength="50" value="<?php echo html_escape(set_value('status')); ?>" placeholder="Contoh: Aktif"></div>
+                        <div class="ami-form-group tw-w-full md:tw-w-1/3"><label for="prodi-jenjang" class="tw-font-bold">Jenjang</label><input type="text" class="ami-form-control" id="prodi-jenjang" name="jenjang" maxlength="20" value="<?php echo html_escape(set_value('jenjang')); ?>" placeholder="Contoh: D3, S1, S2" required></div>
+                        <div class="ami-form-group tw-w-full md:tw-w-1/3"><label for="prodi-akreditasi" class="tw-font-bold">Akreditasi</label><input type="text" class="ami-form-control" id="prodi-akreditasi" name="akreditasi" maxlength="50" value="<?php echo html_escape(set_value('akreditasi')); ?>"></div>
                     </div>
-                    <div class="form-row mb-0"><div class="form-group col-md-6"><label for="tanggal-sk-akreditasi" class="font-weight-bold">Tanggal SK Akreditasi</label><input type="date" class="form-control" id="tanggal-sk-akreditasi" name="tanggal_sk_akreditasi" value="<?php echo html_escape(set_value('tanggal_sk_akreditasi')); ?>"></div><div class="form-group col-md-6"><label for="rasio-dosen-mahasiswa" class="font-weight-bold">Rasio Dosen/Mahasiswa</label><input type="text" class="form-control" id="rasio-dosen-mahasiswa" name="rasio_dosen_mahasiswa" maxlength="20" value="<?php echo html_escape(set_value('rasio_dosen_mahasiswa')); ?>"></div></div>
+                    <div class="tw-flex tw-flex-wrap tw-gap-4 mb-0"><div class="ami-form-group tw-w-full md:tw-w-1/2"><label for="tanggal-sk-akreditasi" class="tw-font-bold">Tanggal SK Akreditasi</label><input type="date" class="ami-form-control" id="tanggal-sk-akreditasi" name="tanggal_sk_akreditasi" value="<?php echo html_escape(set_value('tanggal_sk_akreditasi')); ?>"></div><div class="ami-form-group tw-w-full md:tw-w-1/2"><label for="rasio-dosen-mahasiswa" class="tw-font-bold">Rasio Dosen/Mahasiswa</label><input type="text" class="ami-form-control" id="rasio-dosen-mahasiswa" name="rasio_dosen_mahasiswa" maxlength="20" value="<?php echo html_escape(set_value('rasio_dosen_mahasiswa')); ?>"></div></div>
                 </fieldset>
 
-                <div class="d-flex justify-content-end flex-wrap mt-4" style="gap: var(--ami-space-sm);"><a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Batal</a><button id="master-create-submit" type="submit" class="btn btn-primary btn-ami" disabled>Simpan Data</button></div>
+                <div class="tw-flex tw-justify-end tw-flex-wrap mt-4" style="gap: var(--ami-space-sm);"><a class="btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Batal</a><button id="master-create-submit" type="submit" class="tw-button-primary btn-ami" disabled>Simpan Data</button></div>
             <?php echo form_close(); ?>
-            <noscript><div class="alert alert-warning mt-3" role="alert">Aktifkan JavaScript untuk memilih tipe data dan mengaktifkan field yang sesuai.</div></noscript>
+             <noscript><div class="ami-alert ami-alert-warning" role="alert">Aktifkan JavaScript untuk memilih tipe data dan mengaktifkan field yang sesuai.</div></noscript>
         </div>
     </section>
 </main>

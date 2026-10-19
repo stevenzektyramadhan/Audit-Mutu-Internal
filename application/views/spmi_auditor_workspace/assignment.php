@@ -21,7 +21,7 @@ $icon = static function ($name) {
         'rotate-ccw' => '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
         'trash' => '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
     ];
-    return '<svg class="aud-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file']) . '</svg>';
+    return '<svg class="aud-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file']) . '</svg>';
 };
 ?>
 <main id="auditor-root" data-ui-contract="ami-row-actions ami-action-btn" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
@@ -67,11 +67,11 @@ $icon = static function ($name) {
                 <!-- Quick Action Buttons -->
                 <?php if (!$readonly): ?>
                     <div class="tw-flex tw-items-center tw-gap-2.5 tw-flex-shrink-0">
-                        <button type="submit" form="assessment-batch-form" class="btn btn-primary btn-ami tw-button-secondary tw-text-xs">
+                        <button type="submit" form="assessment-batch-form" class="tw-button-primary btn-ami tw-button-secondary tw-text-xs">
                             <?php echo $icon('save'); ?>
                             <span>Simpan draft</span>
                         </button>
-                        <button type="submit" form="assessment-batch-form" formaction="<?php echo site_url('auditor/spmi/assignment/' . (int) $assignment->id . '/finalize'); ?>" onclick="return confirm('Apakah Anda yakin ingin memfinalisasi penilaian ini? Seluruh skor dan temuan akan dikunci permanen untuk Laporan SPMI.');" class="btn btn-primary btn-ami tw-button-primary tw-text-xs">
+                        <button type="submit" form="assessment-batch-form" formaction="<?php echo site_url('auditor/spmi/assignment/' . (int) $assignment->id . '/finalize'); ?>" onclick="return confirm('Apakah Anda yakin ingin memfinalisasi penilaian ini? Seluruh skor dan temuan akan dikunci permanen untuk Laporan SPMI.');" class="tw-button-primary btn-ami tw-button-primary tw-text-xs">
                             <?php echo $icon('check'); ?>
                             <span>Finalisasi</span>
                         </button>
@@ -128,7 +128,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                         <?php if (!$readonly): ?>
                             <div class="tw-flex tw-items-center tw-gap-2">
                                 <span role="status" aria-live="polite" data-autosave-status class="tw-text-xs tw-text-slate-500"></span>
-                                <button type="button" class="btn btn-outline-ami btn-ami tw-button-secondary tw-text-xs tw-py-1 tw-px-2.5" data-autosave-item="<?php echo (int) ($item->assessment ? $item->assessment->id : 0); ?>">
+                                <button type="button" class="btn-outline-ami btn-ami tw-button-secondary tw-text-xs tw-py-1 tw-px-2.5" data-autosave-item="<?php echo (int) ($item->assessment ? $item->assessment->id : 0); ?>">
                                     <span>Simpan item</span>
                                 </button>
                             </div>
@@ -347,7 +347,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                                                         <input type="hidden" name="source_submission_version" value="<?php echo html_escape((string) $assignment->submission_version); ?>">
                                                     <?php echo form_close(); ?>
                                                     <?php $delete_forms[] = ob_get_clean(); ?>
-                                                    <button type="submit" form="<?php echo $delete_form_id; ?>" class="btn btn-ami ami-action-btn danger tw-text-[11px] tw-text-red-600 hover:tw-underline tw-bg-transparent tw-border-0 tw-p-0">
+                                                    <button type="submit" form="<?php echo $delete_form_id; ?>" class="btn-ami ami-action-btn danger tw-text-[11px] tw-text-red-600 hover:tw-underline tw-bg-transparent tw-border-0 tw-p-0">
                                                         Hapus
                                                     </button>
                                                 <?php endif; ?>
@@ -380,11 +380,11 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
         <!-- Global Bottom Actions -->
         <?php if (!$readonly): ?>
             <div class="tw-mt-8 tw-flex tw-items-center tw-justify-end tw-gap-3">
-                <button type="submit" class="btn btn-primary btn-ami tw-button-secondary">
+                <button type="submit" class="tw-button-primary btn-ami tw-button-secondary">
                     <?php echo $icon('save'); ?>
                     <span>Simpan draft</span>
                 </button>
-                <button type="submit" class="btn btn-primary btn-ami tw-button-primary" formaction="<?php echo site_url('auditor/spmi/assignment/' . (int) $assignment->id . '/finalize'); ?>" onclick="return confirm('Apakah Anda yakin ingin memfinalisasi penilaian ini? Seluruh skor dan temuan akan dikunci permanen untuk Laporan SPMI.');">
+                <button type="submit" class="tw-button-primary btn-ami tw-button-primary" formaction="<?php echo site_url('auditor/spmi/assignment/' . (int) $assignment->id . '/finalize'); ?>" onclick="return confirm('Apakah Anda yakin ingin memfinalisasi penilaian ini? Seluruh skor dan temuan akan dikunci permanen untuk Laporan SPMI.');">
                     <?php echo $icon('check'); ?>
                     <span>Finalisasi</span>
                 </button>
@@ -478,7 +478,7 @@ Butir #<?php echo html_escape((string) $item->display_order); ?>: <?php echo htm
                         <textarea class="tw-w-full tw-rounded-lg tw-border tw-border-amber-300 tw-bg-white tw-p-3 tw-text-xs tw-text-slate-900 focus:tw-border-amber-600 focus:tw-outline-none" id="revision-reason" name="reason" rows="3" placeholder="Tuliskan catatan detail dan bagian bukti yang harus diperbaiki oleh auditi..." required></textarea>
                     </div>
                     <div class="tw-flex tw-justify-end">
-                        <button type="submit" class="btn btn-ami ami-action-btn danger tw-button-danger tw-text-xs">
+                        <button type="submit" class="btn-ami ami-action-btn danger tw-button-danger tw-text-xs">
                             <?php echo $icon('rotate-ccw'); ?>
                             <span>Kembalikan untuk revisi</span>
                         </button>

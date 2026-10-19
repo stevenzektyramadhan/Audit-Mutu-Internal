@@ -32,7 +32,7 @@ $icon = static function ($name) {
         'check' => '<polyline points="20 6 9 17 4 12"/>',
         'clock' => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
     ];
-    return '<svg class="org-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['sitemap']) . '</svg>';
+    return '<svg class="org-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['sitemap']) . '</svg>';
 };
 
 $type_labels = [
@@ -61,7 +61,7 @@ function render_organization_units($parent_key, $children, $counts, $can_manage,
                 'check' => '<polyline points="20 6 9 17 4 12"/>',
                 'clock' => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
             ];
-            return '<svg class="org-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['sitemap']) . '</svg>';
+            return '<svg class="org-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['sitemap']) . '</svg>';
         };
     }
     if ($type_labels === NULL) {
@@ -86,12 +86,12 @@ function render_organization_units($parent_key, $children, $counts, $can_manage,
         $unit_count = (int) (isset($counts[$unit->id]) ? $counts[$unit->id] : 0);
         $type_label = isset($type_labels[$unit->type]) ? $type_labels[$unit->type] : $unit->type;
 
-        echo '<div class="org-tree-node ' . (!$is_active ? 'is-inactive' : '') . '">';
+        echo '<div class="org-tree-node' . (!$is_active ? 'is-inactive' : '') . '">';
         echo '  <div class="tw-flex tw-items-center tw-gap-3 tw-flex-wrap">';
         echo '    <span class="tw-font-bold text-dark tw-text-base">' . html_escape($unit->name) . '</span>';
         echo '    <span class="org-muted tw-text-xs tw-font-mono tw-bg-slate-100 tw-px-2 tw-py-0.5 tw-rounded">' . html_escape($unit->code) . '</span>';
         echo '    <span class="org-badge org-badge-type">' . html_escape($type_label) . '</span>';
-        echo '    <span class="org-badge ' . ($is_active ? 'org-badge-active' : 'org-badge-inactive') . '">' . ($is_active ? 'Aktif' : 'Nonaktif') . '</span>';
+        echo '    <span class="org-badge' . ($is_active ? 'org-badge-active' : 'org-badge-inactive') . '">' . ($is_active ? 'Aktif' : 'Nonaktif') . '</span>';
         echo '    <span class="org-muted tw-text-xs tw-inline-flex tw-items-center tw-gap-1">' . $icon('users') . ' ' . $unit_count . ' penempatan</span>';
         echo '  </div>';
 
@@ -107,7 +107,7 @@ function render_organization_units($parent_key, $children, $counts, $can_manage,
                 echo        $icon('edit') . ' <span>Edit</span>';
                 echo '    </a>';
                 echo form_open('lpmpi/organization/unit/toggle/' . (int) $unit->id, ['class' => 'tw-inline']);
-                echo '      <button class="org-action-btn ' . ($is_active ? 'warning' : 'tw-text-emerald-700 hover:tw-bg-emerald-50') . '" type="submit" title="' . ($is_active ? 'Nonaktifkan unit' : 'Aktifkan unit') . '">';
+                echo '      <button class="org-action-btn' . ($is_active ? 'warning' : 'tw-text-emerald-700 hover:tw-bg-emerald-50') . '" type="submit" title="' . ($is_active ? 'Nonaktifkan unit' : 'Aktifkan unit') . '">';
                 echo          ($is_active ? $icon('toggle-on') : $icon('toggle-off')) . ' <span>' . ($is_active ? 'Nonaktifkan' : 'Aktifkan') . '</span>';
                 echo '      </button>';
                 echo form_close();
@@ -150,21 +150,21 @@ $current_tab = isset($active_tab) && in_array($active_tab, ['structure', 'assign
 
     <!-- Navigation Tabs -->
     <div class="org-tabs" role="tablist">
-        <button type="button" class="org-tab-button <?php echo $current_tab === 'structure' ? 'is-active' : ''; ?>" data-org-tab="structure" role="tab" aria-selected="<?php echo $current_tab === 'structure' ? 'true' : 'false'; ?>" aria-controls="tab-structure">
+        <button type="button" class="org-tab-button <?php echo $current_tab ==='structure' ? 'is-active' : ''; ?>" data-org-tab="structure" role="tab" aria-selected="<?php echo $current_tab === 'structure' ? 'true' : 'false'; ?>" aria-controls="tab-structure">
             <?php echo $icon('sitemap'); ?> Struktur Unit
         </button>
-        <button type="button" class="org-tab-button <?php echo $current_tab === 'assignments' ? 'is-active' : ''; ?>" data-org-tab="assignments" role="tab" aria-selected="<?php echo $current_tab === 'assignments' ? 'true' : 'false'; ?>" aria-controls="tab-assignments">
+        <button type="button" class="org-tab-button <?php echo $current_tab ==='assignments' ? 'is-active' : ''; ?>" data-org-tab="assignments" role="tab" aria-selected="<?php echo $current_tab === 'assignments' ? 'true' : 'false'; ?>" aria-controls="tab-assignments">
             <?php echo $icon('users'); ?> Penempatan (<?php echo count($assignments); ?>)
         </button>
         <?php if ($can_view_capabilities): ?>
-            <button type="button" class="org-tab-button <?php echo $current_tab === 'access' ? 'is-active' : ''; ?>" data-org-tab="access" role="tab" aria-selected="<?php echo $current_tab === 'access' ? 'true' : 'false'; ?>" aria-controls="tab-access">
+            <button type="button" class="org-tab-button <?php echo $current_tab ==='access' ? 'is-active' : ''; ?>" data-org-tab="access" role="tab" aria-selected="<?php echo $current_tab === 'access' ? 'true' : 'false'; ?>" aria-controls="tab-access">
                 <?php echo $icon('shield'); ?> Hak Akses Organisasi
             </button>
         <?php endif; ?>
     </div>
 
     <!-- TAB 1: Struktur Unit -->
-    <div id="tab-structure" class="org-tab-pane <?php echo $current_tab === 'structure' ? '' : 'tw-hidden'; ?>" role="tabpanel">
+    <div id="tab-structure" class="org-tab-pane <?php echo $current_tab ==='structure' ? '' : 'tw-hidden'; ?>" role="tabpanel">
         <section class="org-surface">
             <div class="org-surface-body">
                 <div class="tw-flex tw-items-center tw-justify-between tw-mb-4 tw-flex-wrap tw-gap-2">
@@ -190,7 +190,7 @@ $current_tab = isset($active_tab) && in_array($active_tab, ['structure', 'assign
     </div>
 
     <!-- TAB 2: Penempatan -->
-    <div id="tab-assignments" class="org-tab-pane <?php echo $current_tab === 'assignments' ? '' : 'tw-hidden'; ?>" role="tabpanel">
+    <div id="tab-assignments" class="org-tab-pane <?php echo $current_tab ==='assignments' ? '' : 'tw-hidden'; ?>" role="tabpanel">
         <section class="org-surface">
             <div class="org-surface-body">
                 <div class="tw-flex tw-items-center tw-justify-between tw-mb-4 tw-flex-wrap tw-gap-2">
@@ -285,7 +285,7 @@ $current_tab = isset($active_tab) && in_array($active_tab, ['structure', 'assign
 
     <!-- TAB 3: Hak Akses Organisasi -->
     <?php if ($can_view_capabilities): ?>
-        <div id="tab-access" class="org-tab-pane <?php echo $current_tab === 'access' ? '' : 'tw-hidden'; ?>" role="tabpanel">
+        <div id="tab-access" class="org-tab-pane <?php echo $current_tab ==='access' ? '' : 'tw-hidden'; ?>" role="tabpanel">
             <section class="org-surface">
                 <div class="org-surface-body">
                     <div class="tw-mb-4">

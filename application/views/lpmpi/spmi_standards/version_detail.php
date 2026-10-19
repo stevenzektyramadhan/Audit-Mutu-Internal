@@ -19,7 +19,7 @@ $icon = static function ($name) {
         'file-text' => '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>',
         'external-link' => '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>',
     ];
-    return '<svg class="std-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file-text']) . '</svg>';
+    return '<svg class="std-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file-text']) . '</svg>';
 };
 
 // Siapkan data indikator & target untuk setiap standar
@@ -205,7 +205,7 @@ if (!empty($standards)) {
                                             <div class="tw-flex tw-flex-col lg:tw-flex-row lg:tw-items-start lg:tw-justify-between tw-gap-3">
                                                 <div class="tw-space-y-1.5 tw-flex-1">
                                                     <div class="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
-                                                        <span class="tw-text-xs tw-font-bold tw-px-2 tw-py-0.5 tw-rounded <?php echo $is_iku ? 'tw-bg-blue-100 tw-text-blue-800' : 'tw-bg-purple-100 tw-text-purple-800'; ?>">
+                                                        <span class="tw-text-xs tw-font-bold tw-px-2 tw-py-0.5 tw-rounded <?php echo $is_iku ?'tw-bg-blue-100 tw-text-blue-800' : 'tw-bg-purple-100 tw-text-purple-800'; ?>">
                                                             <?php echo html_escape($type); ?>
                                                         </span>
                                                         <span class="tw-font-mono tw-font-bold tw-text-xs tw-text-slate-700">

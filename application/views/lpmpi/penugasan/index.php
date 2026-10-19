@@ -13,8 +13,8 @@ $status_labels = [
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0">Penugasan Auditor</h2>
+        <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
+            <h2 class="ami-section-title tw-m-0">Penugasan Auditor</h2>
             <a class="btn-ami btn-outline-ami" href="<?php echo site_url('lpmpi/penugasan/create'); ?>">
                 <i class="fas fa-plus"></i> Buat Tugas Baru
             </a>
@@ -23,7 +23,7 @@ $status_labels = [
         <?php echo form_open('lpmpi/penugasan', ['method' => 'get', 'class' => 'ami-filter-bar']); ?>
             <div class="ami-filter-select">
                 <label class="ami-stat-label" for="periode_id">Periode</label>
-                <select class="form-control" id="periode_id" name="periode_id">
+                <select class="ami-form-control" id="periode_id" name="periode_id">
                     <option value="0">Semua periode</option>
                     <?php foreach ($periode_list as $periode): ?>
                         <option value="<?php echo (int) $periode->id; ?>" <?php echo (int) $filters['periode_id'] === (int) $periode->id ? 'selected' : ''; ?>>
@@ -34,7 +34,7 @@ $status_labels = [
             </div>
             <div class="ami-filter-select">
                 <label class="ami-stat-label" for="standar_id">Standar</label>
-                <select class="form-control" id="standar_id" name="standar_id">
+                <select class="ami-form-control" id="standar_id" name="standar_id">
                     <option value="0">Semua standar</option>
                     <?php foreach ($standar_list as $standar): ?>
                         <option value="<?php echo (int) $standar->id; ?>" <?php echo (int) $filters['standar_id'] === (int) $standar->id ? 'selected' : ''; ?>>
@@ -45,7 +45,7 @@ $status_labels = [
             </div>
             <div class="ami-filter-select">
                 <label class="ami-stat-label" for="auditee_id">Auditee</label>
-                <select class="form-control" id="auditee_id" name="auditee_id">
+                <select class="ami-form-control" id="auditee_id" name="auditee_id">
                     <option value="0">Semua auditee</option>
                     <?php foreach ($auditee_list as $auditee): ?>
                         <option value="<?php echo (int) $auditee->id; ?>" <?php echo (int) $filters['auditee_id'] === (int) $auditee->id ? 'selected' : ''; ?>>
@@ -62,8 +62,8 @@ $status_labels = [
             </a>
         <?php echo form_close(); ?>
 
-        <div class="table-responsive">
-            <table class="table ami-table">
+        <div class="tw-overflow-x-auto">
+            <table class="ami-table">
                 <thead>
                 <tr>
                     <th>#</th>
@@ -87,7 +87,7 @@ $status_labels = [
                             <td>
                                 <div><?php echo html_escape($row->auditee_nama ?? '-'); ?></div>
                                 <?php if (!empty($row->auditee_unit)): ?>
-                                    <div class="text-muted" style="font-size: 12px;"><?php echo html_escape($row->auditee_unit); ?></div>
+                                    <div class="tw-text-slate-500 tw-text-xs"><?php echo html_escape($row->auditee_unit); ?></div>
                                 <?php endif; ?>
                             </td>
                             <td>
@@ -100,7 +100,7 @@ $status_labels = [
                                     <a href="<?php echo site_url('tugas_audit/show/' . (int) $row->id); ?>" class="ami-action-btn" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <?php echo form_open('lpmpi/penugasan/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Hapus penugasan ini beserta seluruh jawaban auditnya?');"]); ?>
+                                    <?php echo form_open('lpmpi/penugasan/delete/' . (int) $row->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus penugasan ini beserta seluruh jawaban auditnya?');"]); ?>
                                         <button type="submit" class="ami-action-btn danger" title="Hapus">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>

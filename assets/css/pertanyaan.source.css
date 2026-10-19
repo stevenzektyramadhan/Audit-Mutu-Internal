@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#pertanyaan-root .ami-import-modal {
+    max-width: 100%;
+}

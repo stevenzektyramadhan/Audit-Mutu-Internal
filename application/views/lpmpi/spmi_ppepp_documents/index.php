@@ -63,7 +63,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <h1 class="tw-text-xl md:tw-text-2xl tw-font-bold tw-text-slate-900 tw-tracking-tight tw-m-0 ami-section-title">
                             Dokumen <?php echo html_escape($ppepp_stage_label); ?>
                         </h1>
-                        <p class="tw-text-xs md:tw-text-sm tw-text-slate-500 tw-m-0 tw-mt-0.5 text-muted">
+                        <p class="tw-text-xs md:tw-text-sm tw-text-slate-500 tw-m-0 tw-mt-0.5 tw-text-slate-500">
                             <?php echo html_escape($stage_description); ?>
                         </p>
                     </div>
@@ -71,7 +71,7 @@ include APPPATH . 'views/layouts/sidebar.php';
             </div>
 
             <div class="tw-flex tw-items-center tw-w-full sm:tw-w-auto sm:tw-flex-shrink-0">
-                <a class="btn ppepp-primary-action tw-w-full sm:tw-w-auto" href="<?php echo html_escape(site_url('lpmpi/spmi-ppepp-documents/create') . $query); ?>">
+                <a class="ppepp-primary-action tw-w-full sm:tw-w-auto" href="<?php echo html_escape(site_url('lpmpi/spmi-ppepp-documents/create') . $query); ?>">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -102,8 +102,8 @@ include APPPATH . 'views/layouts/sidebar.php';
                     $total_core = count($checklist_categories);
                     $pct = $total_core > 0 ? round(($complete_count / $total_core) * 100) : 0;
                     ?>
-                    <span class="tw-inline-flex tw-items-center tw-gap-1.5 tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-semibold <?php echo $pct === 100 ? 'tw-bg-emerald-50 tw-text-emerald-700 tw-border tw-border-emerald-200' : 'tw-bg-amber-50 tw-text-amber-700 tw-border tw-border-amber-200'; ?>">
-                        <span class="tw-w-1.5 tw-h-1.5 tw-rounded-full <?php echo $pct === 100 ? 'tw-bg-emerald-500' : 'tw-bg-amber-500'; ?>"></span>
+                    <span class="tw-inline-flex tw-items-center tw-gap-1.5 tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-semibold <?php echo $pct === 100 ?'tw-bg-emerald-50 tw-text-emerald-700 tw-border tw-border-emerald-200' : 'tw-bg-amber-50 tw-text-amber-700 tw-border tw-border-amber-200'; ?>">
+                        <span class="tw-w-1.5 tw-h-1.5 tw-rounded-full <?php echo $pct === 100 ?'tw-bg-emerald-500' : 'tw-bg-amber-500'; ?>"></span>
                         <?php echo $complete_count; ?>/<?php echo $total_core; ?> Pilar Lengkap (<?php echo $pct; ?>%)
                     </span>
                     <span class="tw-inline-flex tw-items-center tw-px-2.5 tw-py-1 tw-rounded-md tw-bg-slate-100 tw-text-slate-600 tw-text-xs tw-font-semibold tw-border tw-border-slate-200">
@@ -119,18 +119,18 @@ include APPPATH . 'views/layouts/sidebar.php';
                     $category_label = isset($stage_categories[$category_key]) ? $stage_categories[$category_key] : $category_key;
                     $is_ready = $category_count > 0;
                     ?>
-                    <div class="ppepp-checklist-card tw-rounded-lg tw-border <?php echo $is_ready ? 'tw-border-emerald-200/90 tw-bg-emerald-50/30' : 'tw-border-slate-200 tw-bg-slate-50/50'; ?> tw-p-3.5 tw-flex tw-flex-col tw-justify-between tw-gap-2.5">
+                    <div class="ppepp-checklist-card tw-rounded-lg tw-border <?php echo $is_ready ?'tw-border-emerald-200/90 tw-bg-emerald-50/30' : 'tw-border-slate-200 tw-bg-slate-50/50'; ?> tw-p-3.5 tw-flex tw-flex-col tw-justify-between tw-gap-2.5">
                         <div class="tw-flex tw-items-start tw-justify-between tw-gap-2">
                             <span class="tw-text-xs tw-font-semibold tw-text-slate-800 tw-line-clamp-2"><?php echo html_escape($category_label); ?></span>
                             <?php if ($is_ready): ?>
-                                <svg class="tw-w-4 tw-h-4 tw-text-emerald-600 tw-flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                <svg class="tw-w-4 tw-h-4 tw-text-emerald-600 tw-flex-shrink-0" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                             <?php else: ?>
-                                <svg class="tw-w-4 tw-h-4 tw-text-slate-400 tw-flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01" /></svg>
+                                <svg class="tw-w-4 tw-h-4 tw-text-slate-400 tw-flex-shrink-0" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01" /></svg>
                             <?php endif; ?>
                         </div>
                         <div class="ppepp-checklist-card-inner tw-flex tw-items-center tw-justify-between">
                             <span class="tw-text-[11px] tw-text-slate-500">Status arsip:</span>
-                            <span class="badge <?php echo $is_ready ? 'badge-success tw-bg-emerald-100 tw-text-emerald-800 tw-border-emerald-200' : 'badge-secondary tw-bg-slate-200 tw-text-slate-600 tw-border-slate-300'; ?> tw-text-[11px] tw-px-2 tw-py-0.5 tw-rounded tw-font-medium">
+                            <span class="badge <?php echo $is_ready ?'badge-success tw-bg-emerald-100 tw-text-emerald-800 tw-border-emerald-200' : 'badge-secondary tw-bg-slate-200 tw-text-slate-600 tw-border-slate-300'; ?> tw-text-[11px] tw-px-2 tw-py-0.5 tw-rounded tw-font-medium">
                                 <?php echo html_escape($category_count > 0 ? (string) $category_count . ' dokumen' : 'Belum ada'); ?>
                             </span>
                         </div>
@@ -143,7 +143,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         <!-- Pelaksanaan Operational Overview Banner -->
         <div class="tw-bg-emerald-50/60 tw-rounded-xl tw-border tw-border-emerald-200/80 tw-p-4 tw-flex tw-items-center tw-gap-3.5">
             <div class="tw-w-9 tw-h-9 tw-rounded-lg tw-bg-emerald-100 tw-text-emerald-700 tw-flex tw-items-center tw-justify-center tw-flex-shrink-0">
-                <svg class="tw-w-5 tw-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <svg class="tw-w-5 tw-h-5" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <div class="tw-text-xs md:tw-text-sm tw-text-emerald-900">
                 <span class="tw-font-bold">Tahap Pelaksanaan:</span> Bukti keterlaksanaan standar SPMI (Laporan Pelaksanaan, Notula, Bukti Kegiatan, dsb.) diarsipkan di sini untuk kemudian dievaluasi pada saat Audit Mutu Internal (AMI).
@@ -154,7 +154,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         <!-- Pengendalian Root Cause / Corrective Action Banner -->
         <div class="tw-bg-amber-50/70 tw-rounded-xl tw-border tw-border-amber-200/90 tw-p-4 tw-flex tw-items-center tw-gap-3.5">
             <div class="tw-w-9 tw-h-9 tw-rounded-lg tw-bg-amber-100 tw-text-amber-800 tw-flex tw-items-center tw-justify-center tw-flex-shrink-0">
-                <svg class="tw-w-5 tw-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                <svg class="tw-w-5 tw-h-5" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 1.732 3z" /></svg>
             </div>
             <div class="tw-text-xs md:tw-text-sm tw-text-amber-900">
                 <span class="tw-font-bold">Tahap Pengendalian Mutu:</span> Mengarsipkan dokumen analisis ketidaktercapaian indikator/standar serta rumusan tindakan koreksi pencegahan deviasi mutu sebelum masuk ke peningkatan.
@@ -165,7 +165,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         <!-- Peningkatan CQI Banner -->
         <div class="tw-bg-indigo-50/60 tw-rounded-xl tw-border tw-border-indigo-200/80 tw-p-4 tw-flex tw-items-center tw-gap-3.5">
             <div class="tw-w-9 tw-h-9 tw-rounded-lg tw-bg-indigo-100 tw-text-indigo-800 tw-flex tw-items-center tw-justify-center tw-flex-shrink-0">
-                <svg class="tw-w-5 tw-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                <svg width="20" height="20" class="tw-w-5 tw-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
             </div>
             <div class="tw-text-xs md:tw-text-sm tw-text-indigo-900">
                 <span class="tw-font-bold">Tahap Peningkatan (Continuous Quality Improvement):</span> Mengarsipkan rekomendasi peningkatan dan penetapan standar yang ditingkatkan/dinaikkan standarnya untuk menjadi siklus Penetapan tahun berikutnya.
@@ -181,9 +181,9 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <label for="ppepp-document-search" class="tw-sr-only">Cari dokumen</label>
                 <div class="ppepp-search-control tw-relative tw-w-full">
                     <span class="tw-absolute tw-inset-y-0 tw-left-0 tw-pl-3 tw-flex tw-items-center tw-pointer-events-none tw-text-slate-400">
-                        <svg class="tw-w-4 tw-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" /></svg>
+                        <svg width="16" height="16" class="tw-w-4 tw-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" /></svg>
                     </span>
-                    <input type="search" class="form-control tw-w-full tw-pl-9 tw-pr-16 tw-py-2 tw-text-sm tw-rounded-lg tw-border tw-border-slate-200 focus:tw-border-blue-500 focus:tw-ring-2 focus:tw-ring-blue-100 tw-outline-none" id="ppepp-document-search" placeholder="Cari judul, kategori, uploader..." autocomplete="off">
+                    <input type="search" class="ami-form-control tw-w-full tw-pl-9 tw-pr-16 tw-py-2 tw-text-sm tw-rounded-lg tw-border tw-border-slate-200 focus:tw-border-blue-500 focus:tw-ring-2 focus:tw-ring-blue-100 tw-outline-none" id="ppepp-document-search" placeholder="Cari judul, kategori, uploader..." autocomplete="off">
                     <button type="button" class="ppepp-search-clear tw-absolute tw-inset-y-0 tw-right-0 tw-pr-3 tw-flex tw-items-center tw-text-xs tw-text-slate-400 hover:tw-text-slate-600" id="ppepp-document-search-clear" hidden>Hapus</button>
                 </div>
             </div>
@@ -193,7 +193,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <?php echo form_open('lpmpi/spmi-ppepp-documents', ['method' => 'get', 'class' => 'tw-flex tw-items-center tw-gap-2 tw-m-0']); ?>
                     <input type="hidden" name="stage" value="<?php echo html_escape($selected_stage); ?>">
                     <label class="tw-text-xs tw-font-semibold tw-text-slate-600 tw-m-0" for="ppepp-year">Tahun Dokumen:</label>
-                    <select class="form-control tw-text-sm tw-py-1.5 tw-px-3 tw-rounded-lg tw-border tw-border-slate-200 focus:tw-border-blue-500 tw-bg-white" id="ppepp-year" name="year">
+                    <select class="ami-form-control tw-text-sm tw-py-1.5 tw-px-3 tw-rounded-lg tw-border tw-border-slate-200 focus:tw-border-blue-500 tw-bg-white" id="ppepp-year" name="year">
                         <?php foreach ($year_options as $year_value): ?>
                             <option value="<?php echo html_escape((string) $year_value); ?>" <?php echo (int) $year_value === $selected_year ? 'selected' : ''; ?>>
                                 <?php echo html_escape((string) $year_value); ?>
@@ -231,14 +231,17 @@ include APPPATH . 'views/layouts/sidebar.php';
     <?php if (empty($documents)): ?>
         <div class="tw-bg-white tw-rounded-xl tw-border tw-border-slate-200/80 tw-p-12 tw-text-center ami-empty">
             <div class="tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-slate-100 tw-text-slate-400 tw-flex tw-items-center tw-justify-center tw-mx-auto tw-mb-4 ami-empty-icon">
-                <svg class="tw-w-8 tw-h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                <svg width="32" height="32" class="tw-w-8 tw-h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
             </div>
             <h3 class="tw-text-base tw-font-bold tw-text-slate-800 tw-mb-1 ami-empty-title">Belum ada dokumen</h3>
             <p class="tw-text-sm tw-text-slate-500 tw-max-w-md tw-mx-auto tw-mb-5">
                 Belum ada arsip <?php echo html_escape($ppepp_stage_label); ?> untuk tahun <?php echo html_escape((string) $selected_year); ?>.
             </p>
-            <a href="<?php echo html_escape(site_url('lpmpi/spmi-ppepp-documents/create') . $query); ?>" class="tw-inline-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-lg tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-font-medium tw-text-sm tw-shadow-sm tw-transition-colors btn-ami btn-primary">
-                <svg class="tw-w-4 tw-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+            <a href="<?php echo html_escape(site_url('lpmpi/spmi-ppepp-documents/create') . $query); ?>" class="ppepp-primary-action tw-inline-flex tw-items-center tw-gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
                 <span>Tambah dokumen pertama</span>
             </a>
         </div>
@@ -297,13 +300,13 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <div class="ppepp-document-types tw-flex tw-items-center tw-gap-1.5" aria-label="Jenis dokumen">
                             <?php if ($has_file): ?>
                                 <span class="badge badge-info tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded tw-bg-sky-50 tw-text-sky-700 tw-border tw-border-sky-200 tw-text-[11px] tw-font-medium">
-                                    <svg class="tw-w-3 tw-h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                    <svg width="12" height="12" class="tw-w-3 tw-h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                                     <span>File</span>
                                 </span>
                             <?php endif; ?>
                             <?php if ($has_url): ?>
                                 <span class="badge badge-secondary tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded tw-bg-indigo-50 tw-text-indigo-700 tw-border tw-border-indigo-200 tw-text-[11px] tw-font-medium">
-                                    <svg class="tw-w-3 tw-h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                                    <svg width="12" height="12" class="tw-w-3 tw-h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                                     <span>URL</span>
                                 </span>
                             <?php endif; ?>
@@ -315,13 +318,13 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <div class="tw-flex tw-items-center tw-gap-1.5">
                             <?php if ($has_file): ?>
                                 <a class="ami-action-btn tw-inline-flex tw-items-center tw-gap-1 tw-px-2.5 tw-py-1 tw-rounded-md tw-bg-slate-50 hover:tw-bg-slate-100 tw-text-slate-700 tw-text-xs tw-font-medium tw-border tw-border-slate-200 tw-transition-colors" href="<?php echo html_escape(site_url('lpmpi/spmi-ppepp-documents/download/' . (int) $document->id) . $query); ?>" title="Download file">
-                                    <svg class="tw-w-3.5 tw-h-3.5 tw-text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    <svg width="12" height="12" class="tw-w-3.5 tw-h-3.5 tw-text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                     <span>Download</span>
                                 </a>
                             <?php endif; ?>
                             <?php if ($has_url): ?>
                                 <a class="ami-action-btn tw-inline-flex tw-items-center tw-gap-1 tw-px-2.5 tw-py-1 tw-rounded-md tw-bg-slate-50 hover:tw-bg-slate-100 tw-text-slate-700 tw-text-xs tw-font-medium tw-border tw-border-slate-200 tw-transition-colors" href="<?php echo html_escape($document->external_url); ?>" target="_blank" rel="noopener noreferrer" title="Buka URL dokumen">
-                                    <svg class="tw-w-3.5 tw-h-3.5 tw-text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    <svg width="12" height="12" class="tw-w-3.5 tw-h-3.5 tw-text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     <span>URL</span>
                                 </a>
                             <?php endif; ?>
@@ -329,12 +332,12 @@ include APPPATH . 'views/layouts/sidebar.php';
 
                         <div class="tw-flex tw-items-center tw-gap-1">
                             <a class="ami-action-btn tw-inline-flex tw-items-center tw-gap-1 tw-p-1.5 tw-rounded-md tw-text-slate-500 hover:tw-text-blue-600 hover:tw-bg-blue-50 tw-transition-colors" href="<?php echo html_escape(site_url('lpmpi/spmi-ppepp-documents/edit/' . (int) $document->id) . $query); ?>" title="Edit dokumen">
-                                <svg class="tw-w-4 tw-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                <svg width="16" height="16" class="tw-w-4 tw-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                 <span class="tw-sr-only">Edit</span>
                             </a>
                             <?php echo form_open('lpmpi/spmi-ppepp-documents/delete/' . (int) $document->id . $query, ['class' => 'tw-inline tw-m-0', 'onsubmit' => 'return confirm(\'Hapus dokumen PPEPP ini?\');']); ?>
                                 <button type="submit" class="ami-action-btn danger tw-inline-flex tw-items-center tw-gap-1 tw-p-1.5 tw-rounded-md tw-text-slate-500 hover:tw-text-rose-600 hover:tw-bg-rose-50 tw-border-0 tw-bg-transparent tw-transition-colors" title="Hapus dokumen">
-                                    <svg class="tw-w-4 tw-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    <svg width="16" height="16" class="tw-w-4 tw-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     <span class="tw-sr-only">Hapus</span>
                                 </button>
                             <?php echo form_close(); ?>
@@ -346,7 +349,7 @@ include APPPATH . 'views/layouts/sidebar.php';
 
         <div class="tw-bg-white tw-rounded-xl tw-border tw-border-slate-200/80 tw-p-8 tw-text-center ami-empty ppepp-no-match" id="ppepp-document-no-match" hidden>
             <div class="tw-w-12 tw-h-12 tw-rounded-xl tw-bg-slate-100 tw-text-slate-400 tw-flex tw-items-center tw-justify-center tw-mx-auto tw-mb-3 ami-empty-icon">
-                <svg class="tw-w-6 tw-h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" /></svg>
+                <svg width="24" height="24" class="tw-w-6 tw-h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" /></svg>
             </div>
             <div class="tw-text-sm tw-font-bold tw-text-slate-800 tw-mb-1 ami-empty-title">Dokumen tidak ditemukan</div>
             <div class="tw-text-xs tw-text-slate-500">Coba kata kunci lain atau hapus pencarian/filter kategori.</div>

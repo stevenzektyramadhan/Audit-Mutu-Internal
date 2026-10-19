@@ -25,28 +25,28 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <div>
                     <div class="ami-eyebrow">Direktori staf</div>
                     <h2 class="ami-section-title mb-1"><?php echo html_escape($page_title); ?></h2>
-                    <p class="text-muted" style="font-size: 13.5px;">Tempatkan pengguna aktif pada unit generic non-Prodi yang masih aktif.</p>
+                    <p class="ami-muted" style="font-size: 13.5px;">Tempatkan pengguna aktif pada unit generic non-Prodi yang masih aktif.</p>
                 </div>
-                <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">Kembali</a>
+                <a class="btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">Kembali</a>
             </div>
 
-            <?php if (validation_errors()): ?><div class="alert alert-danger" role="alert"><?php echo validation_errors(); ?></div><?php endif; ?>
+            <?php if (validation_errors()): ?><div class="ami-alert ami-alert-danger" role="alert"><?php echo validation_errors(); ?></div><?php endif; ?>
 
             <?php echo form_open($action); ?>
                 <div class="placement-section">
                     <div class="placement-section-title"><i class="fas fa-user-tag text-primary" aria-hidden="true"></i> Subjek Penempatan &amp; Unit</div>
-                    <div class="form-group mb-3">
-                        <label for="placement-user" class="font-weight-bold">Pengguna / Staf</label>
-                        <select class="form-control" id="placement-user" name="user_id" required>
+                    <div class="ami-form-group mb-3">
+                        <label for="placement-user" class="tw-font-bold">Pengguna / Staf</label>
+                        <select class="ami-form-control" id="placement-user" name="user_id" required>
                             <option value="">Pilih pengguna...</option>
                             <?php foreach ($users as $user): ?>
                                 <option value="<?php echo (int) $user->id; ?>" <?php echo set_select('user_id', $user->id); ?>><?php echo html_escape($user->nama . ' (' . $user->email . ')'); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group mb-0">
-                        <label for="placement-unit" class="font-weight-bold">Unit Non-Prodi Aktif</label>
-                        <select class="form-control" id="placement-unit" name="organization_unit_id" required>
+                    <div class="ami-form-group mb-0">
+                        <label for="placement-unit" class="tw-font-bold">Unit Non-Prodi Aktif</label>
+                        <select class="ami-form-control" id="placement-unit" name="organization_unit_id" required>
                             <option value="">Pilih unit aktif...</option>
                             <?php foreach ($units as $unit): ?>
                                 <?php if ((int) $unit->is_active === 1 && isset($allowed_types[$unit->type])): ?>
@@ -54,24 +54,24 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <?php endif; ?>
                             <?php endforeach; ?>
                         </select>
-                        <small class="form-text text-muted mt-2">Program Studi, UPPS, Universitas, dan unit nonaktif tidak tersedia untuk penempatan non-Prodi.</small>
+                        <small class="form-text ami-muted mt-2">Program Studi, UPPS, Universitas, dan unit nonaktif tidak tersedia untuk penempatan non-Prodi.</small>
                     </div>
                 </div>
 
                 <div class="placement-section">
                     <div class="placement-section-title"><i class="fas fa-briefcase text-primary" aria-hidden="true"></i> Informasi Posisi &amp; Periode Masa Tugas</div>
-                    <div class="form-group mb-3">
-                        <label for="placement-position" class="font-weight-bold">Kode Jabatan / Posisi</label>
-                        <input class="form-control" id="placement-position" name="position_code" maxlength="64" value="<?php echo html_escape(set_value('position_code')); ?>" placeholder="Contoh: KEPALA_BIRO, STAF_ADMIN, KETUA_LEMBAGA" required>
+                    <div class="ami-form-group mb-3">
+                        <label for="placement-position" class="tw-font-bold">Kode Jabatan / Posisi</label>
+                        <input class="ami-form-control" id="placement-position" name="position_code" maxlength="64" value="<?php echo html_escape(set_value('position_code')); ?>" placeholder="Contoh: KEPALA_BIRO, STAF_ADMIN, KETUA_LEMBAGA" required>
                     </div>
-                    <div class="form-row mb-0">
-                        <div class="form-group col-md-6 mb-0">
-                            <label for="placement-from" class="font-weight-bold">Berlaku Mulai</label>
-                            <input class="form-control" type="date" id="placement-from" name="valid_from" value="<?php echo html_escape(set_value('valid_from', date('Y-m-d'))); ?>" required>
+                    <div class="tw-flex tw-flex-wrap tw-gap-4 mb-0">
+                        <div class="ami-form-group tw-w-full md:tw-w-1/2 mb-0">
+                            <label for="placement-from" class="tw-font-bold">Berlaku Mulai</label>
+                            <input class="ami-form-control" type="date" id="placement-from" name="valid_from" value="<?php echo html_escape(set_value('valid_from', date('Y-m-d'))); ?>" required>
                         </div>
-                        <div class="form-group col-md-6 mb-0">
-                            <label for="placement-until" class="font-weight-bold">Berlaku Sampai <span class="text-muted font-weight-normal">(Opsional)</span></label>
-                            <input class="form-control" type="date" id="placement-until" name="valid_until" value="<?php echo html_escape(set_value('valid_until')); ?>">
+                        <div class="ami-form-group tw-w-full md:tw-w-1/2 mb-0">
+                            <label for="placement-until" class="tw-font-bold">Berlaku Sampai <span class="ami-muted tw-font-normal">(Opsional)</span></label>
+                            <input class="ami-form-control" type="date" id="placement-until" name="valid_until" value="<?php echo html_escape(set_value('valid_until')); ?>">
                         </div>
                     </div>
                 </div>
@@ -81,15 +81,15 @@ include APPPATH . 'views/layouts/sidebar.php';
                     <div class="placement-checkbox-card">
                         <div class="custom-control custom-checkbox">
                             <input class="custom-control-input" type="checkbox" id="placement-primary" name="is_primary" value="1" <?php echo set_checkbox('is_primary', '1'); ?>>
-                            <label class="custom-control-label font-weight-bold text-slate-800" for="placement-primary">Jadikan penempatan utama</label>
-                            <div class="text-muted small mt-1 ml-0">Menjadikan unit ini sebagai afiliasi struktural primer bagi pengguna yang bersangkutan.</div>
+                            <label class="tw-text-sm tw-font-bold text-slate-800" for="placement-primary">Jadikan penempatan utama</label>
+                            <div class="ami-muted tw-text-xs mt-1 ml-0">Menjadikan unit ini sebagai afiliasi struktural primer bagi pengguna yang bersangkutan.</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end flex-wrap mt-4" style="gap: var(--ami-space-sm);">
-                    <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">Batal</a>
-                    <button type="submit" class="btn btn-primary btn-ami">Simpan Penempatan</button>
+                <div class="tw-flex tw-justify-end tw-flex-wrap mt-4" style="gap: var(--ami-space-sm);">
+                    <a class="btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">Batal</a>
+                    <button type="submit" class="tw-button-primary btn-ami">Simpan Penempatan</button>
                 </div>
             <?php echo form_close(); ?>
         </div>

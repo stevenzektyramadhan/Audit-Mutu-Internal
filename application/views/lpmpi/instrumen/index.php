@@ -7,12 +7,12 @@ include APPPATH . 'views/layouts/sidebar.php';
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0">Instrumen Standar</h2>
+        <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
+            <h2 class="ami-section-title tw-m-0">Instrumen Standar</h2>
         </div>
 
-        <div class="table-responsive">
-            <table class="table ami-table">
+        <div class="tw-overflow-x-auto">
+            <table class="ami-table">
                 <thead>
                 <tr>
                     <th>#</th>
@@ -30,25 +30,25 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <td><?php echo html_escape($row->nama_standar); ?></td>
                             <td>
                                 <?php if (!empty($row->file_instrumen)): ?>
-                                    <a href="<?php echo site_url('lpmpi/instrumen/download/' . (int) $row->id); ?>" class="btn-ami btn-sm btn-outline-ami">
+                                    <a href="<?php echo site_url('lpmpi/instrumen/download/' . (int) $row->id); ?>" class="btn-ami tw-text-xs btn-outline-ami">
                                         <i class="fas fa-download" aria-hidden="true"></i> Download
                                     </a>
-                                    <div class="text-muted mt-2" style="font-size: 12px;"><?php echo html_escape($row->file_instrumen); ?></div>
+                                    <div class="tw-text-slate-500 tw-mt-2 tw-text-xs"><?php echo html_escape($row->file_instrumen); ?></div>
                                 <?php else: ?>
-                                    <span class="text-muted">Belum ada file</span>
+                                    <span class="tw-text-slate-500">Belum ada file</span>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <div class="ami-row-actions align-items-center">
-                                    <?php echo form_open_multipart('lpmpi/instrumen/upload/' . (int) $row->id, ['class' => 'd-flex align-items-center gap-2']); ?>
-                                        <input type="file" name="file_instrumen" accept=".pdf,.doc,.docx" class="form-control form-control-sm" required>
+                                <div class="ami-row-actions tw-items-center">
+                                    <?php echo form_open_multipart('lpmpi/instrumen/upload/' . (int) $row->id, ['class' => 'tw-flex tw-items-center tw-gap-2']); ?>
+                                        <input type="file" name="file_instrumen" accept=".pdf,.doc,.docx" class="ami-form-control" required>
                                         <button type="submit" class="ami-action-btn" title="Upload file instrumen">
                                             <i class="fas fa-upload" aria-hidden="true"></i><span>Upload</span>
                                         </button>
                                     <?php echo form_close(); ?>
 
                                     <?php if (!empty($row->file_instrumen)): ?>
-                                        <?php echo form_open('lpmpi/instrumen/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Hapus file instrumen untuk standar ini?');"]); ?>
+                                        <?php echo form_open('lpmpi/instrumen/delete/' . (int) $row->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus file instrumen untuk standar ini?');"]); ?>
                                             <button type="submit" class="ami-action-btn danger" title="Hapus file instrumen">
                                                 <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Hapus</span>
                                             </button>

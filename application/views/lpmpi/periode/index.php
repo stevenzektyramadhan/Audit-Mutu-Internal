@@ -7,15 +7,15 @@ include APPPATH . 'views/layouts/sidebar.php';
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0">Daftar Periode Audit</h2>
+        <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
+            <h2 class="ami-section-title tw-m-0">Daftar Periode Audit</h2>
             <a class="btn-ami btn-outline-ami" href="<?php echo site_url('periode/create'); ?>">
                 <i class="fas fa-plus"></i> Tambah periode
             </a>
         </div>
 
-        <div class="table-responsive">
-            <table class="table ami-table">
+        <div class="tw-overflow-x-auto">
+            <table class="ami-table">
                 <thead>
                 <tr>
                     <th>#</th>
@@ -76,9 +76,9 @@ include APPPATH . 'views/layouts/sidebar.php';
                             </td>
                             <td>
                                 <div class="ami-row-actions">
-                                    <?php echo form_open('periode/toggle_aktif/' . (int) $row->id, ['class' => 'd-inline']); ?>
-                                        <button type="submit" class="ami-action-btn <?php echo (int) $row->is_aktif === 1 ? 'warning' : 'success'; ?>" title="<?php echo (int) $row->is_aktif === 1 ? 'Nonaktifkan' : 'Aktifkan'; ?>">
-                                            <i class="fas <?php echo (int) $row->is_aktif === 1 ? 'fa-toggle-on' : 'fa-toggle-off'; ?>" aria-hidden="true"></i>
+                                    <?php echo form_open('periode/toggle_aktif/' . (int) $row->id, ['class' => 'tw-inline']); ?>
+                                        <button type="submit" class="ami-action-btn <?php echo (int) $row->is_aktif === 1 ?'warning' : 'success'; ?>" title="<?php echo (int) $row->is_aktif === 1 ? 'Nonaktifkan' : 'Aktifkan'; ?>">
+                                            <i class="fas <?php echo (int) $row->is_aktif === 1 ?'fa-toggle-on' : 'fa-toggle-off'; ?>" aria-hidden="true"></i>
                                         </button>
                                     <?php echo form_close(); ?>
 
@@ -86,7 +86,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                         <i class="fas fa-edit" aria-hidden="true"></i>
                                     </a>
 
-                                    <?php echo form_open('periode/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Yakin ingin menghapus periode &quot;" . html_escape($row->nama_periode) . "&quot;?');"]); ?>
+                                    <?php echo form_open('periode/delete/' . (int) $row->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Yakin ingin menghapus periode &quot;" . html_escape($row->nama_periode) . "&quot;?');"]); ?>
                                         <button type="submit" class="ami-action-btn danger" title="Hapus periode">
                                             <i class="fas fa-trash-alt" aria-hidden="true"></i>
                                         </button>
@@ -101,7 +101,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <div class="ami-empty-icon"><i class="fas fa-calendar-alt" aria-hidden="true"></i></div>
                             <div class="ami-empty-title">Belum ada periode audit</div>
                             <div>Buat periode audit terlebih dahulu untuk memulai siklus audit.</div>
-                            <a href="<?php echo site_url('periode/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i> Tambah periode</a>
+                            <a href="<?php echo site_url('periode/create'); ?>" class="btn-ami"><i class="fas fa-plus" aria-hidden="true"></i> Tambah periode</a>
                         </div></td>
                     </tr>
                 <?php endif; ?>
@@ -112,4 +112,3 @@ include APPPATH . 'views/layouts/sidebar.php';
 </div>
 
 <?php include APPPATH . 'views/layouts/footer.php'; ?>
-

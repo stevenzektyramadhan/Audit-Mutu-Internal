@@ -10,7 +10,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         <h1 class="tw-text-3xl tw-font-bold tw-tracking-tight tw-text-slate-950">Siklus &amp; Penugasan</h1>
         <p class="tw-mt-2 tw-max-w-2xl tw-text-sm tw-text-slate-500">Kelola siklus audit dan susun snapshot penugasan dari satu ruang kerja.</p>
       </div>
-      <a class="tw-button-primary tw-inline-flex tw-items-center tw-gap-2" href="<?php echo site_url('lpmpi/spmi-audits/cycle/create'); ?>"><svg class="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Tambah siklus</span></a>
+      <a class="tw-button-primary tw-inline-flex tw-items-center tw-gap-2" href="<?php echo site_url('lpmpi/spmi-audits/cycle/create'); ?>"><svg width="16" height="16" class="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Tambah siklus</span></a>
     </div>
 
     <section class="tw-mb-5 tw-grid tw-gap-3 md:tw-grid-cols-[1fr_180px_180px]" aria-label="Filter siklus">

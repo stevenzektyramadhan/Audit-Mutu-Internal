@@ -66,7 +66,7 @@ $fallback = static function ($property) use ($version) {
                 <div class="std-form-actions">
                     <a class="std-button std-button-secondary" href="<?php echo html_escape($back_url); ?>">Batal</a>
                     <button class="std-button std-button-primary" type="submit">
-                        <svg class="std-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg class="std-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                             <polyline points="17 21 17 13 7 13 7 21"/>
                             <polyline points="7 3 7 8 15 8"/>

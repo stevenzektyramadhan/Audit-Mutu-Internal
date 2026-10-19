@@ -13,31 +13,31 @@ $error_row_count = count($error_rows);
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-start justify-content-between flex-wrap mb-4" style="gap:12px;">
+        <div class="ami-section-head" style="align-items:flex-start;flex-wrap:wrap;">
             <div>
                 <h2 class="ami-section-title mb-1">Preview Import Pertanyaan</h2>
-                <div class="text-muted"><?php echo html_escape($standar->nama_standar); ?></div>
+                <div class="ami-muted"><?php echo html_escape($standar->nama_standar); ?></div>
             </div>
-            <a href="<?php echo site_url('pertanyaan?standar_id=' . (int) $standar_id); ?>" class="btn btn-outline-ami btn-ami">
+            <a href="<?php echo site_url('pertanyaan?standar_id=' . (int) $standar_id); ?>" class="btn-outline-ami btn-ami">
                 <i class="fas fa-arrow-left" aria-hidden="true"></i> Batal
             </a>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-4 mb-2">
-                <div class="alert alert-success mb-0">
+        <div class="ami-grid-4" style="margin-bottom:24px;">
+            <div>
+                <div class="ami-flash ami-flash-success" style="margin-bottom:0;">
                     <i class="fas fa-check-circle" aria-hidden="true"></i>
                     <strong><?php echo count($valid); ?></strong> baris siap diimport
                 </div>
             </div>
-            <div class="col-md-4 mb-2">
-                <div class="alert <?php echo $error_row_count > 0 ? 'alert-danger' : 'alert-light'; ?> mb-0">
+            <div>
+                <div class="ami-flash <?php echo $error_row_count > 0 ?'ami-flash-error' : ''; ?>" style="margin-bottom:0;">
                     <i class="fas fa-times-circle" aria-hidden="true"></i>
                     <strong><?php echo $error_row_count; ?></strong> baris error
                 </div>
             </div>
-            <div class="col-md-4 mb-2">
-                <div class="alert <?php echo !empty($warnings) ? 'alert-warning' : 'alert-light'; ?> mb-0">
+            <div>
+                <div class="ami-flash <?php echo !empty($warnings) ?'ami-flash-warning' : ''; ?>" style="margin-bottom:0;">
                     <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
                     <strong><?php echo count($warnings); ?></strong> warning
                 </div>
@@ -45,8 +45,8 @@ $error_row_count = count($error_rows);
         </div>
 
         <h3 class="ami-section-title">Data siap diimport</h3>
-        <div class="table-responsive mb-4">
-            <table class="table ami-table">
+        <div class="tw-overflow-x-auto" style="margin-bottom:24px;">
+            <table class="ami-table">
                 <thead>
                 <tr>
                     <th>No</th>
@@ -80,8 +80,8 @@ $error_row_count = count($error_rows);
 
         <?php if (!empty($errors)): ?>
             <h3 class="ami-section-title">Baris yang dilewati karena error</h3>
-            <div class="table-responsive mb-4">
-                <table class="table ami-table">
+            <div class="tw-overflow-x-auto" style="margin-bottom:24px;">
+                <table class="ami-table">
                     <thead>
                     <tr>
                         <th>Baris</th>
@@ -104,8 +104,8 @@ $error_row_count = count($error_rows);
 
         <?php if (!empty($warnings)): ?>
             <h3 class="ami-section-title">Warning dan koreksi otomatis</h3>
-            <div class="table-responsive mb-4">
-                <table class="table ami-table">
+            <div class="tw-overflow-x-auto" style="margin-bottom:24px;">
+                <table class="ami-table">
                     <thead>
                     <tr>
                         <th>Baris</th>
@@ -126,11 +126,11 @@ $error_row_count = count($error_rows);
             </div>
         <?php endif; ?>
 
-        <div class="d-flex align-items-center justify-content-end flex-wrap" style="gap:10px;">
-            <a href="<?php echo site_url('pertanyaan?standar_id=' . (int) $standar_id); ?>" class="btn btn-outline-ami btn-ami">Batal</a>
-            <?php echo form_open('pertanyaan/import_confirm/' . (int) $standar_id, ['class' => 'd-inline']); ?>
+        <div class="ami-actions" style="justify-content:end;">
+            <a href="<?php echo site_url('pertanyaan?standar_id=' . (int) $standar_id); ?>" class="btn-outline-ami btn-ami">Batal</a>
+            <?php echo form_open('pertanyaan/import_confirm/' . (int) $standar_id); ?>
                 <input type="hidden" name="import_token" value="<?php echo html_escape($import_token); ?>">
-                <button type="submit" class="btn btn-primary btn-ami" data-loading-text="Mengimport data...">
+                <button type="submit" class="btn-ami" data-loading-text="Mengimport data...">
                     <i class="fas fa-check" aria-hidden="true"></i> Konfirmasi Import
                 </button>
             <?php echo form_close(); ?>

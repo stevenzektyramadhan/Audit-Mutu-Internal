@@ -7,15 +7,15 @@ include APPPATH . 'views/layouts/sidebar.php';
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0">Daftar standar audit</h2>
+        <div class="ami-section-head">
+            <h2 class="ami-section-title">Daftar standar audit</h2>
             <a class="btn-ami btn-outline-ami" href="<?php echo site_url('standar/create'); ?>">
                 <i class="fas fa-plus"></i> Tambah standar
             </a>
         </div>
 
-        <div class="table-responsive">
-            <table class="table ami-table">
+        <div class="tw-overflow-x-auto">
+            <table class="ami-table">
                 <thead>
                 <tr>
                     <th>#</th>
@@ -36,11 +36,11 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <?php if (!empty($row->deskripsi)): ?>
                                     <?php echo html_escape($row->deskripsi); ?>
                                 <?php else: ?>
-                                    <span class="text-muted">&mdash;</span>
+  <span class="ami-muted">&mdash;</span>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <span class="text-primary font-weight-bold"><?php echo (int) $row->total_pertanyaan; ?></span>
+  <span class="ami-text-primary"><?php echo (int) $row->total_pertanyaan; ?></span>
                             </td>
                             <td>
                                 <?php echo html_escape(format_tanggal_indo($row->created_at)); ?>
@@ -50,7 +50,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                     <a href="<?php echo site_url('standar/edit/'.$row->id); ?>" class="ami-action-btn" title="Edit standar">
                                         <i class="fas fa-edit" aria-hidden="true"></i><span>Edit</span>
                                     </a>
-                                    <?php echo form_open('standar/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Standar, pertanyaan, tugas, dan jawaban terkait akan dihapus. Lanjutkan?');"]); ?>
+                                    <?php echo form_open('standar/delete/' . (int) $row->id, ['onsubmit' => "return confirm('Standar, pertanyaan, tugas, dan jawaban terkait akan dihapus. Lanjutkan?');"]); ?>
                                         <button type="submit" class="ami-action-btn danger" title="Hapus standar">
                                             <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Hapus</span>
                                         </button>
@@ -65,7 +65,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <div class="ami-empty-icon"><i class="fas fa-book" aria-hidden="true"></i></div>
                             <div class="ami-empty-title">Belum ada standar audit</div>
                             <div>Buat standar terlebih dahulu sebelum menambahkan pertanyaan.</div>
-                            <a href="<?php echo site_url('standar/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah standar</a>
+                                    <a href="<?php echo site_url('standar/create'); ?>" class="btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah standar</a>
                         </div></td>
                     </tr>
                 <?php endif; ?>

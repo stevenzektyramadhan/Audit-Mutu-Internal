@@ -118,8 +118,8 @@ include APPPATH . 'views/layouts/sidebar.php';
                     </div>
                 </div>
                 <div class="master-management-actions" aria-label="Aksi master data">
-                    <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('lpmpi/prodi-import')); ?>"><i class="fas fa-file-import" aria-hidden="true"></i> Import Prodi</a>
-                    <a class="btn btn-primary btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/create')); ?>"><i class="fas fa-plus" aria-hidden="true"></i> Tambah Data Organisasi</a>
+                    <a class="btn-outline-ami btn-ami" href="<?php echo html_escape(site_url('lpmpi/prodi-import')); ?>"><i class="fas fa-file-import" aria-hidden="true"></i> Import Prodi</a>
+                    <a class="tw-button-primary btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/create')); ?>"><i class="fas fa-plus" aria-hidden="true"></i> Tambah Data Organisasi</a>
                 </div>
             </section>
         </div>
@@ -151,11 +151,11 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <div class="master-controls tw-mb-4" role="search" aria-label="Filter direktori">
                     <div class="master-control master-control-search">
                         <label class="sr-only" for="master-search">Cari nama atau kode</label>
-                        <input class="form-control" id="master-search" type="search" placeholder="Cari nama atau kode..." autocomplete="off">
+                        <input class="ami-form-control" id="master-search" type="search" placeholder="Cari nama atau kode..." autocomplete="off">
                     </div>
                     <div class="master-control">
                         <label class="sr-only" for="master-type-filter">Filter tipe</label>
-                        <select class="form-control" id="master-type-filter">
+                        <select class="ami-form-control" id="master-type-filter">
                             <option value="">Semua tipe</option>
                             <?php foreach ($type_labels as $type => $label): ?>
                                 <?php if ($type !== 'study_program'): ?>
@@ -168,7 +168,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     </div>
                     <div class="master-control">
                         <label class="sr-only" for="master-status-filter">Filter status</label>
-                        <select class="form-control" id="master-status-filter">
+                        <select class="ami-form-control" id="master-status-filter">
                             <option value="">Semua status</option>
                             <option value="active">Aktif</option>
                             <option value="inactive">Nonaktif</option>
@@ -177,7 +177,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                 </div>
 
                 <div class="master-table-wrap">
-                    <table class="table ami-table master-data-table">
+                    <table class="ami-table master-data-table">
                         <caption class="sr-only">Daftar organisasi dengan tipe, parent, staf, status, dan aksi.</caption>
                         <thead>
                             <tr>
@@ -211,24 +211,24 @@ include APPPATH . 'views/layouts/sidebar.php';
                                             <span class="master-subtext master-code"><?php echo html_escape((string) $value($unit, 'parent_code')); ?></span>
                                         <?php endif; ?>
                                     </td>
-                                    <td data-label="Staf" class="text-muted">—</td>
+                                    <td data-label="Staf" class="tw-text-slate-500">—</td>
                                     <td data-label="Status">
-                                        <span class="master-status-badge <?php echo $unit_active ? 'master-status-active' : 'master-status-inactive'; ?>"><?php echo $unit_active ? 'Aktif' : 'Nonaktif'; ?></span>
+                                        <span class="master-status-badge <?php echo $unit_active ?'master-status-active' : 'master-status-inactive'; ?>"><?php echo $unit_active ? 'Aktif' : 'Nonaktif'; ?></span>
                                     </td>
                                     <td data-label="Aksi" class="text-right">
                                         <div class="master-row-actions">
                                             <?php if ($unit_is_root): ?>
-                                                <span class="text-muted" aria-label="Unit root">—</span>
+                                                <span class="tw-text-slate-500" aria-label="Unit root">—</span>
                                             <?php else: ?>
                                                 <a class="btn btn-sm btn-outline-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/unit/detail/' . (int) $value($unit, 'id'))); ?>"><i class="fas fa-eye" aria-hidden="true"></i> Detail</a>
                                             <?php endif; ?>
                                             <?php if (in_array($unit_type, ['faculty', 'bureau', 'unit', 'institute'], TRUE)): ?>
                                                 <div class="dropdown master-row-menu">
-                                                    <button type="button" class="btn btn-sm btn-link dropdown-toggle master-row-menu-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" aria-label="Aksi unit">Lainnya</button>
+                                                    <button type="button" class="tw-text-xs ami-btn-link dropdown-toggle master-row-menu-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" aria-label="Aksi unit">Lainnya</button>
                                                     <div class="dropdown-menu dropdown-menu-right">
-                                                        <a class="btn btn-sm btn-outline-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/unit/edit/' . (int) $value($unit, 'id'))); ?>"><i class="fas fa-edit" aria-hidden="true"></i> Edit</a>
+                                                        <a class="tw-text-xs btn-outline-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/unit/edit/' . (int) $value($unit, 'id'))); ?>"><i class="fas fa-edit" aria-hidden="true"></i> Edit</a>
                                                         <?php echo form_open('lpmpi/master-data-prodi-staf/unit/toggle/' . (int) $value($unit, 'id')); ?>
-                                                            <button type="submit" class="btn btn-sm <?php echo $unit_active ? 'btn-outline-danger' : 'btn-outline-success'; ?>" onclick="return window.confirm('<?php echo $unit_active ? 'Nonaktifkan' : 'Aktifkan'; ?> unit ini?');"><?php echo $unit_active ? 'Nonaktifkan' : 'Aktifkan'; ?></button>
+                                                            <button type="submit" class="tw-text-xs <?php echo $unit_active ?'btn-outline-danger' : 'btn-outline-success'; ?>" onclick="return window.confirm('<?php echo $unit_active ? 'Nonaktifkan' : 'Aktifkan'; ?> unit ini?');"><?php echo $unit_active ? 'Nonaktifkan' : 'Aktifkan'; ?></button>
                                                         <?php echo form_close(); ?>
                                                     </div>
                                                 </div>
@@ -268,26 +268,26 @@ include APPPATH . 'views/layouts/sidebar.php';
                                     </td>
                                     <td data-label="Status">
                                         <?php if ($mapped): ?>
-                                            <span class="master-status-badge <?php echo $prodi_active ? 'master-status-active' : 'master-status-inactive'; ?>"><?php echo $prodi_active ? 'Aktif' : 'Nonaktif'; ?></span>
+                                            <span class="master-status-badge <?php echo $prodi_active ?'master-status-active' : 'master-status-inactive'; ?>"><?php echo $prodi_active ? 'Aktif' : 'Nonaktif'; ?></span>
                                         <?php else: ?>
-                                            <span class="text-muted" aria-label="Belum terhubung">—</span>
+                                            <span class="tw-text-slate-500" aria-label="Belum terhubung">—</span>
                                         <?php endif; ?>
                                     </td>
                                     <td data-label="Aksi" class="text-right">
                                         <div class="master-row-actions">
                                             <?php if ($mapped): ?>
-                                                <a class="btn btn-sm btn-primary" href="<?php echo html_escape(site_url('profil/prodi/' . (int) $value($row, 'id') . '/staf')); ?>"><i class="fas fa-users" aria-hidden="true"></i> Kelola</a>
+                                                <a class="tw-text-xs tw-button-primary" href="<?php echo html_escape(site_url('profil/prodi/' . (int) $value($row, 'id') . '/staf')); ?>"><i class="fas fa-users" aria-hidden="true"></i> Kelola</a>
                                             <?php else: ?>
-                                                <a class="btn btn-sm btn-outline-warning" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/prodi/link/' . (int) $value($row, 'id'))); ?>"><i class="fas fa-link" aria-hidden="true"></i> Hubungkan</a>
+                                                <a class="tw-text-xs ami-btn-outline-warning" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/prodi/link/' . (int) $value($row, 'id'))); ?>"><i class="fas fa-link" aria-hidden="true"></i> Hubungkan</a>
                                             <?php endif; ?>
                                             <div class="dropdown master-row-menu">
-                                                <button type="button" class="btn btn-sm btn-link dropdown-toggle master-row-menu-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" aria-label="Aksi Program Studi">Lainnya</button>
+                                                <button type="button" class="tw-text-xs ami-btn-link dropdown-toggle master-row-menu-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" aria-label="Aksi Program Studi">Lainnya</button>
                                                 <div class="dropdown-menu dropdown-menu-right">
-                                                    <a class="btn btn-sm btn-outline-ami" href="<?php echo html_escape(site_url('profil/prodi/edit/' . (int) $value($row, 'id'))); ?>"><i class="fas fa-edit" aria-hidden="true"></i> Edit</a>
-                                                    <a class="btn btn-sm btn-outline-ami" href="<?php echo html_escape(site_url('profil/prodi/' . (int) $value($row, 'id') . '/staf')); ?>"><i class="fas fa-users" aria-hidden="true"></i> Lihat Staf</a>
+                                                    <a class="tw-text-xs btn-outline-ami" href="<?php echo html_escape(site_url('profil/prodi/edit/' . (int) $value($row, 'id'))); ?>"><i class="fas fa-edit" aria-hidden="true"></i> Edit</a>
+                                                    <a class="tw-text-xs btn-outline-ami" href="<?php echo html_escape(site_url('profil/prodi/' . (int) $value($row, 'id') . '/staf')); ?>"><i class="fas fa-users" aria-hidden="true"></i> Lihat Staf</a>
                                                     <div class="dropdown-divider"></div>
                                                     <?php echo form_open('profil/prodi/delete/' . (int) $value($row, 'id')); ?>
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return window.confirm('Hapus program studi ini?');">Hapus</button>
+                                                        <button type="submit" class="tw-text-xs ami-btn-outline-danger" onclick="return window.confirm('Hapus program studi ini?');">Hapus</button>
                                                     <?php echo form_close(); ?>
                                                 </div>
                                             </div>
@@ -319,8 +319,8 @@ include APPPATH . 'views/layouts/sidebar.php';
                 <div class="master-pagination" data-master-pagination>
                     <span data-master-summary></span>
                     <div class="master-pagination-buttons">
-                        <button type="button" class="btn btn-sm btn-outline-ami" data-master-prev>Sebelumnya</button>
-                        <button type="button" class="btn btn-sm btn-outline-ami" data-master-next>Berikutnya</button>
+                        <button type="button" class="tw-text-xs btn-outline-ami" data-master-prev>Sebelumnya</button>
+                        <button type="button" class="tw-text-xs btn-outline-ami" data-master-next>Berikutnya</button>
                     </div>
                 </div>
             </div>
@@ -335,7 +335,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     </div>
                     <div class="master-controls">
                         <span class="master-status-badge master-status-active"><?php echo html_escape($format_number($non_prodi_staff_count)); ?> staf aktif</span>
-                        <a class="btn btn-sm btn-primary btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/placement/create')); ?>">
+                        <a class="tw-text-xs tw-button-primary btn-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/placement/create')); ?>">
                             <i class="fas fa-user-plus mr-1" aria-hidden="true"></i> Tambah Penempatan
                         </a>
                     </div>
@@ -351,10 +351,10 @@ include APPPATH . 'views/layouts/sidebar.php';
                         <?php foreach ($non_prodi_staff_placements as $placement): ?>
                             <li>
                                 <strong><?php echo html_escape((string) $value($placement, 'nama', '-')); ?></strong> 
-                                <span class="text-muted"><?php echo html_escape((string) $value($placement, 'position_code', '')); ?> — <?php echo html_escape((string) $value($placement, 'unit_name', '-')); ?> (<?php echo html_escape((string) $value($placement, 'unit_code', '-')); ?>)</span>
+                                <span class="tw-text-slate-500"><?php echo html_escape((string) $value($placement, 'position_code', '')); ?> — <?php echo html_escape((string) $value($placement, 'unit_name', '-')); ?> (<?php echo html_escape((string) $value($placement, 'unit_code', '-')); ?>)</span>
                                 <?php echo form_open('lpmpi/master-data-prodi-staf/placement/end/' . (int) $value($placement, 'id'), ['class' => 'd-inline ml-2']); ?>
                                     <input type="hidden" name="valid_until" value="<?php echo html_escape(date('Y-m-d')); ?>">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return window.confirm('Akhiri penempatan ini?');">Akhiri</button>
+                                    <button type="submit" class="tw-text-xs ami-btn-outline-danger" onclick="return window.confirm('Akhiri penempatan ini?');">Akhiri</button>
                                 <?php echo form_close(); ?>
                             </li>
                         <?php endforeach; ?>
@@ -380,22 +380,92 @@ include APPPATH . 'views/layouts/sidebar.php';
     var empty = document.getElementById('master-no-results');
     var page = 1;
     var pageSize = parseInt(root.getAttribute('data-page-size'), 10) || 10;
-    root.addEventListener('click', function (event) {
-        var toggle = event.target.closest('[data-toggle="dropdown"]');
-        if (!toggle || !root.contains(toggle)) return;
-        var dropdown = toggle.closest('.master-row-menu');
-        var menu = dropdown && dropdown.querySelector('.dropdown-menu');
-        if (!menu) return;
-        var toggleRect = toggle.getBoundingClientRect();
+    var openMenu = null;
+    function menuItems(menu) {
+        return Array.prototype.filter.call(menu.querySelectorAll('a, button'), function (item) {
+            return !item.disabled && item.offsetParent !== null;
+        });
+    }
+    function closeMenu(dropdown, restoreFocus) {
+        if (!dropdown) return;
+        var toggle = dropdown.querySelector('[data-toggle="dropdown"]');
+        var menu = dropdown.querySelector('.dropdown-menu');
+        if (menu) menu.classList.remove('show');
+        dropdown.classList.remove('dropup');
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', 'false');
+            if (restoreFocus) toggle.focus();
+        }
+        if (openMenu === dropdown) openMenu = null;
+    }
+    function closeMenus(restoreFocus) {
+        Array.prototype.forEach.call(root.querySelectorAll('.master-row-menu'), function (dropdown) {
+            closeMenu(dropdown, restoreFocus && dropdown === openMenu);
+        });
+    }
+    function openDropdown(dropdown) {
+        var toggle = dropdown.querySelector('[data-toggle="dropdown"]');
+        var menu = dropdown.querySelector('.dropdown-menu');
+        if (!toggle || !menu) return;
+        if (openMenu && openMenu !== dropdown) closeMenu(openMenu, false);
+        menu.classList.add('show');
         menu.style.visibility = 'hidden';
-        menu.style.display = 'grid';
+        var toggleRect = toggle.getBoundingClientRect();
         var menuHeight = menu.getBoundingClientRect().height;
-        menu.style.removeProperty('display');
-        menu.style.removeProperty('visibility');
         var spaceBelow = window.innerHeight - toggleRect.bottom;
         var spaceAbove = toggleRect.top;
         dropdown.classList.toggle('dropup', spaceBelow < menuHeight && spaceAbove > spaceBelow);
-    }, true);
+        menu.style.removeProperty('visibility');
+        toggle.setAttribute('aria-expanded', 'true');
+        openMenu = dropdown;
+    }
+    root.addEventListener('click', function (event) {
+        var toggle = event.target.closest('[data-toggle="dropdown"]');
+        if (!toggle || !root.contains(toggle)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        var dropdown = toggle.closest('.master-row-menu');
+        if (!dropdown) return;
+        if (toggle.getAttribute('aria-expanded') === 'true') {
+            closeMenu(dropdown, false);
+        } else {
+            openDropdown(dropdown);
+        }
+    });
+    root.addEventListener('keydown', function (event) {
+        var toggle = event.target.closest('[data-toggle="dropdown"]');
+        if (toggle && root.contains(toggle) && (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown')) {
+            event.preventDefault();
+            toggle.click();
+            if (event.key === 'ArrowDown') {
+                var openedMenu = toggle.closest('.master-row-menu').querySelector('.dropdown-menu');
+                var firstItem = menuItems(openedMenu)[0];
+                if (firstItem) firstItem.focus();
+            }
+            return;
+        }
+        var menu = event.target.closest('.dropdown-menu');
+        if (!menu || !root.contains(menu)) return;
+        var dropdown = menu.closest('.master-row-menu');
+        var items = menuItems(menu);
+        var index = items.indexOf(event.target);
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeMenu(dropdown, true);
+        } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (items.length) items[(index + (event.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus();
+        } else if (event.key === 'Home' || event.key === 'End') {
+            event.preventDefault();
+            if (items.length) items[event.key === 'Home' ? 0 : items.length - 1].focus();
+        }
+    });
+    document.addEventListener('click', function (event) {
+        if (openMenu && (!root.contains(event.target) || !event.target.closest('.master-row-menu'))) closeMenus(false);
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && openMenu) closeMenus(true);
+    });
     function render() {
         var query = (search.value || '').toLowerCase().trim();
         var type = (typeFilter.value || '').toLowerCase();

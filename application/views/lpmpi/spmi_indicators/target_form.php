@@ -10,7 +10,7 @@ $icon = static function ($name) {
     $paths = [
         'arrow-left' => '<path d="m15 18-6-6 6-6"/>',
     ];
-    return '<svg class="std-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['arrow-left']) . '</svg>';
+    return '<svg class="std-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['arrow-left']) . '</svg>';
 };
 ?>
 

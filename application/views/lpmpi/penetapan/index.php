@@ -5,41 +5,42 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
 $kategori_labels = [
-    'pelaksanaan' => ['label' => 'Pelaksanaan', 'icon' => 'fa-gavel'],
-    'pengendalian' => ['label' => 'Pengendalian', 'icon' => 'fa-sliders-h'],
-    'peningkatan' => ['label' => 'Peningkatan', 'icon' => 'fa-chart-line'],
+    'pelaksanaan' => ['label' => 'Pelaksanaan', 'icon' => '<path d="M14 3 6 13h6l-2 8 8-10h-6l2-8Z"/>'],
+    'pengendalian' => ['label' => 'Pengendalian', 'icon' => '<path d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"/>'],
+    'peningkatan' => ['label' => 'Peningkatan', 'icon' => '<path d="M12 19V5m0 0-6 6m6-6 6 6"/>'],
 ];
+$kategori_icon = static function ($path) {
+    return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $path . '</svg>';
+};
 ?>
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0">Penetapan</h2>
+        <div class="tw-mb-6 tw-flex tw-items-center tw-justify-between tw-gap-4">
+            <h2 class="ami-section-title tw-m-0">Penetapan</h2>
         </div>
 
-        <ul class="nav nav-tabs mb-4" id="penetapanTabs" role="tablist">
+        <div class="tw-mb-6 tw-flex tw-flex-wrap tw-gap-2 tw-border-b tw-border-slate-200" id="penetapanTabs" role="tablist" aria-label="Kategori penetapan">
             <?php foreach ($kategori_list as $index => $kategori): ?>
                 <?php $meta = $kategori_labels[$kategori]; ?>
-                <li class="nav-item">
-                    <a class="nav-link <?php echo $index === 0 ? 'active' : ''; ?>" id="<?php echo html_escape($kategori); ?>-tab" data-toggle="tab" href="#<?php echo html_escape($kategori); ?>" role="tab" aria-controls="<?php echo html_escape($kategori); ?>" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>">
-                        <i class="fas <?php echo html_escape($meta['icon']); ?>"></i> <?php echo html_escape($meta['label']); ?>
-                    </a>
-                </li>
+                <a class="tw-inline-flex tw-items-center tw-gap-2 tw-rounded-t-md tw-border-b-2 tw-px-4 tw-py-3 tw-text-sm tw-font-bold tw-transition-colors <?php echo $index === 0 ?'tw-border-blue-700 tw-text-blue-700' : 'tw-border-transparent tw-text-slate-500 hover:tw-border-slate-300 hover:tw-text-slate-800'; ?>" id="<?php echo html_escape($kategori); ?>-tab" href="#<?php echo html_escape($kategori); ?>" role="tab" aria-controls="<?php echo html_escape($kategori); ?>" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>">
+                    <?php echo $kategori_icon($meta['icon']); ?> <span><?php echo html_escape($meta['label']); ?></span>
+                </a>
             <?php endforeach; ?>
-        </ul>
+        </div>
 
-        <div class="tab-content" id="penetapanTabsContent">
+        <div id="penetapanTabsContent">
             <?php foreach ($kategori_list as $index => $kategori): ?>
                 <?php $meta = $kategori_labels[$kategori]; ?>
-                <div class="tab-pane fade <?php echo $index === 0 ? 'show active' : ''; ?>" id="<?php echo html_escape($kategori); ?>" role="tabpanel" aria-labelledby="<?php echo html_escape($kategori); ?>-tab">
-                    <div class="table-responsive">
-                        <table class="table ami-table">
+                <div class="<?php echo $index === 0 ?'' : 'tw-hidden'; ?>" id="<?php echo html_escape($kategori); ?>" role="tabpanel" aria-labelledby="<?php echo html_escape($kategori); ?>-tab" <?php echo $index === 0 ? '' : 'hidden'; ?>>
+                    <div class="tw-overflow-x-auto">
+                        <table class="ami-table tw-w-full">
                             <thead>
                             <tr>
-                                <th style="min-width: 180px;">Standar</th>
-                                <th style="min-width: 150px;">Status</th>
-                                <th style="min-width: 260px;">Deskripsi</th>
-                                <th style="min-width: 220px;">Upload File</th>
+                                <th class="tw-min-w-[180px]">Standar</th>
+                                <th class="tw-min-w-[150px]">Status</th>
+                                <th class="tw-min-w-[260px]">Deskripsi</th>
+                                <th class="tw-min-w-[220px]">Upload File</th>
                                 <th>Aksi</th>
                             </tr>
                             </thead>
@@ -54,29 +55,29 @@ $kategori_labels = [
                                             <?php echo form_close(); ?>
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control" name="status" form="<?php echo html_escape($form_id); ?>" value="<?php echo html_escape($row->status ?? ''); ?>" placeholder="Terpenuhi / Proses">
+                                            <input type="text" class="tw-w-full tw-rounded-md tw-border tw-border-slate-300 tw-px-3 tw-py-2" name="status" form="<?php echo html_escape($form_id); ?>" value="<?php echo html_escape($row->status ?? ''); ?>" placeholder="Terpenuhi / Proses">
                                         </td>
                                         <td>
-                                            <textarea class="form-control" name="deskripsi" form="<?php echo html_escape($form_id); ?>" rows="2" placeholder="Deskripsi singkat"><?php echo html_escape($row->deskripsi ?? ''); ?></textarea>
+                                            <textarea class="tw-w-full tw-rounded-md tw-border tw-border-slate-300 tw-px-3 tw-py-2" name="deskripsi" form="<?php echo html_escape($form_id); ?>" rows="2" placeholder="Deskripsi singkat"><?php echo html_escape($row->deskripsi ?? ''); ?></textarea>
                                         </td>
                                         <td>
                                             <?php if (!empty($row->file_path)): ?>
-                                                <a href="<?php echo site_url('lpmpi/penetapan/download/' . (int) $row->id); ?>" class="btn-ami btn-sm btn-outline-ami mb-2">
-                                                    <i class="fas fa-download" aria-hidden="true"></i> Download
+                                                <a href="<?php echo site_url('lpmpi/penetapan/download/' . (int) $row->id); ?>" class="btn-ami btn-outline-ami tw-mb-2">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg> Download
                                                 </a>
-                                                <div class="text-muted mb-2" style="font-size: 12px;"><?php echo html_escape($row->file_path); ?></div>
+                                                <div class="tw-mb-2 tw-text-xs tw-text-slate-500"><?php echo html_escape($row->file_path); ?></div>
                                             <?php endif; ?>
-                                            <input type="file" class="form-control form-control-sm" name="file_penetapan" form="<?php echo html_escape($form_id); ?>" accept=".pdf,.doc,.docx,.xls,.xlsx">
+                                            <input type="file" class="tw-w-full tw-rounded-md tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-sm" name="file_penetapan" form="<?php echo html_escape($form_id); ?>" accept=".pdf,.doc,.docx,.xls,.xlsx">
                                         </td>
                                         <td>
-                                            <div class="ami-row-actions">
+                                            <div class="ami-row-actions tw-flex tw-flex-wrap tw-items-center tw-gap-2">
                                                 <button type="submit" class="ami-action-btn" form="<?php echo html_escape($form_id); ?>" title="Simpan">
-                                                    <i class="fas fa-save" aria-hidden="true"></i><span>Simpan</span>
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h12l2 2v14H5zM8 4v6h8V4M8 16h8"/></svg><span>Simpan</span>
                                                 </button>
                                                 <?php if (!empty($row->file_path)): ?>
-                                                    <?php echo form_open('lpmpi/penetapan/delete_file/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Hapus file penetapan ini?');"]); ?>
+                                                    <?php echo form_open('lpmpi/penetapan/delete_file/' . (int) $row->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus file penetapan ini?');"]); ?>
                                                         <button type="submit" class="ami-action-btn danger" title="Hapus file">
-                                                            <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
                                                         </button>
                                                     <?php echo form_close(); ?>
                                                 <?php endif; ?>
@@ -87,7 +88,7 @@ $kategori_labels = [
                             <?php else: ?>
                                 <tr>
                                     <td colspan="5"><div class="ami-empty">
-                                        <div class="ami-empty-icon"><i class="fas <?php echo html_escape($meta['icon']); ?>" aria-hidden="true"></i></div>
+                                        <div class="ami-empty-icon"><?php echo $kategori_icon($meta['icon']); ?></div>
                                         <div class="ami-empty-title">Belum ada standar</div>
                                         <div>Buat standar terlebih dahulu untuk mengelola data <?php echo html_escape(strtolower($meta['label'])); ?>.</div>
                                     </div></td>
@@ -101,5 +102,39 @@ $kategori_labels = [
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    var root = document.getElementById('penetapanTabs');
+    if (!root) return;
+    var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
+    var panels = tabs.map(function (tab) { return document.getElementById(tab.getAttribute('aria-controls')); });
+    function activate(index) {
+        tabs.forEach(function (tab, tabIndex) {
+            var active = tabIndex === index;
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            tab.classList.toggle('tw-border-blue-700', active);
+            tab.classList.toggle('tw-text-blue-700', active);
+            tab.classList.toggle('tw-border-transparent', !active);
+            tab.classList.toggle('tw-text-slate-500', !active);
+            panels[tabIndex].hidden = !active;
+            panels[tabIndex].classList.toggle('tw-hidden', !active);
+        });
+    }
+    tabs.forEach(function (tab, index) {
+        tab.addEventListener('click', function (event) {
+            event.preventDefault();
+            activate(index);
+        });
+        tab.addEventListener('keydown', function (event) {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            var next = (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+            tabs[next].focus();
+            activate(next);
+        });
+    });
+}());
+</script>
 
 <?php include APPPATH . 'views/layouts/footer.php'; ?>

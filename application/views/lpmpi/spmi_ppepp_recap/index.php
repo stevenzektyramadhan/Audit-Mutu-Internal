@@ -40,23 +40,23 @@
 <div class="ami-panel">
     <div class="ami-panel-body">
         <h2 class="ami-section-title">Rekap PPEPP SPMI</h2>
-        <p class="text-muted">Ringkasan live PPEPP dari data SPMI M3-M12 tanpa mengubah dashboard atau laporan AMI lama.</p>
+        <p class="tw-text-slate-500">Ringkasan live PPEPP dari data SPMI M3-M12 tanpa mengubah dashboard atau laporan AMI lama.</p>
         <?php foreach ($sections as $key => $section): ?>
             <?php $total = 0; foreach ($section['items'] as $item_key => $label) { $total += (int) $recap[$key][$item_key]; } ?>
-            <section class="mb-4" aria-labelledby="ppepp-<?php echo html_escape($key); ?>">
+            <section class="tw-mb-4" aria-labelledby="ppepp-<?php echo html_escape($key); ?>">
                 <h3 id="ppepp-<?php echo html_escape($key); ?>" class="ami-section-title"><?php echo html_escape($section['title']); ?></h3>
-                <div class="row">
+                <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-4">
                     <?php foreach ($section['items'] as $item_key => $label): ?>
-                        <div class="col-md-4 mb-3">
-                            <div class="ami-stat-card h-100">
-                                <div class="text-muted"><?php echo html_escape($label); ?></div>
-                                <div class="h2 mb-0"><?php echo html_escape((string) $recap[$key][$item_key]); ?></div>
+                        <div>
+                            <div class="ami-stat-card tw-h-full">
+                                <div class="tw-text-slate-500"><?php echo html_escape($label); ?></div>
+                                <div class="tw-text-2xl tw-font-bold tw-m-0"><?php echo html_escape((string) $recap[$key][$item_key]); ?></div>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
                 <?php if ($total === 0): ?>
-                    <div class="small text-muted mt-2"><?php echo html_escape($section['empty']); ?></div>
+                    <div class="tw-text-xs tw-text-slate-500 tw-mt-2"><?php echo html_escape($section['empty']); ?></div>
                 <?php endif; ?>
             </section>
         <?php endforeach; ?>

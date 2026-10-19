@@ -13,7 +13,7 @@ $icon = static function ($name) {
         'arrow-right' => '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
         'check' => '<polyline points="20 6 9 17 4 12"/>',
     ];
-    return '<svg class="aud-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['clipboard-check']) . '</svg>';
+    return '<svg class="aud-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['clipboard-check']) . '</svg>';
 };
 ?>
 

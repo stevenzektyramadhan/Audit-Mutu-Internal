@@ -28,7 +28,7 @@ $unit_type_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas'
         <!-- Header & Explicit Back Action -->
         <div class="tw-mb-6">
             <a class="audits-back-link tw-mb-3" href="<?php echo html_escape($back_url); ?>">
-                <svg class="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg class="tw-h-4 tw-w-4" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m15 18-6-6 6-6"/>
                 </svg>
                 <span>Kembali</span>
@@ -116,7 +116,7 @@ $unit_type_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas'
                 <div class="tw-mt-8 tw-flex tw-flex-col-reverse tw-gap-2.5 sm:tw-flex-row sm:tw-items-center sm:tw-justify-end">
                     <a class="tw-button-secondary tw-w-full sm:tw-w-auto" href="<?php echo html_escape($back_url); ?>">Batal</a>
                     <button class="tw-button-primary tw-w-full sm:tw-w-auto" type="submit">
-                        <svg class="tw-mr-2 tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="tw-mr-2 tw-h-4 tw-w-4" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                             <polyline points="17 21 17 13 7 13 7 21"/>
                             <polyline points="7 3 7 8 15 8"/>
