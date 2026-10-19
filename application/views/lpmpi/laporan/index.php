@@ -8,10 +8,10 @@ $query = http_build_query(array_filter($filters));
 $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
 ?>
 
-<div class="ami-panel mb-3">
+<div class="ami-panel tw-mb-3">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0">Laporan & Statistik</h2>
+        <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
+            <h2 class="ami-section-title tw-m-0">Laporan & Statistik</h2>
             <a class="btn-ami btn-outline-ami" href="<?php echo $export_url; ?>">
                 <i class="fas fa-file-excel"></i> Export Excel
             </a>
@@ -20,7 +20,7 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
         <?php echo form_open('lpmpi/laporan', ['method' => 'get', 'class' => 'ami-filter-bar']); ?>
             <div class="ami-filter-select">
                 <label class="ami-stat-label" for="periode_id">Periode</label>
-                <select class="form-control" id="periode_id" name="periode_id">
+                <select class="ami-form-control" id="periode_id" name="periode_id">
                     <option value="0">Semua periode</option>
                     <?php foreach ($periode_list as $periode): ?>
                         <option value="<?php echo (int) $periode->id; ?>" <?php echo (int) $filters['periode_id'] === (int) $periode->id ? 'selected' : ''; ?>>
@@ -31,7 +31,7 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
             </div>
             <div class="ami-filter-select">
                 <label class="ami-stat-label" for="auditee_id">Auditee</label>
-                <select class="form-control" id="auditee_id" name="auditee_id">
+                <select class="ami-form-control" id="auditee_id" name="auditee_id">
                     <option value="0">Semua auditee</option>
                     <?php foreach ($auditee_list as $auditee): ?>
                         <option value="<?php echo (int) $auditee->id; ?>" <?php echo (int) $filters['auditee_id'] === (int) $auditee->id ? 'selected' : ''; ?>>
@@ -50,9 +50,9 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
     </div>
 </div>
 
-<div class="ami-panel mb-3">
+<div class="ami-panel tw-mb-3">
     <div class="ami-panel-body">
-        <h2 class="ami-section-title mb-3">Grafik Skor Rata-rata</h2>
+        <h2 class="ami-section-title tw-mb-3">Grafik Skor Rata-rata</h2>
         <?php if (!empty($rekap)): ?>
             <div style="height: 320px;">
                 <canvas id="laporanChart" aria-label="Grafik skor rata-rata per standar"></canvas>
@@ -69,9 +69,9 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <h2 class="ami-section-title mb-3">Rekap per Standar</h2>
-        <div class="table-responsive">
-            <table class="table ami-table">
+        <h2 class="ami-section-title tw-mb-3">Rekap per Standar</h2>
+        <div class="tw-overflow-x-auto">
+            <table class="ami-table">
                 <thead>
                 <tr>
                     <th>Standar</th>
@@ -92,7 +92,7 @@ $export_url = site_url('lpmpi/laporan/export') . ($query ? '?' . $query : '');
                             <td><strong><?php echo number_format((float) $row->rata_rata_skor, 2); ?></strong></td>
                             <td>
                                 <?php if ($row->skor_min === NULL): ?>
-                                    <span class="text-muted">-</span>
+                                    <span class="tw-text-slate-500">-</span>
                                 <?php else: ?>
                                     <?php echo (int) $row->skor_min; ?> - <?php echo (int) $row->skor_max; ?>
                                 <?php endif; ?>

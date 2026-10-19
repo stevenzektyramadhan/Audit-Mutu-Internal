@@ -9,15 +9,15 @@ $query = http_build_query(array_filter($filters));
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0"><?php echo html_escape($standar->nama_standar); ?></h2>
+        <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
+            <h2 class="ami-section-title tw-m-0"><?php echo html_escape($standar->nama_standar); ?></h2>
             <a href="<?php echo site_url('lpmpi/laporan') . ($query ? '?' . $query : ''); ?>" class="btn-ami btn-outline-ami">
                 <i class="fas fa-arrow-left" aria-hidden="true"></i> Kembali
             </a>
         </div>
 
-        <div class="table-responsive">
-            <table class="table ami-table">
+        <div class="tw-overflow-x-auto">
+            <table class="ami-table">
                 <thead>
                 <tr>
                     <th>Periode</th>
@@ -47,7 +47,7 @@ $query = http_build_query(array_filter($filters));
                             <td>
                                 <div><?php echo html_escape($row->temuan ?? '-'); ?></div>
                                 <?php if (!empty($row->jenis_temuan)): ?>
-                                    <span class="text-muted" style="font-size: 12px;"><?php echo strtoupper(html_escape($row->jenis_temuan)); ?></span>
+                                    <span class="tw-text-slate-500 tw-text-xs"><?php echo strtoupper(html_escape($row->jenis_temuan)); ?></span>
                                 <?php endif; ?>
                             </td>
                         </tr>

@@ -12,7 +12,7 @@ $icon = static function ($name) {
         'plus' => '<path d="M12 5v14M5 12h14"/>',
         'target' => '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
     ];
-    return '<svg class="std-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['target']) . '</svg>';
+    return '<svg class="std-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['target']) . '</svg>';
 };
 
 $type = strtoupper($indicator->indicator_type);
@@ -33,7 +33,7 @@ $evidence_policy = isset($indicator->evidence_policy) ? $indicator->evidence_pol
         <div class="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-start sm:tw-justify-between tw-gap-4">
             <div class="tw-space-y-2 tw-flex-1">
                 <div class="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
-                    <span class="tw-text-xs tw-font-bold tw-px-2.5 tw-py-0.5 tw-rounded <?php echo $is_iku ? 'tw-bg-blue-100 tw-text-blue-800' : 'tw-bg-purple-100 tw-text-purple-800'; ?>">
+                    <span class="tw-text-xs tw-font-bold tw-px-2.5 tw-py-0.5 tw-rounded <?php echo $is_iku ?'tw-bg-blue-100 tw-text-blue-800' : 'tw-bg-purple-100 tw-text-purple-800'; ?>">
                         <?php echo html_escape($type); ?>
                     </span>
                     <span class="tw-font-mono tw-font-bold tw-text-xs tw-bg-white tw-border tw-border-slate-300 tw-px-2 tw-py-0.5 tw-rounded tw-text-slate-700">

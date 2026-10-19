@@ -29,7 +29,7 @@ $icon = static function ($name, $class = 'tw-w-4 tw-h-4') {
         'save' => '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>',
     ];
     if (!isset($paths[$name])) return '';
-    return '<svg xmlns="http://www.w3.org/2000/svg" class="' . html_escape($class) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$name] . '</svg>';
+    return '<svg xmlns="http://www.w3.org/2000/svg" class="' . html_escape($class) . '" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$name] . '</svg>';
 };
 
 include APPPATH . 'views/layouts/header.php';
@@ -56,7 +56,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     </div>
 
                     <div class="tw-flex-shrink-0">
-                        <a class="btn btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-h-11 tw-px-4 tw-text-sm tw-font-medium tw-rounded-xl tw-border tw-border-slate-300 tw-text-slate-700 tw-bg-white hover:tw-bg-slate-50 tw-transition-colors" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">
+                        <a class="btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-h-11 tw-px-4 tw-text-sm tw-font-medium tw-rounded-xl tw-border tw-border-slate-300 tw-text-slate-700 tw-bg-white hover:tw-bg-slate-50 tw-transition-colors" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">
                             <?php echo $icon('arrow-left', 'tw-w-4 tw-h-4'); ?>
                             <span>Kembali</span>
                         </a>
@@ -78,7 +78,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <label for="unit-code" class="tw-block tw-text-sm tw-font-semibold tw-text-slate-800 tw-mb-1.5">
                                     Kode Unit <span class="tw-text-red-500">*</span>
                                 </label>
-                                <input class="form-control tw-w-full tw-h-[46px] tw-px-3.5 tw-rounded-xl tw-border tw-border-slate-300 tw-text-sm tw-font-mono tw-text-slate-800 focus:tw-border-blue-600 focus:tw-ring-2 focus:tw-ring-blue-100 tw-transition-all" id="unit-code" name="code" maxlength="64" value="<?php echo html_escape($unit_code_val); ?>" required>
+                                <input class="ami-form-control tw-w-full tw-h-[46px] tw-px-3.5 tw-rounded-xl tw-border tw-border-slate-300 tw-text-sm tw-font-mono tw-text-slate-800 focus:tw-border-blue-600 focus:tw-ring-2 focus:tw-ring-blue-100 tw-transition-all" id="unit-code" name="code" maxlength="64" value="<?php echo html_escape($unit_code_val); ?>" required>
                                 <small class="tw-block tw-text-xs tw-text-slate-500 tw-mt-1.5">Kode unik uppercase, angka, strip, atau titik.</small>
                             </div>
 
@@ -86,7 +86,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                 <label for="unit-type" class="tw-block tw-text-sm tw-font-semibold tw-text-slate-800 tw-mb-1.5">
                                     Tipe Unit <span class="tw-text-red-500">*</span>
                                 </label>
-                                <select class="form-control tw-w-full tw-h-[46px] tw-px-3.5 tw-rounded-xl tw-border tw-border-slate-300 tw-text-sm tw-text-slate-800 focus:tw-border-blue-600 focus:tw-ring-2 focus:tw-ring-blue-100 tw-transition-all" id="unit-type" name="type" required>
+                                <select class="ami-form-control tw-w-full tw-h-[46px] tw-px-3.5 tw-rounded-xl tw-border tw-border-slate-300 tw-text-sm tw-text-slate-800 focus:tw-border-blue-600 focus:tw-ring-2 focus:tw-ring-blue-100 tw-transition-all" id="unit-type" name="type" required>
                                     <option value="">Pilih tipe unit...</option>
                                     <?php foreach ($unit_types as $type => $label): ?>
                                         <option value="<?php echo html_escape($type); ?>" <?php echo set_select('type', $type, $selected_type === $type); ?>>
@@ -102,7 +102,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <label for="unit-name" class="tw-block tw-text-sm tw-font-semibold tw-text-slate-800 tw-mb-1.5">
                                 Nama Unit <span class="tw-text-red-500">*</span>
                             </label>
-                            <input class="form-control tw-w-full tw-h-[46px] tw-px-3.5 tw-rounded-xl tw-border tw-border-slate-300 tw-text-sm tw-text-slate-800 focus:tw-border-blue-600 focus:tw-ring-2 focus:tw-ring-blue-100 tw-transition-all" id="unit-name" name="name" maxlength="200" value="<?php echo html_escape($unit_name_val); ?>" required>
+                            <input class="ami-form-control tw-w-full tw-h-[46px] tw-px-3.5 tw-rounded-xl tw-border tw-border-slate-300 tw-text-sm tw-text-slate-800 focus:tw-border-blue-600 focus:tw-ring-2 focus:tw-ring-blue-100 tw-transition-all" id="unit-name" name="name" maxlength="200" value="<?php echo html_escape($unit_name_val); ?>" required>
                             <small class="tw-block tw-text-xs tw-text-slate-500 tw-mt-1.5">Nama resmi unit akademik atau non-akademik.</small>
                         </div>
 
@@ -110,7 +110,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                             <label for="unit-parent" class="tw-block tw-text-sm tw-font-semibold tw-text-slate-800 tw-mb-1.5">
                                 Parent Unit <span class="tw-text-red-500">*</span>
                             </label>
-                            <select class="form-control tw-w-full tw-h-[46px] tw-px-3.5 tw-rounded-xl tw-border tw-border-slate-300 tw-text-sm tw-text-slate-800 focus:tw-border-blue-600 focus:tw-ring-2 focus:tw-ring-blue-100 tw-transition-all" id="unit-parent" name="parent_id" required>
+                            <select class="ami-form-control tw-w-full tw-h-[46px] tw-px-3.5 tw-rounded-xl tw-border tw-border-slate-300 tw-text-sm tw-text-slate-800 focus:tw-border-blue-600 focus:tw-ring-2 focus:tw-ring-blue-100 tw-transition-all" id="unit-parent" name="parent_id" required>
                                 <option value="">Pilih parent aktif...</option>
                                 <?php foreach ($units as $parent): ?>
                                     <?php
@@ -156,10 +156,10 @@ include APPPATH . 'views/layouts/sidebar.php';
                     </div>
 
                     <div class="tw-pt-5 tw-border-t tw-border-slate-100 tw-flex tw-items-center tw-justify-end tw-gap-3 tw-flex-wrap sm:tw-flex-nowrap">
-                        <a class="btn btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-h-11 tw-px-5 tw-text-sm tw-font-medium tw-rounded-xl tw-border tw-border-slate-300 tw-text-slate-700 tw-bg-white hover:tw-bg-slate-50 tw-transition-colors tw-w-full sm:tw-w-auto" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">
+                        <a class="btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-h-11 tw-px-5 tw-text-sm tw-font-medium tw-rounded-xl tw-border tw-border-slate-300 tw-text-slate-700 tw-bg-white hover:tw-bg-slate-50 tw-transition-colors tw-w-full sm:tw-w-auto" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">
                             Batal
                         </a>
-                        <button type="submit" class="btn btn-primary btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-h-11 tw-px-6 tw-text-sm tw-font-semibold tw-rounded-xl tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-shadow-sm tw-transition-colors tw-w-full sm:tw-w-auto">
+                        <button type="submit" class="tw-button-primary btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-h-11 tw-px-6 tw-text-sm tw-font-semibold tw-rounded-xl tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-shadow-sm tw-transition-colors tw-w-full sm:tw-w-auto">
                             <?php echo $icon('save', 'tw-w-4 tw-h-4'); ?>
                             <span>Simpan Unit</span>
                         </button>

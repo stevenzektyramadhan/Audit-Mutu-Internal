@@ -114,32 +114,32 @@
 </style>
 <div class="ami-panel"><div class="ami-panel-body">
     <h2 class="ami-section-title">Import/Export Master SPMI</h2>
-    <?php if (!empty($error)): ?><div class="alert alert-danger"><?php echo html_escape($error); ?></div><?php endif; ?>
-    <?php if (!empty($success)): ?><div class="alert alert-success"><?php echo html_escape($success); ?></div><?php endif; ?>
+    <?php if (!empty($error)): ?><div class="ami-alert ami-alert-danger"><?php echo html_escape($error); ?></div><?php endif; ?>
+    <?php if (!empty($success)): ?><div class="ami-alert ami-alert-success"><?php echo html_escape($success); ?></div><?php endif; ?>
     <p>Import bersifat additive/no-delete: baris yang tidak ada dalam workbook tetap tersimpan. Template dan import hanya tersedia untuk versi draft/review.</p>
     <?php if (empty($versions)): ?><div class="ami-empty"><div class="ami-empty-title">Belum ada versi</div><div>Buat versi M3 sebelum memakai Master SPMI.</div></div>
-    <?php else: ?><div class="table-responsive"><table class="table ami-table"><thead><tr><th>Versi</th><th>Status</th><th>Aksi</th></tr></thead><tbody><?php foreach ($versions as $version): ?><tr><td><?php echo html_escape($version->version_code . ' - ' . $version->title); ?></td><td><?php echo html_escape($version->status); ?></td><td><?php if (in_array($version->status, ['draft', 'review'], TRUE)): ?>
+    <?php else: ?><div class="tw-overflow-x-auto"><table class="ami-table"><thead><tr><th>Versi</th><th>Status</th><th>Aksi</th></tr></thead><tbody><?php foreach ($versions as $version): ?><tr><td><?php echo html_escape($version->version_code . ' - ' . $version->title); ?></td><td><?php echo html_escape($version->status); ?></td><td><?php if (in_array($version->status, ['draft', 'review'], TRUE)): ?>
         <div class="spmi-master-actions">
             <div class="spmi-master-actions__row">
-                <a class="btn-ami btn-sm btn-outline-ami spmi-master-actions__button" href="<?php echo site_url('lpmpi/spmi-master/template/' . (int) $version->id); ?>">
-                    <svg class="spmi-master-actions__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h4M9 13h6M9 17h4"></path></svg>Template
+                <a class="btn-ami tw-text-xs btn-outline-ami spmi-master-actions__button" href="<?php echo site_url('lpmpi/spmi-master/template/' . (int) $version->id); ?>">
+                    <svg class="spmi-master-actions__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h4M9 13h6M9 17h4"></path></svg>Template
                 </a>
-                <a class="btn-ami btn-sm btn-outline-ami spmi-master-actions__button" href="<?php echo site_url('lpmpi/spmi-master/export/' . (int) $version->id); ?>">
-                    <svg class="spmi-master-actions__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"></path></svg>Export XLSX
+                <a class="btn-ami tw-text-xs btn-outline-ami spmi-master-actions__button" href="<?php echo site_url('lpmpi/spmi-master/export/' . (int) $version->id); ?>">
+                    <svg class="spmi-master-actions__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"></path></svg>Export XLSX
                 </a>
             </div>
             <?php echo form_open_multipart('lpmpi/spmi-master/preview/' . (int) $version->id, ['class' => 'spmi-master-actions__form']); ?>
                 <div class="spmi-master-actions__row">
-                    <svg class="spmi-master-actions__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h4"></path></svg>
+                    <svg class="spmi-master-actions__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h4"></path></svg>
                     <input class="spmi-master-actions__file-input" id="master-file-<?php echo (int) $version->id; ?>" type="file" name="master_file" accept=".xlsx" required aria-describedby="master-file-name-<?php echo (int) $version->id; ?>">
                     <label class="spmi-master-actions__file-label" for="master-file-<?php echo (int) $version->id; ?>">Pilih File</label>
                     <span class="spmi-master-actions__filename" id="master-file-name-<?php echo (int) $version->id; ?>" aria-live="polite">Belum ada file dipilih</span>
                     <span class="spmi-master-actions__filename">Maks <?php echo html_escape((string) $upload_limit_mib); ?> MiB</span>
-                    <button class="btn-ami btn-sm btn-primary spmi-master-actions__submit" type="submit" disabled>Unggah &amp; Preview</button>
+                    <button class="btn-ami tw-text-xs tw-button-primary spmi-master-actions__submit" type="submit" disabled>Unggah &amp; Preview</button>
                 </div>
             <?php echo form_close(); ?>
         </div>
-    <?php else: ?><div class="spmi-master-actions"><div class="spmi-master-actions__row"><span>Hanya-baca</span><a class="btn-ami btn-sm btn-outline-ami spmi-master-actions__button" href="<?php echo site_url('lpmpi/spmi-master/export/' . (int) $version->id); ?>"><svg class="spmi-master-actions__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"></path></svg>Export XLSX</a></div></div><?php endif; ?></td></tr><?php endforeach; ?></tbody></table></div><?php endif; ?>
+    <?php else: ?><div class="spmi-master-actions"><div class="spmi-master-actions__row"><span>Hanya-baca</span><a class="btn-ami tw-text-xs btn-outline-ami spmi-master-actions__button" href="<?php echo site_url('lpmpi/spmi-master/export/' . (int) $version->id); ?>"><svg width="24" height="24" class="spmi-master-actions__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"></path></svg>Export XLSX</a></div></div><?php endif; ?></td></tr><?php endforeach; ?></tbody></table></div><?php endif; ?>
 </div></div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

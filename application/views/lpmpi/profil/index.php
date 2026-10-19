@@ -237,10 +237,10 @@ include APPPATH . 'views/layouts/sidebar.php';
     <h2 class="ami-section-title">Profil Lembaga</h2>
     <?php if ($can_manage): ?>
         <div class="ami-actions">
-            <a href="<?php echo site_url('profil/edit'); ?>" class="btn btn-outline-ami btn-ami">
+            <a href="<?php echo site_url('profil/edit'); ?>" class="btn-outline-ami btn-ami">
                 <i class="fas fa-edit" aria-hidden="true"></i> Edit Manual
             </a>
-            <a href="<?php echo html_escape(site_url('profil/mahasiswa/create')); ?>" class="btn btn-outline-ami btn-ami">
+            <a href="<?php echo html_escape(site_url('profil/mahasiswa/create')); ?>" class="btn-outline-ami btn-ami">
                 <i class="fas fa-plus" aria-hidden="true"></i> Tambah Statistik Mahasiswa
             </a>
         </div>
@@ -262,8 +262,8 @@ include APPPATH . 'views/layouts/sidebar.php';
             <div class="ami-empty-title">Data profil belum diisi</div>
             <div>Silakan edit manual atau sinkronkan dari PDDikti.</div>
             <?php if ($can_manage): ?>
-                <div class="ami-actions justify-content-center mt-3">
-                    <a href="<?php echo site_url('profil/edit'); ?>" class="btn btn-outline-ami btn-ami">
+                <div class="ami-actions tw-justify-center mt-3">
+                    <a href="<?php echo site_url('profil/edit'); ?>" class="btn-outline-ami btn-ami">
                         <i class="fas fa-edit" aria-hidden="true"></i> Edit Manual
                     </a>
                 </div>
@@ -271,7 +271,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         </div>
     </div>
 <?php else: ?>
-    <div class="ami-panel mb-3">
+    <div class="ami-panel">
         <div class="ami-panel-body">
             <div class="profil-hero">
                 <div>
@@ -286,7 +286,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                         </span>
                     <?php endif; ?>
                     <?php if (!empty($profil->last_sync_at)): ?>
-                        <div class="text-muted mt-2" style="font-size:12px;">
+                        <div class="ami-muted mt-2" style="font-size:12px;">
                             Terakhir disinkronkan: <?php echo html_escape(format_tanggal_indo($profil->last_sync_at)); ?>
                         </div>
                     <?php endif; ?>
@@ -321,7 +321,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                 </div>
             </div>
             <?php if ($can_manage): ?>
-                <a href="<?php echo html_escape(site_url('lpmpi/system-settings')); ?>" class="tw-hidden sm:tw-inline-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1.5 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50 hover:tw-bg-slate-100 tw-text-xs tw-font-semibold tw-text-slate-700 tw-transition-colors">
+                <a href="<?php echo html_escape(site_url('lpmpi/system-settings')); ?>" class="tw-hidden sm:tw-inline-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1.5 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50 hover:tw-bg-slate-100 tw-text-xs tw-font-semibold tw-text-slate-700 hover:tw-text-slate-900 tw-transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
                         <path d="m15 5 4 4"/>
@@ -363,7 +363,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         <?php endif; ?>
     </div>
 
-    <div class="ami-panel mb-3">
+    <div class="ami-panel">
         <div class="ami-panel-body">
             <h2 class="ami-section-title mb-3">Statistik Akreditasi Program Studi</h2>
             <?php if (!empty($akreditasi_summary)): ?>
@@ -379,7 +379,7 @@ include APPPATH . 'views/layouts/sidebar.php';
         </div>
     </div>
 
-    <div class="ami-panel mb-3">
+    <div class="ami-panel">
         <div class="ami-panel-body">
             <h2 class="ami-section-title mb-3">Data Mahasiswa</h2>
             <div class="profil-mahasiswa-head">
@@ -396,10 +396,10 @@ include APPPATH . 'views/layouts/sidebar.php';
                                     <div class="ami-stat-label"><?php echo html_escape($row->jenjang ?: 'Lainnya'); ?></div>
                                     <div class="profil-field-value"><?php echo html_escape(number_format((int) $row->jumlah, 0, ',', '.')); ?></div>
                                     <?php if ($can_manage): ?>
-                                        <div class="mt-2 d-flex flex-wrap align-items-center" style="gap: 6px;">
-                                            <a href="<?php echo html_escape(site_url('profil/mahasiswa/edit/' . (int) $row->id)); ?>" class="btn btn-sm btn-outline-ami">Edit</a>
+                                        <div class="mt-2 tw-flex tw-flex-wrap tw-items-center" style="gap: 6px;">
+                                            <a href="<?php echo html_escape(site_url('profil/mahasiswa/edit/' . (int) $row->id)); ?>" class="tw-text-xs btn-outline-ami">Edit</a>
                                             <?php echo form_open('profil/mahasiswa/delete/' . (int) $row->id, ['class' => 'd-inline']); ?>
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return window.confirm('Hapus statistik mahasiswa ini?');">Hapus</button>
+                                                <button type="submit" class="tw-text-xs ami-btn-outline-danger" onclick="return window.confirm('Hapus statistik mahasiswa ini?');">Hapus</button>
                                             <?php echo form_close(); ?>
                                         </div>
                                     <?php endif; ?>
@@ -426,22 +426,22 @@ include APPPATH . 'views/layouts/sidebar.php';
 <?php endif; ?>
 
 <?php if ($schema_ready): ?>
-    <div class="ami-panel mb-3">
+    <div class="ami-panel">
         <div class="ami-panel-body">
             <div class="ami-section-head mb-3">
                 <div>
                     <h2 class="ami-section-title mb-1">Daftar Program Studi</h2>
-                    <p class="text-muted mb-0">Informasi program studi yang terdaftar pada profil lembaga.</p>
+                    <p class="ami-muted mb-0">Informasi program studi yang terdaftar pada profil lembaga.</p>
                 </div>
                 <?php if ($can_manage): ?>
                     <div class="ami-actions">
-                        <a href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>" class="btn btn-outline-ami btn-ami">Kelola di Master Data</a>
+                        <a href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>" class="btn-outline-ami btn-ami">Kelola di Master Data</a>
                     </div>
                 <?php endif; ?>
             </div>
             <?php if (!empty($prodi)): ?>
-                <div class="table-responsive profil-prodi-table-wrap">
-                    <table class="table ami-table profil-prodi-table">
+                <div class="ami-table-wrap table-responsive profil-prodi-table-wrap">
+                    <table class="ami-table profil-prodi-table">
                         <caption class="sr-only">Daftar program studi berdasarkan kode, nama, dan jenjang</caption>
                         <thead>
                             <tr>

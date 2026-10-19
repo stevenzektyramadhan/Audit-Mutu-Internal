@@ -17,7 +17,7 @@ $fallback = static function ($property) use ($standard) {
     <div class="std-form-shell">
         <div class="std-form-header">
             <a class="std-back-link" href="<?php echo $parent_url; ?>">
-                <svg class="std-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg class="std-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m15 18-6-6 6-6" />
                 </svg>
                 Kembali ke Detail Versi

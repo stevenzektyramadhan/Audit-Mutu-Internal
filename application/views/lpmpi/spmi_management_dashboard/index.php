@@ -64,7 +64,7 @@ $spmi_metric_icons = [
     'meetings_resolved' => 'handshake', 'decisions' => 'git-branch',
 ];
 $spmi_icon = static function ($name) use ($spmi_icons) {
-    return '<svg class="spmi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($spmi_icons[$name] ?? $spmi_icons['file']) . '</svg>';
+    return '<svg class="spmi-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($spmi_icons[$name] ?? $spmi_icons['file']) . '</svg>';
 };
 ?>
 <div id="spmi-dashboard-root" class="tw-mx-auto tw-max-w-screen-2xl">
@@ -107,7 +107,7 @@ $spmi_icon = static function ($name) use ($spmi_icons) {
         </div>
         <div class="ami-stat-grid spmi-summary-grid">
             <?php foreach (array_keys($stage_details) as $stage): ?>
-                <section id="spmi-stage-<?php echo html_escape($stage); ?>" class="ami-panel spmi-stage <?php echo $stage === 'peningkatan' ? 'spmi-stage-wide' : ''; ?>" aria-labelledby="spmi-stage-title-<?php echo html_escape($stage); ?>">
+                <section id="spmi-stage-<?php echo html_escape($stage); ?>" class="ami-panel spmi-stage <?php echo $stage ==='peningkatan' ? 'spmi-stage-wide' : ''; ?>" aria-labelledby="spmi-stage-title-<?php echo html_escape($stage); ?>">
                     <div class="ami-panel-body"><div class="spmi-stage-heading"><span class="spmi-stage-icon <?php echo $stage_details[$stage]['tone']; ?>"><?php echo $spmi_icon($stage_details[$stage]['icon']); ?></span><div><h3 id="spmi-stage-title-<?php echo html_escape($stage); ?>"><?php if ($stage === 'evaluasi'): ?><?php echo html_escape($stage_details[$stage]['title']); ?><?php else: ?><a href="<?php echo html_escape($document_index_url($stage, $selected_year)); ?>"><?php echo html_escape($stage_details[$stage]['title']); ?></a><?php endif; ?></h3><p><?php echo html_escape($stage_details[$stage]['caption']); ?></p></div></div>
                     <?php if ($stage === 'evaluasi'): ?>
                         <?php $items = $metrics[$stage]; ?>

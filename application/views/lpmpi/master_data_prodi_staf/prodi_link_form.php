@@ -16,28 +16,28 @@ include APPPATH . 'views/layouts/sidebar.php';
         <div class="ami-panel-body">
             <div class="master-directory-head">
                 <div><div class="ami-eyebrow">Struktur organisasi</div><h2 class="ami-section-title mb-1">Hubungkan Prodi ke Fakultas</h2><p>Hubungan ini harus dipilih admin secara eksplisit.</p></div>
-                <a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Kembali</a>
+                <a class="btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Kembali</a>
             </div>
 
-            <?php if (validation_errors()): ?><div class="alert alert-danger" role="alert"><?php echo validation_errors(); ?></div><?php endif; ?>
+            <?php if (validation_errors()): ?><div class="ami-alert ami-alert-danger" role="alert"><?php echo validation_errors(); ?></div><?php endif; ?>
 
-            <div class="alert alert-warning" role="alert">Sistem tidak menebak atau membuat hubungan berdasarkan kemiripan nama. Pilih Fakultas yang benar untuk Prodi ini.</div>
-            <dl class="row mb-4">
-                <dt class="col-sm-3">Kode Prodi</dt><dd class="col-sm-9"><?php echo html_escape($row ? $row->kode_prodi : '-'); ?></dd>
-                <dt class="col-sm-3">Nama Prodi</dt><dd class="col-sm-9"><?php echo html_escape($row ? $row->nama_prodi : '-'); ?></dd>
+            <div class="ami-alert ami-alert-warning" role="alert">Sistem tidak menebak atau membuat hubungan berdasarkan kemiripan nama. Pilih Fakultas yang benar untuk Prodi ini.</div>
+            <dl class="tw-flex tw-flex-wrap mb-4">
+                <dt class="tw-font-semibold">Kode Prodi</dt><dd><?php echo html_escape($row ? $row->kode_prodi : '-'); ?></dd>
+                <dt class="tw-font-semibold">Nama Prodi</dt><dd><?php echo html_escape($row ? $row->nama_prodi : '-'); ?></dd>
             </dl>
 
             <?php echo form_open($action); ?>
-                <div class="form-group">
+                <div class="ami-form-group">
                     <label for="prodi-link-faculty">Fakultas</label>
-                    <select class="form-control" id="prodi-link-faculty" name="faculty_id" required>
+                    <select class="ami-form-control" id="prodi-link-faculty" name="faculty_id" required>
                         <option value="">Pilih Fakultas aktif...</option>
                         <?php foreach ($faculties as $faculty): ?>
                             <option value="<?php echo (int) $faculty->id; ?>" <?php echo set_select('faculty_id', $faculty->id); ?>><?php echo html_escape($faculty->code . ' — ' . $faculty->name); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="d-flex justify-content-end flex-wrap" style="gap: var(--ami-space-sm);"><a class="btn btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Batal</a><button type="submit" class="btn btn-primary btn-ami">Hubungkan ke Fakultas</button></div>
+                <div class="tw-flex tw-justify-end tw-flex-wrap" style="gap: var(--ami-space-sm);"><a class="btn-outline-ami btn-ami" href="<?php echo html_escape(site_url($return_url)); ?>">Batal</a><button type="submit" class="tw-button-primary btn-ami">Hubungkan ke Fakultas</button></div>
             <?php echo form_close(); ?>
         </div>
     </section>

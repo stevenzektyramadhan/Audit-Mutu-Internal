@@ -9,8 +9,8 @@ $filters = isset($filters) ? $filters : ['q' => '', 'status' => ''];
 
 <div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="ami-section-title m-0">Daftar tugas audit</h2>
+        <div class="ami-section-head">
+            <h2 class="ami-section-title">Daftar tugas audit</h2>
             <a class="btn-ami btn-outline-ami" href="<?php echo site_url('tugas_audit/create'); ?>">
                 <i class="fas fa-plus"></i> Buat tugas
             </a>
@@ -19,25 +19,25 @@ $filters = isset($filters) ? $filters : ['q' => '', 'status' => ''];
         <form method="get" action="<?php echo site_url('tugas_audit'); ?>" class="ami-filter-bar">
             <div class="ami-filter-grow">
                 <label for="tugas-search" class="ami-stat-label">Cari tugas</label>
-                <input id="tugas-search" type="search" name="q" class="form-control" value="<?php echo html_escape($filters['q']); ?>" placeholder="Auditee, auditor, atau standar">
+                <input id="tugas-search" type="search" name="q" class="ami-form-control" value="<?php echo html_escape($filters['q']); ?>" placeholder="Auditee, auditor, atau standar">
             </div>
             <div class="ami-filter-select">
                 <label for="status-filter" class="ami-stat-label">Status</label>
-                <select id="status-filter" name="status" class="form-control">
+                <select id="status-filter" name="status" class="ami-form-control">
                     <option value="">Semua status</option>
                     <option value="belum_diisi" <?php echo $filters['status'] === STATUS_BELUM_DIISI ? 'selected' : ''; ?>>Belum diisi</option>
                     <option value="diisi" <?php echo $filters['status'] === STATUS_DIISI ? 'selected' : ''; ?>>Sudah diisi</option>
                     <option value="dinilai" <?php echo $filters['status'] === STATUS_DINILAI ? 'selected' : ''; ?>>Sudah dinilai</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary btn-ami"><i class="fas fa-filter" aria-hidden="true"></i>Terapkan</button>
+            <button type="submit" class="btn-ami"><i class="fas fa-filter" aria-hidden="true"></i>Terapkan</button>
             <?php if ($filters['q'] !== '' || $filters['status'] !== ''): ?>
-                <a href="<?php echo site_url('tugas_audit'); ?>" class="btn btn-outline-ami btn-ami">Reset</a>
+                <a href="<?php echo site_url('tugas_audit'); ?>" class="btn-outline-ami btn-ami">Reset</a>
             <?php endif; ?>
         </form>
 
-        <div class="table-responsive">
-            <table class="table ami-table">
+        <div class="tw-overflow-x-auto">
+            <table class="ami-table">
                 <thead>
                 <tr>
                     <th>#</th>
@@ -71,7 +71,7 @@ $filters = isset($filters) ? $filters : ['q' => '', 'status' => ''];
                                     <a href="<?php echo site_url('tugas_audit/show/'.$row->id); ?>" class="ami-action-btn" title="Lihat detail tugas">
                                         <i class="fas fa-eye" aria-hidden="true"></i><span>Detail</span>
                                     </a>
-                                    <?php echo form_open('tugas_audit/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Apakah Anda yakin ingin menghapus tugas ini beserta seluruh jawabannya?');"]); ?>
+                                    <?php echo form_open('tugas_audit/delete/' . (int) $row->id, ['onsubmit' => "return confirm('Apakah Anda yakin ingin menghapus tugas ini beserta seluruh jawabannya?');"]); ?>
                                         <button type="submit" class="ami-action-btn danger" title="Hapus tugas">
                                             <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Hapus</span>
                                         </button>
@@ -87,9 +87,9 @@ $filters = isset($filters) ? $filters : ['q' => '', 'status' => ''];
                             <div class="ami-empty-title">Tugas audit tidak ditemukan</div>
                             <div><?php echo $filters['q'] !== '' || $filters['status'] !== '' ? 'Coba ubah kata kunci atau filter status.' : 'Buat penugasan auditor dan auditee untuk memulai audit.'; ?></div>
                             <?php if ($filters['q'] !== '' || $filters['status'] !== ''): ?>
-                                <a href="<?php echo site_url('tugas_audit'); ?>" class="btn btn-outline-ami btn-ami"><i class="fas fa-undo" aria-hidden="true"></i>Reset filter</a>
+                                <a href="<?php echo site_url('tugas_audit'); ?>" class="btn-outline-ami btn-ami"><i class="fas fa-undo" aria-hidden="true"></i>Reset filter</a>
                             <?php else: ?>
-                                <a href="<?php echo site_url('tugas_audit/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Buat tugas</a>
+                                <a href="<?php echo site_url('tugas_audit/create'); ?>" class="btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Buat tugas</a>
                             <?php endif; ?>
                         </div></td>
                     </tr>

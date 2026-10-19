@@ -22,7 +22,7 @@ $icon = static function ($name) {
         'more-vertical' => '<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>',
         'file-spreadsheet' => '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/>',
     ];
-    return '<svg class="tw-h-4 tw-w-4 tw-flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file-text']) . '</svg>';
+    return '<svg class="tw-h-4 tw-w-4 tw-flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file-text']) . '</svg>';
 };
 
 $data = is_array($index_data) ? $index_data : [];
@@ -373,7 +373,7 @@ $page_url = static function ($page) use ($filter_query) {
                         </div>
                         <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-1" aria-label="Halaman laporan">
                             <?php for ($page = 1; $page <= $page_count; $page++): ?>
-                                <a class="ami-action-btn tw-inline-flex tw-min-h-[40px] tw-min-w-[40px] tw-items-center tw-justify-center tw-rounded-lg tw-text-xs <?php echo $page === $current_page ? 'tw-button-primary' : 'tw-button-secondary'; ?>" href="<?php echo html_escape($page_url($page)); ?>" <?php echo $page === $current_page ? 'aria-current="page"' : ''; ?>>
+                                <a class="ami-action-btn tw-inline-flex tw-min-h-[40px] tw-min-w-[40px] tw-items-center tw-justify-center tw-rounded-lg tw-text-xs <?php echo $page === $current_page ?'tw-button-primary' : 'tw-button-secondary'; ?>" href="<?php echo html_escape($page_url($page)); ?>" <?php echo $page === $current_page ? 'aria-current="page"' : ''; ?>>
                                     <?php echo html_escape((string) $page); ?>
                                 </a>
                             <?php endfor; ?>

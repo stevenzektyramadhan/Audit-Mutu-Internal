@@ -1,9 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 
 <?php if (!empty($auditor_list)): ?>
-    <h3 class="ami-section-title mt-4 mb-3" style="font-size: 18px;">Auditor</h3>
-    <div class="table-responsive mb-4">
-        <table class="table ami-table">
+    <h3 class="ami-section-title tw-mt-4 tw-mb-3" style="font-size: 18px;">Auditor</h3>
+    <div class="tw-overflow-x-auto tw-mb-4">
+        <table class="ami-table">
             <thead>
             <tr>
                 <th>#</th>
@@ -23,7 +23,7 @@
                             <a href="<?php echo site_url('lpmpi/akun/edit/' . (int) $row->id); ?>" class="ami-action-btn" title="Edit akun">
                                 <i class="fas fa-edit" aria-hidden="true"></i><span>Edit</span>
                             </a>
-                            <?php echo form_open('lpmpi/akun/delete/' . (int) $row->id, ['class' => 'd-inline', 'onsubmit' => "return confirm('Hapus akun auditor ini?');"]); ?>
+                            <?php echo form_open('lpmpi/akun/delete/' . (int) $row->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus akun auditor ini?');"]); ?>
                                 <button type="submit" class="ami-action-btn danger" title="Hapus akun">
                                     <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Hapus</span>
                                 </button>

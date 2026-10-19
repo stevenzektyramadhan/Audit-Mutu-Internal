@@ -7,24 +7,24 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 ?>
 
-<div class="ami-panel mb-3">
+<div class="ami-panel">
     <div class="ami-panel-body">
-        <div class="row">
-            <div class="col-md-3 mb-3 mb-md-0">
+        <div class="ami-grid-4">
+            <div>
                 <div class="ami-stat-label">Auditee</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->auditee_nama); ?></div>
-                <div class="text-muted small"><?php echo html_escape($tugas->auditee_email); ?></div>
+                <div class="tw-font-bold"><?php echo html_escape($tugas->auditee_nama); ?></div>
+                <div class="ami-muted tw-text-xs"><?php echo html_escape($tugas->auditee_email); ?></div>
             </div>
-            <div class="col-md-3 mb-3 mb-md-0">
+            <div>
                 <div class="ami-stat-label">Auditor</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->auditor_nama); ?></div>
-                <div class="text-muted small"><?php echo html_escape($tugas->auditor_email); ?></div>
+                <div class="tw-font-bold"><?php echo html_escape($tugas->auditor_nama); ?></div>
+                <div class="ami-muted tw-text-xs"><?php echo html_escape($tugas->auditor_email); ?></div>
             </div>
-            <div class="col-md-3 mb-3 mb-md-0">
+            <div>
                 <div class="ami-stat-label">Standar</div>
-                <div class="font-weight-bold"><?php echo html_escape($tugas->nama_standar); ?></div>
+                <div class="tw-font-bold"><?php echo html_escape($tugas->nama_standar); ?></div>
             </div>
-            <div class="col-md-3">
+            <div>
                 <div class="ami-stat-label">Status</div>
                 <span class="ami-status <?php echo html_escape($status_meta['tone']); ?>">
                     <?php echo html_escape($status_meta['label']); ?>
@@ -51,7 +51,7 @@ $timeline_steps = [
     ['label' => 'Dinilai auditor', 'icon' => 'fa-star'],
 ];
 ?>
-<div class="ami-panel mb-3">
+<div class="ami-panel">
     <div class="ami-panel-body">
         <div class="ami-stat-label mb-2">Perjalanan status tugas</div>
         <div class="ami-timeline" aria-label="Status tugas audit">
@@ -71,11 +71,11 @@ $timeline_steps = [
 </div>
 
 <?php if ($rata_rata !== NULL): ?>
-    <div class="ami-panel mb-3">
-        <div class="ami-panel-body d-flex align-items-center justify-content-between">
+<div class="ami-panel">
+                <div class="ami-panel-body" style="display:flex;align-items:center;justify-content:space-between;">
             <div>
-                <div class="font-weight-bold">Ringkasan penilaian</div>
-                <div class="text-muted small">Rata-rata dari <?php echo html_escape((string) count($jawaban)); ?> pertanyaan audit.</div>
+                <div class="tw-font-bold">Ringkasan penilaian</div>
+                <div class="ami-muted tw-text-xs">Rata-rata dari <?php echo html_escape((string) count($jawaban)); ?> pertanyaan audit.</div>
             </div>
             <div class="ami-stat-value"><?php echo html_escape(number_format((float) $rata_rata, 1)); ?> / 4</div>
         </div>
@@ -88,15 +88,15 @@ $timeline_steps = [
 
 <?php if (!empty($jawaban)): ?>
     <?php foreach ($jawaban as $index => $item): ?>
-        <div class="ami-panel mb-3">
+<div class="ami-panel">
             <div class="ami-panel-body">
-                <div class="d-flex align-items-start mb-3">
+                <div style="display:flex;align-items:flex-start;margin-bottom:16px;">
                     <span class="ami-nav-badge mr-2" style="margin-left:0;"><?php echo (int) $index + 1; ?></span>
-                    <div class="font-weight-bold"><?php echo html_escape($item->isi_pertanyaan); ?></div>
+                    <div class="tw-font-bold"><?php echo html_escape($item->isi_pertanyaan); ?></div>
                 </div>
 
-                <div class="row">
-                    <div class="col-lg-7 mb-3 mb-lg-0">
+                <div class="ami-grid-2">
+                    <div>
                         <div class="ami-stat-label">Jawaban auditee</div>
                         <div class="mb-2"><?php echo nl2br(html_escape($item->jawaban ?: 'Belum diisi.')); ?></div>
                         <?php if (!empty($item->link_bukti)): ?>
@@ -104,12 +104,12 @@ $timeline_steps = [
                                 <i class="fas fa-external-link-alt mr-1" aria-hidden="true"></i>Lihat bukti dokumen
                             </a>
                         <?php else: ?>
-                            <span class="text-muted">Link bukti belum tersedia.</span>
+                            <span class="ami-muted">Link bukti belum tersedia.</span>
                         <?php endif; ?>
                     </div>
-                    <div class="col-lg-5">
+                    <div>
                         <div class="ami-stat-label">Skor auditor</div>
-                        <div class="font-weight-bold mb-2">
+                        <div class="tw-font-bold mb-2">
                             <?php echo $item->skor !== NULL ? html_escape((string) $item->skor) . ' / 4' : 'Belum dinilai'; ?>
                         </div>
                         <div class="ami-stat-label">Catatan atau temuan</div>
@@ -124,12 +124,12 @@ $timeline_steps = [
         <div class="ami-empty-icon"><i class="fas fa-question-circle" aria-hidden="true"></i></div>
         <div class="ami-empty-title">Belum ada pertanyaan</div>
         <div>Tambahkan pertanyaan pada standar ini agar tugas dapat diisi.</div>
-        <a href="<?php echo site_url('pertanyaan/create'); ?>" class="btn btn-primary btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah pertanyaan</a>
+        <a href="<?php echo site_url('pertanyaan/create'); ?>" class="btn-ami"><i class="fas fa-plus" aria-hidden="true"></i>Tambah pertanyaan</a>
     </div></div>
 <?php endif; ?>
 
-<div class="ami-actions justify-content-end mt-3">
-    <a href="<?php echo site_url('tugas_audit'); ?>" class="btn btn-outline-ami btn-ami">
+<div class="ami-actions tw-justify-end mt-3">
+    <a href="<?php echo site_url('tugas_audit'); ?>" class="btn-outline-ami btn-ami">
         <i class="fas fa-arrow-left" aria-hidden="true"></i>Kembali
     </a>
 </div>

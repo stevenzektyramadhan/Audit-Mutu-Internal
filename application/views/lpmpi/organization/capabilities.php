@@ -10,7 +10,7 @@ $icon = static function ($name) {
         'shield' => '<path d="M12 3 4 7v5c0 4.4 3.4 7.7 8 9 4.6-1.3 8-4.6 8-9V7l-8-4Z"/><path d="m9 12 2 2 4-4"/>',
         'check' => '<polyline points="20 6 9 17 4 12"/>',
     ];
-    return '<svg class="org-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['shield']) . '</svg>';
+    return '<svg class="org-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['shield']) . '</svg>';
 };
 ?>
 

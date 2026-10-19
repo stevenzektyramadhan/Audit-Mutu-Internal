@@ -62,7 +62,7 @@ $icon = static function ($name, $class = 'tw-w-4 tw-h-4') {
         'power' => '<path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/>',
     ];
     if (!isset($paths[$name])) return '';
-    return '<svg xmlns="http://www.w3.org/2000/svg" class="' . html_escape($class) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$name] . '</svg>';
+    return '<svg xmlns="http://www.w3.org/2000/svg" class="' . html_escape($class) . '" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$name] . '</svg>';
 };
 
 include APPPATH . 'views/layouts/header.php';
@@ -91,12 +91,12 @@ include APPPATH . 'views/layouts/sidebar.php';
                     </div>
 
                     <div class="master-controls tw-flex tw-items-center tw-gap-2.5 tw-flex-wrap sm:tw-flex-nowrap">
-                        <a class="btn btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-h-11 tw-px-4 tw-text-sm tw-font-medium tw-rounded-xl tw-border tw-border-slate-300 tw-text-slate-700 tw-bg-white hover:tw-bg-slate-50 tw-transition-colors" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">
+                        <a class="btn-outline-ami btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-h-11 tw-px-4 tw-text-sm tw-font-medium tw-rounded-xl tw-border tw-border-slate-300 tw-text-slate-700 tw-bg-white hover:tw-bg-slate-50 tw-transition-colors" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf')); ?>">
                             <?php echo $icon('arrow-left', 'tw-w-4 tw-h-4'); ?>
                             <span>Kembali</span>
                         </a>
                         <?php if ($unit->parent_id !== NULL && $unit_type !== 'study_program'): ?>
-                            <a class="btn btn-primary btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-h-11 tw-px-5 tw-text-sm tw-font-semibold tw-rounded-xl tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-shadow-sm tw-transition-colors" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/unit/edit/' . (int) $unit->id)); ?>">
+                            <a class="tw-button-primary btn-ami tw-inline-flex tw-items-center tw-justify-center tw-gap-2 tw-h-11 tw-px-5 tw-text-sm tw-font-semibold tw-rounded-xl tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-shadow-sm tw-transition-colors" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/unit/edit/' . (int) $unit->id)); ?>">
                                 <?php echo $icon('pencil', 'tw-w-4 tw-h-4'); ?>
                                 <span>Edit Unit</span>
                             </a>
@@ -179,7 +179,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                     </div>
                 <?php else: ?>
                     <div class="master-table-wrap tw-hidden md:tw-block tw-mt-4 tw-overflow-x-auto">
-                        <table class="table ami-table tw-w-full tw-text-left tw-text-sm">
+                        <table class="ami-table tw-w-full tw-text-left tw-text-sm">
                             <thead>
                                 <tr class="tw-border-b tw-border-slate-200 tw-bg-slate-50/75 tw-text-slate-600 tw-text-xs tw-uppercase tw-tracking-wider">
                                     <th class="tw-py-3.5 tw-px-4 tw-font-semibold">Pengguna</th>

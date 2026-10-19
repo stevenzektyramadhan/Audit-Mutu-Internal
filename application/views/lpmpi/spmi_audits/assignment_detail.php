@@ -7,7 +7,7 @@ include APPPATH . 'views/layouts/sidebar.php';
     <!-- Back Navigation to Parent Cycle Detail (#assignments tab) -->
     <div class="tw-mb-5">
       <a class="audits-back-link" href="<?php echo site_url('lpmpi/spmi-audits/cycle/detail/' . (int) $assignment->cycle_id . '#assignments'); ?>">
-        <svg class="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <svg class="tw-h-4 tw-w-4" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         <span>Kembali ke Detail Siklus</span>
       </a>
     </div>
