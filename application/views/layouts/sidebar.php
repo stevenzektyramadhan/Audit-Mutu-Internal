@@ -116,9 +116,9 @@ if ($initial === '') {
                     if ($stage_key === 'pengendalian'):
                         $evaluasi_step_badge = sprintf('%02d', $ppepp_step_num++);
                 ?>
-                    <button type="button" class="ami-nav-link ami-nav-disclosure bg-transparent <?php echo $evaluasi_is_active ? 'has-active-child' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
+                    <button type="button" class="ami-nav-link ami-nav-disclosure tw-bg-transparent <?php echo $evaluasi_is_active ?'has-active-child' : ''; ?>" data-nav-disclosure aria-expanded="<?php echo $evaluasi_is_active ? 'true' : 'false'; ?>" aria-controls="<?php echo $evaluasi_nav_id; ?>">
                         <span class="ami-nav-step" aria-hidden="true"><?php echo $evaluasi_step_badge; ?></span>
-                        <i class="fas fa-layer-group sr-only" aria-hidden="true"></i>
+                        <i class="fas fa-layer-group tw-sr-only" aria-hidden="true"></i>
                         <span>Evaluasi</span>
                         <i class="fas fa-chevron-down ami-nav-chevron" aria-hidden="true"></i>
                     </button>
@@ -140,9 +140,9 @@ if ($initial === '') {
                     $stage_is_current = $ppepp_is_active && $ppepp_selected_stage !== '' && $ppepp_selected_stage === $stage_key;
                     $step_badge = sprintf('%02d', $ppepp_step_num++);
                 ?>
-                    <a class="ami-nav-link ami-nav-ppepp-stage-link <?php echo $stage_is_current ? 'active' : ''; ?>" href="<?php echo html_escape($stage_url); ?>"<?php echo $stage_is_current ? ' aria-current="page"' : ''; ?>>
+                    <a class="ami-nav-link ami-nav-ppepp-stage-link <?php echo $stage_is_current ?'active' : ''; ?>" href="<?php echo html_escape($stage_url); ?>"<?php echo $stage_is_current ? ' aria-current="page"' : ''; ?>>
                         <span class="ami-nav-step" aria-hidden="true"><?php echo $step_badge; ?></span>
-                        <i class="fas <?php echo html_escape($menu['icon']); ?> sr-only" aria-hidden="true"></i>
+                        <i class="fas <?php echo html_escape($menu['icon']); ?> tw-sr-only" aria-hidden="true"></i>
                         <span><?php echo html_escape($stage_label); ?></span>
                     </a>
                 <?php endforeach; ?>
@@ -151,7 +151,7 @@ if ($initial === '') {
                 $is_menu_active = ($active_menu === $menu['key'])
                     || ($menu['key'] === 'system_settings' && $active_menu === 'upload_size_settings');
                 ?>
-                <a class="ami-nav-link <?php echo $is_menu_active ? 'active' : ''; ?>" href="<?php echo site_url($menu['url']); ?>"<?php echo $is_menu_active ? ' aria-current="page"' : ''; ?>>
+                <a class="ami-nav-link <?php echo $is_menu_active ?'active' : ''; ?>" href="<?php echo site_url($menu['url']); ?>"<?php echo $is_menu_active ? ' aria-current="page"' : ''; ?>>
                     <i class="fas <?php echo html_escape($menu['icon']); ?>" aria-hidden="true"></i>
                     <span><?php echo html_escape($menu['label']); ?></span>
                     <?php if (isset($menu_badges[$menu['key']]) && (int) $menu_badges[$menu['key']] > 0): ?>
@@ -164,7 +164,7 @@ if ($initial === '') {
 
     <div class="ami-logout">
         <?php echo form_open('auth/logout'); ?>
-            <button type="submit" class="ami-nav-link w-100 border-0 bg-transparent text-left">
+            <button type="submit" class="ami-nav-link tw-w-full tw-border-0 tw-bg-transparent tw-text-left">
                 <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                 <span>Logout</span>
             </button>
@@ -177,7 +177,7 @@ if ($initial === '') {
 <main class="ami-main">
     <div class="ami-topbar">
         <div class="ami-topbar-heading">
-            <button type="button" class="ami-desktop-toggle d-none d-lg-inline-flex" data-sidebar-desktop-toggle aria-label="Toggle sidebar desktop" title="Sembunyikan/Tampilkan sidebar">
+            <button type="button" class="ami-desktop-toggle tw-hidden lg:tw-inline-flex" data-sidebar-desktop-toggle aria-label="Toggle sidebar desktop" title="Sembunyikan/Tampilkan sidebar">
                 <svg class="tw-w-5 tw-h-5 ami-icon-panel-close" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                 </svg>
@@ -185,7 +185,7 @@ if ($initial === '') {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                 </svg>
             </button>
-            <button type="button" class="ami-menu-toggle d-lg-none" data-sidebar-toggle aria-controls="ami-sidebar" aria-expanded="false" aria-label="Buka menu">
+            <button type="button" class="ami-menu-toggle lg:tw-hidden" data-sidebar-toggle aria-controls="ami-sidebar" aria-expanded="false" aria-label="Buka menu">
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <div>
@@ -194,8 +194,8 @@ if ($initial === '') {
             </div>
         </div>
         <div class="ami-topbar-actions">
-            <div class="dropdown">
-                <button type="button" class="ami-account-toggle" id="account-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Menu akun">
+            <div class="dropdown" data-account-dropdown>
+                <button type="button" class="ami-account-toggle" id="account-menu" aria-haspopup="true" aria-expanded="false" aria-controls="account-menu-dropdown" aria-label="Menu akun">
                     <span class="ami-avatar ami-topbar-avatar avatar-<?php echo html_escape($role); ?>">
                         <?php if ($profile_photo_path): ?>
                             <img src="<?php echo site_url('account/photo'); ?>" alt="" class="ami-avatar-image">
@@ -203,35 +203,117 @@ if ($initial === '') {
                             <?php echo html_escape($initial); ?>
                         <?php endif; ?>
                     </span>
-                    <span class="d-none d-md-inline"><?php echo html_escape($nama); ?></span>
-                    <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    <span class="tw-hidden md:tw-inline"><?php echo html_escape($nama); ?></span>
+                    <svg class="ami-account-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6"/>
+                    </svg>
                 </button>
-                <div class="dropdown-menu dropdown-menu-right ami-account-menu" aria-labelledby="account-menu">
-                    <a class="dropdown-item" href="<?php echo site_url('account'); ?>"><i class="fas fa-user-circle" aria-hidden="true"></i>Akun Saya</a>
+                <div class="dropdown-menu dropdown-menu-right ami-account-menu" id="account-menu-dropdown" role="menu" aria-labelledby="account-menu">
+                    <a class="dropdown-item" role="menuitem" href="<?php echo site_url('account'); ?>">
+                        <svg class="ami-account-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Akun Saya
+                    </a>
                     <div class="dropdown-divider"></div>
                     <?php echo form_open('auth/logout', ['class' => 'mb-0']); ?>
-                        <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt" aria-hidden="true"></i>Logout</button>
+                        <button type="submit" class="dropdown-item" role="menuitem">
+                            <svg class="ami-account-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            Logout
+                        </button>
                     <?php echo form_close(); ?>
                 </div>
             </div>
         </div>
     </div>
+    <script>
+    (function () {
+        var dropdown = document.querySelector('[data-account-dropdown]');
+        if (!dropdown) return;
+
+        var toggle = dropdown.querySelector('#account-menu');
+        var menu = dropdown.querySelector('#account-menu-dropdown');
+        if (!toggle || !menu) return;
+
+        function items() {
+            return menu.querySelectorAll('a.dropdown-item, button.dropdown-item');
+        }
+
+        function setOpen(open, moveFocus) {
+            menu.classList.toggle('show', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open && moveFocus) {
+                var firstItem = items()[0];
+                if (firstItem) firstItem.focus();
+            }
+        }
+
+        toggle.addEventListener('click', function () {
+            setOpen(toggle.getAttribute('aria-expanded') !== 'true', false);
+        });
+
+        toggle.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setOpen(true, true);
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                setOpen(false, false);
+            }
+        });
+
+        menu.addEventListener('keydown', function (event) {
+            var menuItems = items();
+            var currentIndex = Array.prototype.indexOf.call(menuItems, document.activeElement);
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setOpen(false, false);
+                toggle.focus();
+            } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                var nextIndex = event.key === 'ArrowDown' ? currentIndex + 1 : currentIndex - 1;
+                if (nextIndex < 0) nextIndex = menuItems.length - 1;
+                if (nextIndex >= menuItems.length) nextIndex = 0;
+                if (menuItems[nextIndex]) menuItems[nextIndex].focus();
+            } else if (event.key === 'Home') {
+                event.preventDefault();
+                if (menuItems[0]) menuItems[0].focus();
+            } else if (event.key === 'End') {
+                event.preventDefault();
+                if (menuItems.length) menuItems[menuItems.length - 1].focus();
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!dropdown.contains(event.target)) setOpen(false, false);
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+                setOpen(false, false);
+                toggle.focus();
+            }
+        });
+    }());
+    </script>
     <div class="ami-content">
         <?php include APPPATH . 'views/layouts/notifications.php'; ?>
         <?php if ($this->session->flashdata('success')): ?>
-            <div class="alert ami-flash ami-flash-success sr-only" role="alert">
+            <div class="ami-flash ami-flash-success tw-sr-only" role="alert">
                 <i class="fas fa-check-circle" aria-hidden="true"></i>
                 <span><?php echo html_escape($this->session->flashdata('success')); ?></span>
             </div>
         <?php endif; ?>
         <?php if ($this->session->flashdata('error')): ?>
-            <div class="alert ami-flash ami-flash-error sr-only" role="alert">
+            <div class="ami-flash ami-flash-error tw-sr-only" role="alert">
                 <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
                 <span><?php echo html_escape($this->session->flashdata('error')); ?></span>
             </div>
         <?php endif; ?>
         <?php if ($this->session->flashdata('warning')): ?>
-            <div class="alert alert-warning sr-only" role="alert">
+            <div class="ami-flash ami-flash-warning tw-sr-only" role="alert">
                 <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
                 <span><?php echo html_escape($this->session->flashdata('warning')); ?></span>
             </div>
