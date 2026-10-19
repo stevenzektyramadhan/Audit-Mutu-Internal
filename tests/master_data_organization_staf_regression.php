@@ -67,7 +67,7 @@ mdos_check(strpos($migration, 'FOREIGN_KEY_CHECKS') === FALSE, 'Migration 042 ti
 foreach (['INSERT', 'UPDATE', 'DELETE'] as $verb) mdos_has_no_statement($migration, $verb, 'Migration 042 tidak boleh menjalankan DML: ' . $verb);
 
 mdos_check(strpos($schema, 'current parity migration 001-041') !== FALSE, 'Marker historis 001-041 harus tetap ada.');
-mdos_check(strpos($schema, 'current parity migration 001-048') !== FALSE, 'Marker parity 001-048 harus ada.');
+mdos_check(strpos($schema, 'current parity migration 001-050') !== FALSE, 'Marker parity 001-050 harus ada.');
 mdos_check(strpos($profil_prodi, '`organization_unit_id` INT NULL') !== FALSE, 'Bootstrap schema profil_prodi harus punya organization_unit_id nullable.');
 mdos_check(strpos($profil_prodi, 'UNIQUE KEY `uq_profil_prodi_organization_unit` (`organization_unit_id`)') !== FALSE, 'Bootstrap schema profil_prodi harus punya unique key organization_unit_id.');
 mdos_check(strpos($organization_units, "ENUM('university','faculty','upps','study_program','institute','bureau','unit')") !== FALSE, 'Bootstrap schema organization_units harus mempertahankan tipe UPPS.');
@@ -77,7 +77,7 @@ $fk_pos = strpos($schema, 'ADD CONSTRAINT `fk_profil_prodi_organization_unit`');
 mdos_check($organization_table_pos !== FALSE && $fk_pos !== FALSE && $organization_table_pos < $fk_pos, 'Bootstrap FK profil_prodi harus dideklarasikan setelah organization_units.');
 mdos_check(strpos($schema, 'FOREIGN KEY (`organization_unit_id`) REFERENCES `organization_units` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT') !== FALSE, 'Bootstrap FK profil_prodi harus RESTRICT untuk delete dan update.');
 
-mdos_check(strpos($readme, 'parity migration `001-048`') !== FALSE, 'README harus mendokumentasikan parity 001-048.');
+mdos_check(strpos($readme, 'parity migration `001-050`') !== FALSE, 'README harus mendokumentasikan parity 001-050.');
 mdos_check(strpos($readme, '`042_link_profil_prodi_to_organization_units.sql`') !== FALSE, 'README harus mencantumkan migration 042.');
 mdos_check(strpos($readme, 'nullable `profil_prodi.organization_unit_id`') !== FALSE, 'README harus menjelaskan link nullable.');
 mdos_check(strpos($readme, 'tidak melakukan auto-map') !== FALSE, 'README harus melarang auto-map fase 042.');
@@ -212,7 +212,7 @@ $value_helper_start = strpos($view, '$value = static function');
 $value_helper_end = strpos($view, '$type_labels =', $value_helper_start);
 $value_helper = $value_helper_start !== FALSE && $value_helper_end !== FALSE ? substr($view, $value_helper_start, $value_helper_end - $value_helper_start) : '';
 mdos_check(strpos($value_helper, 'property_exists($row, $key)') !== FALSE && strpos($value_helper, 'array_key_exists($key, $row)') !== FALSE, 'View value helper harus mempertahankan nilai NULL dari object dan array row.');
-mdos_check(strpos($view, '$unit_is_root = $value($unit, \'parent_id\') === NULL') !== FALSE && strpos($view, '<span class="text-muted" aria-label="Unit root">—</span>') !== FALSE && strpos($view, '<a class="btn btn-sm btn-outline-ami" href="<?php echo html_escape(site_url(\'lpmpi/master-data-prodi-staf/unit/detail/\' . (int) $value($unit, \'id\'))); ?>">') !== FALSE, 'Unit root harus memakai marker netral, sedangkan unit non-root harus mempertahankan tautan Detail.');
+mdos_check(strpos($view, '$unit_is_root = $value($unit, \'parent_id\') === NULL') !== FALSE && strpos($view, '<span class="tw-text-slate-500" aria-label="Unit root">—</span>') !== FALSE && strpos($view, '<a class="btn btn-sm btn-outline-ami" href="<?php echo html_escape(site_url(\'lpmpi/master-data-prodi-staf/unit/detail/\' . (int) $value($unit, \'id\'))); ?>">') !== FALSE, 'Unit root harus memakai marker netral, sedangkan unit non-root harus mempertahankan tautan Detail.');
 mdos_check(strpos($view, "site_url('lpmpi/master-data-prodi-staf/create')") !== FALSE, 'Index Master Data harus memakai CTA unified create.');
 mdos_check(strpos($view, "site_url('lpmpi/master-data-prodi-staf/unit/create')") === FALSE && strpos($view, "site_url('profil/prodi/create')") === FALSE, 'Index Master Data tidak boleh menampilkan CTA create direct lama.');
 foreach (['form_open($unit_store_action', 'lpmpi/master-data-prodi-staf/unit/store', 'lpmpi/master-data-prodi-staf/prodi/store', 'name="entity_type"', 'name="type"', 'name="require_faculty"', '$faculties', 'html_escape'] as $literal) {

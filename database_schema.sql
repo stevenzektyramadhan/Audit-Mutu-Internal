@@ -23,6 +23,7 @@
 -- current parity migration 001-045
 -- current parity migration 001-046
 -- current parity migration 001-047
+-- current parity migration 001-050
 
 CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `ami`;
