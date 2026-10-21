@@ -4,6 +4,13 @@ $cycle_unit = isset($cycle->organization_unit_name) ? $cycle->organization_unit_
 $cycle_unit_code = isset($cycle->organization_unit_code) ? $cycle->organization_unit_code : '';
 $cycle_unit_type = isset($cycle->organization_unit_type) ? $cycle->organization_unit_type : '';
 $cycle_unit_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas', 'bureau' => 'Biro', 'unit' => 'Unit', 'institute' => 'Lembaga'];
+$version_status_labels = [
+    'draft' => 'Draf',
+    'review' => 'Review',
+    'approved' => 'Disetujui',
+    'active' => 'Aktif',
+    'retired' => 'Tidak Berlaku',
+];
 ?>
 <div id="audits-root" class="tw-min-w-0 tw-flex-1">
     <div class="assignment-page">
@@ -12,18 +19,18 @@ $cycle_unit_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas
         <header class="assignment-hero">
             <p class="assignment-kicker">Penugasan SPMI</p>
             <h1>Tambah penugasan</h1>
-            <p class="assignment-subtitle">Siklus draft: <strong><?php echo html_escape($cycle->cycle_code . ' — ' . $cycle->title); ?></strong></p>
+            <p class="assignment-subtitle">Siklus draf: <strong><?php echo html_escape($cycle->cycle_code . ' — ' . $cycle->title); ?></strong></p>
         </header>
-        <div class="assignment-note" role="note"><span class="assignment-note-icon" aria-hidden="true">&#9432;</span><span>Penugasan ini dibuat sebagai draft. Setiap standar yang dipilih akan menyalin snapshot versi, indikator, kebijakan bukti, rubrik global 1–4, serta identitas auditor dan auditi.</span></div>
+        <div class="assignment-note" role="note"><span class="assignment-note-icon" aria-hidden="true">&#9432;</span><span>Penugasan ini dibuat sebagai draf. Setiap standar yang dipilih akan menyalin snapshot versi, indikator, kebijakan bukti, rubrik global 1–4, serta identitas auditor dan auditi.</span></div>
         <?php if (empty($versions) || empty($standards_by_version) || empty($auditors) || empty($auditees)): ?>
-            <section class="assignment-card" aria-labelledby="assignment-prerequisite-title"><div class="assignment-section-head"><span class="assignment-section-index">!</span><div><h2 id="assignment-prerequisite-title">Prasyarat belum lengkap</h2><p>Pastikan tersedia versi draft/review dengan standar, serta akun auditor dan auditi.</p></div></div></section>
+            <section class="assignment-card" aria-labelledby="assignment-prerequisite-title"><div class="assignment-section-head"><span class="assignment-section-index">!</span><div><h2 id="assignment-prerequisite-title">Prasyarat belum lengkap</h2><p>Pastikan tersedia versi draf/review dengan standar, serta akun auditor dan auditi.</p></div></div></section>
         <?php else: ?>
             <?php echo form_open('lpmpi/spmi-audits/assignment/store/' . (int) $cycle->id); ?>
             <section class="assignment-card" aria-labelledby="assignment-info-title">
                 <div class="assignment-section-head"><span class="assignment-section-index">01</span><div><h2 id="assignment-info-title">Informasi penugasan</h2><p>Tentukan versi standar dan konteks pengguna yang akan menjalankan audit.</p></div></div>
                  <div class="assignment-fields">
                      <div class="assignment-field assignment-field--wide"><span class="assignment-label">Unit organisasi audit</span><p class="assignment-help" id="cycle-organization-unit"><?php if ($cycle_unit !== '' || $cycle_unit_code !== ''): ?><?php echo html_escape(($cycle_unit_labels[$cycle_unit_type] ?? $cycle_unit_type) . ' — ' . $cycle_unit_code . ' — ' . $cycle_unit); ?><?php else: ?>Unit organisasi legacy belum dicatat.<?php endif; ?></p></div>
-                     <div class="assignment-field assignment-field--wide"><label class="assignment-label" for="source_version_id">Versi SPMI <span class="assignment-help">Wajib dipilih sebagai sumber snapshot standar.</span></label><select id="source_version_id" name="source_version_id" class="tw-field" required><option value="">Pilih versi</option><?php foreach ($versions as $version): ?><option value="<?php echo (int) $version->id; ?>"><?php echo html_escape($version->version_code . ' — ' . $version->title . ' [' . $version->status . ']'); ?></option><?php endforeach; ?></select></div>
+                     <div class="assignment-field assignment-field--wide"><label class="assignment-label" for="source_version_id">Versi SPMI <span class="assignment-help">Wajib dipilih sebagai sumber snapshot standar.</span></label><select id="source_version_id" name="source_version_id" class="tw-field" required><option value="">Pilih versi</option><?php foreach ($versions as $version): ?><option value="<?php echo (int) $version->id; ?>"><?php echo html_escape($version->version_code . ' — ' . $version->title . ' [' . ($version_status_labels[$version->status] ?? $version->status) . ']'); ?></option><?php endforeach; ?></select></div>
                     <div class="assignment-field"><label class="assignment-label" for="auditee_id">Auditi <span class="assignment-help">Wajib dipilih.</span></label><input type="search" class="assignment-search" data-role-search="auditee_id" data-role-search-target="auditee_id" aria-label="Cari auditi berdasarkan nama" aria-controls="auditee_id" placeholder="Cari berdasarkan nama" autocomplete="off" hidden><span id="auditee-search-status" data-role-search-status="auditee_id" class="assignment-status" aria-live="polite" hidden></span><select id="auditee_id" name="auditee_id" class="tw-field" required><option value="">Pilih auditi</option><?php foreach ($auditees as $user): ?><option value="<?php echo (int) $user->id; ?>" data-search="<?php echo html_escape(mb_strtolower($user->nama, 'UTF-8')); ?>"><?php echo html_escape($user->nama . ' — ' . $user->email); ?></option><?php endforeach; ?></select></div>
                     <div class="assignment-field"><label class="assignment-label" for="auditor-search">Auditor standar <span class="assignment-help">Pencarian menyaring pilihan tanpa menghapus nilai yang sudah dipilih.</span></label><input id="auditor-search" type="search" class="assignment-search" data-role-search="auditor_id" data-role-search-target="assignment-auditor" aria-label="Cari auditor berdasarkan nama" placeholder="Cari berdasarkan nama" autocomplete="off" hidden><span id="auditor-search-status" data-role-search-status="auditor_id" class="assignment-status" aria-live="polite" hidden></span></div>
                 </div>

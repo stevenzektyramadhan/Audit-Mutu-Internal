@@ -8,6 +8,21 @@ $cycle_unit_code = isset($cycle->organization_unit_code) ? trim((string) $cycle-
 $cycle_unit_name = isset($cycle->organization_unit_name) ? trim((string) $cycle->organization_unit_name) : '';
 $cycle_unit_type = isset($cycle->organization_unit_type) ? trim((string) $cycle->organization_unit_type) : '';
 $cycle_unit_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas', 'bureau' => 'Biro', 'unit' => 'Unit', 'institute' => 'Lembaga'];
+$state_labels = [
+    'draft' => 'Draf',
+    'configured' => 'Dikonfigurasi',
+    'active' => 'Aktif',
+    'closed' => 'Ditutup',
+];
+$state_badge_classes = [
+    'draft' => 'tw-bg-amber-100 tw-text-amber-800 tw-border tw-border-amber-200',
+    'configured' => 'tw-bg-blue-100 tw-text-blue-800 tw-border tw-border-blue-200',
+    'active' => 'tw-bg-emerald-100 tw-text-emerald-800 tw-border tw-border-emerald-200',
+    'closed' => 'tw-bg-slate-100 tw-text-slate-700 tw-border tw-border-slate-200',
+];
+$current_state = isset($cycle->state) ? (string) $cycle->state : '';
+$current_state_label = isset($state_labels[$current_state]) ? $state_labels[$current_state] : ucfirst($current_state);
+$current_state_badge = isset($state_badge_classes[$current_state]) ? $state_badge_classes[$current_state] : 'tw-bg-slate-100 tw-text-slate-700';
 ?>
 <main id="audits-root" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
   <div class="tw-mx-auto tw-max-w-7xl">
@@ -71,14 +86,14 @@ $cycle_unit_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas
         <section id="overview" class="tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-6 tw-shadow-sm">
           <div class="tw-flex tw-flex-wrap tw-items-center tw-justify-between tw-gap-3">
             <h2 class="tw-text-lg tw-font-bold tw-text-slate-950">Overview</h2>
-            <span class="tw-rounded-full tw-bg-slate-100 tw-px-3 tw-py-1 tw-text-xs tw-font-bold tw-text-slate-700"><?php echo html_escape($cycle->state); ?></span>
+            <span class="tw-rounded-full tw-px-3 tw-py-1 tw-text-xs tw-font-bold <?php echo $current_state_badge; ?>"><?php echo html_escape($current_state_label); ?></span>
           </div>
           <p class="tw-mt-4 tw-text-sm tw-text-slate-600">Periode: <?php echo html_escape($cycle->start_date . ' — ' . $cycle->end_date); ?></p>
           <p class="tw-mt-4 tw-whitespace-pre-line tw-text-sm tw-leading-6 tw-text-slate-600"><?php echo nl2br(html_escape($cycle->description ?: 'Deskripsi belum diisi.')); ?></p>
           <?php if (!$mutable): ?>
-            <div class="tw-mt-6 tw-rounded-lg tw-border tw-border-blue-200 tw-bg-blue-50 tw-p-4 tw-text-sm tw-text-blue-800">Siklus configured atau closed bersifat frozen dan hanya-baca. Snapshot tidak berubah mengikuti sumber.</div>
+            <div class="tw-mt-6 tw-rounded-lg tw-border tw-border-blue-200 tw-bg-blue-50 tw-p-4 tw-text-sm tw-text-blue-800">Siklus dikonfigurasi atau ditutup bersifat frozen dan hanya-baca. Snapshot tidak berubah mengikuti sumber.</div>
           <?php else: ?>
-            <div class="tw-mt-6 tw-rounded-lg tw-border tw-border-amber-200 tw-bg-amber-50 tw-p-4 tw-text-sm tw-text-amber-800">Siklus draft: metadata dan penugasan masih dapat diubah.</div>
+            <div class="tw-mt-6 tw-rounded-lg tw-border tw-border-amber-200 tw-bg-amber-50 tw-p-4 tw-text-sm tw-text-amber-800">Siklus draf: metadata dan penugasan masih dapat diubah.</div>
           <?php endif; ?>
         </section>
 
@@ -91,7 +106,7 @@ $cycle_unit_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas
 
       <?php if ($mutable): ?>
         <div class="tw-mt-5 tw-flex tw-flex-wrap tw-gap-2">
-          <?php foreach (['configured' => 'Tandai configured', 'closed' => 'Tutup siklus'] as $state => $label): ?>
+          <?php foreach (['configured' => 'Tandai dikonfigurasi', 'closed' => 'Tutup siklus'] as $state => $label): ?>
             <?php echo form_open('lpmpi/spmi-audits/cycle/transition/' . (int) $cycle->id, ['class' => 'tw-inline']); ?>
             <input type="hidden" name="state" value="<?php echo html_escape($state); ?>">
             <button class="tw-button-secondary" type="submit"><?php echo html_escape($label); ?></button>
@@ -101,7 +116,7 @@ $cycle_unit_labels = ['study_program' => 'Program Studi', 'faculty' => 'Fakultas
       <?php elseif ($cycle->state === 'configured'): ?>
         <?php echo form_open('lpmpi/spmi-audits/cycle/transition/' . (int) $cycle->id, ['class' => 'tw-mt-5']); ?>
         <input type="hidden" name="state" value="draft">
-        <button class="tw-button-secondary" type="submit">Kembalikan ke draft</button>
+        <button class="tw-button-secondary" type="submit">Kembalikan ke draf</button>
         </form>
         <?php echo form_open('lpmpi/spmi-audits/cycle/transition/' . (int) $cycle->id, ['class' => 'tw-mt-2', 'onsubmit' => "return confirm('Tutup siklus? Siklus yang sudah ditutup tidak dapat dibuka kembali.');"]); ?>
         <input type="hidden" name="state" value="closed">
