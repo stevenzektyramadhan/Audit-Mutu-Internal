@@ -5,7 +5,7 @@ include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
 
 $role_tones = ['super_admin' => 'users-tone-violet', 'admin_lpmpi' => 'users-tone-blue', 'auditor' => 'users-tone-green', 'auditee' => 'users-tone-amber'];
-$role_labels = ['super_admin' => 'super_admin', 'admin_lpmpi' => 'admin_lpmpi', 'auditor' => 'auditor', 'auditee' => 'Auditi'];
+$role_labels = ['super_admin' => 'Super Admin', 'admin_lpmpi' => 'Admin LPMPI', 'auditor' => 'Auditor', 'auditee' => 'Auditi'];
 $filters = isset($filters) ? $filters : ['q' => '', 'role' => ''];
 $actor_role = (string) $this->session->userdata('role');
 $filter_roles = $actor_role === 'super_admin'
