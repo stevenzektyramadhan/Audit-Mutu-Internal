@@ -845,6 +845,10 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
             gap: var(--ami-space-sm);
         }
 
+        .ami-account-dropdown {
+            position: relative;
+        }
+
         .ami-account-toggle {
             min-height: 38px;
             padding: 4px var(--ami-space-sm) 4px 4px;
@@ -940,12 +944,58 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
         }
 
         .ami-account-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            z-index: 1000;
+            display: none;
             min-width: 170px;
             padding: 6px;
+            margin: 0.125rem 0 0;
             border-color: #e2e8f0;
             border-radius: 8px;
             background: #ffffff;
             box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+        }
+
+        .ami-account-dropdown.ami-open .ami-account-menu {
+            display: block;
+        }
+
+        .ami-account-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            white-space: nowrap;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .ami-account-item:hover,
+        .ami-account-item:focus {
+            background: #eff6ff;
+            color: #1d4ed8;
+            outline: none;
+        }
+
+        .ami-account-divider {
+            height: 0;
+            margin: 0.5rem 0;
+            overflow: hidden;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .ami-account-menu form {
+            margin: 0;
         }
 
         .ami-account-menu .dropdown-item {
