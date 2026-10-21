@@ -66,3 +66,4 @@ output/
 /outputs/
 node_modules/
 .omo/
+.playwright-mcp

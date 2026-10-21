@@ -155,10 +155,12 @@ foreach (['application/controllers/Spmi_auditor_workspace.php', 'application/con
     $controller = source($root, $path);
     check(strpos($controller, "'menu_badges' =>") !== FALSE, 'M17-07E workspace sidebar badge missing: ' . $path);
 }
-check(strpos($sidebar, "form_open('auth/logout');") !== FALSE
-    && strpos($sidebar, "form_open('auth/logout', ['class' => 'mb-0'])") !== FALSE,
+check(substr_count($sidebar, "form_open('auth/logout');") === 2,
     'Sidebar and account dropdown must both retain POST logout forms.');
 check(strpos($sidebar, "site_url('account/photo')") !== FALSE && strpos($sidebar, 'ami-account-menu') !== FALSE, 'Account photo and dropdown must remain available.');
+foreach (['.ami-account-dropdown', '.ami-account-menu', '.ami-account-dropdown.ami-open .ami-account-menu', '.ami-account-item', '.ami-account-divider', '.dropdown', '.dropdown-menu', '.dropdown-item'] as $selector) {
+    check(strpos($header, $selector) !== FALSE, 'Account dropdown CSS selector missing: ' . $selector);
+}
 check(strpos($sidebar, 'data-theme-toggle') === FALSE, 'Theme toggle must remain removed for light-only UI.');
 foreach (['ami-sidebar', 'data-sidebar-toggle', 'data-sidebar-close', 'ami-sidebar-overlay'] as $hook) {
     check(strpos($sidebar, $hook) !== FALSE, 'Mobile sidebar hook missing: ' . $hook);
