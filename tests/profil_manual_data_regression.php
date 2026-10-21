@@ -82,6 +82,12 @@ foreach (['Daftar Program Studi', 'kode_prodi', 'nama_prodi', 'jenjang', 'table-
 foreach (['profil/prodi/create', 'profil/prodi/edit', 'profil/prodi/delete', 'lpmpi/prodi-import', 'Kelola Staf'] as $forbidden) {
     profile_manual_check(strpos($index, $forbidden) === FALSE, 'Profil tidak boleh memuat aksi/mutasi Prodi: ' . $forbidden);
 }
+foreach (['width: 100%', 'table-layout: fixed', 'overflow-wrap: anywhere'] as $literal) {
+    profile_manual_check(strpos($index, $literal) !== FALSE, 'Tabel Program Studi harus mempertahankan layout responsif: ' . $literal);
+}
+profile_manual_check((bool) preg_match('/\.profil-prodi-table\s+(?:th|td):nth-child\(2\)/', $index), 'Tabel Program Studi harus memiliki selector kolom kedua nth-child(2) untuk layout responsif.');
+profile_manual_check(!preg_match('/min-width\s*:\s*560px\s*;/', $index), 'Tabel Program Studi tidak boleh memaksakan min-width: 560px.');
+profile_manual_check(!preg_match('/\.profil-prodi-table-wrap\s*\{[^}]*overflow-x\s*:\s*auto\s*;/', $index), 'Wrapper tabel Program Studi tidak boleh memakai overflow-x: auto lokal.');
 profile_manual_check(strpos($master, 'lpmpi/master-data-prodi-staf/create') !== FALSE && strpos($master, 'lpmpi/prodi-import') !== FALSE && strpos($master, 'profil/prodi/edit/') !== FALSE && strpos($master, 'profil/prodi/delete/') !== FALSE, 'Master Data harus menjadi pemilik UI CRUD Prodi lewat CTA unified, import, edit, dan delete row.');
 profile_manual_check(strpos($master_create_form, 'profil/prodi/store') === FALSE && strpos($master_create_form, 'lpmpi/master-data-prodi-staf/prodi/store') !== FALSE && strpos($master_create_form, 'name="kode_prodi"') !== FALSE && strpos($master_create_form, 'name="nama_prodi"') !== FALSE && strpos($master_create_form, 'name="faculty_id"') !== FALSE && strpos($master_create_form, 'name="jenjang"') !== FALSE, 'Form unified Master Data harus mengirim Prodi ke receiver Master explicit, bukan endpoint legacy Profil.');
 profile_manual_check(strpos($prodi_form, "master-data-prodi-staf") !== FALSE, 'Form Prodi harus kembali ke Master Data.');

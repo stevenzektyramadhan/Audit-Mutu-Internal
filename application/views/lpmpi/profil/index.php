@@ -154,23 +154,42 @@ include APPPATH . 'views/layouts/sidebar.php';
     }
 
     .profil-prodi-table-wrap {
-        overflow-x: auto;
+        overflow-x: visible;
     }
 
     .profil-prodi-table {
-        min-width: 560px;
+        width: 100%;
+        min-width: 0;
         margin-bottom: 0;
+        table-layout: fixed;
     }
 
     .profil-prodi-table th {
-        white-space: nowrap;
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: .04em;
     }
 
+    .profil-prodi-table th,
     .profil-prodi-table td {
+        overflow-wrap: anywhere;
+        white-space: normal;
         vertical-align: middle;
+    }
+
+    .profil-prodi-table th:nth-child(1),
+    .profil-prodi-table td:nth-child(1) {
+        width: 20%;
+    }
+
+    .profil-prodi-table th:nth-child(2),
+    .profil-prodi-table td:nth-child(2) {
+        width: 60%;
+    }
+
+    .profil-prodi-table th:nth-child(3),
+    .profil-prodi-table td:nth-child(3) {
+        width: 20%;
     }
 
     .profil-prodi-code {
