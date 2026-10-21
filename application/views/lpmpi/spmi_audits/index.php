@@ -1,6 +1,19 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 include APPPATH . 'views/layouts/header.php';
 include APPPATH . 'views/layouts/sidebar.php';
+
+$state_labels = [
+    'draft' => 'Draf',
+    'configured' => 'Dikonfigurasi',
+    'active' => 'Aktif',
+    'closed' => 'Ditutup',
+];
+$state_badge_classes = [
+    'draft' => 'tw-bg-amber-50 tw-text-amber-800 tw-border tw-border-amber-200',
+    'configured' => 'tw-bg-blue-50 tw-text-blue-800 tw-border tw-border-blue-200',
+    'active' => 'tw-bg-emerald-50 tw-text-emerald-800 tw-border tw-border-emerald-200',
+    'closed' => 'tw-bg-slate-100 tw-text-slate-700 tw-border tw-border-slate-200',
+];
 ?>
 <main id="audits-root" data-ui-contract="ami-row-actions ami-action-btn" class="tw-min-w-0 tw-flex-1 tw-p-4 md:tw-p-8">
   <div class="tw-mx-auto tw-max-w-7xl">
@@ -15,19 +28,25 @@ include APPPATH . 'views/layouts/sidebar.php';
 
     <section class="tw-mb-5 tw-grid tw-gap-3 md:tw-grid-cols-[1fr_180px_180px]" aria-label="Filter siklus">
       <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Cari siklus</span><div class="tw-relative"><input id="cycle-filter-search" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-pr-10 tw-text-sm" type="search" placeholder="Kode atau judul..." aria-controls="cycle-list"><button id="cycle-filter-clear" class="tw-absolute tw-right-2 tw-top-1/2 tw-hidden tw--translate-y-1/2 tw-rounded tw-p-1 tw-text-slate-400 hover:tw-bg-slate-100 hover:tw-text-slate-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-slate-400" type="button" aria-label="Hapus pencarian"><span aria-hidden="true">&times;</span></button></div></label>
-      <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Status</span><select id="cycle-filter-status" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm"><option value="">Semua status</option><option value="draft">Draft</option><option value="configured">Configured</option><option value="closed">Closed</option></select></label>
+      <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Status</span><select id="cycle-filter-status" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm"><option value="">Semua status</option><option value="draft">Draf</option><option value="configured">Dikonfigurasi</option><option value="closed">Ditutup</option></select></label>
       <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">Tahun akademik</span><select id="cycle-filter-year" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2.5 tw-text-sm"><option value="">Semua tahun</option><?php $years = []; foreach ($cycles as $cycle) { $year = isset($cycle->academic_year) ? trim((string) $cycle->academic_year) : ''; if ($year !== '' && !in_array($year, $years, TRUE)) $years[] = $year; } foreach ($years as $year): ?><option value="<?php echo html_escape($year); ?>"><?php echo html_escape($year); ?></option><?php endforeach; ?></select></label>
     </section>
 
     <?php if (empty($cycles)): ?>
-      <div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-bg-white tw-p-10 tw-text-center"><h2 class="tw-text-lg tw-font-bold tw-text-slate-900">Belum ada siklus SPMI</h2><p class="tw-mt-2 tw-text-sm tw-text-slate-500">Buat siklus draft untuk mulai menyusun snapshot penugasan.</p></div>
+      <div class="tw-rounded-2xl tw-border tw-border-dashed tw-border-slate-300 tw-bg-white tw-p-10 tw-text-center"><h2 class="tw-text-lg tw-font-bold tw-text-slate-900">Belum ada siklus SPMI</h2><p class="tw-mt-2 tw-text-sm tw-text-slate-500">Buat siklus draf untuk mulai menyusun snapshot penugasan.</p></div>
     <?php else: ?>
-      <div class="tw-overflow-hidden tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm"><div class="tw-overflow-x-auto"><table class="tw-w-full tw-min-w-[760px] tw-text-left tw-text-sm"><thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-uppercase tw-tracking-wide tw-text-slate-500"><tr><th class="tw-px-5 tw-py-4">Siklus</th><th class="tw-px-5 tw-py-4">Tahun akademik</th><th class="tw-px-5 tw-py-4">Periode</th><th class="tw-px-5 tw-py-4">Status</th><th class="tw-px-5 tw-py-4"></th></tr></thead><tbody id="cycle-list" class="tw-divide-y tw-divide-slate-100">
+      <div class="tw-overflow-hidden tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm"><div class="tw-overflow-x-auto"><table class="tw-w-full tw-min-w-[760px] tw-text-left tw-text-sm"><thead class="tw-border-b tw-border-slate-200 tw-bg-slate-50 tw-text-xs tw-uppercase tw-tracking-wide tw-text-slate-500"><tr><th class="tw-px-5 tw-py-4">Siklus</th><th class="tw-px-5 tw-py-4">Tahun akademik</th><th class="tw-px-5 tw-py-4">Periode</th><th class="tw-px-5 tw-py-4">Status</th><th class="tw-px-5 tw-py-4 tw-text-right tw-w-32 tw-whitespace-nowrap">Aksi</th></tr></thead><tbody id="cycle-list" class="tw-divide-y tw-divide-slate-100">
         <?php foreach ($cycles as $cycle): ?>
-          <?php $academic_year = isset($cycle->academic_year) ? trim((string) $cycle->academic_year) : ''; $is_overdue = (string) $cycle->end_date < date('Y-m-d') && $cycle->state !== 'draft'; ?>
+          <?php
+          $academic_year = isset($cycle->academic_year) ? trim((string) $cycle->academic_year) : '';
+          $is_overdue = (string) $cycle->end_date < date('Y-m-d') && $cycle->state !== 'draft';
+          $state_key = isset($cycle->state) ? (string) $cycle->state : '';
+          $state_label = isset($state_labels[$state_key]) ? $state_labels[$state_key] : ucfirst($state_key);
+          $state_badge_class = isset($state_badge_classes[$state_key]) ? $state_badge_classes[$state_key] : 'tw-bg-slate-100 tw-text-slate-700';
+          ?>
           <tr class="cycle-row hover:tw-bg-slate-50" data-search="<?php echo html_escape(mb_strtolower($cycle->cycle_code . ' ' . $cycle->title, 'UTF-8')); ?>" data-status="<?php echo html_escape($cycle->state); ?>" data-year="<?php echo html_escape($academic_year); ?>">
             <td class="tw-px-5 tw-py-4"><div class="tw-font-bold tw-text-slate-900"><?php echo html_escape($cycle->cycle_code); ?></div><div class="tw-mt-1 tw-text-slate-500"><?php echo html_escape($cycle->title); ?></div><?php if ($is_overdue && (int) $cycle->pending_auditee_count > 0): ?><span class="tw-mt-2 tw-inline-flex tw-rounded-full tw-bg-rose-50 tw-px-2.5 tw-py-1 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat auditi: <?php echo html_escape((string) $cycle->pending_auditee_count); ?></span><?php endif; ?><?php if ($is_overdue && (int) $cycle->pending_auditor_count > 0): ?><span class="tw-mt-2 tw-inline-flex tw-rounded-full tw-bg-rose-50 tw-px-2.5 tw-py-1 tw-text-xs tw-font-bold tw-text-rose-800">Terlambat auditor: <?php echo html_escape((string) $cycle->pending_auditor_count); ?></span><?php endif; ?></td>
-            <td class="tw-px-5 tw-py-4 tw-text-slate-600"><?php echo html_escape($academic_year !== '' ? $academic_year : 'Periode akademik belum dicatat'); ?></td><td class="tw-px-5 tw-py-4 tw-whitespace-nowrap tw-text-slate-600"><?php echo html_escape($cycle->start_date . ' — ' . $cycle->end_date); ?></td><td class="tw-px-5 tw-py-4"><span class="tw-inline-flex tw-rounded-full tw-bg-slate-100 tw-px-2.5 tw-py-1 tw-text-xs tw-font-bold tw-text-slate-700"><?php echo html_escape($cycle->state); ?></span></td><td class="tw-px-5 tw-py-4 tw-text-right"><a class="tw-font-semibold tw-text-slate-950 hover:tw-underline" href="<?php echo site_url('lpmpi/spmi-audits/cycle/detail/' . (int) $cycle->id); ?>">Buka detail</a></td>
+            <td class="tw-px-5 tw-py-4 tw-text-slate-600"><?php echo html_escape($academic_year !== '' ? $academic_year : 'Periode akademik belum dicatat'); ?></td><td class="tw-px-5 tw-py-4 tw-whitespace-nowrap tw-text-slate-600"><?php echo html_escape($cycle->start_date . ' — ' . $cycle->end_date); ?></td><td class="tw-px-5 tw-py-4"><span class="tw-inline-flex tw-rounded-full tw-px-2.5 tw-py-1 tw-text-xs tw-font-bold <?php echo $state_badge_class; ?>"><?php echo html_escape($state_label); ?></span></td><td class="tw-px-5 tw-py-4 tw-text-right tw-whitespace-nowrap"><div class="ami-row-actions tw-inline-flex tw-items-center tw-justify-end tw-gap-2"><a class="ami-action-btn tw-inline-flex tw-items-center tw-gap-1.5 tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-1.5 tw-text-xs tw-font-semibold tw-text-slate-700 hover:tw-border-slate-400 hover:tw-bg-slate-50 hover:tw-text-slate-900 tw-whitespace-nowrap tw-transition-colors" href="<?php echo site_url('lpmpi/spmi-audits/cycle/detail/' . (int) $cycle->id); ?>"><svg width="14" height="14" class="tw-h-3.5 tw-w-3.5 tw-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></svg><span>Detail</span></a></div></td>
           </tr>
         <?php endforeach; ?>
       </tbody></table></div><p id="cycle-filter-empty" class="tw-hidden tw-p-8 tw-text-center tw-text-sm tw-text-slate-500">Tidak ada siklus yang cocok.</p></div>

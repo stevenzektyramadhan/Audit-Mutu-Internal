@@ -240,6 +240,11 @@
   vertical-align: middle;
 }
 
+#users-management-root .users-table th:nth-child(4),
+#users-management-root .users-table td:nth-child(4) {
+  white-space: nowrap;
+}
+
 #users-management-root .users-table tbody tr:last-child td {
   border-bottom: 0;
 }
@@ -276,6 +281,15 @@
   color: #854f0b;
 }
 
+#users-management-root .users-row-actions {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  justify-content: flex-start;
+  white-space: nowrap;
+}
+
 #users-management-root .users-action {
   align-items: center;
   background: transparent;
@@ -283,11 +297,13 @@
   border-radius: var(--ami-radius-sm);
   color: var(--users-blue);
   display: inline-flex;
+  flex-shrink: 0;
   font-size: 12px;
   font-weight: 700;
   gap: 6px;
   min-height: 36px;
-  padding: 7px 10px;
+  padding: 6px 10px;
+  white-space: nowrap;
 }
 
 #users-management-root .users-action:hover {
@@ -441,6 +457,13 @@
     display: block;
     padding-top: 10px;
     text-align: left;
+  }
+
+  #users-management-root .users-table td:last-child .users-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
   }
 
   #users-management-root .users-table td:last-child::before {

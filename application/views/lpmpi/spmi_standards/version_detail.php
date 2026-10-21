@@ -56,8 +56,18 @@ if (!empty($standards)) {
                     <?php echo html_escape($version->version_code); ?> — <?php echo html_escape($version->title); ?>
                 </h2>
                 <div class="tw-flex tw-items-center tw-gap-3 tw-mt-2">
-                    <span class="std-badge std-badge-<?php echo strtolower($version->status); ?>">
-                        Status: <?php echo html_escape(ucfirst($version->status)); ?>
+                    <?php
+                        $version_status = strtolower($version->status);
+                        $status_text = [
+                            'draft' => 'Draf',
+                            'review' => 'Review',
+                            'approved' => 'Disetujui',
+                            'active' => 'Aktif',
+                            'retired' => 'Tidak Berlaku',
+                        ][$version_status] ?? ucfirst($version->status);
+                    ?>
+                    <span class="std-badge std-badge-<?php echo $version_status; ?>">
+                        Status: <?php echo html_escape($status_text); ?>
                     </span>
                     <?php if (!$mutable): ?>
                         <span class="std-muted tw-text-xs">(Versi ini bersifat hanya-baca)</span>
@@ -74,10 +84,20 @@ if (!empty($standards)) {
 
                 <?php if (!empty($transitions)): ?>
                     <?php foreach ($transitions as $next_status): ?>
+                        <?php
+                            $next_key = strtolower($next_status);
+                            $next_label = [
+                                'draft' => 'Draf',
+                                'review' => 'Review',
+                                'approved' => 'Disetujui',
+                                'active' => 'Aktif',
+                                'retired' => 'Tidak Berlaku',
+                            ][$next_key] ?? ucfirst($next_status);
+                        ?>
                         <?php echo form_open('lpmpi/spmi-standards/version/transition/' . (int) $version->id, ['class' => 'tw-inline']); ?>
                             <input type="hidden" name="status" value="<?php echo html_escape($next_status); ?>">
-                            <button class="std-button std-button-primary tw-text-xs" type="submit" onclick="return confirm('Pindahkan status versi ke <?php echo html_escape($next_status); ?>?');">
-                                Pindah ke <?php echo html_escape(ucfirst($next_status)); ?>
+                            <button class="std-button std-button-primary tw-text-xs" type="submit" onclick="return confirm('Pindahkan status versi ke <?php echo html_escape($next_label); ?>?');">
+                                Pindah ke <?php echo html_escape($next_label); ?>
                             </button>
                         <?php echo form_close(); ?>
                     <?php endforeach; ?>

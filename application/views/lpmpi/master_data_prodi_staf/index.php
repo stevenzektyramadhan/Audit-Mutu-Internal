@@ -224,7 +224,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                             <?php endif; ?>
                                             <?php if (in_array($unit_type, ['faculty', 'bureau', 'unit', 'institute'], TRUE)): ?>
                                                 <div class="dropdown master-row-menu">
-                                                    <button type="button" class="tw-text-xs ami-btn-link dropdown-toggle master-row-menu-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" aria-label="Aksi unit">Lainnya</button>
+                                                    <button type="button" class="btn btn-sm master-row-menu-toggle dropdown-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" aria-label="Aksi unit">Lainnya <i class="fas fa-chevron-down" aria-hidden="true" style="font-size: 10px; margin-left: 2px;"></i></button>
                                                     <div class="dropdown-menu dropdown-menu-right">
                                                         <a class="tw-text-xs btn-outline-ami" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/unit/edit/' . (int) $value($unit, 'id'))); ?>"><i class="fas fa-edit" aria-hidden="true"></i> Edit</a>
                                                         <?php echo form_open('lpmpi/master-data-prodi-staf/unit/toggle/' . (int) $value($unit, 'id')); ?>
@@ -281,7 +281,7 @@ include APPPATH . 'views/layouts/sidebar.php';
                                                 <a class="tw-text-xs ami-btn-outline-warning" href="<?php echo html_escape(site_url('lpmpi/master-data-prodi-staf/prodi/link/' . (int) $value($row, 'id'))); ?>"><i class="fas fa-link" aria-hidden="true"></i> Hubungkan</a>
                                             <?php endif; ?>
                                             <div class="dropdown master-row-menu">
-                                                <button type="button" class="tw-text-xs ami-btn-link dropdown-toggle master-row-menu-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" aria-label="Aksi Program Studi">Lainnya</button>
+                                                <button type="button" class="btn btn-sm master-row-menu-toggle dropdown-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" aria-label="Aksi Program Studi">Lainnya <i class="fas fa-chevron-down" aria-hidden="true" style="font-size: 10px; margin-left: 2px;"></i></button>
                                                 <div class="dropdown-menu dropdown-menu-right">
                                                     <a class="tw-text-xs btn-outline-ami" href="<?php echo html_escape(site_url('profil/prodi/edit/' . (int) $value($row, 'id'))); ?>"><i class="fas fa-edit" aria-hidden="true"></i> Edit</a>
                                                     <a class="tw-text-xs btn-outline-ami" href="<?php echo html_escape(site_url('profil/prodi/' . (int) $value($row, 'id') . '/staf')); ?>"><i class="fas fa-users" aria-hidden="true"></i> Lihat Staf</a>

@@ -67,6 +67,13 @@ $icon = static function ($name) {
                                 $status = strtolower($version->status);
                                 $is_mutable = in_array($status, ['draft', 'review'], TRUE);
                                 $badge_class = 'std-badge-' . $status;
+                                $status_text = [
+                                    'draft' => 'Draf',
+                                    'review' => 'Review',
+                                    'approved' => 'Disetujui',
+                                    'active' => 'Aktif',
+                                    'retired' => 'Tidak Berlaku',
+                                ][$status] ?? ucfirst($version->status);
                             ?>
                                 <tr>
                                     <td data-label="Kode Versi">
@@ -79,7 +86,7 @@ $icon = static function ($name) {
                                     </td>
                                     <td data-label="Status">
                                         <span class="std-badge <?php echo $badge_class; ?>">
-                                            <?php echo html_escape(ucfirst($version->status)); ?>
+                                            <?php echo html_escape($status_text); ?>
                                         </span>
                                     </td>
                                     <td data-label="Aksi" class="tw-text-right">
