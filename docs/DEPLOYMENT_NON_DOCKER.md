@@ -154,6 +154,128 @@ sudo chmod 0775 /var/www/ami/uploads/profil
 
 ---
 
+## Development Lokal melalui PHP CLI
+
+Bagian ini hanya untuk development manual di host, bukan deployment produksi. Runner
+`run-local-php.sh` memuat `.env` jika file tersebut ada, membuat folder upload yang
+dibutuhkan, lalu menjalankan PHP built-in server pada `127.0.0.1:8000`. PHP built-in
+server hanya untuk development dan tidak boleh digunakan di production. Deployment
+production tetap memakai PHP-FPM sesuai panduan di bawah ini.
+
+### Siapkan `.env` Lokal
+
+Dari root repository, salin `.env.example` ke `.env` hanya jika diperlukan, lalu
+sesuaikan variabel berikut. Contoh path host di bawah memakai
+`/home/steven/Documents/Audit-Mutu-Internal` sebagai contoh development konkret,
+bukan sebagai default production.
+
+```dotenv
+CI_ENV=development
+APP_LOG_THRESHOLD=1
+APP_ENCRYPTION_KEY=local-development-only-key
+APP_BASE_URL=http://127.0.0.1:8000/
+APP_COOKIE_SECURE=false
+
+# Harus menunjuk ke host MySQL/MariaDB yang dapat dijangkau dari host ini.
+# Jangan menyimpan IP container Docker sebagai konfigurasi stabil.
+DB_HOST=127.0.0.1
+DB_USERNAME=ami_local
+DB_PASSWORD=<isi-password-MySQL-lokal>
+DB_DATABASE=ami
+
+# Keduanya adalah path pada host development.
+APP_PRIVATE_STORAGE_PATH=/home/steven/Documents/Audit-Mutu-Internal/storage/private
+APP_PUBLIC_UPLOADS_PATH=/home/steven/Documents/Audit-Mutu-Internal/uploads
+APP_LOG_PATH=/home/steven/Documents/Audit-Mutu-Internal/storage/logs
+
+# Backend bukti SPMI: local atau google_drive.
+SPMI_EVIDENCE_STORAGE_BACKEND=local
+
+# Isi hanya jika backend Google Drive sedang diuji secara lokal.
+# GOOGLE_DRIVE_AUTH_MODE=oauth
+# GOOGLE_DRIVE_EVIDENCE_FOLDER_ID=
+# GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH=
+# GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH=
+# GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH=
+
+# Isi hanya jika reset password via Brevo sedang diuji.
+# BREVO_API_KEY=
+# MAIL_FROM_ADDRESS=
+# MAIL_FROM_NAME=AMI Development
+
+# Opsional: daftar endpoint PDDIKTI HTTPS yang dipisahkan koma.
+# PDDIKTI_BASE_URLS=https://api.example.org,https://api-backup.example.org
+```
+
+`DB_HOST` harus berisi nama host atau alamat IP MySQL/MariaDB yang benar-benar dapat
+dijangkau oleh PHP yang berjalan di host ini. Untuk database lokal, gunakan misalnya
+`127.0.0.1` atau `localhost`. Jangan memakai IP internal container Docker sebagai
+konfigurasi tetap, karena alamat tersebut dapat berubah dan mode PHP CLI ini bukan
+mode Compose.
+
+`APP_PRIVATE_STORAGE_PATH` adalah lokasi host untuk file private dan tidak boleh
+berada di webroot yang dilayani publik. `APP_PUBLIC_UPLOADS_PATH` adalah lokasi host
+untuk upload publik, khususnya profil. Bila variabel path tidak diisi, runner memakai
+`storage/private` dan `uploads` di root repository. `APP_LOG_PATH` menentukan lokasi
+log aplikasi; buat direktori tersebut sebelum menjalankan aplikasi jika path custom
+dipakai. Jangan menyimpan nilai rahasia pada repository atau membagikan file `.env`.
+
+Runner otomatis membuat kategori private berikut saat start:
+
+- `audit_evidence`, bukti audit yang diunggah auditee.
+- `bukti_auditor`, bukti atau lampiran yang diunggah auditor.
+- `instrumen`, file instrumen yang masih dipakai oleh alur terkait.
+- `penetapan`, dokumen tahap Penetapan.
+- `ppepp_documents`, arsip dokumen PPEPP manajemen.
+- `rtm_photos`, foto dokumentasi Rapat Tinjauan Manajemen.
+- `spmi_source`, PDF sumber SPMI.
+- `tmp`, file sementara proses aplikasi.
+- `user_photos`, foto pengguna yang disimpan private.
+
+Runner juga otomatis membuat folder publik `profil` di bawah
+`APP_PUBLIC_UPLOADS_PATH` dan folder sesi di `application/cache/sessions`. Pastikan
+akun yang menjalankan runner memiliki hak tulis pada path tersebut. Runner tidak
+membuat direktori `APP_LOG_PATH`, sehingga buat sekali apabila nilainya bukan path
+log bawaan aplikasi:
+
+```bash
+mkdir -p /home/steven/Documents/Audit-Mutu-Internal/storage/logs
+```
+
+### Jalankan, Verifikasi, Inspeksi, dan Hentikan
+
+Jalankan dari root repository setelah MySQL/MariaDB dan database `ami` siap:
+
+```bash
+./run-local-php.sh > /tmp/ami-local-php.log 2>&1 &
+printf '%s\n' "$!" > /tmp/ami-local-php.pid
+```
+
+Verifikasi endpoint aplikasi dan lihat status proses:
+
+```bash
+curl -i http://127.0.0.1:8000/index.php/auth
+ps -p "$(cat /tmp/ami-local-php.pid)" -o pid=,cmd=
+```
+
+Periksa log runner atau output PHP ketika mendiagnosis masalah:
+
+```bash
+less /tmp/ami-local-php.log
+find /home/steven/Documents/Audit-Mutu-Internal/storage/private \
+  -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort
+find /home/steven/Documents/Audit-Mutu-Internal/uploads/profil \
+  -maxdepth 1 -type d -print
+```
+
+Hentikan server development dengan PID yang dicatat saat start. Jangan menghentikan
+proses PHP lain milik pengguna atau service production.
+
+```bash
+kill "$(cat /tmp/ami-local-php.pid)"
+rm -f /tmp/ami-local-php.pid
+```
+
 ## 3. Konfigurasi Web Server
 
 ### Opsi A: Nginx + PHP-FPM (Sangat Direkomendasikan)
