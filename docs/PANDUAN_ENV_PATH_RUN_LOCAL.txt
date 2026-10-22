@@ -1,0 +1,89 @@
+PANDUAN ENV, PATH UPLOAD, DAN MENJALANKAN PHP LOKAL
+====================================================
+
+Panduan ini hanya untuk development lokal menggunakan PHP CLI.
+Jangan gunakan PHP built-in server untuk production.
+
+
+1. ENVIRONMENT (.env)
+---------------------
+
+Di root proyek, buat file .env. Nilai berikut mengikuti compose.yaml,
+kecuali path upload yang diarahkan ke filesystem host.
+
+CI_ENV=development
+APP_LOG_THRESHOLD=1
+APP_ENCRYPTION_KEY=local-development-only-key
+APP_BASE_URL=http://127.0.0.1:8000/
+
+DB_HOST=172.19.0.2
+DB_USERNAME=ami_local
+DB_PASSWORD=ami_local_password
+DB_DATABASE=ami
+
+APP_PRIVATE_STORAGE_PATH=/home/steven/Documents/Audit-Mutu-Internal/storage/private
+APP_PUBLIC_UPLOADS_PATH=/home/steven/Documents/Audit-Mutu-Internal/uploads
+
+PENTING:
+- DB_HOST=172.19.0.2 hanya berlaku selama container database Docker aktif
+  dan alamat IP container tersebut masih sama. Gunakan host/IP MySQL lokal
+  yang dapat dijangkau jika database dijalankan tanpa Docker.
+- Jangan commit file .env karena berisi konfigurasi dan dapat berisi rahasia.
+
+
+2. PATH UPLOAD
+--------------
+
+PRIVATE STORAGE
+/home/steven/Documents/Audit-Mutu-Internal/storage/private
+
+Kategori private yang dibuat otomatis oleh run-local-php.sh:
+- audit_evidence     : bukti audit dari auditee
+- bukti_auditor      : lampiran atau bukti auditor
+- instrumen          : file instrumen terkait
+- penetapan          : dokumen tahap Penetapan
+- ppepp_documents    : arsip dokumen PPEPP
+- rtm_photos         : foto dokumentasi RTM
+- spmi_source        : PDF sumber SPMI
+- tmp                : file sementara aplikasi
+- user_photos        : foto pengguna private
+
+PUBLIC UPLOADS
+/home/steven/Documents/Audit-Mutu-Internal/uploads
+
+Folder publik yang dibuat otomatis:
+- profil             : logo lembaga dan aset profil
+
+Folder sesi yang juga dibuat otomatis:
+/home/steven/Documents/Audit-Mutu-Internal/application/cache/sessions
+
+PENTING: Jangan letakkan private storage di webroot yang dapat diakses publik.
+
+
+3. MENJALANKAN APLIKASI
+-----------------------
+
+Dari root proyek, jalankan:
+
+./run-local-php.sh
+
+Aplikasi dapat diakses pada:
+http://127.0.0.1:8000/index.php/auth
+
+Untuk menjalankan di background:
+
+./run-local-php.sh > /tmp/ami-local-php.log 2>&1 &
+printf '%s\n' "$!" > /tmp/ami-local-php.pid
+
+Verifikasi aplikasi:
+
+curl -i http://127.0.0.1:8000/index.php/auth
+
+Lihat log:
+
+less /tmp/ami-local-php.log
+
+Hentikan server:
+
+kill "$(cat /tmp/ami-local-php.pid)"
+rm -f /tmp/ami-local-php.pid

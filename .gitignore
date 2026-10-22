@@ -50,6 +50,7 @@ docs/TASK.md
 docs/TASKS.md
 docs/*
 !docs/DEPLOYMENT_NON_DOCKER.md
+!docs/PANDUAN_ENV_PATH_RUN_LOCAL.txt
 !docs/manual-pengguna-ami-spmi.md
 !docs/manual-pengguna-ami-spmi.pdf
 !docs/assets/
