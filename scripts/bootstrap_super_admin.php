@@ -28,29 +28,80 @@ function fail(string $message): void
     exit(1);
 }
 
-if (count($argv) > 2 || (isset($argv[1]) && strpos($argv[1], '--config=') !== 0)) {
-    fail('Gunakan tanpa argumen atau --config=/etc/ami/production.php.');
+// 1. Cek parameter --config jika diberikan
+$configPath = null;
+if (isset($argv[1])) {
+    if (strpos($argv[1], '--config=') === 0) {
+        $configPath = substr($argv[1], strlen('--config='));
+    } else {
+        fail('Gunakan tanpa argumen atau --config=/path/ke/config.php.');
+    }
 }
 
-$configPath = isset($argv[1]) ? substr($argv[1], strlen('--config=')) : '/etc/ami/production.php';
-if ($configPath === '' || $configPath[0] !== '/' || !is_file($configPath) || !is_readable($configPath) || (fileperms($configPath) & 0022) !== 0) {
-    fail('File konfigurasi production tidak dapat dibaca dengan aman.');
+$host = '';
+$database = '';
+$username = '';
+$databasePassword = '';
+
+if ($configPath !== null) {
+    if ($configPath === '' || !is_file($configPath) || !is_readable($configPath)) {
+        fail('File konfigurasi tidak dapat dibaca.');
+    }
+    $cfg = require $configPath;
+    if (is_array($cfg)) {
+        if (isset($cfg['database']) && is_array($cfg['database'])) {
+            $host = isset($cfg['database']['hostname']) ? trim((string) $cfg['database']['hostname']) : '';
+            $database = isset($cfg['database']['database']) ? trim((string) $cfg['database']['database']) : '';
+            $username = isset($cfg['database']['username']) ? trim((string) $cfg['database']['username']) : '';
+            $databasePassword = isset($cfg['database']['password']) ? (string) $cfg['database']['password'] : '';
+        } elseif (isset($db['default']) && is_array($db['default'])) {
+            $host = isset($db['default']['hostname']) ? trim((string) $db['default']['hostname']) : '';
+            $database = isset($db['default']['database']) ? trim((string) $db['default']['database']) : '';
+            $username = isset($db['default']['username']) ? trim((string) $db['default']['username']) : '';
+            $databasePassword = isset($db['default']['password']) ? (string) $db['default']['password'] : '';
+        }
+    }
+} else {
+    $prodDbFile = dirname(__DIR__) . '/application/config/production/database.php';
+    $baseDbFile = dirname(__DIR__) . '/application/config/database.php';
+
+    if (!defined('BASEPATH')) {
+        define('BASEPATH', dirname(__DIR__) . '/system/');
+    }
+
+    if (is_file($prodDbFile) && is_readable($prodDbFile)) {
+        require $prodDbFile;
+    } elseif (is_file($baseDbFile) && is_readable($baseDbFile)) {
+        require $baseDbFile;
+    }
+
+    if (isset($db['default']) && is_array($db['default'])) {
+        $host = isset($db['default']['hostname']) ? trim((string) $db['default']['hostname']) : '';
+        $database = isset($db['default']['database']) ? trim((string) $db['default']['database']) : '';
+        $username = isset($db['default']['username']) ? trim((string) $db['default']['username']) : '';
+        $databasePassword = isset($db['default']['password']) ? (string) $db['default']['password'] : '';
+    }
 }
 
-$productionConfig = require $configPath;
-$databaseConfig = is_array($productionConfig) && isset($productionConfig['database']) && is_array($productionConfig['database'])
-    ? $productionConfig['database']
-    : array();
-$host = isset($databaseConfig['hostname']) ? trim((string) $databaseConfig['hostname']) : '';
-$database = isset($databaseConfig['database']) ? trim((string) $databaseConfig['database']) : '';
-$username = isset($databaseConfig['username']) ? trim((string) $databaseConfig['username']) : '';
-$databasePassword = isset($databaseConfig['password']) ? (string) $databaseConfig['password'] : '';
+if ($host === '') {
+    $host = prompt('Database Host', 'localhost');
+}
+if ($database === '') {
+    $database = prompt('Database Name', 'ami');
+}
+if ($username === '') {
+    $username = prompt('Database Username', 'root');
+}
+if ($databasePassword === '') {
+    $databasePassword = prompt('Database Password', '', true);
+}
+
 $name = prompt('Nama super-admin');
 $email = strtolower(prompt('Email super-admin'));
 $password = prompt('Password super-admin (minimal 12 karakter)', null, true);
 $confirmation = prompt('Ulangi password super-admin', null, true);
 
-if ($host === '' || $database === '' || $username === '' || $databasePassword === '' || $name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 12 || !hash_equals($password, $confirmation)) {
+if ($host === '' || $database === '' || $username === '' || $name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 12 || !hash_equals($password, $confirmation)) {
     fail('Input tidak valid. Tidak ada perubahan database.');
 }
 
@@ -100,21 +151,21 @@ try {
         throw new RuntimeException('Akun tidak dapat dibuat.');
     }
     $statement->close();
+
     $db->commit();
     $transaction = false;
-    fwrite(STDOUT, "Super-admin awal berhasil dibuat. Tidak ada credential ditampilkan.\n");
-} catch (Throwable $exception) {
-    if ($db instanceof mysqli && $transaction) {
+    fwrite(STDOUT, 'Super-admin berhasil dibuat.' . PHP_EOL);
+} catch (Throwable $e) {
+    if ($transaction && $db instanceof mysqli) {
         $db->rollback();
     }
-    fail('Bootstrap gagal: ' . $exception->getMessage());
+    fail('Gagal bootstrap super-admin: ' . $e->getMessage());
 } finally {
-    $password = $confirmation = $databasePassword = '';
+    if ($lockAcquired && $db instanceof mysqli) {
+        mysqli_report(MYSQLI_REPORT_OFF);
+        $db->query("SELECT RELEASE_LOCK('ami.bootstrap_super_admin')");
+    }
     if ($db instanceof mysqli) {
-        if ($lockAcquired) {
-            mysqli_report(MYSQLI_REPORT_OFF);
-            $db->query("SELECT RELEASE_LOCK('ami.bootstrap_super_admin')");
-        }
         $db->close();
     }
 }
