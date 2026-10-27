@@ -275,6 +275,22 @@ switch (ENVIRONMENT)
 
 	define('APPPATH', $application_folder.DIRECTORY_SEPARATOR);
 
+	require_once APPPATH.'config/runtime_config.php';
+	if (ENVIRONMENT === 'production')
+	{
+		try
+		{
+			$production_config_file = getenv('APP_PRODUCTION_CONFIG_FILE');
+			$GLOBALS['ami_production_config'] = ami_load_production_config($production_config_file, FCPATH);
+		}
+		catch (Throwable $exception)
+		{
+			header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
+			echo 'Production configuration is incomplete.';
+			exit(1);
+		}
+	}
+
 	// The path to the "views" directory
 	if ( ! isset($view_folder[0]) && is_dir(APPPATH.'views'.DIRECTORY_SEPARATOR))
 	{

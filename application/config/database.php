@@ -1,6 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+if (!function_exists('ami_runtime_config_item')) {
+	require_once APPPATH.'config/runtime_config.php';
+}
+
 /*
 | -------------------------------------------------------------------
 | DATABASE CONNECTIVITY SETTINGS
@@ -74,10 +78,10 @@ $active_group = 'default';
 $query_builder = TRUE;
 
 $db_environment = array(
-	'hostname' => getenv('DB_HOST'),
-	'username' => getenv('DB_USERNAME'),
-	'password' => getenv('DB_PASSWORD'),
-	'database' => getenv('DB_DATABASE'),
+	'hostname' => ami_runtime_config_item('database', 'hostname', 'DB_HOST', FALSE),
+	'username' => ami_runtime_config_item('database', 'username', 'DB_USERNAME', FALSE),
+	'password' => ami_runtime_config_item('database', 'password', 'DB_PASSWORD', FALSE),
+	'database' => ami_runtime_config_item('database', 'database', 'DB_DATABASE', FALSE),
 );
 
 if (ENVIRONMENT === 'production') {
