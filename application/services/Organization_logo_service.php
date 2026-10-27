@@ -62,7 +62,7 @@ class Organization_logo_service
         }
 
         $directory = $this->upload_dir();
-        if (!is_dir($directory) && !mkdir($directory, 0755, TRUE)) {
+        if (!is_dir($directory) || !is_writable($directory)) {
             return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Folder upload logo tidak dapat dibuat.'];
         }
         if (!is_dir($directory) || !is_writable($directory)) {

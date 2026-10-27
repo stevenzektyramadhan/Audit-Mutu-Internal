@@ -199,7 +199,7 @@ class Spmi_ppepp_documents_service
         if (!$validated['success']) return $validated;
 
         $dir = private_storage_dir('ppepp_documents');
-        if (!is_dir($dir) && !mkdir($dir, 0700, TRUE) && !is_dir($dir)) return ['success' => FALSE, 'message' => 'File dokumen PPEPP gagal disimpan.'];
+        if (!is_dir($dir) || !is_writable($dir)) return ['success' => FALSE, 'message' => 'File dokumen PPEPP gagal disimpan.'];
         @chmod($dir, 0700);
 
         try {

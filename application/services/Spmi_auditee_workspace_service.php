@@ -119,7 +119,7 @@ class Spmi_auditee_workspace_service
         if (!$validated['success']) return $this->rollback($validated['message']);
         $use_drive = $this->use_drive_storage();
         $dir = private_storage_dir('audit_evidence');
-        if (!is_dir($dir) && !mkdir($dir, 0700, TRUE) && !is_dir($dir)) return $this->rollback('Bukti gagal disimpan.');
+        if (!is_dir($dir) || !is_writable($dir)) return $this->rollback('Bukti gagal disimpan.');
         $paths = [];
         try { $name = bin2hex(random_bytes(24)) . '.' . $validated['extension']; } catch (Exception $e) { return $this->rollback('Bukti gagal disimpan.'); }
         $path = $dir . $name;

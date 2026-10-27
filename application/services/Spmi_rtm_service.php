@@ -99,7 +99,7 @@ class Spmi_rtm_service
         $validated = $this->validate_photo($file);
         if (!$validated['success']) return $validated;
         $dir = private_storage_dir('rtm_photos');
-        if (!is_dir($dir) && !mkdir($dir, 0700, TRUE) && !is_dir($dir)) return ['success' => FALSE, 'message' => 'Foto dokumentasi RTM gagal disimpan.'];
+        if (!is_dir($dir) || !is_writable($dir)) return ['success' => FALSE, 'message' => 'Foto dokumentasi RTM gagal disimpan.'];
         @chmod($dir, 0700);
         try { $name = bin2hex(random_bytes(24)) . '.' . $validated['extension']; } catch (Exception $e) { return ['success' => FALSE, 'message' => 'Foto dokumentasi RTM gagal disimpan.']; }
         $path = $dir . $name;

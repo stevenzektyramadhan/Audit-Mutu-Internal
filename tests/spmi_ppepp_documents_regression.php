@@ -134,7 +134,7 @@ foreach ([
     'bin2hex(random_bytes(24))',
     'basename($file[\'name\'])',
     "private_storage_dir('ppepp_documents')",
-    'mkdir($dir, 0700, TRUE)',
+    '!is_dir($dir) || !is_writable($dir)',
     '@chmod($path, 0600)',
     'move_uploaded_file',
 ] as $literal) {
