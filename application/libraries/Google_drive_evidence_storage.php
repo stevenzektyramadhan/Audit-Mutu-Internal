@@ -188,6 +188,18 @@ class Google_drive_evidence_storage
 
     private function env($key)
     {
+        if (ENVIRONMENT === 'production') {
+            $config_keys = [
+                self::FOLDER_ENV => 'google_drive_evidence_folder_id',
+                self::MODE_ENV => 'google_drive_auth_mode',
+                self::SERVICE_ACCOUNT_ENV => 'google_drive_service_account_json_path',
+                self::OAUTH_CLIENT_ENV => 'google_drive_oauth_client_secret_json_path',
+                self::OAUTH_REFRESH_TOKEN_ENV => 'google_drive_oauth_refresh_token_json_path',
+            ];
+
+            return isset($config_keys[$key]) ? trim((string) config_item($config_keys[$key])) : '';
+        }
+
         $value = getenv($key);
         if ($value === FALSE && isset($_SERVER[$key])) {
             $value = $_SERVER[$key];

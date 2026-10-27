@@ -1,6 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+if (!function_exists('ami_runtime_config_item')) {
+    require_once dirname(__DIR__) . '/config/runtime_config.php';
+}
+
 if (!function_exists('status_audit_meta')) {
     function status_audit_meta($status)
     {
@@ -55,7 +59,7 @@ if (!function_exists('private_storage_dir')) {
             throw new InvalidArgumentException('Kategori penyimpanan tidak valid.');
         }
 
-        $configured = getenv('APP_PRIVATE_STORAGE_PATH');
+		$configured = ami_runtime_config_item('app', 'private_storage_path', 'APP_PRIVATE_STORAGE_PATH', FALSE);
         $root = $configured !== FALSE && trim($configured) !== ''
             ? trim($configured)
             : sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'ami-private-storage';
@@ -72,7 +76,7 @@ if (!function_exists('public_uploads_dir')) {
             throw new InvalidArgumentException('Kategori public uploads tidak valid.');
         }
 
-        $configured = getenv('APP_PUBLIC_UPLOADS_PATH');
+		$configured = ami_runtime_config_item('app', 'public_uploads_path', 'APP_PUBLIC_UPLOADS_PATH', FALSE);
         $root = $configured !== FALSE && trim($configured) !== ''
             ? rtrim(trim($configured), '/\\')
             : rtrim(FCPATH . 'uploads', '/\\');

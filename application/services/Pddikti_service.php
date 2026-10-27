@@ -1,6 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+if (!function_exists('ami_runtime_config_item')) {
+    require_once APPPATH . 'config/runtime_config.php';
+}
+
 class Pddikti_service
 {
     const ERROR_SOURCE_UNAVAILABLE = 1001;
@@ -296,7 +300,7 @@ class Pddikti_service
     private function configured_base_urls()
     {
         $urls = [];
-        $env = getenv('PDDIKTI_BASE_URLS');
+		$env = ami_runtime_config_item('integrations', 'pddikti_base_urls', 'PDDIKTI_BASE_URLS', FALSE);
         if ($env !== FALSE && trim((string) $env) !== '') {
             foreach (explode(',', (string) $env) as $base_url) {
                 $base_url = rtrim(trim($base_url), '/');
