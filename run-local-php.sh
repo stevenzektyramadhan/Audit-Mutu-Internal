@@ -25,12 +25,15 @@ export DB_DATABASE="${DB_DATABASE:-ami}"
 export APP_PRIVATE_STORAGE_PATH="${APP_PRIVATE_STORAGE_PATH:-$DIR/storage/private}"
 export APP_PUBLIC_UPLOADS_PATH="${APP_PUBLIC_UPLOADS_PATH:-$DIR/uploads}"
 
-# Pastikan seluruh subfolder storage private dan public upload tersedia
-for category in audit_evidence bukti_auditor instrumen penetapan ppepp_documents rtm_photos spmi_source tmp user_photos; do
-    mkdir -p "$APP_PRIVATE_STORAGE_PATH/$category"
+for path in \
+    "$APP_PRIVATE_STORAGE_PATH"/{audit_evidence,bukti_auditor,instrumen,penetapan,ppepp_documents,rtm_photos,spmi_source,tmp,user_photos} \
+    "$APP_PUBLIC_UPLOADS_PATH/profil" \
+    "$DIR/application/cache/sessions"; do
+    if [ ! -d "$path" ] || [ ! -w "$path" ]; then
+        printf 'Path runtime harus sudah ada dan writable: %s\n' "$path" >&2
+        exit 1
+    fi
 done
-mkdir -p "$APP_PUBLIC_UPLOADS_PATH/profil"
-mkdir -p "$DIR/application/cache/sessions"
 
 echo "========================================================"
 echo "Sistem Penjaminan Mutu Internal (SPMI) - Manual PHP Host"
