@@ -51,16 +51,12 @@
  *     testing
  *     production
  *
- * NOTE: If you change these, also change the error_reporting() code below
+ * NOTE: Untuk server production multisite, tetapkan secara eksplisit:
+ *       define('ENVIRONMENT', 'production');
+ *       Untuk pengujian lokal di komputer developer, gunakan:
+ *       define('ENVIRONMENT', 'development');
  */
-	$ci_environment = isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : getenv('CI_ENV');
-	if ($ci_environment === FALSE || trim((string) $ci_environment) === '')
-	{
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'The application environment is not set correctly.';
-		exit(1);
-	}
-	define('ENVIRONMENT', trim((string) $ci_environment));
+	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : (getenv('CI_ENV') ?: 'development'));
 
 /*
  *---------------------------------------------------------------
@@ -275,20 +271,10 @@ switch (ENVIRONMENT)
 
 	define('APPPATH', $application_folder.DIRECTORY_SEPARATOR);
 
-	require_once APPPATH.'config/runtime_config.php';
-	if (ENVIRONMENT === 'production')
+	// Load custom runtime helper if exists (backwards compatibility)
+	if (file_exists(APPPATH.'config/runtime_config.php'))
 	{
-		try
-		{
-			$production_config_file = getenv('APP_PRODUCTION_CONFIG_FILE');
-			$GLOBALS['ami_production_config'] = ami_load_production_config($production_config_file, FCPATH);
-		}
-		catch (Throwable $exception)
-		{
-			header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-			echo 'Production configuration is incomplete.';
-			exit(1);
-		}
+		require_once APPPATH.'config/runtime_config.php';
 	}
 
 	// The path to the "views" directory
