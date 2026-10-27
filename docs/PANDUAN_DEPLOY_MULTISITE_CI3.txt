@@ -1,0 +1,263 @@
+PANDUAN DEPLOYMENT NATIVE CODEIGNITER 3 AMI PADA SERVER MULTISITE NGINX / APACHE + PHP-FPM
+========================================================================================
+
+Panduan ini ditujukan bagi Tim IT Kampus / Sysadmin yang mengelola server production multisite (shared virtual host / multi-domain dalam satu server Nginx atau Apache + PHP-FPM) untuk men-deploy aplikasi Audit Mutu Internal (AMI) berbasis CodeIgniter 3 secara 100% NATIVE CODEIGNITER 3.
+
+----------------------------------------------------------------------------------------
+PRINSIP UTAMA ARSITEKTUR NATIVE CI3 MULTISITE
+----------------------------------------------------------------------------------------
+1. Murni Konfigurasi Native CodeIgniter 3: Seluruh pengaturan sistem membaca file konfigurasi PHP standar di application/config/ dan override environment di application/config/production/.
+2. Tidak Menggunakan .env atau Dotenv: Server production tidak memerlukan file .env, library pihak ketiga dotenv, maupun ketergantungan variabel environment PHP-FPM khusus.
+3. Pemisahan Mode Lingkungan yang Jelas: Mode production atau development dikontrol langsung secara deklaratif pada konstanta ENVIRONMENT di index.php.
+4. Keamanan Kredensial: File konfigurasi production dengan password database (application/config/production/database.php, config.php, ami.php) diabaikan oleh Git (.gitignore), disediakan template siap salin (.example), dan dilindungi hak akses file 0640 di server.
+5. Starter Database Instan: Tersedia database_init.sql dengan skema 50 tabel lengkap dan 1 akun superadmin bawaan siap pakai.
+
+
+----------------------------------------------------------------------------------------
+A. RINGKASAN FILE KONFIGURASI NATIVE
+----------------------------------------------------------------------------------------
+CodeIgniter 3 memiliki fitur bawaan di mana file di dalam application/config/{ENVIRONMENT}/ secara otomatis menimpa (override) file di application/config/.
+
+1. Entry Point & Environment:
+   Lokasi: index.php
+   Fungsi: Mendefinisikan konstanta ENVIRONMENT ('production' untuk live, 'development' untuk lokal).
+
+2. Database Production:
+   Lokasi: application/config/production/database.php
+   Fungsi: Kredensial MySQL: hostname, username, password, database.
+
+3. Core Config Production:
+   Lokasi: application/config/production/config.php
+   Fungsi: base_url, encryption_key, sess_save_path, cookie_secure, log_threshold, log_path.
+
+4. Custom App Config Production:
+   Lokasi: application/config/production/ami.php
+   Fungsi: private_storage_path, public_uploads_path, email/Brevo, Google Drive, PDDIKTI.
+
+
+----------------------------------------------------------------------------------------
+B. PRASYARAT SERVER & EKSTENSI PHP 8.3
+----------------------------------------------------------------------------------------
+Aplikasi berjalan optimal di PHP 8.3 (didukung PHP 7.4 - 8.3). Pastikan ekstensi berikut aktif:
+
+$ php -v
+$ php -m | grep -E 'mysqli|pdo_mysql|curl|fileinfo|gd|intl|mbstring|xml|zip|openssl'
+
+Daftar ekstensi wajib:
+1. mysqli & pdo_mysql (koneksi database)
+2. curl & openssl (integrasi API & download)
+3. fileinfo (validasi format file upload bukti)
+4. gd (pengolahan gambar/foto profil & instrumen)
+5. intl (format penanggalan & lokalisasi)
+6. mbstring (manipulasi string UTF-8)
+7. xml & zip (export/import Excel via PhpSpreadsheet)
+
+
+----------------------------------------------------------------------------------------
+C. STRUKTUR DIREKTORI PROJECT & IZIN AKSES (PERMISSIONS)
+----------------------------------------------------------------------------------------
+Letakkan project pada direktori virtual host yang ditentukan (misalnya: /var/www/vhosts/ami.unmuhbabel.ac.id/ atau /var/www/html/ami/).
+
+1. Folder Writable:
+   - application/cache/ (termasuk application/cache/sessions/)
+   - application/logs/
+   - uploads/ (beserta 10 subfolder: profil/, audit_evidence/, bukti_auditor/, instrumen/, penetapan/, ppepp_documents/, rtm_photos/, spmi_source/, tmp/, user_photos/)
+
+2. Perintah Atur Hak Akses:
+   $ cd /path/to/Audit-Mutu-Internal
+   $ sudo chown -R nginx:nginx application/cache application/logs uploads
+   $ sudo chmod -R 775 application/cache application/logs uploads
+   $ sudo mkdir -p application/cache/sessions
+   $ sudo chmod 700 application/cache/sessions
+   $ sudo chown nginx:nginx application/cache/sessions
+
+   Jika menggunakan SELinux (Enforcing):
+   $ sudo semanage fcontext -a -t httpd_sys_rw_content_t "/path/to/Audit-Mutu-Internal/application/cache(/.*)?"
+   $ sudo semanage fcontext -a -t httpd_sys_rw_content_t "/path/to/Audit-Mutu-Internal/application/logs(/.*)?"
+   $ sudo semanage fcontext -a -t httpd_sys_rw_content_t "/path/to/Audit-Mutu-Internal/uploads(/.*)?"
+   $ sudo restorecon -Rv /path/to/Audit-Mutu-Internal
+
+
+----------------------------------------------------------------------------------------
+D. PERSIAPAN DATABASE MYSQL / MARIADB (IMPORT STARTER DATABASE)
+----------------------------------------------------------------------------------------
+Tersedia file database_init.sql di root repository yang berisi:
+- Struktur 50 tabel lengkap.
+- Data referensi awal (standar SPMI, siklus PPEPP, unit kerja, hak akses).
+- Akun Super Admin Bawaan:
+  Email: admin.ami@unmuhbabel.ac.id
+  Password: AdminAmi123,.
+
+Langkah Eksekusi Database:
+1. Buat database dan user:
+   CREATE DATABASE ami_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE USER 'ami_user'@'localhost' IDENTIFIED BY 'PasswordKuatDatabase123!';
+   GRANT ALL PRIVILEGES ON ami_db.* TO 'ami_user'@'localhost';
+   FLUSH PRIVILEGES;
+
+2. Import file starter database:
+   $ mysql -u ami_user -p ami_db < database_init.sql
+
+
+----------------------------------------------------------------------------------------
+E. KONFIGURASI NATIVE CODEIGNITER 3 DI PRODUCTION (LANGKAH DEMI LANGKAH)
+----------------------------------------------------------------------------------------
+Tidak perlu setup environment variable di server atau file luar. Cukup siapkan file konfigurasi di folder application/config/production/:
+
+Langkah 1: Buat dan Edit database.php Production
+$ cp application/config/production/database.php.example application/config/production/database.php
+$ nano application/config/production/database.php
+
+Sesuaikan nilai:
+$db['default']['hostname'] = 'localhost';
+$db['default']['username'] = 'ami_user';
+$db['default']['password'] = 'PasswordKuatDatabase123!';
+$db['default']['database'] = 'ami_db';
+
+Langkah 2: Buat dan Edit config.php Production
+$ cp application/config/production/config.php.example application/config/production/config.php
+$ nano application/config/production/config.php
+
+Sesuaikan nilai:
+$config['base_url'] = 'https://ami.unmuhbabel.ac.id/';
+$config['encryption_key'] = 'GANTI_DENGAN_32_KARAKTER_ACAK_DAN_AMAN!';
+$config['cookie_secure'] = TRUE;
+$config['log_threshold'] = 1;
+$config['log_path'] = APPPATH . 'logs/';
+
+Langkah 3: Buat dan Edit ami.php Production
+$ cp application/config/production/ami.php.example application/config/production/ami.php
+$ nano application/config/production/ami.php
+
+Sesuaikan nilai upload path:
+$config['private_storage_path'] = FCPATH . 'uploads/';
+$config['public_uploads_path'] = FCPATH . 'uploads/';
+
+Langkah 4: Kunci Izin Akses File Konfigurasi Production
+$ chmod 640 application/config/production/*.php
+$ chown nginx:nginx application/config/production/*.php
+
+Langkah 5: Pastikan index.php Mengarah ke Mode Production
+Buka index.php dan pastikan baris environment diset ke:
+define('ENVIRONMENT', 'production');
+
+
+----------------------------------------------------------------------------------------
+F. KONFIGURASI WEB SERVER (NGINX MULTISITE)
+----------------------------------------------------------------------------------------
+Template Server Block Nginx (/etc/nginx/conf.d/ami.conf):
+
+server {
+    listen 80;
+    server_name ami.unmuhbabel.ac.id;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name ami.unmuhbabel.ac.id;
+
+    ssl_certificate /etc/letsencrypt/live/ami.unmuhbabel.ac.id/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ami.unmuhbabel.ac.id/privkey.pem;
+
+    root /var/www/vhosts/ami.unmuhbabel.ac.id;
+    index index.php index.html;
+
+    client_max_body_size 25M;
+
+    location ~* ^/(application|system|vendor|tests|deploy|docs|scripts|\.git) {
+        deny all;
+        return 404;
+    }
+
+    location ~* ^/uploads/.*\.php$ {
+        deny all;
+        return 404;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ ^/index\.php(/|$) {
+        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+        fastcgi_read_timeout 120s;
+    }
+
+    location ~ \.php$ {
+        deny all;
+        return 404;
+    }
+
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2|woff|ttf|svg)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+        try_files $uri =404;
+    }
+}
+
+Test & Reload:
+$ sudo nginx -t
+$ sudo systemctl reload nginx
+
+
+----------------------------------------------------------------------------------------
+G. VERIFIKASI AKUN SUPER ADMIN & PENGUJIAN LOGIN
+----------------------------------------------------------------------------------------
+1. Buka browser: https://ami.unmuhbabel.ac.id/
+2. Form login Audit Mutu Internal akan tampil bersih tanpa error.
+3. Kredensial administrator bawaan:
+   Email: admin.ami@unmuhbabel.ac.id
+   Password: AdminAmi123,.
+4. Masuk ke Dashboard SPMI / LPMPI.
+5. Ubah password admin pada menu Profil setelah login pertama berhasil.
+
+
+----------------------------------------------------------------------------------------
+H. SMOKE TESTING FITUR UTAMA APLIKASI
+----------------------------------------------------------------------------------------
+1. Login & Logout: Pastikan autentikasi dan cookie sesi berjalan normal.
+2. Unggah Dokumen PPEPP / Bukti: Buka menu Penetapan Dokumen, unggah satu file PDF. Pastikan file tersimpan di uploads/ppepp_documents/ dan dapat diunduh kembali.
+3. Tambah Pengguna: Coba buat 1 akun Auditor pengujian.
+4. Cek Log: Pastikan file di application/logs/log-YYYY-MM-DD.php tidak memiliki pesan error.
+
+
+----------------------------------------------------------------------------------------
+I. PROSEDUR BACKUP RUTIN
+----------------------------------------------------------------------------------------
+1. Backup Database Harian:
+   $ mysqldump -u ami_user -p'PasswordKuatDatabase123!' ami_db > /backup/ami_db_$(date +%F).sql
+   $ gzip /backup/ami_db_$(date +%F).sql
+
+2. Backup Uploads Mingguan:
+   $ tar -czf /backup/ami_uploads_$(date +%F).tar.gz /var/www/vhosts/ami.unmuhbabel.ac.id/uploads/
+
+
+----------------------------------------------------------------------------------------
+J. TROUBLESHOOTING & FAQ
+----------------------------------------------------------------------------------------
+1. Muncul error: Production configuration is incomplete. (503)
+   Solusi:
+   - Pastikan base_url diawali https:// di application/config/production/config.php.
+   - Pastikan encryption_key tidak kosong.
+   - Pastikan cookie_secure bernilai TRUE.
+   - Pastikan log_threshold minimal 1 dan folder application/logs/ writable.
+   - Pastikan folder uploads/ dan application/cache/sessions/ sudah dibuat dan writable.
+
+2. Muncul error: Unable to connect to your database server using the provided settings.
+   Solusi: Cek kredensial di application/config/production/database.php. Tes via terminal:
+   $ mysql -u ami_user -p -h localhost ami_db
+
+3. File upload gagal disimpan (File dokumen PPEPP gagal disimpan)
+   Solusi: Pastikan user web server memiliki izin tulis pada folder uploads/:
+   $ sudo chown -R nginx:nginx uploads/
+   $ sudo chmod -R 775 uploads/
+
+4. Halaman selain beranda mengembalikan 404 Not Found
+   Solusi: Pastikan blok try_files $uri $uri/ /index.php?$query_string; ada di Nginx.
+========================================================================================
