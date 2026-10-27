@@ -58,6 +58,8 @@ docs/*
 !docs/PANDUAN_ENV_PATH_RUN_LOCAL.txt
 !docs/PANDUAN_DEPLOY_PRODUCTION_ALMALINUX.md
 !docs/PANDUAN_DEPLOY_PRODUCTION_ALMALINUX.txt
+!docs/PANDUAN_DEPLOY_MULTISITE_CI3.md
+!docs/PANDUAN_DEPLOY_MULTISITE_CI3.txt
 !deploy/config/
 !deploy/config/production.php.example
 !docs/manual-pengguna-ami-spmi.md
@@ -68,6 +70,11 @@ docs/assets/*
 docs/assets/manual-pengguna/*
 !docs/assets/manual-pengguna/manifest.md
 !docs/assets/manual-pengguna/*.png
+
+# Production configuration files containing real secrets must never be tracked in git
+application/config/production/*.php
+!application/config/production/*.php.example
+!application/config/production/index.html
 
 # Local dummy data and feature-testing fixtures
 /database_dummy.sql
