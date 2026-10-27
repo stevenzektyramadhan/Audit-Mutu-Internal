@@ -12,6 +12,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 $hook['post_controller_constructor'][] = [
+    'class' => 'Production_config_guard',
+    'function' => 'validate',
+    'filename' => 'Production_config_guard.php',
+    'filepath' => 'hooks',
+];
+
+$hook['post_controller_constructor'][] = [
     'class' => 'Response_security',
     'function' => 'set_headers',
     'filename' => 'Response_security.php',

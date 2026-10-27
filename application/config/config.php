@@ -1,10 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-if (!function_exists('ami_runtime_config_item')) {
-	require_once APPPATH.'config/runtime_config.php';
-}
-
 /*
 |--------------------------------------------------------------------------
 | Base Site URL
@@ -27,30 +23,16 @@ if (!function_exists('ami_runtime_config_item')) {
 | a PHP script and you can easily do that on your own.
 |
 */
-$app_base_url = ami_runtime_config_item('app', 'base_url', 'APP_BASE_URL', FALSE);
-if ($app_base_url !== FALSE && trim($app_base_url) !== '') {
-	$config['base_url'] = rtrim(trim($app_base_url), '/') . '/';
-} elseif (ENVIRONMENT === 'production') {
-	header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-	echo 'Production configuration is incomplete.';
-	exit(1);
-} elseif (isset($_SERVER['HTTP_HOST'], $_SERVER['SCRIPT_NAME'])) {
-	$protocol = (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-	$config['base_url'] = $protocol . '://' . $_SERVER['HTTP_HOST'] . str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
-} else {
-	$config['base_url'] = 'http://localhost/AMI/';
+$configured_base_url = function_exists('config_item') ? config_item('base_url') : NULL;
+if (!is_string($configured_base_url) || trim($configured_base_url) === '' || $configured_base_url === 'http://localhost/') {
+    $protocol = (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
+        || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'))
+        ? 'https' : 'http';
+
+    $config['base_url'] = $protocol . '://' . (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost') . '/';
 }
 
-/*
-|--------------------------------------------------------------------------
-| Index File
-|--------------------------------------------------------------------------
-|
-| Typically this will be your index.php file, unless you've renamed it to
-| something else. If you are using mod_rewrite to remove the page set this
-| variable so that it is blank.
-|
-*/
 $config['index_page'] = 'index.php';
 
 /*
@@ -241,10 +223,7 @@ $config['allow_get_array'] = TRUE;
 | your log files will fill up very fast.
 |
 */
-$app_log_threshold = ami_runtime_config_item('app', 'log_threshold', 'APP_LOG_THRESHOLD', FALSE);
-$config['log_threshold'] = $app_log_threshold !== FALSE && $app_log_threshold !== ''
-	? (int) $app_log_threshold
-	: (ENVIRONMENT === 'production' ? 1 : 0);
+$config['log_threshold'] = 0;
 
 /*
 |--------------------------------------------------------------------------
@@ -255,10 +234,7 @@ $config['log_threshold'] = $app_log_threshold !== FALSE && $app_log_threshold !=
 | application/logs/ directory. Use a full server path with trailing slash.
 |
 */
-$app_log_path = ami_runtime_config_item('app', 'log_path', 'APP_LOG_PATH', FALSE);
-$config['log_path'] = $app_log_path !== FALSE && trim($app_log_path) !== ''
-	? rtrim(trim($app_log_path), '/\\') . DIRECTORY_SEPARATOR
-	: '';
+$config['log_path'] = '';
 
 /*
 |--------------------------------------------------------------------------
@@ -348,15 +324,14 @@ $config['cache_query_string'] = FALSE;
 | https://codeigniter.com/userguide3/libraries/encryption.html
 |
 */
-$app_encryption_key = ami_runtime_config_item('app', 'encryption_key', 'APP_ENCRYPTION_KEY', FALSE);
-$config['encryption_key'] = $app_encryption_key !== FALSE ? (string) $app_encryption_key : '';
+$config['encryption_key'] = 'AMI_DEFAULT_DEV_ENCRYPTION_KEY_32_CHARS!';
 
-$drive_evidence_folder_id = ami_runtime_config_item('google_drive', 'evidence_folder_id', 'GOOGLE_DRIVE_EVIDENCE_FOLDER_ID', FALSE);
-$drive_auth_mode = ami_runtime_config_item('google_drive', 'auth_mode', 'GOOGLE_DRIVE_AUTH_MODE', FALSE);
-$drive_service_account_json_path = ami_runtime_config_item('google_drive', 'service_account_json_path', 'GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH', FALSE);
-$drive_oauth_client_secret_json_path = ami_runtime_config_item('google_drive', 'oauth_client_secret_json_path', 'GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH', FALSE);
-$drive_oauth_refresh_token_json_path = ami_runtime_config_item('google_drive', 'oauth_refresh_token_json_path', 'GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH', FALSE);
-$spmi_evidence_storage_backend = ami_runtime_config_item('app', 'spmi_evidence_storage_backend', 'SPMI_EVIDENCE_STORAGE_BACKEND', FALSE);
+$drive_evidence_folder_id = isset($config['google_drive_evidence_folder_id']) ? $config['google_drive_evidence_folder_id'] : '';
+$drive_auth_mode = isset($config['google_drive_auth_mode']) ? $config['google_drive_auth_mode'] : '';
+$drive_service_account_json_path = isset($config['google_drive_service_account_json_path']) ? $config['google_drive_service_account_json_path'] : '';
+$drive_oauth_client_secret_json_path = isset($config['google_drive_oauth_client_secret_json_path']) ? $config['google_drive_oauth_client_secret_json_path'] : '';
+$drive_oauth_refresh_token_json_path = isset($config['google_drive_oauth_refresh_token_json_path']) ? $config['google_drive_oauth_refresh_token_json_path'] : '';
+$spmi_evidence_storage_backend = isset($config['spmi_evidence_storage_backend']) ? $config['spmi_evidence_storage_backend'] : 'local';
 $spmi_evidence_storage_backend = $spmi_evidence_storage_backend !== FALSE ? trim($spmi_evidence_storage_backend) : 'local';
 $config['spmi_evidence_storage_backend'] = in_array($spmi_evidence_storage_backend, ['local', 'google_drive'], TRUE)
 	? $spmi_evidence_storage_backend
@@ -456,8 +431,9 @@ $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ami_ci_session';
 $config['sess_samesite'] = 'Lax';
 $config['sess_expiration'] = 7200;
-$session_save_path = ami_runtime_config_item('app', 'session_save_path', null, '');
-$config['sess_save_path'] = $session_save_path !== '' ? rtrim($session_save_path, '/\\') : APPPATH . 'cache/sessions';
+$config['sess_save_path'] = isset($config['sess_save_path']) && $config['sess_save_path'] !== ''
+	? rtrim($config['sess_save_path'], '/\\')
+	: APPPATH . 'cache/sessions';
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = FALSE;
@@ -481,57 +457,13 @@ $config['sess_regenerate_destroy'] = FALSE;
 $config['cookie_prefix']	= '';
 $config['cookie_domain']	= '';
 $config['cookie_path']		= parse_url($config['base_url'], PHP_URL_PATH) ?: '/';
-$app_cookie_secure = ami_runtime_config_item('app', 'cookie_secure', 'APP_COOKIE_SECURE', FALSE);
-$config['cookie_secure']	= $app_cookie_secure !== FALSE
-	? filter_var($app_cookie_secure, FILTER_VALIDATE_BOOLEAN)
-	: FALSE;
+$config['cookie_secure']	= isset($config['cookie_secure']) ? filter_var($config['cookie_secure'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 $config['cookie_httponly'] 	= TRUE;
 $config['cookie_samesite'] 	= 'Lax';
 
 if (ENVIRONMENT === 'production') {
-	$private_storage = ami_runtime_config_item('app', 'private_storage_path', 'APP_PRIVATE_STORAGE_PATH', FALSE);
-	$private_storage_path = $private_storage !== FALSE ? realpath(trim($private_storage)) : FALSE;
-	$public_uploads = ami_runtime_config_item('app', 'public_uploads_path', 'APP_PUBLIC_UPLOADS_PATH', FALSE);
-	$public_uploads_path = $public_uploads !== FALSE && trim($public_uploads) !== ''
-		? realpath(trim($public_uploads))
-		: realpath(FCPATH . 'uploads');
-	$public_uploads_valid = $public_uploads_path !== FALSE && is_dir($public_uploads_path) && is_writable($public_uploads_path);
-	$session_path = realpath($config['sess_save_path']);
-	$session_path_valid = $session_path !== FALSE && is_dir($session_path) && is_writable($session_path);
-	$web_root = realpath(FCPATH);
-	$log_path = $config['log_path'] !== '' ? realpath($config['log_path']) : FALSE;
-	$drive_config_unused = $config['google_drive_evidence_folder_id'] === ''
-		&& $config['google_drive_auth_mode'] === ''
-		&& $config['google_drive_service_account_json_path'] === ''
-		&& $config['google_drive_oauth_client_secret_json_path'] === ''
-		&& $config['google_drive_oauth_refresh_token_json_path'] === '';
-	$production_drive_service_account_only = $config['google_drive_auth_mode'] === 'service_account'
-		&& $config['google_drive_oauth_client_secret_json_path'] === ''
-		&& $config['google_drive_oauth_refresh_token_json_path'] === ''
-		&& $config['google_drive_evidence_config_valid'];
-	$drive_config_valid = $drive_config_unused || $production_drive_service_account_only;
-	if ($config['spmi_evidence_storage_backend'] === 'google_drive') {
-		$drive_config_valid = $production_drive_service_account_only;
-	}
-	$production_config_valid = strpos($config['base_url'], 'https://') === 0
-		&& $config['encryption_key'] !== ''
-		&& $config['cookie_secure'] === TRUE
-		&& $config['log_threshold'] > 0
-		&& $log_path !== FALSE
-		&& is_writable($log_path)
-		&& $private_storage_path !== FALSE
-		&& is_writable($private_storage_path)
-		&& strpos($private_storage_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0
-		&& strpos($log_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0
-		&& $public_uploads_valid
-		&& $session_path_valid
-		&& $drive_config_valid;
-
-	if (!$production_config_valid) {
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'Production configuration is incomplete.';
-		exit(1);
-	}
+	// Di environment production, validasi konfigurasi dijalankan via hook pre_controller
+	// setelah seluruh file konfigurasi (termasuk application/config/production/) selesai dimuat.
 }
 
 /*
