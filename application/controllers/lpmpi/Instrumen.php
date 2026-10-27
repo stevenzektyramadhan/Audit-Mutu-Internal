@@ -43,7 +43,7 @@ class Instrumen extends Admin_Lpmpi_Controller
         }
 
         $upload_dir = $this->upload_dir();
-        if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, TRUE)) {
+        if (!is_dir($upload_dir) || !is_writable($upload_dir)) {
             $this->session->set_flashdata('error', 'Folder upload instrumen tidak dapat dibuat.');
             redirect('lpmpi/instrumen');
             return;

@@ -56,7 +56,7 @@ class Spmi_standards extends Admin_Lpmpi_Controller
         $version = $this->service->version($id);
         if (!$version || !$this->service->is_mutable($version)) { $this->flash_redirect(['success' => FALSE, 'message' => 'Versi ini bersifat hanya-baca.'], 'lpmpi/spmi-standards/version/detail/' . (int) $id); return; }
         $dir = private_storage_dir('spmi_source');
-        if (!is_dir($dir) && !mkdir($dir, 0755, TRUE)) { $this->flash_redirect(['success' => FALSE, 'message' => 'Folder sumber tidak dapat dibuat.'], 'lpmpi/spmi-standards/version/detail/' . (int) $id); return; }
+        if (!is_dir($dir) || !is_writable($dir)) { $this->flash_redirect(['success' => FALSE, 'message' => 'Folder sumber belum diprovisikan atau tidak writable.'], 'lpmpi/spmi-standards/version/detail/' . (int) $id); return; }
         $this->load->library('upload');
         $this->upload->initialize(['upload_path' => $dir, 'allowed_types' => 'pdf', 'max_size' => (int) ($this->upload_limit_bytes('spmi_source_pdf') / 1024), 'file_name' => 'spmi_' . (int) $id . '_' . bin2hex(random_bytes(8)), 'overwrite' => FALSE, 'remove_spaces' => TRUE]);
         if (!$this->upload->do_upload('source_pdf')) { $this->flash_redirect(['success' => FALSE, 'message' => strip_tags($this->upload->display_errors('', ''))], 'lpmpi/spmi-standards/version/detail/' . (int) $id); return; }

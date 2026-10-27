@@ -94,7 +94,7 @@ class Akun_import extends Admin_Lpmpi_Controller
     }
 
     public function cancel() { $this->require_post(); $this->clear(); redirect('lpmpi/akun-import'); }
-    private function tmp() { $dir = private_storage_dir('tmp'); if (!is_dir($dir)) mkdir($dir, 0700, TRUE); return $dir; }
+    private function tmp() { $dir = private_storage_dir('tmp'); if (!is_dir($dir) || !is_writable($dir)) show_error('Direktori temporary import belum diprovisikan atau tidak writable.', 500, 'Storage Unavailable'); return $dir; }
     private function clear() { $meta = $this->session->userdata('akun_import_preview'); if (is_array($meta) && isset($meta['basename'])) { $path = $this->tmp() . basename($meta['basename']); if (is_file($path)) unlink($path); } $this->session->unset_userdata('akun_import_preview'); }
     private function purge() { $dir = $this->tmp(); $cutoff = time() - 1800; foreach (['akun_import_preview_*.json', 'akun_import_claim_*.json'] as $pattern) foreach (glob($dir . $pattern, GLOB_NOSORT) ?: [] as $path) if (is_file($path) && filemtime($path) < $cutoff) unlink($path); }
     private function fail($message) { $this->session->set_flashdata('error', $message); redirect('lpmpi/akun-import'); }

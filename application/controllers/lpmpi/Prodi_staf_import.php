@@ -83,7 +83,7 @@ class Prodi_staf_import extends Admin_Lpmpi_Controller
 
     public function cancel() { $this->require_post(); $this->clear(); redirect('lpmpi/master-data-prodi-staf'); }
     private function render_preview($result, $token) { $this->load->view('lpmpi/prodi_staf_import/preview', ['title' => 'Preview Import Prodi - AMI', 'page_title' => 'Preview Import Prodi', 'active_menu' => 'master_data_prodi_staf', 'token' => !empty($result['prodi']) ? $token : '', 'error_preview_token' => $token] + $result); }
-    private function tmp() { $dir = private_storage_dir('tmp'); if (!is_dir($dir)) mkdir($dir, 0700, TRUE); return $dir; }
+    private function tmp() { $dir = private_storage_dir('tmp'); if (!is_dir($dir) || !is_writable($dir)) show_error('Direktori temporary import belum diprovisikan atau tidak writable.', 500, 'Storage Unavailable'); return $dir; }
     private function clear() { $meta = $this->session->userdata('prodi_import_preview'); if (is_array($meta) && isset($meta['basename'])) { $path = $this->tmp() . basename($meta['basename']); if (is_file($path)) unlink($path); } $this->session->unset_userdata('prodi_import_preview'); $this->session->unset_userdata('prodi_staf_import_preview'); }
     private function preview_payload()
     {
