@@ -188,16 +188,23 @@ class Google_drive_evidence_storage
 
     private function env($key)
     {
-        if (ENVIRONMENT === 'production') {
-            $config_keys = [
-                self::FOLDER_ENV => 'google_drive_evidence_folder_id',
-                self::MODE_ENV => 'google_drive_auth_mode',
-                self::SERVICE_ACCOUNT_ENV => 'google_drive_service_account_json_path',
-                self::OAUTH_CLIENT_ENV => 'google_drive_oauth_client_secret_json_path',
-                self::OAUTH_REFRESH_TOKEN_ENV => 'google_drive_oauth_refresh_token_json_path',
-            ];
+        $config_keys = [
+            self::FOLDER_ENV => 'google_drive_evidence_folder_id',
+            self::MODE_ENV => 'google_drive_auth_mode',
+            self::SERVICE_ACCOUNT_ENV => 'google_drive_service_account_json_path',
+            self::OAUTH_CLIENT_ENV => 'google_drive_oauth_client_secret_json_path',
+            self::OAUTH_REFRESH_TOKEN_ENV => 'google_drive_oauth_refresh_token_json_path',
+        ];
 
-            return isset($config_keys[$key]) ? trim((string) config_item($config_keys[$key])) : '';
+        if (isset($config_keys[$key])) {
+            $val = function_exists('config_item') ? config_item($config_keys[$key]) : NULL;
+            if ($val !== NULL && $val !== '') {
+                return trim((string) $val);
+            }
+        }
+
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+            return '';
         }
 
         $value = getenv($key);

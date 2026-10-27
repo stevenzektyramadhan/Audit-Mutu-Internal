@@ -33,16 +33,29 @@ if (!function_exists('ami_runtime_config_item')) {
     function ami_runtime_config_item($section, $key, $development_environment_key = null, $default = '')
     {
         if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
-            $config = isset($GLOBALS['ami_production_config']) && is_array($GLOBALS['ami_production_config'])
-                ? $GLOBALS['ami_production_config']
-                : array();
-            $value = isset($config[$section]) && is_array($config[$section]) && array_key_exists($key, $config[$section])
-                ? $config[$section][$key]
-                : null;
+            // Jika ada $GLOBALS['ami_production_config'] dari file konfigurasi eksternal, gunakan itu terlebih dahulu
+            if (isset($GLOBALS['ami_production_config']) && is_array($GLOBALS['ami_production_config'])) {
+                $config = $GLOBALS['ami_production_config'];
+                if (isset($config[$section]) && is_array($config[$section]) && array_key_exists($key, $config[$section])) {
+                    $val = $config[$section][$key];
+                    if ($val !== null && $val !== '') {
+                        return is_scalar($val) ? $val : $default;
+                    }
+                }
+            }
 
-            return is_scalar($value) || $value === null ? $value : $default;
+            // Fallback native getenv() untuk multisite / deployment biasa tanpa file eksternal
+            if ($development_environment_key !== null) {
+                $envVal = getenv($development_environment_key);
+                if ($envVal !== FALSE && trim((string)$envVal) !== '') {
+                    return $envVal;
+                }
+            }
+
+            return $default;
         }
 
+        // Development / testing: utamakan getenv
         if ($development_environment_key !== null) {
             $value = getenv($development_environment_key);
             if ($value !== FALSE) {
