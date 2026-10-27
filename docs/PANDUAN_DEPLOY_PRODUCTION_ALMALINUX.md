@@ -162,9 +162,20 @@ EXIT;
 
 **D2. Import schema sekali, dengan akun DBA:**
 
+Tersedia dua pilihan file inisialisasi:
+1. `database_schema.sql`: Schema murni (0 user, pembuatan akun pertama wajib via CLI `bootstrap_super_admin.php`).
+2. `database_init.sql`: Schema lengkap dengan 1 akun starter `super_admin` (`admin.ami@unmuhbabel.ac.id` / `AdminAmi123,.`).
+
+Pilih salah satu sesuai kebutuhan tim IT:
+
 ```bash
 cd /var/www/ami/current
-sudo mariadb -u [ISI_DBA] -p --database=ami < database_schema.sql
+# Opsi A: Menggunakan database_init.sql (sudah ada super_admin bawaan)
+sudo mariadb -u [ISI_DBA] -p --database=ami < database_init.sql
+
+# ATAU Opsi B: Menggunakan database_schema.sql murni
+# sudo mariadb -u [ISI_DBA] -p --database=ami < database_schema.sql
+
 sudo mariadb -u [ISI_DBA] -p -e 'USE ami; SHOW TABLES;'
 ```
 
