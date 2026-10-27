@@ -1,0 +1,32 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+/*
+|--------------------------------------------------------------------------
+| Production Custom Application Settings Template (AMI)
+|--------------------------------------------------------------------------
+|
+| Salin file ini menjadi: application/config/production/ami.php
+| File ami.php di folder production ini dikecualikan dari Git (.gitignore).
+|
+*/
+
+// Storage Paths (dapat diletakkan di luar webroot virtual host untuk keamanan)
+$config['private_storage_path'] = ''; // Contoh: '/var/www/vhosts/ami/storage/private' atau biarkan '' untuk default
+$config['public_uploads_path']  = ''; // Contoh: FCPATH . 'uploads' atau biarkan ''
+
+// PDDIKTI Base URLs (JSON string atau URL dipisahkan koma)
+$config['pddikti_base_urls'] = '';
+
+// Pengaturan Email / Brevo (Password Reset)
+$config['mail_from_address'] = ''; // Contoh: 'ami@unmuhbabel.ac.id'
+$config['mail_from_name']    = 'Audit Mutu Internal';
+$config['brevo_api_key']     = ''; // Kunci API Brevo jika fitur reset password email diaktifkan
+
+// Google Drive Storage (Opsional - default 'local')
+$config['spmi_evidence_storage_backend']              = 'local';
+$config['google_drive_evidence_folder_id']            = '';
+$config['google_drive_auth_mode']                     = 'service_account'; // 'service_account' jika pakai Drive di production
+$config['google_drive_service_account_json_path']     = '';
+$config['google_drive_oauth_client_secret_json_path'] = '';
+$config['google_drive_oauth_refresh_token_json_path'] = '';
