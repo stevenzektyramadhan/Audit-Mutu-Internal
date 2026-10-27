@@ -8,6 +8,9 @@ if (!defined('BASEPATH')) {
 if (!defined('APPPATH')) {
     define('APPPATH', $root . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR);
 }
+if (!defined('ENVIRONMENT')) {
+    define('ENVIRONMENT', 'development');
+}
 
 function source($root, $path)
 {

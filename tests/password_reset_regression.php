@@ -382,8 +382,8 @@ if (strpos($update_password_body, 'redirect_authenticated_user()') !== FALSE) {
 }
 
 foreach (['BREVO_API_KEY', 'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME'] as $variable) {
-    if (strpos($email_config, "getenv('" . $variable . "')") === FALSE) {
-        throw new RuntimeException('Konfigurasi email harus membaca ' . $variable . ' dari environment.');
+    if (strpos($email_config, "ami_runtime_config_item('email'") === FALSE || strpos($email_config, "'" . $variable . "'") === FALSE) {
+        throw new RuntimeException('Konfigurasi email harus memetakan ' . $variable . ' melalui konfigurasi runtime.');
     }
 }
 

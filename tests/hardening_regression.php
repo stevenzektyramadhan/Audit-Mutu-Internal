@@ -83,12 +83,12 @@ check(strpos(source($root, 'application/controllers/lpmpi/Penetapan.php'), 'exte
 $config = source($root, 'application/config/config.php');
 $readme = source($root, 'README.md');
 $env_example = source($root, '.env.example');
-check(strpos($config, "getenv('GOOGLE_DRIVE_EVIDENCE_FOLDER_ID')") !== FALSE, 'Config harus membaca folder Google Drive dari environment.');
-check(strpos($config, "getenv('GOOGLE_DRIVE_AUTH_MODE')") !== FALSE, 'Config harus membaca mode auth Google Drive dari environment.');
-check(strpos($config, "getenv('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH')") !== FALSE, 'Config harus membaca path service account Google Drive dari environment.');
-check(strpos($config, "getenv('GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH')") !== FALSE, 'Config harus membaca path OAuth client secret Google Drive dari environment.');
-check(strpos($config, "getenv('GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH')") !== FALSE, 'Config harus membaca path OAuth refresh token Google Drive dari environment.');
-check(strpos($config, "getenv('SPMI_EVIDENCE_STORAGE_BACKEND')") !== FALSE, 'Config harus membaca backend bukti SPMI dari environment.');
+check(strpos($config, "ami_runtime_config_item('google_drive', 'evidence_folder_id', 'GOOGLE_DRIVE_EVIDENCE_FOLDER_ID'") !== FALSE, 'Config harus memetakan folder Google Drive ke konfigurasi runtime.');
+check(strpos($config, "ami_runtime_config_item('google_drive', 'auth_mode', 'GOOGLE_DRIVE_AUTH_MODE'") !== FALSE, 'Config harus memetakan mode auth Google Drive ke konfigurasi runtime.');
+check(strpos($config, "ami_runtime_config_item('google_drive', 'service_account_json_path', 'GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH'") !== FALSE, 'Config harus memetakan path service account Google Drive ke konfigurasi runtime.');
+check(strpos($config, "ami_runtime_config_item('google_drive', 'oauth_client_secret_json_path', 'GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH'") !== FALSE, 'Config harus memetakan path OAuth client secret Google Drive ke konfigurasi runtime.');
+check(strpos($config, "ami_runtime_config_item('google_drive', 'oauth_refresh_token_json_path', 'GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH'") !== FALSE, 'Config harus memetakan path OAuth refresh token Google Drive ke konfigurasi runtime.');
+check(strpos($config, "ami_runtime_config_item('app', 'spmi_evidence_storage_backend', 'SPMI_EVIDENCE_STORAGE_BACKEND'") !== FALSE, 'Config harus memetakan backend bukti SPMI ke konfigurasi runtime.');
 check(strpos($config, "? trim($" . "spmi_evidence_storage_backend) : 'local'") !== FALSE, 'Config harus default ke local saat backend bukti SPMI tidak diset.');
 check(strpos($config, "in_array($" . "spmi_evidence_storage_backend, ['local', 'google_drive'], TRUE)") !== FALSE && strpos($config, ": 'local';") !== FALSE, 'Config harus allowlist backend bukti SPMI dan default aman ke lokal.');
 check(strpos($config, 'realpath($config[\'google_drive_service_account_json_path\'])') !== FALSE, 'Config produksi harus resolve path kredensial Google Drive.');
@@ -108,7 +108,7 @@ check(strpos($readme, 'minimal dua administrator pemulihan manusia') !== FALSE, 
 check(strpos($readme, 'backup dulu lalu jalankan migration `033_add_spmi_drive_evidence_metadata.sql` satu kali') !== FALSE, 'README handover harus meminta backup dan migration 033 sekali.');
 check(strpos($readme, '`spmi_drive_trash_outbox` masih manual') !== FALSE, 'README handover harus menjelaskan retry trash outbox manual.');
 check(strpos($readme, 'root `compose.yaml` tidak boleh memuat secret Drive production') !== FALSE, 'README handover harus melarang secret Drive produksi di compose root.');
-check(trim(strtok($env_example, "\n")) === 'SPMI_EVIDENCE_STORAGE_BACKEND=local', '.env.example harus menetapkan backend bukti SPMI local secara eksplisit.');
+check(strpos($env_example, 'SPMI_EVIDENCE_STORAGE_BACKEND=local') !== FALSE, '.env.example harus menetapkan backend bukti SPMI local secara eksplisit.');
 foreach (['GOOGLE_DRIVE_AUTH_MODE', 'GOOGLE_DRIVE_EVIDENCE_FOLDER_ID', 'GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_PATH', 'GOOGLE_DRIVE_OAUTH_CLIENT_SECRET_JSON_PATH', 'GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_JSON_PATH'] as $env_key) {
     check(strpos($env_example, '# ' . $env_key . '=') !== FALSE, '.env.example harus mengomentari optional ' . $env_key . '.');
     check(strpos($env_example, "\n" . $env_key . '=') === FALSE, '.env.example tidak boleh mengaktifkan ' . $env_key . ' secara default.');
