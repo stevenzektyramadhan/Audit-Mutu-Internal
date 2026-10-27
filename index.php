@@ -56,7 +56,7 @@
  *       Untuk pengujian lokal di komputer developer, gunakan:
  *       define('ENVIRONMENT', 'development');
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : (getenv('CI_ENV') ?: 'development'));
+	define('ENVIRONMENT', 'production');
 
 /*
  *---------------------------------------------------------------
@@ -270,12 +270,6 @@ switch (ENVIRONMENT)
 	}
 
 	define('APPPATH', $application_folder.DIRECTORY_SEPARATOR);
-
-	// Load custom runtime helper if exists (backwards compatibility)
-	if (file_exists(APPPATH.'config/runtime_config.php'))
-	{
-		require_once APPPATH.'config/runtime_config.php';
-	}
 
 	// The path to the "views" directory
 	if ( ! isset($view_folder[0]) && is_dir(APPPATH.'views'.DIRECTORY_SEPARATOR))
