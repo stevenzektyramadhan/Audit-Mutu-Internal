@@ -136,8 +136,8 @@ class Account extends MY_Controller
         }
 
         $directory = private_storage_dir('user_photos');
-        if (!is_dir($directory) && !mkdir($directory, 0700, TRUE) && !is_dir($directory)) {
-            log_message('error', 'Direktori foto akun tidak dapat dibuat.');
+        if (!is_dir($directory) || !is_writable($directory)) {
+            log_message('error', 'Direktori foto akun tidak tersedia atau tidak writable.');
             return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Foto gagal disimpan.'];
         }
 

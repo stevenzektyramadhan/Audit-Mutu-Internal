@@ -97,7 +97,7 @@ class Pertanyaan extends Admin_Lpmpi_Controller {
         }
 
         $upload_dir = $this->temporary_upload_dir();
-        if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, TRUE)) {
+        if (!is_dir($upload_dir) || !is_writable($upload_dir)) {
             $this->redirect_import_error($standar_id, 'Folder temporary upload tidak dapat dibuat.');
             return;
         }

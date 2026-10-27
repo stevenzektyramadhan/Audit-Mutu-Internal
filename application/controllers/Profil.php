@@ -604,7 +604,7 @@ class Profil extends MY_Controller
         }
 
         $upload_dir = $this->logo_upload_dir();
-        if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, TRUE)) {
+        if (!is_dir($upload_dir) || !is_writable($upload_dir)) {
             return ['success' => FALSE, 'file_name' => NULL, 'message' => 'Folder upload logo tidak dapat dibuat.'];
         }
 
