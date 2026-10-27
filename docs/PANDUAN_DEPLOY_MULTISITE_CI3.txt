@@ -260,4 +260,21 @@ J. TROUBLESHOOTING & FAQ
 
 4. Halaman selain beranda mengembalikan 404 Not Found
    Solusi: Pastikan blok try_files $uri $uri/ /index.php?$query_string; ada di Nginx.
+
+----------------------------------------------------------------------------------------
+K. PROSEDUR DEVELOPER LOKAL (WORKSTATION)
+----------------------------------------------------------------------------------------
+File index.php secara default di repository telah diset ke:
+   define('ENVIRONMENT', 'production');
+Sehingga aman saat di-pull oleh Tim IT tanpa setup environment variable di server.
+
+Untuk developer lokal yang membutuhkan mode development:
+1. Ubah baris 59 pada index.php di workstation:
+   define('ENVIRONMENT', 'development');
+
+2. Kunci agar perubahan tersebut tidak ter-commit ke Git:
+   $ git update-index --assume-unchanged index.php
+
+(Untuk membatalkannya di kemudian hari jika diperlukan:
+   $ git update-index --no-assume-unchanged index.php)
 ========================================================================================

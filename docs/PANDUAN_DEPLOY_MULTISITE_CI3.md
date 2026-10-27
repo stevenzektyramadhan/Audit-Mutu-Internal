@@ -34,7 +34,7 @@ CodeIgniter 3 memiliki fitur bawaan di mana file di dalam `application/config/{E
 
 | File Konfigurasi | Lokasi di Server | Fungsi & Pengaturan Utama |
 |---|---|---|
-| Entry Point & Environment | `index.php` | Mendefinisikan konstanta `ENVIRONMENT` (`'production'` untuk live, `'development'` untuk lokal). |
+| Entry Point & Environment | `index.php` | Terpasang `define('ENVIRONMENT', 'production');` secara native. Tim IT tidak perlu mendeklarasikan variabel environment di Nginx / Apache / PHP-FPM. |
 | Database Production | `application/config/production/database.php` | Kredensial MySQL: `hostname`, `username`, `password`, `database`. |
 | Core Config Production | `application/config/production/config.php` | `base_url`, `encryption_key`, `sess_save_path`, `cookie_secure`, `log_threshold`, `log_path`. |
 | Custom App Config Production | `application/config/production/ami.php` | `private_storage_path`, `public_uploads_path`, email/Brevo, Google Drive, PDDIKTI. |
@@ -351,3 +351,30 @@ tar -czf /backup/ami_uploads_$(date +\%F).tar.gz /var/www/vhosts/ami.unmuhbabel.
 ### 4. Halaman selain beranda mengembalikan 404 Not Found
 - **Penyebab**: Nginx belum mengarahkan URL rewrite ke `index.php`.
 - **Solusi**: Pastikan blok `try_files $uri $uri/ /index.php?$query_string;` ada di konfigurasi server block Nginx Anda.
+
+---
+
+## K. Prosedur untuk Developer Lokal (Development Workstation)
+
+Karena file `index.php` pada repository ini secara default menetapkan:
+```php
+define('ENVIRONMENT', 'production');
+```
+Hal ini bertujuan agar kode langsung aman dan siap pakai saat ditarik (*git pull*) oleh Tim IT ke server production tanpa perlu menyetel variabel lingkungan.
+
+Namun, untuk developer yang bekerja di komputer lokal (workstation):
+1. **Mengaktifkan Mode Development Secara Lokal**:
+   Ubah baris 59 pada `index.php` di workstation Anda menjadi:
+   ```php
+   define('ENVIRONMENT', 'development');
+   ```
+2. **Mencegah Perubahan Lokal Masuk ke Git (*Assume Unchanged*)**:
+   Agar perubahan baris tersebut tidak terbawa saat Anda melakukan *git commit* atau *git push*, jalankan perintah berikut di terminal repositori lokal:
+   ```bash
+   git update-index --assume-unchanged index.php
+   ```
+   *Jika suatu saat Anda ingin membatalkannya:*
+   ```bash
+   git update-index --no-assume-unchanged index.php
+   ```
+Dengan cara ini, developer lokal mendapatkan detail error log (`display_errors = 1`), sedangkan repository dan server production tetap 100% menggunakan `production`.
