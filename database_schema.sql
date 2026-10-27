@@ -25,8 +25,9 @@
 -- current parity migration 001-047
 -- current parity migration 001-050
 
-CREATE DATABASE IF NOT EXISTS `ami` CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `ami`;
+-- Jalankan hanya setelah operator membuat dan memilih database target yang kosong.
+-- File bootstrap ini sengaja tidak membuat atau memilih database agar aman dipakai
+-- dengan: mariadb --database=ami < database_schema.sql
 
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,

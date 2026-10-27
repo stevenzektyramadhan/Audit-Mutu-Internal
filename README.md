@@ -106,10 +106,11 @@ Ganti `APP_BASE_URL` dengan URL proyek yang dipakai, selalu dengan garis miring 
 ### Apache/PHP dan MySQL Lokal, XAMPP atau Laragon
 
 1. Jalankan Apache dan MySQL/MariaDB, lalu pastikan `CI_ENV=development` pada konfigurasi Apache.
-2. Untuk database baru, import `database_schema.sql`.
+2. Untuk database baru, buat database `ami` terlebih dahulu, lalu import `database_schema.sql` ke database tersebut.
 
    ```bash
-   mysql -u root < database_schema.sql
+   mysql -u root -p -e "CREATE DATABASE ami CHARACTER SET utf8 COLLATE utf8_general_ci;"
+   mysql -u root -p --database=ami < database_schema.sql
    ```
 
 `database_dummy.sql` adalah seed AMI legacy lokal, bukan kebutuhan alur SPMI dan tidak dilacak Git. Jangan import file ini untuk onboarding SPMI.
@@ -342,4 +343,4 @@ Untuk Docker, jalankan `docker compose config --quiet` dan `curl -i http://127.0
 - `docs/plan/rencana-evidence-policy-dan-import-akun.md`
 - `docs/plan/m17-spmi-workspace-parity-master-plan.md`
 - `docs/product/spmi-workspace-parity-contract.md`
-- `docs/DEPLOYMENT_NON_DOCKER.md`
+- `docs/PANDUAN_DEPLOY_PRODUCTION_ALMALINUX.md`
