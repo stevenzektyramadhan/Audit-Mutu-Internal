@@ -17,9 +17,14 @@ user_guide_src/cilexer/dist/*
 user_guide_src/cilexer/pycilexer.egg-info/*
 /vendor/
 
-# Runtime uploads
-uploads/bukti_auditor/
-uploads/profil/
+# Runtime uploads (ignore uploaded content, preserve directory structure)
+uploads/*
+!uploads/.htaccess
+!uploads/*/
+!uploads/*/*
+uploads/*/*
+!uploads/**/.htaccess
+!uploads/**/.gitkeep
 # IDE Files
 #-------------------------
 /nbproject/
