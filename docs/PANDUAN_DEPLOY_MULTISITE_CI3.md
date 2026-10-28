@@ -10,7 +10,7 @@ Panduan ini ditujukan bagi Tim IT Kampus / Sysadmin yang mengelola server produc
 2. **Tidak Menggunakan `.env` atau Dotenv**: Server production tidak memerlukan file `.env`, library pihak ketiga dotenv, maupun ketergantungan variabel environment PHP-FPM khusus.
 3. **Pemisahan Mode Lingkungan yang Jelas**: Mode `production` atau `development` dikontrol langsung secara deklaratif pada konstanta `ENVIRONMENT` di `index.php`.
 4. **Keamanan Kredensial**: File konfigurasi production dengan password database (`application/config/production/database.php`, `config.php`, `ami.php`) diabaikan oleh Git (`.gitignore`), disediakan template siap salin (`.example`), dan dilindungi hak akses file `0640` di server.
-5. **Starter Database Instan**: Tersedia `database_init.sql` dengan skema 50 tabel lengkap dan 1 akun superadmin bawaan siap pakai.
+5. **Bootstrap Database**: Untuk database baru yang kosong, tersedia `database_schema.sql` lalu `scripts/bootstrap_super_admin.php` untuk kredensial operator terpilih, atau `database_init.sql` dengan schema kanonik dan satu akun starter yang sudah di-hash.
 
 ---
 
@@ -104,27 +104,33 @@ sudo restorecon -Rv /path/to/Audit-Mutu-Internal
 
 ## D. Persiapan Database MySQL / MariaDB (Import Starter Database)
 
-Tersedia file **`database_init.sql`** di root repository yang berisi:
-- Struktur 50 tabel lengkap.
-- Data referensi awal (standar SPMI, siklus PPEPP, unit kerja, hak akses).
-- **Akun Super Admin Bawaan**:
-  - **Email**: `admin.ami@unmuhbabel.ac.id`
-  - **Password**: `AdminAmi123,.`
+Untuk database baru yang kosong, pilih salah satu jalur berikut:
+- `database_schema.sql`, lalu `php scripts/bootstrap_super_admin.php` untuk memilih kredensial administrator secara interaktif.
+- `database_init.sql`, yang berisi schema kanonik sampai migration `050` dan satu akun starter `super_admin` dengan password yang sudah di-hash.
+
+`database_init.sql` hanya untuk database baru yang kosong. Bukan file upgrade atau pengganti database operasional yang sudah ada. Setelah akses pertama, operator wajib segera mengganti atau merotasi kredensial awal. Jangan mencatatnya di dokumentasi, command history, log, atau tiket.
 
 ### Langkah Eksekusi Database:
-1. Masuk ke MySQL / MariaDB dan buat database serta user:
+1. Masuk ke MySQL / MariaDB sebagai DBA dan buat database serta akun runtime. Akun DBA dipakai untuk import, sedangkan akun runtime hanya mendapat hak DML:
    ```sql
    CREATE DATABASE ami_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   CREATE USER 'ami_user'@'localhost' IDENTIFIED BY 'PasswordKuatDatabase123!';
-   GRANT ALL PRIVILEGES ON ami_db.* TO 'ami_user'@'localhost';
+   CREATE USER 'ami_user'@'localhost' IDENTIFIED BY '<password database yang dimasukkan secara interaktif>';
+   GRANT SELECT, INSERT, UPDATE, DELETE ON ami_db.* TO 'ami_user'@'localhost';
    FLUSH PRIVILEGES;
    ```
-2. Import file starter database:
+2. Pilih satu import fresh dengan akun DBA. Jalur schema-only wajib dilanjutkan dengan bootstrap administrator:
    ```bash
-   mysql -u ami_user -p ami_db < database_init.sql
+   mysql -u [dba_user] -p ami_db < database_schema.sql
+   php scripts/bootstrap_super_admin.php
    ```
 
-*(Catatan: Jika ingin membuat database kosongan dan membuat akun superadmin sendiri via terminal interaktif, import file `database_schema.sql` kemudian jalankan `php scripts/bootstrap_super_admin.php`).*
+   Atau, untuk database baru yang kosong saja, gunakan schema seeded:
+
+   ```bash
+   mysql -u [dba_user] -p ami_db < database_init.sql
+   ```
+
+Jangan mengimpor file bootstrap ke database existing. Untuk database existing, backup terlebih dahulu lalu terapkan hanya migration manual yang sudah direview dan belum diterapkan, satu per satu. Jangan menjalankan file bootstrap fresh sebagai upgrade.
 
 ---
 
@@ -143,7 +149,7 @@ Sesuaikan nilai array berikut:
 ```php
 $db['default']['hostname'] = 'localhost'; // atau 127.0.0.1
 $db['default']['username'] = 'ami_user';
-$db['default']['password'] = 'PasswordKuatDatabase123!';
+   $db['default']['password'] = '<password database dari secret manager>';
 $db['default']['database'] = 'ami_db';
 ```
 
@@ -288,12 +294,10 @@ sudo systemctl reload nginx
    https://ami.unmuhbabel.ac.id/
    ```
 2. Halaman form login Audit Mutu Internal akan tampil bersih tanpa error.
-3. Masukkan kredensial administrator bawaan:
-   - **Email**: `admin.ami@unmuhbabel.ac.id`
-   - **Password**: `AdminAmi123,.`
+3. Masukkan kredensial administrator yang dipilih operator, atau kredensial starter yang tersimpan secara aman jika jalur `database_init.sql` digunakan.
 4. Tekan **Masuk**.
 5. Sistem akan mengarahkan ke dashboard utama SPMI / LPMPI.
-6. Sangat disarankan untuk segera mengubah password admin pada menu Profil setelah login pertama berhasil.
+6. Operator wajib segera mengubah atau merotasi kredensial awal pada menu Profil setelah login pertama berhasil. Jangan mencatat kredensial tersebut.
 
 ---
 
@@ -311,7 +315,7 @@ Lakukan pengujian cepat berikut setelah instalasi:
 
 ### 1. Backup Database Harian (Cron Job)
 ```bash
-mysqldump -u ami_user -p'PasswordKuatDatabase123!' ami_db > /backup/ami_db_$(date +\%F).sql
+mysqldump -u ami_user -p ami_db > /backup/ami_db_$(date +\%F).sql
 gzip /backup/ami_db_$(date +\%F).sql
 ```
 
