@@ -706,10 +706,7 @@ class Profil extends MY_Controller
 
     private function logo_upload_dir()
     {
-        if (function_exists('public_uploads_dir')) {
-            return public_uploads_dir('profil');
-        }
-        return FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'profil' . DIRECTORY_SEPARATOR;
+        return public_uploads_dir('profil');
     }
 
     private function delete_local_logo($file_name)

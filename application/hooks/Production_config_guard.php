@@ -9,71 +9,117 @@ class Production_config_guard
             return;
         }
 
-        $base_url = config_item('base_url');
-        $encryption_key = config_item('encryption_key');
-        $cookie_secure = config_item('cookie_secure');
-        $log_threshold = config_item('log_threshold');
-        $log_path = config_item('log_path');
-        $private_storage_path = config_item('private_storage_path');
-        $public_uploads_path = config_item('public_uploads_path');
-        $session_save_path = config_item('sess_save_path');
-        $backend = config_item('spmi_evidence_storage_backend');
-
-        $web_root = defined('FCPATH') ? realpath(FCPATH) : FALSE;
-
-        // Base URL HTTPS
-        $base_url_valid = is_string($base_url) && strpos($base_url, 'https://') === 0;
-
-        // Encryption Key
-        $encryption_key_valid = is_string($encryption_key) && trim($encryption_key) !== '' && $encryption_key !== 'AMI_DEFAULT_DEV_ENCRYPTION_KEY_32_CHARS!';
-
-        // Cookie Secure
-        $cookie_secure_valid = $cookie_secure === TRUE;
-
-        // Logging
-        $real_log_path = ($log_path !== FALSE && $log_path !== '') ? realpath($log_path) : FALSE;
-        $log_valid = (int) $log_threshold > 0
-            && $real_log_path !== FALSE
-            && is_dir($real_log_path)
-            && is_writable($real_log_path)
-            && ($web_root === FALSE || strpos($real_log_path . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0);
-
-        // Private Storage (opsional: jika diisi harus valid & di luar webroot)
-        $private_storage_valid = TRUE;
-        if (!empty($private_storage_path)) {
-            $real_private = realpath($private_storage_path);
-            $private_storage_valid = $real_private !== FALSE
-                && is_dir($real_private)
-                && is_writable($real_private)
-                && ($web_root === FALSE || strpos($real_private . DIRECTORY_SEPARATOR, $web_root . DIRECTORY_SEPARATOR) !== 0);
-        }
-
-        // Public Uploads (jika diisi harus valid)
-        $public_uploads_valid = TRUE;
-        if (!empty($public_uploads_path)) {
-            $real_public = realpath($public_uploads_path);
-            $public_uploads_valid = $real_public !== FALSE && is_dir($real_public) && is_writable($real_public);
-        }
-
-        // Session Save Path
-        $session_valid = TRUE;
-        if (!empty($session_save_path) && !(defined('PHP_SAPI') && PHP_SAPI === 'cli')) {
-            $real_session = realpath($session_save_path);
-            $session_valid = $real_session !== FALSE && is_dir($real_session) && is_writable($real_session);
-        }
-
-        $is_valid = $base_url_valid
-            && $encryption_key_valid
-            && $cookie_secure_valid
-            && $log_valid
-            && $private_storage_valid
-            && $public_uploads_valid
-            && $session_valid;
-
-        if (!$is_valid) {
+        $failed_checks = self::failed_checks();
+        if ($failed_checks !== array()) {
+            $message = 'Production configuration failed checks: ' . implode(', ', $failed_checks);
+            if (function_exists('log_message')) {
+                log_message('error', $message);
+            } else {
+                error_log($message);
+            }
             header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
             echo 'Production configuration is incomplete. Please check application/config/production/ configuration files.';
             exit(1);
         }
+    }
+
+    public static function failed_checks()
+    {
+        $failed_checks = array();
+        $base_url = config_item('base_url');
+        $encryption_key = config_item('encryption_key');
+        $log_path = config_item('log_path');
+        $session_save_path = config_item('sess_save_path');
+
+        if (!self::valid_base_url($base_url)) {
+            $failed_checks[] = 'base_url';
+        }
+        if (!self::valid_encryption_key($encryption_key)) {
+            $failed_checks[] = 'encryption_key';
+        }
+        if (config_item('cookie_secure') !== TRUE) {
+            $failed_checks[] = 'cookie_secure';
+        }
+        if ((int) config_item('log_threshold') < 1) {
+            $failed_checks[] = 'log_threshold';
+        }
+        if (!self::prepare_writable_directory($log_path)) {
+            $failed_checks[] = 'log_path';
+        }
+        if (!self::prepare_writable_directory($session_save_path)) {
+            $failed_checks[] = 'sess_save_path';
+        }
+
+        self::append_storage_checks($failed_checks, 'private_storage_path', 'private');
+        self::append_storage_checks($failed_checks, 'public_uploads_path', 'public');
+
+        return $failed_checks;
+    }
+
+    protected static function append_storage_checks(&$failed_checks, $config_key, $visibility)
+    {
+        $root = config_item($config_key);
+        if (!self::valid_storage_root($root)) {
+            $failed_checks[] = $config_key;
+            return;
+        }
+
+        $categories = $visibility === 'private'
+            ? app_private_storage_categories()
+            : app_public_upload_categories();
+        foreach ($categories as $category) {
+            try {
+                $directory = $visibility === 'private'
+                    ? private_storage_dir($category)
+                    : public_uploads_dir($category);
+                if (!is_dir($directory) || !is_writable($directory)) {
+                    $failed_checks[] = $visibility . '_storage_' . $category;
+                }
+            } catch (Throwable $exception) {
+                $failed_checks[] = $visibility . '_storage_' . $category;
+            }
+        }
+    }
+
+    protected static function valid_base_url($base_url)
+    {
+        if (self::placeholder($base_url) || substr($base_url, -1) !== '/') {
+            return FALSE;
+        }
+
+        $parts = parse_url($base_url);
+        return is_array($parts)
+            && isset($parts['scheme'], $parts['host'])
+            && strtolower($parts['scheme']) === 'https'
+            && $parts['host'] !== '';
+    }
+
+    protected static function valid_encryption_key($encryption_key)
+    {
+        return !self::placeholder($encryption_key)
+            && $encryption_key !== 'AMI_DEFAULT_DEV_ENCRYPTION_KEY_32_CHARS!'
+            && strlen($encryption_key) >= 32;
+    }
+
+    protected static function valid_storage_root($root)
+    {
+        return !self::placeholder($root) && app_storage_is_absolute_path($root);
+    }
+
+    protected static function prepare_writable_directory($directory)
+    {
+        if (!is_string($directory) || trim($directory) === '' || !app_storage_is_absolute_path($directory)) {
+            return FALSE;
+        }
+        if (!is_dir($directory) && !mkdir($directory, 0775, TRUE) && !is_dir($directory)) {
+            return FALSE;
+        }
+
+        return is_writable($directory);
+    }
+
+    protected static function placeholder($value)
+    {
+        return !is_string($value) || trim($value) === '' || stripos($value, 'GANTI') !== FALSE;
     }
 }

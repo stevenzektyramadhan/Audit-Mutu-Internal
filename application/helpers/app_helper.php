@@ -45,49 +45,109 @@ if (!function_exists('format_tanggal_indo')) {
     }
 }
 
+if (!function_exists('app_private_storage_categories')) {
+    function app_private_storage_categories()
+    {
+        return [
+            'audit_evidence',
+            'bukti_auditor',
+            'instrumen',
+            'penetapan',
+            'ppepp_documents',
+            'rtm_photos',
+            'spmi_source',
+            'tmp',
+            'user_photos',
+        ];
+    }
+}
+
+if (!function_exists('app_public_upload_categories')) {
+    function app_public_upload_categories()
+    {
+        return ['profil'];
+    }
+}
+
+if (!function_exists('app_storage_config_value')) {
+    function app_storage_config_value($key)
+    {
+        $configured = function_exists('config_item') ? config_item($key) : NULL;
+        if (($configured === NULL || $configured === '') && isset($GLOBALS['config'][$key])) {
+            $configured = $GLOBALS['config'][$key];
+        }
+
+        return is_string($configured) ? trim($configured) : '';
+    }
+}
+
+if (!function_exists('app_storage_is_absolute_path')) {
+    function app_storage_is_absolute_path($path)
+    {
+        return is_string($path)
+            && ($path !== '')
+            && ($path[0] === '/' || $path[0] === '\\' || preg_match('/\A[A-Za-z]:[\\\\\/]/', $path) === 1);
+    }
+}
+
+if (!function_exists('app_storage_root')) {
+    function app_storage_root($key)
+    {
+        $root = app_storage_config_value($key);
+        if ($root === '') {
+            throw new RuntimeException('Konfigurasi root penyimpanan belum diisi.');
+        }
+        if (!app_storage_is_absolute_path($root)) {
+            throw new RuntimeException('Konfigurasi root penyimpanan harus menggunakan path absolut.');
+        }
+
+        $root = rtrim($root, '/\\');
+        return $root === '' ? DIRECTORY_SEPARATOR : $root . DIRECTORY_SEPARATOR;
+    }
+}
+
+if (!function_exists('app_prepare_storage_directory')) {
+    function app_prepare_storage_directory($directory, $kind, $category)
+    {
+        if (!is_dir($directory) && !mkdir($directory, 0775, TRUE) && !is_dir($directory)) {
+            throw new RuntimeException('Direktori penyimpanan ' . $kind . ' untuk kategori ' . $category . ' tidak dapat disiapkan.');
+        }
+        if (!is_writable($directory)) {
+            throw new RuntimeException('Direktori penyimpanan ' . $kind . ' untuk kategori ' . $category . ' tidak dapat ditulis.');
+        }
+
+        return $directory;
+    }
+}
+
 if (!function_exists('private_storage_dir')) {
     function private_storage_dir($category)
     {
-        $categories = ['instrumen', 'penetapan', 'bukti_auditor', 'tmp', 'user_photos', 'spmi_source', 'ppepp_documents'];
-        $categories[] = 'rtm_photos';
-        $categories[] = 'audit_evidence';
-        if (!in_array($category, $categories, TRUE)) {
+        if (!is_string($category) || !in_array($category, app_private_storage_categories(), TRUE)) {
             throw new InvalidArgumentException('Kategori penyimpanan tidak valid.');
         }
 
-        $configured = function_exists('config_item') ? config_item('private_storage_path') : NULL;
-        if (empty($configured) && isset($GLOBALS['config']['private_storage_path'])) {
-            $configured = $GLOBALS['config']['private_storage_path'];
-        }
-        $root = !empty($configured) && trim($configured) !== ''
-            ? trim($configured)
-            : sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'ami-private-storage';
-
-        return rtrim($root, '/\\') . DIRECTORY_SEPARATOR . $category . DIRECTORY_SEPARATOR;
+        return app_prepare_storage_directory(
+            app_storage_root('private_storage_path') . $category . DIRECTORY_SEPARATOR,
+            'private',
+            $category
+        );
     }
 }
 
 if (!function_exists('public_uploads_dir')) {
     function public_uploads_dir($category = '')
     {
-        $allowed = ['profil'];
-        if ($category !== '' && !in_array($category, $allowed, TRUE)) {
+        if ($category !== '' && (!is_string($category) || !in_array($category, app_public_upload_categories(), TRUE))) {
             throw new InvalidArgumentException('Kategori public uploads tidak valid.');
         }
 
-        $configured = function_exists('config_item') ? config_item('public_uploads_path') : NULL;
-        if (empty($configured) && isset($GLOBALS['config']['public_uploads_path'])) {
-            $configured = $GLOBALS['config']['public_uploads_path'];
-        }
-        $root = !empty($configured) && trim($configured) !== ''
-            ? rtrim(trim($configured), '/\\')
-            : rtrim(FCPATH . 'uploads', '/\\');
-
+        $root = app_storage_root('public_uploads_path');
         if ($category === '') {
-            return $root . DIRECTORY_SEPARATOR;
+            return app_prepare_storage_directory($root, 'public', 'root');
         }
 
-        return $root . DIRECTORY_SEPARATOR . $category . DIRECTORY_SEPARATOR;
+        return app_prepare_storage_directory($root . $category . DIRECTORY_SEPARATOR, 'public', $category);
     }
 }
 
@@ -125,7 +185,7 @@ if (!function_exists('private_storage_path')) {
             return $private_path;
         }
 
-        if (in_array($category, ['user_photos', 'spmi_source', 'ppepp_documents'], TRUE) || $category === 'audit_evidence') {
+        if (!in_array($category, ['instrumen', 'penetapan', 'bukti_auditor', 'rtm_photos'], TRUE) || !defined('FCPATH')) {
             return NULL;
         }
 

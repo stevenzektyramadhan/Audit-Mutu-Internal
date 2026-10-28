@@ -198,19 +198,31 @@ class Spmi_ppepp_documents_service
         $validated = $this->validate_file($file);
         if (!$validated['success']) return $validated;
 
-        $dir = private_storage_dir('ppepp_documents');
-        if (!is_dir($dir) || !is_writable($dir)) return ['success' => FALSE, 'message' => 'File dokumen PPEPP gagal disimpan.'];
-        @chmod($dir, 0700);
+        try {
+            $dir = private_storage_dir('ppepp_documents');
+        } catch (Throwable $exception) {
+            $this->log_upload_failure('prepare_directory');
+            return ['success' => FALSE, 'message' => 'File dokumen PPEPP gagal disimpan.'];
+        }
+        if (!is_dir($dir) || !is_writable($dir)) {
+            $this->log_upload_failure('prepare_directory');
+            return ['success' => FALSE, 'message' => 'File dokumen PPEPP gagal disimpan.'];
+        }
+        chmod($dir, 0700);
 
         try {
             $name = bin2hex(random_bytes(24)) . '.' . $validated['extension'];
-        } catch (Exception $e) {
+        } catch (Throwable $exception) {
+            $this->log_upload_failure('random_name');
             return ['success' => FALSE, 'message' => 'File dokumen PPEPP gagal disimpan.'];
         }
 
         $path = $dir . $name;
-        if (!move_uploaded_file($file['tmp_name'], $path)) return ['success' => FALSE, 'message' => 'File dokumen PPEPP gagal disimpan.'];
-        @chmod($path, 0600);
+        if (!move_uploaded_file($file['tmp_name'], $path)) {
+            $this->log_upload_failure('move_uploaded_file');
+            return ['success' => FALSE, 'message' => 'File dokumen PPEPP gagal disimpan.'];
+        }
+        chmod($path, 0600);
 
         return ['success' => TRUE, 'path' => $path, 'data' => [
             'stored_name' => $name,
@@ -359,6 +371,11 @@ class Spmi_ppepp_documents_service
     protected function cleanup_saved($saved)
     {
         if (isset($saved['path']) && is_file($saved['path'])) unlink($saved['path']);
+    }
+
+    protected function log_upload_failure($reason)
+    {
+        log_message('error', 'PPEPP upload failed: ' . $reason);
     }
 
     protected function rollback($message)

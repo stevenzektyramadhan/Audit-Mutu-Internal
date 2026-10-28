@@ -14,8 +14,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 // Storage Paths
-$config['private_storage_path'] = ''; // Jika kosong, helper menggunakan default sys_get_temp_dir() / dev fallback
-$config['public_uploads_path']  = ''; // Jika kosong, helper menggunakan FCPATH . 'uploads'
+$config['private_storage_path'] = FCPATH . 'uploads/';
+$config['public_uploads_path']  = FCPATH . 'uploads/';
 
 // PDDIKTI Base URLs (JSON string atau URL dipisahkan koma)
 $config['pddikti_base_urls'] = '';

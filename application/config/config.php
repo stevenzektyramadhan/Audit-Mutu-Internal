@@ -13,25 +13,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 | WARNING: You MUST set this value!
 |
-| If it is not set, then CodeIgniter will try to guess the protocol and
-| path to your installation, but due to security concerns the hostname will
-| be set to $_SERVER['SERVER_ADDR'] if available, or localhost otherwise.
-| The auto-detection mechanism exists only for convenience during
-| development and MUST NOT be used in production!
-|
-| If you need to allow multiple domains, remember that this file is still
-| a PHP script and you can easily do that on your own.
+| Production overrides this value in application/config/production/config.php.
+| The base file must not infer a host from the request because production URLs
+| are an operator setting, not request data.
 |
 */
-$configured_base_url = function_exists('config_item') ? config_item('base_url') : NULL;
-if (!is_string($configured_base_url) || trim($configured_base_url) === '' || $configured_base_url === 'http://localhost/') {
-    $protocol = (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
-        || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
-        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'))
-        ? 'https' : 'http';
-
-    $config['base_url'] = $protocol . '://' . (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost') . '/';
-}
+$config['base_url'] = isset($config['base_url']) ? $config['base_url'] : '';
 
 $config['index_page'] = 'index.php';
 

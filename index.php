@@ -51,10 +51,8 @@
  *     testing
  *     production
  *
- * NOTE: Untuk server production multisite, tetapkan secara eksplisit:
- *       define('ENVIRONMENT', 'production');
- *       Untuk pengujian lokal di komputer developer, gunakan:
- *       define('ENVIRONMENT', 'development');
+ * Native AlmaLinux deployment always runs with the standard CI3 production
+ * configuration files under application/config/production/.
  */
 	define('ENVIRONMENT', 'production');
 
@@ -270,6 +268,36 @@ switch (ENVIRONMENT)
 	}
 
 	define('APPPATH', $application_folder.DIRECTORY_SEPARATOR);
+
+	if (ENVIRONMENT === 'production')
+	{
+		$required_production_configs = array(
+			'production_config_file' => APPPATH.'config/production/config.php',
+			'production_database_file' => APPPATH.'config/production/database.php',
+			'production_ami_file' => APPPATH.'config/production/ami.php',
+		);
+		$missing_production_configs = array();
+
+		foreach ($required_production_configs as $check => $file)
+		{
+			if ( ! is_file($file))
+			{
+				$missing_production_configs[] = $check;
+			}
+			elseif (preg_match('/=\s*[\'\"][^\'\"]*GANTI[^\'\"]*[\'\"]/', (string) file_get_contents($file)) === 1)
+			{
+				$missing_production_configs[] = $check.'_placeholder';
+			}
+		}
+
+		if ($missing_production_configs !== array())
+		{
+			error_log('AMI production configuration failed checks: '.implode(', ', $missing_production_configs));
+			header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
+			echo 'Production configuration is incomplete. Please check application/config/production/ configuration files.';
+			exit(3); // EXIT_CONFIG
+		}
+	}
 
 	// The path to the "views" directory
 	if ( ! isset($view_folder[0]) && is_dir(APPPATH.'views'.DIRECTORY_SEPARATOR))
