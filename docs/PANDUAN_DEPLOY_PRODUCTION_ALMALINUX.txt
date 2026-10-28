@@ -167,19 +167,22 @@ EXIT;
 
 **D2. Import schema sekali, dengan akun DBA:**
 
-Tersedia dua pilihan file inisialisasi:
-1. `database_schema.sql`: Schema murni (0 user, pembuatan akun pertama wajib via CLI `bootstrap_super_admin.php`).
-2. `database_init.sql`: Schema lengkap dengan 1 akun starter `super_admin` (`admin.ami@unmuhbabel.ac.id` / `AdminAmi123,.`).
+Tersedia dua jalur fresh, dan keduanya hanya untuk database yang benar-benar baru dan kosong:
+1. `database_schema.sql`: Schema kanonik sampai migration `050`; setelah import, jalankan `scripts/bootstrap_super_admin.php` untuk memilih kredensial operator secara interaktif.
+2. `database_init.sql`: Schema kanonik sampai migration `050` dengan satu akun starter `super_admin` yang passwordnya sudah di-hash.
+
+`database_init.sql` bukan input upgrade atau pengganti database operasional yang sudah ada. Setelah akses pertama melalui akun starter, operator wajib segera mengganti atau merotasi kredensial awal. Jangan mencatat kredensial itu di dokumentasi, command history, log, atau tiket.
 
 Pilih salah satu sesuai kebutuhan tim IT:
 
 ```bash
 cd /var/www/ami/current
-# Opsi A: Menggunakan database_init.sql (sudah ada super_admin bawaan)
+# Opsi A: database_init.sql untuk database kosong, dengan satu akun starter
 sudo mariadb -u [ISI_DBA] -p --database=ami < database_init.sql
 
-# ATAU Opsi B: Menggunakan database_schema.sql murni
+# ATAU Opsi B: database_schema.sql lalu bootstrap_super_admin.php untuk kredensial terpilih operator
 # sudo mariadb -u [ISI_DBA] -p --database=ami < database_schema.sql
+# sudo -u ami /usr/bin/php scripts/bootstrap_super_admin.php --config=/etc/ami/production.php
 
 sudo mariadb -u [ISI_DBA] -p -e 'USE ami; SHOW TABLES;'
 ```
@@ -188,7 +191,7 @@ sudo mariadb -u [ISI_DBA] -p -e 'USE ami; SHOW TABLES;'
 
 **D3. Existing database adalah jalur berbeda:**
 
-- Jangan menjalankan `database_schema.sql`.
+- Jangan menjalankan `database_schema.sql` atau `database_init.sql`.
 - Buat backup database, private storage, public uploads yang berisi data, session bila diperlukan, dan `APP_ENCRYPTION_KEY` melalui prosedur backup terkontrol.
 - Bandingkan migration yang sudah diterapkan dengan `migrations/` memakai sejarah deployment, bukan tebakan dari nama tabel.
 - Terapkan hanya migration yang belum diterapkan, numerik, satu per satu, dengan DBA.
