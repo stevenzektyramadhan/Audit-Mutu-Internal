@@ -1,5 +1,11 @@
 # Panduan Operasional Deploy Production AMI di AlmaLinux
 
+STATUS: LEGACY / ALTERNATIF. Bukan panduan utama deployment ZIP.
+Gunakan docs/DEPLOY_NATIVE_ALMALINUX_ZIP.md dan
+docs/KONFIGURASI_IT_RINGKAS.md untuk paket ZIP native. Dokumen ini memuat
+prosedur historis yang dapat berbeda pada Git, CI_ENV, APP_*, path, dan config
+eksternal. Jangan gunakan instruksinya untuk jalur ZIP.
+
 Catatan Server Multisite: Jika Anda melakukan deployment pada server multisite
 (shared virtual host Nginx / Apache + PHP-FPM) yang tidak menggunakan dedicated server
 AlmaLinux mandiri atau tidak ingin membuat file di luar webroot virtual host (/etc/ami/production.php),

@@ -77,6 +77,12 @@ Route `lpmpi/organization` tetap tersedia untuk akses langsung yang kompatibel, 
 
 Docker bersifat opsional. Pilih satu mode sesuai lingkungan. Compose app sudah set `CI_ENV=development`, jadi jangan tambah mode lain yang mengubah perilaku itu.
 
+### Deployment Native AlmaLinux dari ZIP
+
+Untuk paket ZIP native AlmaLinux, gunakan [panduan utama deployment](docs/DEPLOY_NATIVE_ALMALINUX_ZIP.md) dan [konfigurasi IT ringkas](docs/KONFIGURASI_IT_RINGKAS.md). Jalur ini memakai root contoh `/var/www/html/ami`, `index.php` production tetap, dan hanya mengedit tiga file `application/config/production/{config,database,ami}.php`. Jangan memakai Git, Docker, `.env`, `CI_ENV`, atau `APP_*` sebagai konfigurasi deployment pada jalur ZIP.
+
+Dokumen `PANDUAN_DEPLOY_PRODUCTION_ALMALINUX.*` dan `PANDUAN_DEPLOY_MULTISITE_CI3.*` adalah legacy/alternatif historis. Dokumen tersebut bukan handoff utama ZIP dan dapat memuat asumsi path, environment, atau alur instalasi yang berbeda.
+
 | Mode | Pilih jika | Menjalankan aplikasi | Database |
 |---|---|---|---|
 | Apache/PHP dan MySQL lokal | Menggunakan XAMPP atau Laragon tanpa Docker | Apache lokal | MySQL/MariaDB lokal |

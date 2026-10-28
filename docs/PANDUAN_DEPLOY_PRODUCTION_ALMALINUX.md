@@ -1,5 +1,12 @@
 # Panduan Operasional Deploy Production AMI di AlmaLinux
 
+> **LEGACY / ALTERNATIF, bukan panduan utama ZIP.** Untuk deployment native
+> dari ZIP, gunakan [DEPLOY_NATIVE_ALMALINUX_ZIP.md](DEPLOY_NATIVE_ALMALINUX_ZIP.md)
+> dan [KONFIGURASI_IT_RINGKAS.md](KONFIGURASI_IT_RINGKAS.md). Dokumen panjang
+> ini mempertahankan prosedur historis yang dapat memakai Git, `CI_ENV`,
+> `APP_*`, atau konfigurasi eksternal. Jangan ikuti bagian tersebut untuk jalur
+> ZIP.
+
 > **Catatan Server Multisite:** Jika Anda melakukan deployment pada **server multisite (shared virtual host Nginx / Apache + PHP-FPM)** yang tidak menggunakan dedicated server AlmaLinux mandiri atau tidak ingin membuat file di luar webroot virtual host (`/etc/ami/production.php`), silakan merujuk ke panduan khusus multisite: [`docs/PANDUAN_DEPLOY_MULTISITE_CI3.md`](PANDUAN_DEPLOY_MULTISITE_CI3.md) (atau versi teks: [`docs/PANDUAN_DEPLOY_MULTISITE_CI3.txt`](PANDUAN_DEPLOY_MULTISITE_CI3.txt)).
 
 Panduan ini adalah handoff operasional untuk operator IT pemula. Ikuti urutan A sampai J pada server baru AlmaLinux 9.4 atau lebih baru. Panduan ini menyiapkan Nginx, PHP-FPM 8.3, MariaDB 10.11, CodeIgniter 3, SELinux, TLS, backup, dan uji aplikasi.

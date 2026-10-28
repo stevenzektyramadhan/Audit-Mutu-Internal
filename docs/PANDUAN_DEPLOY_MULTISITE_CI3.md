@@ -1,5 +1,12 @@
 # Panduan Deployment Native CodeIgniter 3 AMI pada Server Multisite Nginx / Apache + PHP-FPM
 
+> **LEGACY / ALTERNATIF, bukan panduan utama ZIP.** Untuk deployment native
+> dari ZIP dengan root `/var/www/html/ami`, gunakan
+> [DEPLOY_NATIVE_ALMALINUX_ZIP.md](DEPLOY_NATIVE_ALMALINUX_ZIP.md) dan
+> [KONFIGURASI_IT_RINGKAS.md](KONFIGURASI_IT_RINGKAS.md). Dokumen ini dapat
+> memuat prosedur multisite historis dan tidak boleh dipakai sebagai instruksi
+> ZIP jika berbeda pada path, environment, atau konfigurasi.
+
 Panduan ini ditujukan bagi Tim IT Kampus / Sysadmin yang mengelola server production multisite (shared virtual host / multi-domain dalam satu server Nginx atau Apache + PHP-FPM) untuk men-deploy aplikasi **Audit Mutu Internal (AMI)** berbasis CodeIgniter 3 secara **100% Native CodeIgniter 3**.
 
 ---

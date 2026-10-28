@@ -1,12 +1,12 @@
 # SUPERSEDED: Jangan gunakan untuk deployment baru
 
 Dokumen Ubuntu/Debian ini digantikan oleh
-[`PANDUAN_DEPLOY_PRODUCTION_ALMALINUX.md`](PANDUAN_DEPLOY_PRODUCTION_ALMALINUX.md).
+[`DEPLOY_NATIVE_ALMALINUX_ZIP.md`](DEPLOY_NATIVE_ALMALINUX_ZIP.md).
 
-Panduan AlmaLinux adalah satu-satunya runbook production yang berlaku untuk paket
-saat ini. Panduan tersebut memakai konfigurasi native `/etc/ami/production.php`,
-bukan `.env`, dan mencakup PHP-FPM, Nginx, TLS/ACME, MariaDB, SELinux,
-backup/restore, rollback, checklist, serta sign-off.
+Panduan ZIP AlmaLinux adalah runbook production yang berlaku untuk paket saat
+ini. Panduan tersebut memakai tiga file konfigurasi native CI3 di
+`application/config/production/`, bukan `.env`, dan mencakup PHP-FPM, Nginx,
+TLS, MariaDB, SELinux, backup, rollback, checklist, serta sign-off.
 
 Jangan memakai instruksi, contoh permission, konfigurasi Apache, `env[...]`, atau
 prosedur schema dari versi historis ini.
