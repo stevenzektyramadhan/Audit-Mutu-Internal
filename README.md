@@ -106,12 +106,21 @@ Ganti `APP_BASE_URL` dengan URL proyek yang dipakai, selalu dengan garis miring 
 ### Apache/PHP dan MySQL Lokal, XAMPP atau Laragon
 
 1. Jalankan Apache dan MySQL/MariaDB, lalu pastikan `CI_ENV=development` pada konfigurasi Apache.
-2. Untuk database baru, buat database `ami` terlebih dahulu, lalu import `database_schema.sql` ke database tersebut.
+2. Untuk database baru, buat database `ami` terlebih dahulu, lalu pilih satu jalur fresh. Import `database_schema.sql`, kemudian bootstrap administrator pertama dengan script PHP, atau import `database_init.sql` untuk schema kanonik dengan satu akun starter yang sudah di-hash. Kedua file hanya untuk database baru dan tidak boleh diimpor ke database existing.
 
    ```bash
    mysql -u root -p -e "CREATE DATABASE ami CHARACTER SET utf8 COLLATE utf8_general_ci;"
    mysql -u root -p --database=ami < database_schema.sql
+   php scripts/bootstrap_super_admin.php
    ```
+
+   Sebagai alternatif, untuk database baru yang kosong saja:
+
+   ```bash
+   mysql -u root -p --database=ami < database_init.sql
+   ```
+
+   Setelah login pertama melalui akun starter, segera ganti atau rotasi kredensial awal. Jangan mencatatnya di dokumentasi, command history, log, atau tiket.
 
 `database_dummy.sql` adalah seed AMI legacy lokal, bukan kebutuhan alur SPMI dan tidak dilacak Git. Jangan import file ini untuk onboarding SPMI.
 3. Set variabel database. Nilai default lokal adalah `DB_HOST=localhost`, `DB_USERNAME=root`, `DB_PASSWORD=` kosong, dan `DB_DATABASE=ami`.
@@ -126,7 +135,13 @@ docker compose up -d --build
 docker compose logs --tail=100 app
 ```
 
-Pada volume database baru, Compose menjalankan `database_schema.sql` sebagai `01-schema.sql`. Seed AMI legacy `database_dummy.sql` bersifat opsional dan tidak dilacak Git. Jika file lokal tersedia dan seed diperlukan, jalankan `docker compose -f compose.yaml -f compose.demo.yaml up -d --build`; fresh clone tanpa file dummy tetap berjalan dengan schema saja. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
+Pada volume database baru, Compose menjalankan `database_schema.sql` sebagai `01-schema.sql`. Karena jalur ini schema-only, bootstrap administrator pertama setelah container aktif dengan PHP di container:
+
+```bash
+docker compose exec app php scripts/bootstrap_super_admin.php
+```
+
+Seed AMI legacy `database_dummy.sql` bersifat opsional dan tidak dilacak Git. Jika file lokal tersedia dan seed diperlukan, jalankan `docker compose -f compose.yaml -f compose.demo.yaml up -d --build`; fresh clone tanpa file dummy tetap berjalan dengan schema saja. Buka login di `http://127.0.0.1:8081/index.php/auth/login`.
 
 Gunakan hanya satu host selama sesi, yaitu `127.0.0.1:8081`. Jangan berganti ke `localhost:8081`, karena cookie sesi dan CSRF tersimpan per host berbeda. Compose tidak memublikasikan port MySQL ke host. Sesi, upload, database, dan private storage berada dalam named volume; `docker compose down` mempertahankannya, sedangkan `docker compose down -v` menghapusnya. Image Docker menyalin `docker/php-upload.ini` ke `$PHP_INI_DIR/conf.d/99-upload.ini`; nilai `upload_max_filesize = 11M` dan `post_max_size = 12M` hanya memberi ruang overhead request PHP, bukan menaikkan batas aplikasi PPEPP yang tetap tepat 10 MiB.
 
@@ -203,7 +218,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-`database_schema.sql` adalah bootstrap schema untuk database baru dan telah mencakup parity migration `001-050`. Jangan menjalankan migration individual setelah import schema baru. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Parity fresh-vs-upgrade adalah kewajiban operasional: database baru memakai schema bootstrap, sedangkan database existing harus di-backup lalu menjalankan migration manual yang belum ada; README ini tidak menjadi bukti runtime parity.
+Untuk database baru, tersedia dua jalur yang sama-sama hanya boleh dipakai pada database kosong: `database_schema.sql` adalah schema kanonik sampai migration `050`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk memilih kredensial operator secara interaktif; `database_init.sql` adalah schema kanonik yang sama dengan satu akun starter `super_admin` yang passwordnya sudah di-hash. `database_init.sql` bukan input upgrade atau pengganti database operasional yang sudah ada. Setelah login pertama melalui akun starter, operator wajib segera mengganti atau merotasi kredensialnya, tanpa mencatatnya di dokumentasi, command history, log, atau tiket. Jangan menjalankan migration individual setelah fresh import. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Untuk database existing, backup terlebih dahulu lalu terapkan hanya migration manual yang sudah direview dan belum diterapkan; jangan mengimpor file bootstrap fresh apa pun. Parity fresh-vs-upgrade adalah kewajiban operasional.
 
 #### Akun Administrator Pertama
 
@@ -227,11 +242,11 @@ Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration ba
 
 #### Database baru
 
-Import `database_schema.sql`; jangan lanjutkan dengan migration individual karena bootstrap schema sudah memuat struktur yang dibutuhkan sampai `050`.
+Untuk database kosong, pilih salah satu jalur fresh. Import `database_schema.sql`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk kredensial yang dipilih operator, atau import `database_init.sql` untuk schema kanonik dengan satu akun starter yang sudah di-hash. Kedua file hanya untuk database baru dan tidak boleh diimpor ke database existing. Jangan lanjutkan dengan migration individual karena schema kanonik sudah memuat struktur sampai `050`.
 
 #### Database lama yang perlu di-upgrade
 
-Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan migration `012` sampai `050` secara numerik, satu file tiap langkah. Jangan jalankan `001` sampai `011` pada database legacy lama.
+Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalankan hanya migration yang telah direview dan belum diterapkan, secara numerik, satu file tiap langkah. Jangan jalankan file bootstrap fresh pada database existing. Jangan jalankan `001` sampai `011` pada database legacy lama.
 
 1. `012_create_organization_structure.sql`
 2. `013_create_spmi_versioned_standards.sql`
