@@ -17,10 +17,11 @@ $query_builder = TRUE;
 
 $db['default'] = array(
     'dsn'          => '',
-    'hostname'     => '127.0.0.1',
-    'username'     => 'ami_runtime',
-    'password'     => 'GANTI_DENGAN_PASSWORD_DATABASE_PRODUCTION',
-    'database'     => 'ami',
+    'hostname'     => 'GANTI_DB_HOST', // GANTI
+    'port'          => 3306, // GANTI jika database memakai port lain
+    'username'     => 'GANTI_DB_USERNAME', // GANTI
+    'password'     => 'GANTI_DB_PASSWORD', // GANTI
+    'database'     => 'GANTI_DB_DATABASE', // GANTI
     'dbdriver'     => 'mysqli',
     'dbprefix'     => '',
     'pconnect'     => FALSE,

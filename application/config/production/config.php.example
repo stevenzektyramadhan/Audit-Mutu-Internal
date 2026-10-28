@@ -11,18 +11,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 
-// Domain / Base URL production wajib diset secara eksplisit
-$config['base_url'] = 'https://ami.unmuhbabel.ac.id/';
+// Domain / Base URL production wajib diset secara eksplisit. // GANTI
+$config['base_url'] = 'https://GANTI-DOMAIN.example/';
 
-// Index page (gunakan '' jika Nginx URL rewriting aktif, atau 'index.php')
-$config['index_page'] = 'index.php';
+// Native Nginx template memakai front-controller rewrite.
+$config['index_page'] = '';
 
-// Kunci enkripsi wajib 32 karakter hex/string acak
-$config['encryption_key'] = 'GANTI_DENGAN_ENCRYPTION_KEY_32_KARAKTER_HEX';
+// Kunci enkripsi wajib berupa secret acak deployment. // GANTI
+$config['encryption_key'] = 'GANTI_DENGAN_ENCRYPTION_KEY_ACAK';
 
-// Pengaturan Sesi & Keamanan Cookie
+// Preset native: session disimpan di application/cache/sessions.
 $config['sess_driver']     = 'files';
-$config['sess_save_path']   = APPPATH . 'cache/sessions'; // atau path di luar webroot misal '/var/www/vhosts/ami/storage/sessions'
+$config['sess_save_path']  = APPPATH . 'cache/sessions';
 $config['cookie_secure']   = TRUE;
 $config['cookie_httponly'] = TRUE;
 $config['cookie_samesite'] = 'Lax';
@@ -30,6 +30,6 @@ $config['cookie_samesite'] = 'Lax';
 // Proteksi CSRF
 $config['csrf_protection'] = TRUE;
 
-// Logging
-$config['log_threshold']   = 1;
-$config['log_path']        = APPPATH . 'logs/'; // atau path di luar webroot misal '/var/log/ami/'
+// Preset native: log disimpan di application/logs/ dan diblokir oleh Nginx.
+$config['log_threshold'] = 1;
+$config['log_path']      = APPPATH . 'logs/';

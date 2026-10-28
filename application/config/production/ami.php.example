@@ -11,22 +11,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 
-// Storage Paths (dapat diletakkan di luar webroot virtual host untuk keamanan)
-$config['private_storage_path'] = ''; // Contoh: '/var/www/vhosts/ami/storage/private' atau biarkan '' untuk default
-$config['public_uploads_path']  = ''; // Contoh: FCPATH . 'uploads' atau biarkan ''
+// Preset native: semua kategori upload berada di uploads/ project.
+// GANTI hanya nilai private ini bila file privat harus berada di luar project.
+$config['private_storage_path'] = FCPATH . 'uploads/'; // GANTI: '/var/lib/ami/private/'
+$config['public_uploads_path']  = FCPATH . 'uploads/';
 
 // PDDIKTI Base URLs (JSON string atau URL dipisahkan koma)
-$config['pddikti_base_urls'] = '';
+$config['pddikti_base_urls'] = ''; // GANTI bila integrasi PDDIKTI diaktifkan
 
 // Pengaturan Email / Brevo (Password Reset)
-$config['mail_from_address'] = ''; // Contoh: 'ami@unmuhbabel.ac.id'
-$config['mail_from_name']    = 'Audit Mutu Internal';
-$config['brevo_api_key']     = ''; // Kunci API Brevo jika fitur reset password email diaktifkan
+$config['mail_from_address'] = ''; // GANTI bila reset password email diaktifkan
+$config['mail_from_name']    = 'Audit Mutu Internal'; // GANTI bila nama pengirim berbeda
+$config['brevo_api_key']     = ''; // GANTI bila reset password email diaktifkan
 
 // Google Drive Storage (Opsional - default 'local')
-$config['spmi_evidence_storage_backend']              = 'local';
-$config['google_drive_evidence_folder_id']            = '';
-$config['google_drive_auth_mode']                     = 'service_account'; // 'service_account' jika pakai Drive di production
-$config['google_drive_service_account_json_path']     = '';
-$config['google_drive_oauth_client_secret_json_path'] = '';
-$config['google_drive_oauth_refresh_token_json_path'] = '';
+$config['spmi_evidence_storage_backend']              = 'local'; // GANTI ke 'google_drive' hanya bila semua nilai Drive diisi
+$config['google_drive_evidence_folder_id']            = ''; // GANTI bila Google Drive diaktifkan
+$config['google_drive_auth_mode']                     = ''; // GANTI ke 'service_account' bila Google Drive diaktifkan
+$config['google_drive_service_account_json_path']     = ''; // GANTI dengan path credential di luar project
+$config['google_drive_oauth_client_secret_json_path'] = ''; // GANTI hanya untuk development non-production
+$config['google_drive_oauth_refresh_token_json_path'] = ''; // GANTI hanya untuk development non-production
