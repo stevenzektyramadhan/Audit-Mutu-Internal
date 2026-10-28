@@ -1,191 +1,51 @@
-PANDUAN DEPLOYMENT AMI (NATIVE ALMALINUX DARI ZIP)
-Target: Server AlmaLinux yang SUDAH BERJALAN (Multi-Project)
-
-Perhatian untuk Tim IT:
-- Server ini sudah ada project lain. JANGAN reset/restart service global sembarangan.
-- JANGAN ubah konfigurasi global Nginx/PHP-FPM yang dipakai project lain.
-- Cukup tambah 1 server block Nginx baru dan arahkan ke pool PHP-FPM yang sesuai.
-- Aplikasi ini TIDAK butuh Git, Docker, Composer, atau file .env di server.
+CHECKLIST TUGAS TIM IT - DEPLOYMENT AUDIT MUTU INTERNAL (AMI)
+Target Server: AlmaLinux / RHEL / CentOS
 
 ================================================================================
-RINGKASAN LOKASI & FAKTA
+DAFTAR TUGAS YANG HARUS DILAKUKAN TIM IT (ACTION ITEMS)
 ================================================================================
-1. Folder aplikasi disarankan: /var/www/html/ami
-2. Hanya ada TIGA (3) file konfigurasi yang perlu diedit Tim IT:
-   - application/config/production/config.php
-   - application/config/production/database.php
-   - application/config/production/ami.php
-3. index.php SUDAH diset production. JANGAN diedit.
-4. Database: Gunakan database baru khusus project ini (misal: ami).
-   JANGAN sentuh database project lain.
 
-================================================================================
-LANGKAH 1: EKSTRAK FILE ZIP
-================================================================================
-1. Upload file AMI-NATIVE-ALMALINUX-<versi>.zip ke server.
-2. Buat folder target dan ekstrak:
-   sudo mkdir -p /var/www/html/ami
-   sudo unzip -q AMI-NATIVE-ALMALINUX-<versi>.zip -d /tmp/ami_extract
-   
-   # Pastikan index.php berada langsung di root /var/www/html/ami/
-   sudo cp -r /tmp/ami_extract/AMI/* /var/www/html/ami/
-   rm -rf /tmp/ami_extract
+1. EKSTRAK APLIKASI
+   - Letakkan isi folder paket di web root (misal: /var/www/html/ami).
+   - Pastikan file index.php berada langsung di root folder tersebut.
 
-================================================================================
-LANGKAH 2: CEK USER PHP-FPM & ATUR PERMISSION
-================================================================================
-Karena server sudah ada project lain, cek user yang menjalankan PHP-FPM saat ini:
-   ps -eo user,group,comm | grep -E 'php-fpm|php-cgi' | head -n 5
+2. SET ATURAN PERMISSION & SELINUX
+   - Atur kepemilikan folder web root ke user/group web server (misal: nginx / apache).
+   - Pastikan folder berikut memiliki izin tulis (writable):
+     * uploads/
+     * application/cache/
+     * application/logs/
+   - Jika SELinux berstatus Enforcing, beri konteks 'httpd_sys_rw_content_t' pada ketiga folder di atas.
 
-(Biasanya user: "apache" atau "nginx")
+3. SETUP DATABASE (PILIH SALAH SATU):
+   - Buat database MySQL/MariaDB baru (contoh nama: 'ami', charset utf8mb4).
+   - Buat user database dengan hak akses penuh ke database tersebut.
+   - Eksekusi database:
+     * OPSI A (Rekomendasi - Cepat & Praktis):
+       Impor file 'database_init.sql' ke database 'ami'.
+       File ini sudah otomatis membuat seluruh tabel terbaru sekaligus akun Super Admin awal.
+       Saat pertama kali login, sistem akan otomatis mewajibkan pergantian password.
+     * OPSI B (Custom Akun Admin via Terminal):
+       Impor file 'database_schema.sql' (hanya skema tabel kosong).
+       Lalu jalankan perintah terminal:
+       php scripts/bootstrap_super_admin.php
+       (Masukkan nama, email, dan password admin yang diinginkan).
 
-Jalankan perintah ini (ganti <user> dan <group> sesuai hasil di atas):
-   # 1. Kepemilikan kode (read-only untuk web server)
-   sudo chown -R root:<group> /var/www/html/ami
-   sudo find /var/www/html/ami -type d -exec chmod 0755 {} +
-   sudo find /var/www/html/ami -type f -exec chmod 0644 {} +
+4. SESUAIKAN 3 FILE KONFIGURASI
+   Buka folder: application/config/production/
+   - config.php   : Isi 'base_url' dengan domain/subdomain kampus (wajib HTTPS), dan isi 'encryption_key' minimal 32 karakter acak.
+   - database.php : Isi username, password, dan nama database yang telah dibuat.
+   - ami.php      : Pengaturan path storage (biarkan default menggunakan folder uploads/ lokal).
 
-   # 2. Folder yang WAJIB bisa ditulis aplikasi (Upload, Cache, Log, Session)
-   sudo chown -R <user>:<group> /var/www/html/ami/uploads
-   sudo chown -R <user>:<group> /var/www/html/ami/application/cache
-   sudo chown -R <user>:<group> /var/www/html/ami/application/logs
+5. BUAT VIRTUAL HOST / SERVER BLOCK NGINX
+   - Buat file konfigurasi vhost baru untuk domain aplikasi AMI.
+   - Arahkan 'root' ke /var/www/html/ami dan 'index' ke index.php.
+   - Arahkan eksekusi PHP ke socket atau port PHP-FPM server.
+   - Blokir akses langsung via web ke folder: application, system, vendor, serta subfolder uploads privat (audit_evidence, ppepp_documents, dll.).
+   - Blokir eksekusi file script .php di dalam seluruh folder uploads.
+   - Reload Nginx setelah konfigurasi valid (nginx -t).
 
-   sudo find /var/www/html/ami/uploads -type d -exec chmod 0775 {} +
-   sudo find /var/www/html/ami/uploads -type f -exec chmod 0664 {} +
-   sudo find /var/www/html/ami/application/cache -type d -exec chmod 0775 {} +
-   sudo find /var/www/html/ami/application/logs -type d -exec chmod 0775 {} +
-
-   # 3. SELinux (Wajib di AlmaLinux jika SELinux Enforcing)
-   if [ "$(getenforce 2>/dev/null)" = "Enforcing" ]; then
-       sudo semanage fcontext -a -t httpd_sys_rw_content_t '/var/www/html/ami/uploads(/.*)?'
-       sudo semanage fcontext -a -t httpd_sys_rw_content_t '/var/www/html/ami/application/cache(/.*)?'
-       sudo semanage fcontext -a -t httpd_sys_rw_content_t '/var/www/html/ami/application/logs(/.*)?'
-       sudo restorecon -Rv /var/www/html/ami/uploads /var/www/html/ami/application/cache /var/www/html/ami/application/logs
-   fi
-
-================================================================================
-LANGKAH 3: SETUP DATABASE
-================================================================================
-Buat database dan user baru khusus untuk AMI di MariaDB/MySQL:
-   mysql -u root -p
-
-   CREATE DATABASE ami CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   CREATE USER 'ami_user'@'localhost' IDENTIFIED BY 'PASSWORD_KUAT_DATABASE';
-   GRANT ALL PRIVILEGES ON ami.* TO 'ami_user'@'localhost';
-   FLUSH PRIVILEGES;
-   EXIT;
-
-PILIH SALAH SATU OPSI IMPORT (JANGAN DUA-DUANYA):
-
-OPSI A (Rekomendasi - Pakai database_init.sql):
-File ini sudah berisi skema lengkap terbaru + 1 akun Super Admin bawaan.
-   mysql -u ami_user -p ami < /var/www/html/ami/database_init.sql
-   (Setelah import, langsung lanjut ke Langkah 4. Saat login pertama kali,
-   sistem akan meminta ganti password).
-
-OPSI B (Pakai database_schema.sql):
-Jika ingin membuat akun Super Admin dengan email/password sendiri via CLI:
-   mysql -u ami_user -p ami < /var/www/html/ami/database_schema.sql
-   php /var/www/html/ami/scripts/bootstrap_super_admin.php
-   (Input email & password admin sesuai prompt terminal).
-
-================================================================================
-LANGKAH 4: EDIT 3 FILE KONFIGURASI
-================================================================================
-Masuk ke folder: /var/www/html/ami/application/config/production/
-
-1. File: config.php
-   Perintah: nano config.php
-   Bagian yang wajib diubah:
-   - $config['base_url'] = 'https://subdomain.domain-kampus.ac.id/';  // Wajib HTTPS & akhiri slash '/'
-   - $config['encryption_key'] = 'GENERATE_RANDOM_STRING_MINIMAL_32_KARAKTER';
-   - $config['sess_save_path'] = APPPATH . 'cache/sessions';
-   - $config['log_path'] = APPPATH . 'logs/';
-   - $config['cookie_secure'] = TRUE; // Pastikan TRUE karena menggunakan HTTPS
-
-2. File: database.php
-   Perintah: nano database.php
-   Bagian yang wajib diubah:
-   - 'hostname' => 'localhost',
-   - 'username' => 'ami_user',
-   - 'password' => 'PASSWORD_KUAT_DATABASE',
-   - 'database' => 'ami',
-
-3. File: ami.php
-   Perintah: nano ami.php
-   Secara default sudah terisi:
-   - 'private_storage_path' => FCPATH . 'uploads/',
-   - 'public_uploads_path'  => FCPATH . 'uploads/',
-   (Biarkan default kecuali IT ingin memindahkan folder upload ke partisi lain).
-
-================================================================================
-LANGKAH 5: KONFIGURASI NGINX (TAMBAH VHOST BARU)
-================================================================================
-JANGAN edit nginx.conf utama. Buat file server block baru di:
-/etc/nginx/conf.d/ami.conf
-
-Contoh isi /etc/nginx/conf.d/ami.conf:
-
-server {
-    listen 80;
-    server_name ami.domain-kampus.ac.id;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name ami.domain-kampus.ac.id;
-
-    root /var/www/html/ami;
-    index index.php;
-
-    # Sesuaikan path sertifikat SSL server Anda:
-    ssl_certificate /etc/pki/tls/certs/ami.crt;
-    ssl_certificate_key /etc/pki/tls/private/ami.key;
-
-    client_max_body_size 20M;
-
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    # Teruskan request PHP ke PHP-FPM socket/port yang sedang aktif di server
-    location ~ \.php$ {
-        try_files $uri =404;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        # Sesuaikan dengan socket PHP-FPM aktif di server Anda:
-        # fastcgi_pass unix:/run/php-fpm/www.sock;
-        # atau jika pakai port:
-        # fastcgi_pass 127.0.0.1:9000;
-        fastcgi_pass unix:/run/php-fpm/www.sock;
-    }
-
-    # KEAMANAN: Blokir akses langsung via web ke folder private dan system
-    location ~ ^/(application|system|vendor|\.git|uploads/(audit_evidence|bukti_auditor|instrumen|penetapan|ppepp_documents|rtm_photos|spmi_source|tmp|user_photos))(/|$) {
-        deny all;
-        return 404;
-    }
-
-    # KEAMANAN: Blokir eksekusi script PHP di dalam folder uploads
-    location ~ ^/uploads/.*\.php$ {
-        deny all;
-        return 404;
-    }
-}
-
-Test konfigurasi Nginx lalu reload:
-   sudo nginx -t
-   sudo systemctl reload nginx
-
-================================================================================
-LANGKAH 6: VERIFIKASI AKHIR
-================================================================================
-1. Jalankan script Doctor untuk cek kelengkapan:
-   php /var/www/html/ami/scripts/ami_doctor.php
-
-2. Buka browser: https://ami.domain-kampus.ac.id/
-   Pastikan halaman login tampil.
-   Login menggunakan akun Super Admin yang dibuat di Langkah 3.
-
-Selesai.
+6. VERIFIKASI AKHIR
+   - Jalankan tool diagnosa dari terminal:
+     php scripts/ami_doctor.php
+   - Buka URL domain di browser, pastikan halaman login terbuka normal dan coba login dengan akun Super Admin.
