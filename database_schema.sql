@@ -780,8 +780,8 @@ CREATE TABLE IF NOT EXISTS `system_settings` (
     CONSTRAINT `chk_system_settings_singleton` CHECK (`id` = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `system_settings` (`id`, `turnstile_site_key`, `turnstile_secret_ciphertext`) VALUES
-(1, NULL, NULL);
+INSERT INTO `system_settings` (`id`, `login_hero_description`, `turnstile_site_key`, `turnstile_secret_ciphertext`) VALUES
+(1, 'Ruang kerja terpadu untuk pelaksanaan, penilaian, dan tindak lanjut Sistem Penjaminan Mutu Internal perguruan tinggi.', NULL, NULL);
 
 CREATE TABLE IF NOT EXISTS `legacy_ami_archive_runs` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
