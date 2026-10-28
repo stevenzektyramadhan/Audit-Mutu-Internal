@@ -16,6 +16,8 @@ user_guide_src/cilexer/build/*
 user_guide_src/cilexer/dist/*
 user_guide_src/cilexer/pycilexer.egg-info/*
 /vendor/
+/dist/
+/.ami-native-package.*/
 
 # Runtime uploads (ignore uploaded content, preserve directory structure)
 uploads/*
