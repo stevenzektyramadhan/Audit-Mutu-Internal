@@ -15,7 +15,7 @@ class Spmi_reports extends Admin_Lpmpi_Controller
 
     public function index()
     {
-        $index_data = $this->service->index_data($this->input->get(NULL, TRUE));
+        $index_data = $this->service->index_data((array) $this->input->get(NULL, TRUE));
 
         if ($this->input->get('async', TRUE) === '1' || $this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
             echo $this->load->view('lpmpi/spmi_reports/report_list', ['index_data' => $index_data], TRUE);
@@ -30,7 +30,41 @@ class Spmi_reports extends Admin_Lpmpi_Controller
             'index_data' => $index_data,
             'reports' => $index_data['reports'],
             'finalized_assessments' => $this->service->finalized_versions(),
+            'historical_enabled' => $index_data['historical_enabled'],
+            'historical_upload_max_bytes' => $index_data['historical_upload_max_bytes'],
         ]);
+    }
+
+    public function store_historical()
+    {
+        $this->require_post();
+        $result = $this->service->store_historical_report((array) $this->input->post(NULL, TRUE), isset($_FILES['report_file']) ? $_FILES['report_file'] : NULL, (int) $this->session->userdata('user_id'));
+        $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
+        redirect('lpmpi/spmi-reports');
+    }
+
+    public function download_historical($id)
+    {
+        $report = $this->service->historical_report((int) $id);
+        if (!$report) { show_error('Laporan historis tidak ditemukan.', 404, 'Not Found'); return; }
+        $path = private_storage_path('spmi_historical_reports', $report->stored_name);
+        if (!$path || !is_file($path)) { show_error('Laporan historis tidak ditemukan.', 404, 'Not Found'); return; }
+        $name = str_replace(['"', "\r", "\n"], '', basename((string) $report->original_name));
+        if ($name === '') $name = 'laporan-historis';
+        header('Content-Type: ' . ($report->mime_type ?: 'application/octet-stream'));
+        header('Content-Length: ' . (int) $report->file_size);
+        header('Content-Disposition: attachment; filename="' . $name . '"');
+        header('Cache-Control: private, no-store');
+        readfile($path);
+        exit;
+    }
+
+    public function delete_historical($id)
+    {
+        $this->require_post();
+        $result = $this->service->delete_historical_report((int) $id, (int) $this->session->userdata('user_id'));
+        $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']);
+        redirect('lpmpi/spmi-reports');
     }
 
     public function create($assessment_id)
@@ -149,5 +183,13 @@ class Spmi_reports extends Admin_Lpmpi_Controller
             $lines[] = (string) (isset($item['original_name']) ? $item['original_name'] : '-') . ' / ' . (string) (isset($item['mime_type']) ? $item['mime_type'] : '-') . ' / ' . (string) (isset($item['size_bytes']) ? (int) $item['size_bytes'] : 0) . ' bytes / ' . (string) (isset($item['sha256']) ? $item['sha256'] : '-');
         }
         return $lines ? implode("\n", $lines) : '-';
+    }
+
+    private function require_post()
+    {
+        if ($this->input->method(TRUE) !== 'POST') {
+            show_error('Method tidak diizinkan.', 405, 'Method Not Allowed');
+            exit;
+        }
     }
 }
