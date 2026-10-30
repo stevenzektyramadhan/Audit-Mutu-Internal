@@ -25,7 +25,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/organization.css')); ?>">
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_standards'): ?>
-        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/standards-management.css')); ?>">
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/standards-management.css') . '?v=' . (int) (file_exists(FCPATH . 'assets/css/standards-management.css') ? filemtime(FCPATH . 'assets/css/standards-management.css') : time())); ?>">
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_audits'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-audits.css') . '?v=' . (int) (file_exists(FCPATH . 'assets/css/spmi-audits.css') ? filemtime(FCPATH . 'assets/css/spmi-audits.css') : time())); ?>">
@@ -34,7 +34,7 @@ $page_subtitle = isset($page_subtitle) ? $page_subtitle : ($app_name . ' Perguru
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/pertanyaan.css') . '?v=' . (int) (file_exists(FCPATH . 'assets/css/pertanyaan.css') ? filemtime(FCPATH . 'assets/css/pertanyaan.css') : time())); ?>">
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_reports'): ?>
-        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-reports.css')); ?>">
+        <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-reports.css') . '?v=' . (int) (file_exists(FCPATH . 'assets/css/spmi-reports.css') ? filemtime(FCPATH . 'assets/css/spmi-reports.css') : time())); ?>">
     <?php endif; ?>
     <?php if (isset($active_menu) && $active_menu === 'spmi_rtm'): ?>
         <link rel="stylesheet" href="<?php echo html_escape(base_url('assets/css/spmi-rtm.css')); ?>">
