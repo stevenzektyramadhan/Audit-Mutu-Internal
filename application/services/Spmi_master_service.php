@@ -19,7 +19,7 @@ class Spmi_master_service
 
     public function versions() { return $this->standards->get_versions(); }
     public function version($id) { return $this->standards->find_version((int) $id); }
-    public function mutable($version) { return $version && in_array($version->status, ['draft', 'review'], TRUE); }
+    public function mutable($version) { return $version && $version->status === 'draft'; }
 
     public function parse($path)
     {
@@ -57,7 +57,7 @@ class Spmi_master_service
         $this->ci->db->trans_begin();
         try {
             $version = $this->standards->find_version((int) $version_id, TRUE);
-            if (!$this->mutable($version) || empty($rows)) return $this->rollback_result('Versi harus draft/review dan preview harus memiliki baris valid.');
+            if (!$this->mutable($version) || empty($rows)) return $this->rollback_result('Versi harus draft dan preview harus memiliki baris valid.');
             foreach ($rows as $row) {
                 $unit_scope = $this->unit($row['scope_unit_code']); $unit_responsible = $this->unit($row['responsible_unit_code']);
                 if (!$unit_scope || !$unit_responsible) return $this->rollback_result('Unit organisasi aktif tidak ditemukan.');

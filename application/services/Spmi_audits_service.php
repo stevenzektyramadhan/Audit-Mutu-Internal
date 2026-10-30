@@ -36,7 +36,7 @@ class Spmi_audits_service
             $source_version_id = $this->positive_id(isset($data['source_version_id']) ? $data['source_version_id'] : NULL);
             if (!$source_version_id) return $this->rollback('Versi sumber tidak valid.');
             $version = $this->model->version_for_update($source_version_id);
-            if (!$version || !in_array($version->status, ['draft', 'review'], TRUE)) return $this->rollback('Versi sumber harus berstatus draft atau review.');
+            if (!$version || $version->status !== 'active') return $this->rollback('Versi sumber harus berstatus aktif.');
 
             $auditee_id = $this->positive_id(isset($data['auditee_id']) ? $data['auditee_id'] : NULL);
             $auditee = $auditee_id ? $this->model->locked_unit_user_by_role($unit, $auditee_id, 'auditee') : NULL;
