@@ -14,6 +14,7 @@ $icon = static function ($name) {
         'upload' => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
         'file' => '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>',
         'external-link' => '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>',
+        'trash' => '<path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
         'x' => '<path d="M18 6 6 18M6 6l12 12"/>',
     ];
     return '<svg class="std-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['file']) . '</svg>';
@@ -65,15 +66,12 @@ $icon = static function ($name) {
                         <tbody>
                             <?php foreach ($versions as $version):
                                 $status = strtolower($version->status);
-                                $is_mutable = in_array($status, ['draft', 'review'], TRUE);
-                                $badge_class = 'std-badge-' . $status;
+                                $is_mutable = $status === 'draft';
+                                $badge_class = in_array($status, ['draft', 'active'], TRUE) ? 'std-badge-' . $status : 'std-badge-legacy';
                                 $status_text = [
                                     'draft' => 'Draf',
-                                    'review' => 'Review',
-                                    'approved' => 'Disetujui',
                                     'active' => 'Aktif',
-                                    'retired' => 'Tidak Berlaku',
-                                ][$status] ?? ucfirst($version->status);
+                                ][$status] ?? 'Legacy (hanya-baca)';
                             ?>
                                 <tr>
                                     <td data-label="Kode Versi">
@@ -101,7 +99,7 @@ $icon = static function ($name) {
                                                     Aksi <?php echo $icon('chevron-down'); ?>
                                                 </button>
                                                 <div class="std-dropdown-menu tw-hidden" data-dropdown-menu>
-                                                    <a class="std-dropdown-item" href="<?php echo site_url('lpmpi/spmi-master/export/' . (int) $version->id); ?>">
+                                                        <a class="std-dropdown-item" href="<?php echo site_url('lpmpi/spmi-master/export/' . (int) $version->id); ?>">
                                                         <?php echo $icon('download'); ?> Export Master XLSX
                                                     </a>
                                                     <?php if ($is_mutable): ?>
@@ -109,6 +107,10 @@ $icon = static function ($name) {
                                                         <a class="std-dropdown-item" href="<?php echo site_url('lpmpi/spmi-master/template/' . (int) $version->id); ?>">
                                                             <?php echo $icon('file'); ?> Download Template Master
                                                         </a>
+                                                        <div class="std-dropdown-divider"></div>
+                                                        <?php echo form_open('lpmpi/spmi-standards/version/delete/' . (int) $version->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus versi standar ini beserta isinya?');"]); ?>
+                                                            <button class="std-dropdown-item std-dropdown-item-danger" type="submit"><?php echo $icon('trash'); ?> Hapus Versi</button>
+                                                        <?php echo form_close(); ?>
                                                         <button type="button" class="std-dropdown-item" data-modal-trigger="modal-import-<?php echo (int) $version->id; ?>">
                                                             <?php echo $icon('upload'); ?> Import Master Excel
                                                         </button>
@@ -126,9 +128,9 @@ $icon = static function ($name) {
         </div>
     </section>
 
-    <!-- Modals Import Master (Hanya untuk versi mutable: draft/review) -->
+    <!-- Modals Import Master (Hanya untuk versi draft) -->
     <?php foreach ($versions as $version):
-        if (!in_array(strtolower($version->status), ['draft', 'review'], TRUE)) continue;
+        if (strtolower($version->status) !== 'draft') continue;
     ?>
         <div id="modal-import-<?php echo (int) $version->id; ?>" class="std-modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title-<?php echo (int) $version->id; ?>">
             <div class="std-modal-card" data-modal-card>

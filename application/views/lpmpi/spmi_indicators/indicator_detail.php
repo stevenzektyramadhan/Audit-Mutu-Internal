@@ -50,7 +50,7 @@ $evidence_policy = isset($indicator->evidence_policy) ? $indicator->evidence_pol
 
                 <?php if (!$mutable): ?>
                     <p class="std-muted tw-text-xs tw-m-0 tw-italic">
-                        Versi ini bersifat hanya-baca (approved / active / retired).
+                        Versi ini bersifat hanya-baca (aktif / legacy).
                     </p>
                 <?php endif; ?>
             </div>
@@ -60,6 +60,11 @@ $evidence_policy = isset($indicator->evidence_policy) ? $indicator->evidence_pol
                     <a class="std-button std-button-secondary tw-text-xs" href="<?php echo site_url('lpmpi/spmi-indicators/indicator/edit/' . (int) $indicator->id); ?>">
                         <?php echo $icon('edit'); ?> Edit Indikator
                     </a>
+                    <?php echo form_open('lpmpi/spmi-indicators/indicator/delete/' . (int) $indicator->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus indikator ini beserta targetnya?');"]); ?>
+                        <button class="std-button std-button-danger tw-text-xs" type="submit">
+                            Hapus Indikator
+                        </button>
+                    <?php echo form_close(); ?>
                 </div>
             <?php endif; ?>
         </div>
