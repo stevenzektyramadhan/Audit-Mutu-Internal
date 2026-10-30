@@ -159,6 +159,18 @@
   box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.5);
 }
 
+#reports-root .reports-btn-danger {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+}
+
+#reports-root .reports-btn-danger:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  color: #9f1239;
+}
+
 #reports-root .reports-back-link {
   color: var(--reports-blue);
   display: inline-flex;
