@@ -3,9 +3,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Spmi_standards_service
 {
-    const STATUSES = ['draft', 'review', 'approved', 'active', 'retired'];
-    const MUTABLE_STATUSES = ['draft', 'review'];
-    const TRANSITIONS = ['draft' => ['review'], 'review' => ['draft', 'approved'], 'approved' => ['active'], 'active' => ['retired'], 'retired' => []];
+    const STATUSES = ['draft', 'active'];
+    const MUTABLE_STATUSES = ['draft'];
+    const TRANSITIONS = [
+        'draft' => ['active'],
+        'active' => []
+    ];
     protected $ci;
     protected $model;
 
@@ -51,7 +54,7 @@ class Spmi_standards_service
     {
         $this->ci->db->trans_start();
         $version = $this->model->find_version((int) $id, TRUE);
-        if (!$version || !isset(self::TRANSITIONS[$version->status]) || !in_array($next_status, self::TRANSITIONS[$version->status], TRUE)) return $this->finish(FALSE, 'Transisi status tidak diizinkan.');
+        if (!$this->is_mutable($version) || !isset(self::TRANSITIONS[$version->status]) || !in_array($next_status, self::TRANSITIONS[$version->status], TRUE)) return $this->finish(FALSE, 'Transisi status tidak diizinkan.');
         $db_debug = $this->ci->db->db_debug;
         if ($next_status === 'active') $this->ci->db->db_debug = FALSE;
         $ok = $this->model->update_version($id, ['status' => $next_status]);
@@ -97,13 +100,70 @@ class Spmi_standards_service
         return $this->finish($ok, $ok ? 'Standar berhasil diperbarui.' : 'Standar gagal diperbarui.');
     }
 
+    public function delete_standard($id)
+    {
+        if (!$this->ci->db->trans_begin()) return $this->fail('Standar mutu gagal dihapus.');
+        $standard = $this->model->find_standard((int) $id);
+        if (!$standard) return $this->rollback('Standar tidak ditemukan.');
+        $version = $this->model->find_version((int) $standard->version_id, TRUE);
+        $standard = $version ? $this->model->find_standard((int) $id, TRUE) : NULL;
+        if (!$version || !$standard || (int) $standard->version_id !== (int) $version->id) return $this->rollback('Standar tidak ditemukan.');
+        if ($version->status !== 'draft') return $this->rollback('Standar hanya dapat dihapus pada versi draft.');
+        if ($this->model->standard_has_assignments((int) $id)) {
+            return $this->rollback('Standar tidak dapat dihapus karena sudah memiliki riwayat penugasan audit AMI.');
+        }
+        if ($this->model->standard_has_legacy_dependencies((int) $id)) return $this->rollback('Standar tidak dapat dihapus karena masih dipakai data instrumen SPMI lama.');
+        foreach ($this->model->get_standard_indicators((int) $id, TRUE) as $indicator) {
+            if ($this->model->indicator_has_assignments((int) $indicator->id)) return $this->rollback('Standar tidak dapat dihapus karena salah satu indikatornya sudah memiliki riwayat penugasan audit AMI.');
+            if ($this->model->indicator_has_legacy_dependencies((int) $indicator->id)) return $this->rollback('Standar tidak dapat dihapus karena salah satu indikatornya masih dipakai data instrumen SPMI lama.');
+        }
+        if (!$this->model->delete_standard_children((int) $id)) return $this->rollback('Indikator standar gagal dihapus.');
+        if (!$this->model->delete_standard((int) $id)) return $this->rollback('Standar mutu gagal dihapus.');
+        return $this->finish(TRUE, 'Standar mutu beserta indikatornya berhasil dihapus.', 'Standar mutu gagal dihapus.');
+    }
+
+    public function delete_version($id)
+    {
+        if (!$this->ci->db->trans_begin()) return $this->fail('Versi standar SPMI gagal dihapus.');
+        $version = $this->model->find_version((int) $id, TRUE);
+        if (!$version) return $this->rollback('Versi standar tidak ditemukan.');
+        if ($version->status !== 'draft') return $this->rollback('Versi standar hanya dapat dihapus saat draft.');
+        if ($this->model->version_has_assignments((int) $id)) {
+            return $this->rollback('Versi tidak dapat dihapus karena sudah pernah ditugaskan pada siklus audit AMI.');
+        }
+
+        $standards = $this->model->get_standards((int) $id, TRUE);
+        foreach ($standards as $std) {
+            if ($this->model->standard_has_assignments((int) $std->id)) return $this->rollback('Versi tidak dapat dihapus karena salah satu standarnya sudah memiliki riwayat penugasan audit AMI.');
+            if ($this->model->standard_has_legacy_dependencies((int) $std->id)) return $this->rollback('Versi tidak dapat dihapus karena salah satu standarnya masih dipakai data instrumen SPMI lama.');
+            foreach ($this->model->get_standard_indicators((int) $std->id, TRUE) as $indicator) {
+                if ($this->model->indicator_has_assignments((int) $indicator->id)) return $this->rollback('Versi tidak dapat dihapus karena salah satu indikatornya sudah memiliki riwayat penugasan audit AMI.');
+                if ($this->model->indicator_has_legacy_dependencies((int) $indicator->id)) return $this->rollback('Versi tidak dapat dihapus karena salah satu indikatornya masih dipakai data instrumen SPMI lama.');
+            }
+        }
+
+        foreach ($standards as $std) {
+            if (!$this->model->delete_standard_children((int) $std->id)) return $this->rollback('Indikator standar gagal dihapus.');
+            if (!$this->model->delete_standard((int) $std->id)) return $this->rollback('Standar mutu gagal dihapus.');
+        }
+
+        $source_file = $version->source_file_path;
+        if (!$this->model->delete_version((int) $id)) return $this->rollback('Versi standar SPMI gagal dihapus.');
+        $result = $this->finish(TRUE, 'Versi standar SPMI berhasil dihapus.', 'Versi standar SPMI gagal dihapus.');
+        if ($result['success'] && !empty($source_file)) {
+            $result['deleted_source_file_path'] = $source_file;
+        }
+        return $result;
+    }
+
     public function set_source($id, $path) { return $this->guard_mutable_update($id, ['source_file_path' => basename($path)]); }
     public function clear_source($id) { return $this->guard_mutable_update($id, ['source_file_path' => NULL], TRUE); }
     private function guard_mutable_update($id, $data, $require_source = FALSE) { $this->ci->db->trans_start(); $version = $this->model->find_version($id, TRUE); if (!$this->is_mutable($version)) return $this->finish(FALSE, 'Versi ini bersifat hanya-baca.'); if ($require_source && empty($version->source_file_path)) return $this->finish(FALSE, 'Dokumen sumber tidak ditemukan.'); $previous_source_file_path = $version->source_file_path; $ok = $this->model->update_version($id, $data); $result = $this->finish($ok, $ok ? 'Dokumen sumber berhasil diperbarui.' : 'Dokumen sumber gagal diperbarui.'); if ($result['success']) $result['previous_source_file_path'] = $previous_source_file_path; return $result; }
     private function version_data($data) { return ['version_code' => strtoupper(trim((string) (isset($data['version_code']) ? $data['version_code'] : ''))), 'title' => trim((string) (isset($data['title']) ? $data['title'] : '')), 'description' => trim((string) (isset($data['description']) ? $data['description'] : ''))]; }
     private function is_duplicate_active_error() { return $this->is_duplicate_key_error(); }
     private function is_duplicate_key_error() { $error = $this->ci->db->error(); return isset($error['code']) && (int) $error['code'] === 1062; }
-    private function finish($success, $message) { $this->ci->db->trans_complete(); return $success && $this->ci->db->trans_status() ? $this->ok($message) : $this->fail($message); }
+    private function finish($success, $message, $failure_message = NULL) { $completed = $this->ci->db->trans_complete(); return $success && $completed && $this->ci->db->trans_status() ? $this->ok($message) : $this->fail($failure_message ?: $message); }
+    private function rollback($message) { $this->ci->db->trans_rollback(); return $this->fail($message); }
     private function ok($message) { return ['success' => TRUE, 'message' => $message]; }
     private function fail($message) { return ['success' => FALSE, 'message' => $message]; }
 }
