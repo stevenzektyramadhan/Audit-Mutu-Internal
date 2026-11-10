@@ -35,6 +35,9 @@ $standard_analysis = isset($data['standard_analysis']) && is_array($data['standa
 $result_count = isset($data['count']) ? (int) $data['count'] : 0;
 $current_page = (int) $pagination['page'];
 $page_count = max(1, (int) $pagination['page_count']);
+$historical_upload_max_bytes = isset($historical_upload_max_bytes) && (int) $historical_upload_max_bytes > 0 ? (int) $historical_upload_max_bytes : 10 * 1024 * 1024;
+$historical_upload_max_mb = max(1, round($historical_upload_max_bytes / 1024 / 1024, 1));
+$historical_reports = array_values(array_filter($reports, static function ($report) { return !empty($report->is_historical); }));
 
 $format_timestamp = static function ($value) {
     $timestamp = trim((string) $value);
@@ -42,6 +45,10 @@ $format_timestamp = static function ($value) {
     $months = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'];
     $time = strtotime($timestamp);
     return date('j', $time) . ' ' . $months[(int) date('n', $time)] . ' ' . date('Y, H:i', $time);
+};
+$format_file_size = static function ($bytes) {
+    $bytes = max(0, (int) $bytes);
+    return $bytes >= 1024 * 1024 ? number_format($bytes / 1024 / 1024, 1, ',', '.') . ' MB' : number_format($bytes / 1024, 1, ',', '.') . ' KB';
 };
 
 $filter_query = static function ($page = NULL) use ($filters) {
@@ -192,6 +199,38 @@ $page_url = static function ($page) use ($filter_query) {
             <?php endif; ?>
         </section>
 
+        <section class="tw-mb-6 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-shadow-sm" aria-labelledby="historical-upload-title">
+            <details class="tw-group">
+                <summary class="tw-flex tw-cursor-pointer tw-list-none tw-items-center tw-justify-between tw-gap-3 tw-p-4 md:tw-px-5">
+                    <span>
+                        <span id="historical-upload-title" class="tw-block tw-text-base tw-font-bold tw-text-slate-900">Upload Laporan SPMI Tahun Lalu (Arsip Historis)</span>
+                        <span class="tw-mt-1 tw-block tw-text-xs tw-text-slate-500">Tambahkan dokumen laporan lama ke daftar laporan terpadu.</span>
+                    </span>
+                    <span class="tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-xs tw-font-semibold tw-text-slate-700 group-open:tw-bg-slate-50">Buka formulir</span>
+                </summary>
+                <div class="tw-border-t tw-border-slate-200 tw-p-4 md:tw-p-5">
+                    <?php if (empty($historical_enabled)): ?>
+                        <div class="tw-mb-4 tw-rounded-xl tw-border tw-border-amber-200 tw-bg-amber-50 tw-p-3 tw-text-sm tw-text-amber-800" role="status">Tabel database arsip laporan historis (migrasi 051) belum diaktifkan pada lingkungan ini. Fitur daftar laporan tetap berjalan normal.</div>
+                    <?php endif; ?>
+                    <?php if (!empty($historical_enabled)): ?>
+                    <?php echo form_open_multipart('lpmpi/spmi-reports/historical/store', ['class' => 'tw-space-y-5']); ?>
+                        <div class="tw-grid tw-gap-4 md:tw-grid-cols-2">
+                            <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-semibold tw-text-slate-600">Judul Laporan / Siklus <span class="tw-text-rose-600">*</span></span><input type="text" name="title" required class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-px-3 tw-text-sm" placeholder="Laporan AMI Tahun Akademik 2022/2023"></label>
+                            <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-semibold tw-text-slate-600">Periode Akademik <span class="tw-text-rose-600">*</span></span><input type="text" name="academic_year" required pattern="\d{4}(/\d{4})?" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-px-3 tw-text-sm" placeholder="2022/2023 atau 2022"></label>
+                            <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-semibold tw-text-slate-600">Nomor Dokumen / Laporan</span><input type="text" name="report_number" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-px-3 tw-text-sm" placeholder="Kosongkan untuk nomor otomatis"></label>
+                            <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-semibold tw-text-slate-600">Standar / Versi SPMI</span><input type="text" name="version_label" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-px-3 tw-text-sm" placeholder="Misal: Standar SPMI 2021"></label>
+                            <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-semibold tw-text-slate-600">Unit / Auditi / Ruang Lingkup</span><input type="text" name="auditee_name" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-px-3 tw-text-sm" placeholder="Misal: Seluruh Prodi / Fakultas Teknik"></label>
+                            <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-semibold tw-text-slate-600">Tanggal Laporan</span><input type="date" name="report_date" class="tw-h-11 tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-px-3 tw-text-sm"></label>
+                        </div>
+                        <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-semibold tw-text-slate-600">File Laporan <span class="tw-text-rose-600">*</span></span><input type="file" name="report_file" required accept=".pdf,.doc,.docx,.xls,.xlsx" class="tw-block tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-bg-white tw-p-2.5 tw-text-sm"><span class="tw-mt-1 tw-block tw-text-xs tw-text-slate-500">Format: PDF, DOC, DOCX, XLS, XLSX. Maksimal <?php echo html_escape((string) $historical_upload_max_mb); ?> MB.</span></label>
+                        <label class="tw-block"><span class="tw-mb-1 tw-block tw-text-xs tw-font-semibold tw-text-slate-600">Catatan / Ringkasan Laporan</span><textarea name="description" rows="3" class="tw-w-full tw-rounded-lg tw-border tw-border-slate-300 tw-p-3 tw-text-sm" placeholder="Tambahkan konteks singkat laporan (opsional)"></textarea></label>
+                        <div class="tw-flex tw-justify-end"><button type="submit" class="btn-ami tw-button-primary tw-px-5">Simpan arsip historis</button></div>
+                    <?php echo form_close(); ?>
+                    <?php endif; ?>
+                </div>
+            </details>
+        </section>
+
         <!-- Primary Content: Daftar Laporan -->
         <section id="report-list" class="tw-mb-8 tw-rounded-2xl tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm md:tw-p-5" aria-labelledby="report-list-title" aria-busy="false">
             <div class="tw-mb-3 tw-flex tw-flex-col tw-gap-1 sm:tw-flex-row sm:tw-items-end sm:tw-justify-between">
@@ -229,6 +268,7 @@ $page_url = static function ($page) use ($filter_query) {
                             </thead>
                             <tbody class="tw-divide-y tw-divide-slate-100">
                                 <?php foreach ($reports as $report): ?>
+                                    <?php if (!empty($report->is_historical)) continue; ?>
                                     <tr class="report-entry-row hover:tw-bg-slate-50/80 tw-transition-colors">
                                         <td class="tw-px-4 tw-py-3.5">
                                             <span class="report-searchable-field tw-block tw-font-mono tw-text-xs tw-font-bold tw-text-slate-900 tw-tracking-tight">
@@ -294,6 +334,7 @@ $page_url = static function ($page) use ($filter_query) {
                 <!-- Mobile Cards View -->
                 <div class="tw-grid tw-gap-3 md:tw-hidden">
                     <?php foreach ($reports as $report): ?>
+                        <?php if (!empty($report->is_historical)) continue; ?>
                         <article class="tw-rounded-2xl report-entry-card tw-border tw-border-slate-200 tw-bg-white tw-p-4 tw-shadow-sm">
                             <div class="tw-flex tw-items-start tw-justify-between tw-gap-2">
                                 <div>
@@ -360,6 +401,30 @@ $page_url = static function ($page) use ($filter_query) {
                         </article>
                     <?php endforeach; ?>
                 </div>
+
+                <?php if ($historical_reports): ?>
+                    <div class="tw-mt-4 tw-space-y-3" aria-label="Arsip laporan historis">
+                        <h3 class="tw-text-sm tw-font-bold tw-text-slate-900">Arsip historis</h3>
+                        <?php foreach ($historical_reports as $report): ?>
+                            <article class="tw-flex tw-flex-col tw-gap-3 tw-rounded-xl tw-border tw-border-amber-200 tw-bg-amber-50/50 tw-p-4 sm:tw-flex-row sm:tw-items-center sm:tw-justify-between">
+                                <div>
+                                    <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-2">
+                                        <span class="tw-font-mono tw-text-xs tw-font-bold tw-text-slate-900"><?php echo html_escape($report->report_number); ?></span>
+                                        <span class="tw-rounded-full tw-border tw-border-amber-200 tw-bg-amber-50 tw-px-2 tw-py-0.5 tw-text-[10px] tw-font-semibold tw-text-amber-800">Arsip Historis</span>
+                                    </div>
+                                    <p class="tw-mt-1 tw-text-sm tw-font-semibold tw-text-slate-900"><?php echo html_escape($report->cycle_title_snapshot); ?></p>
+                                    <p class="tw-mt-1 tw-text-xs tw-text-slate-600"><?php echo html_escape($report->academic_year . ' · ' . $report->auditee_name_snapshot . ' · ' . $report->original_name . ' · ' . $format_file_size($report->file_size)); ?></p>
+                                </div>
+                                <div class="tw-flex tw-items-center tw-gap-2">
+                                    <a class="ami-action-btn tw-button-primary tw-h-9 tw-px-3 tw-text-xs" href="<?php echo site_url('lpmpi/spmi-reports/historical/download/' . (int) $report->id); ?>">Unduh</a>
+                                    <?php echo form_open('lpmpi/spmi-reports/historical/delete/' . (int) $report->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus arsip laporan historis ini secara permanen?');"]); ?>
+                                        <button type="submit" class="reports-btn-danger tw-inline-flex tw-h-9 tw-items-center tw-justify-center tw-rounded-md tw-px-3 tw-text-xs tw-font-bold">Hapus</button>
+                                    <?php echo form_close(); ?>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Accessible Pagination -->
                 <?php if ($page_count > 1): ?>

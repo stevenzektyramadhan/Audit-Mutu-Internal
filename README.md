@@ -1,6 +1,6 @@
 # Sistem Penjaminan Mutu Internal (SPMI) Perguruan Tinggi
 
-Aplikasi CodeIgniter 3 ini mendukung alur kerja SPMI sebagai satu-satunya alur aktif. AMI legacy tetap dipertahankan sebagai arsip baca-saja melalui URL `lpmpi/legacy-ami-archive`; bukan menu sidebar atau alur operasional aktif.
+Aplikasi CodeIgniter 3 ini mendukung alur kerja SPMI sebagai satu-satunya alur aktif. AMI legacy tetap tersedia sebagai arsip baca-saja opsional melalui URL langsung `lpmpi/legacy-ami-archive`; route ini tidak diprovisikan oleh schema fresh dan tetap aman saat tabel arsip tidak tersedia. Arsip legacy bukan menu sidebar atau alur operasional aktif.
 
 ## Teknologi
 
@@ -32,7 +32,7 @@ Business logic, ownership check, dan transaksi database ditempatkan pada service
 
 | Entitas | Status dan transisi |
 |---|---|
-| Versi standar | `draft -> review -> approved -> active -> retired`; `review -> draft` juga didukung. |
+| Versi standar | `draft -> active`. Row dengan status enum legacy `review`, `approved`, atau `retired` tetap baca-saja dan tidak dapat menjadi sumber penugasan; tidak ada konversi data. |
 | Siklus audit | `draft -> configured -> closed`; `configured -> draft` juga didukung. |
 | Submission auditee | `draft`, `submitted`, `returned_for_revision`, `resubmitted`. |
 | Assessment auditor | `draft -> finalized`. |
@@ -224,7 +224,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-Untuk database baru, tersedia dua jalur yang sama-sama hanya boleh dipakai pada database kosong: `database_schema.sql` adalah schema kanonik sampai migration `050`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk memilih kredensial operator secara interaktif; `database_init.sql` adalah schema kanonik yang sama dengan satu akun starter `super_admin` yang passwordnya sudah di-hash. `database_init.sql` bukan input upgrade atau pengganti database operasional yang sudah ada. Setelah login pertama melalui akun starter, operator wajib segera mengganti atau merotasi kredensialnya, tanpa mencatatnya di dokumentasi, command history, log, atau tiket. Jangan menjalankan migration individual setelah fresh import. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Untuk database existing, backup terlebih dahulu lalu terapkan hanya migration manual yang sudah direview dan belum diterapkan; jangan mengimpor file bootstrap fresh apa pun. Parity fresh-vs-upgrade adalah kewajiban operasional.
+Untuk database baru, tersedia dua jalur yang sama-sama hanya boleh dipakai pada database kosong: `database_schema.sql` adalah schema kanonik sampai migration `052`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk memilih kredensial operator secara interaktif; `database_init.sql` adalah schema kanonik yang sama dengan satu akun starter `super_admin` yang passwordnya sudah di-hash. `database_init.sql` bukan input upgrade atau pengganti database operasional yang sudah ada. Setelah login pertama melalui akun starter, operator wajib segera mengganti atau merotasi kredensialnya, tanpa mencatatnya di dokumentasi, command history, log, atau tiket. Jangan menjalankan migration individual setelah fresh import. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Untuk database existing, backup terlebih dahulu lalu terapkan hanya migration manual yang sudah direview dan belum diterapkan; jangan mengimpor file bootstrap fresh apa pun. Parity fresh-vs-upgrade adalah kewajiban operasional.
 
 #### Akun Administrator Pertama
 
@@ -248,7 +248,7 @@ Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration ba
 
 #### Database baru
 
-Untuk database kosong, pilih salah satu jalur fresh. Import `database_schema.sql`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk kredensial yang dipilih operator, atau import `database_init.sql` untuk schema kanonik dengan satu akun starter yang sudah di-hash. Kedua file hanya untuk database baru dan tidak boleh diimpor ke database existing. Jangan lanjutkan dengan migration individual karena schema kanonik sudah memuat struktur sampai `050`.
+Untuk database kosong, pilih salah satu jalur fresh. Import `database_schema.sql`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk kredensial yang dipilih operator, atau import `database_init.sql` untuk schema kanonik dengan satu akun starter yang sudah di-hash. Kedua file hanya untuk database baru dan tidak boleh diimpor ke database existing. Jangan lanjutkan dengan migration individual karena schema kanonik sudah memuat struktur sampai `052`.
 
 #### Database lama yang perlu di-upgrade
 
@@ -265,34 +265,35 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 9. `020_create_spmi_reports.sql`
 10. `021_create_spmi_rtm_meetings.sql`
 11. `022_create_spmi_rtm_follow_ups.sql`
-12. `023_create_legacy_ami_archive.sql`
-13. `024_create_audit_logs.sql`
-14. `025_create_spmi_m17_schema_foundation.sql`
-15. `026_add_assignment_item_evidence_policy.sql`
-16. `027_add_revision_lifecycle_schema_correction.sql`
-17. `028_add_versioned_auditor_assessments.sql`
-18. `029_add_spmi_auditor_assessment_evidence.sql`
-19. `030_add_spmi_auditor_assessment_finding_details.sql`
-20. `031_add_spmi_audit_cycle_academic_period.sql`
-21. `032_create_password_reset_tokens.sql`
-22. `033_add_spmi_drive_evidence_metadata.sql`
-23. `034_retire_spmi_instruments.sql`
-24. `035_add_indicator_evidence_policy.sql`
-25. `036_add_users_import_support.sql`
-26. `037_add_spmi_version_report_scope.sql`
-27. `038_create_spmi_ppepp_documents.sql`
-28. `039_create_upload_size_settings.sql`
-29. `040_create_login_rate_limit_buckets.sql`
-30. `041_create_staf_prodi.sql`
-31. `042_link_profil_prodi_to_organization_units.sql`
-32. `043_add_spmi_report_academic_year_snapshot.sql`
-33. `044_add_spmi_version_auditee_report_scope.sql`
-34. `045_add_spmi_rtm_photo.sql`
-35. `046_create_spmi_rtm_resolution_events.sql`
-36. `047_create_system_settings.sql`
-37. `048_add_spmi_audit_cycle_organization_unit.sql`
-38. `049_add_app_branding_settings.sql`
-39. `050_add_login_hero_settings.sql`
+12. `024_create_audit_logs.sql`
+13. `025_create_spmi_m17_schema_foundation.sql`
+14. `026_add_assignment_item_evidence_policy.sql`
+15. `027_add_revision_lifecycle_schema_correction.sql`
+16. `028_add_versioned_auditor_assessments.sql`
+17. `029_add_spmi_auditor_assessment_evidence.sql`
+18. `030_add_spmi_auditor_assessment_finding_details.sql`
+19. `031_add_spmi_audit_cycle_academic_period.sql`
+20. `032_create_password_reset_tokens.sql`
+21. `033_add_spmi_drive_evidence_metadata.sql`
+22. `034_retire_spmi_instruments.sql`
+23. `035_add_indicator_evidence_policy.sql`
+24. `036_add_users_import_support.sql`
+25. `037_add_spmi_version_report_scope.sql`
+26. `038_create_spmi_ppepp_documents.sql`
+27. `039_create_upload_size_settings.sql`
+28. `040_create_login_rate_limit_buckets.sql`
+29. `041_create_staf_prodi.sql`
+30. `042_link_profil_prodi_to_organization_units.sql`
+31. `043_add_spmi_report_academic_year_snapshot.sql`
+32. `044_add_spmi_version_auditee_report_scope.sql`
+33. `045_add_spmi_rtm_photo.sql`
+34. `046_create_spmi_rtm_resolution_events.sql`
+35. `047_create_system_settings.sql`
+36. `048_add_spmi_audit_cycle_organization_unit.sql`
+37. `049_add_app_branding_settings.sql`
+38. `050_add_login_hero_settings.sql`
+39. `051_create_spmi_historical_reports.sql`
+40. `052_allow_multiple_active_spmi_versions.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 
@@ -334,7 +335,7 @@ CodeIgniter migrations tetap nonaktif. Direktori `migrations/` berisi raw SQL ma
 - Bukti disimpan private dan unduhan memvalidasi role serta ownership.
 - Audit log mencatat login, logout, dan percobaan mutasi POST; web server produksi harus menolak akses ke `application/`, `system/`, `.git/`, log, dan private storage.
 - Login `POST` dibatasi pada kegagalan kredensial tervalidasi: 5 percobaan per identitas dan 30 per IP dalam jendela 15 menit. Jika Cloudflare Turnstile dikonfigurasi lengkap, request login valid juga memakai budget sebelum Siteverify: 10 per identitas dan 60 per IP dalam 15 menit. Bucket request memakai HMAC purpose terpisah, sehingga kegagalan CAPTCHA tidak menambah bucket kegagalan kredensial. Site key kosong berarti Turnstile sengaja nonaktif; site key terisi dengan secret hilang, tidak dapat dibaca, atau tidak valid gagal tertutup sebelum Siteverify maupun pemeriksaan kredensial. Blokir login mengembalikan respons generik HTTP 429 dengan `Retry-After`; bucket hanya menyimpan HMAC berbasis `APP_ENCRYPTION_KEY`. Request reset password valid dibatasi 3 per identitas dan 10 per IP dalam 60 menit sebelum lookup akun, token, atau pengiriman email; respons publik tetap generik. Saat berada di belakang reverse proxy, isi `proxy_ips` hanya dengan alamat/subnet proxy tepercaya agar IP klien dapat dikenali dengan benar. Rate limit aplikasi melengkapi, bukan menggantikan, WAF atau rate limit reverse proxy.
-- SPMI adalah satu-satunya workflow aktif yang direpresentasikan oleh login redirect dan sidebar. Artefak AMI legacy serta route `lpmpi/legacy-ami-archive` tetap di luar lingkup operasional README ini.
+- SPMI adalah satu-satunya workflow aktif yang direpresentasikan oleh login redirect dan sidebar. Artefak AMI legacy serta route langsung opsional `lpmpi/legacy-ami-archive` tetap di luar lingkup operasional README ini.
 
 ## Batasan Saat Ini
 

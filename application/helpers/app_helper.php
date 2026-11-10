@@ -55,6 +55,7 @@ if (!function_exists('app_private_storage_categories')) {
             'penetapan',
             'ppepp_documents',
             'rtm_photos',
+            'spmi_historical_reports',
             'spmi_source',
             'tmp',
             'user_photos',

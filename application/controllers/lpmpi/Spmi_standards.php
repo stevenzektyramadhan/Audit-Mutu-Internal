@@ -44,6 +44,15 @@ class Spmi_standards extends Admin_Lpmpi_Controller
         $result = $this->service->update_version($id, $this->input->post(NULL, TRUE));
         $this->flash_redirect($result, 'lpmpi/spmi-standards/version/detail/' . (int) $id);
     }
+    public function version_delete($id)
+    {
+        $this->require_post();
+        $result = $this->service->delete_version($id);
+        if ($result['success'] && !empty($result['deleted_source_file_path'])) {
+            delete_private_file('spmi_source', $result['deleted_source_file_path']);
+        }
+        $this->flash_redirect($result, 'lpmpi/spmi-standards');
+    }
     public function version_transition($id)
     {
         $this->require_post();
@@ -108,11 +117,18 @@ class Spmi_standards extends Admin_Lpmpi_Controller
         $result = $this->service->update_standard($id, $this->input->post(NULL, TRUE));
         $this->flash_redirect($result, 'lpmpi/spmi-standards/version/detail/' . (int) ($standard ? $standard->version_id : 0));
     }
+    public function standard_delete($id)
+    {
+        $this->require_post();
+        $standard = $this->service->standard($id);
+        $target_url = $standard ? 'lpmpi/spmi-standards/version/detail/' . (int) $standard->version_id : 'lpmpi/spmi-standards';
+        $this->flash_redirect($this->service->delete_standard($id), $target_url);
+    }
     private function render($view, $data) { $this->load->view('lpmpi/spmi_standards/' . $view, $data); }
     private function form_data($title, $action, $version) { return ['title' => $title, 'page_title' => 'Versi Standar SPMI', 'page_subtitle' => 'Beranda / Standar SPMI / Form', 'active_menu' => 'spmi_standards', 'action' => $action, 'version' => $version]; }
     private function standard_form_data($title, $action, $standard, $version_id) { return ['title' => $title, 'page_title' => 'Daftar Standar', 'page_subtitle' => 'Beranda / Standar SPMI / Form', 'active_menu' => 'spmi_standards', 'action' => $action, 'standard' => $standard, 'version_id' => $version_id]; }
     private function flash_redirect($result, $uri) { $this->session->set_flashdata($result['success'] ? 'success' : 'error', $result['message']); redirect($uri); }
-    private function readonly_error() { $this->session->set_flashdata('error', 'Versi approved, active, dan retired bersifat hanya-baca.'); redirect('lpmpi/spmi-standards'); }
+    private function readonly_error() { $this->session->set_flashdata('error', 'Hanya versi draft yang dapat diubah; versi lain bersifat hanya-baca.'); redirect('lpmpi/spmi-standards'); }
     private function require_post() { if ($this->input->method(TRUE) !== 'POST') { show_error('Method tidak diizinkan.', 405, 'Method Not Allowed'); exit; } }
     private function upload_limit_bytes($category) { require_once APPPATH . 'services/Upload_size_settings_service.php'; return (int) Upload_size_settings_service::limit_bytes($category); }
     private function limit_mib($bytes) { return (int) ($bytes / 1024 / 1024); }

@@ -60,17 +60,15 @@ if (!empty($standards)) {
                         $version_status = strtolower($version->status);
                         $status_text = [
                             'draft' => 'Draf',
-                            'review' => 'Review',
-                            'approved' => 'Disetujui',
                             'active' => 'Aktif',
-                            'retired' => 'Tidak Berlaku',
-                        ][$version_status] ?? ucfirst($version->status);
+                        ][$version_status] ?? 'Legacy (hanya-baca)';
+                        $status_badge_class = in_array($version_status, ['draft', 'active'], TRUE) ? $version_status : 'legacy';
                     ?>
-                    <span class="std-badge std-badge-<?php echo $version_status; ?>">
+                    <span class="std-badge std-badge-<?php echo $status_badge_class; ?>">
                         Status: <?php echo html_escape($status_text); ?>
                     </span>
                     <?php if (!$mutable): ?>
-                        <span class="std-muted tw-text-xs">(Versi ini bersifat hanya-baca)</span>
+                        <span class="std-muted tw-text-xs">(Hanya versi draft yang dapat diubah)</span>
                     <?php endif; ?>
                 </div>
             </div>
@@ -88,11 +86,8 @@ if (!empty($standards)) {
                             $next_key = strtolower($next_status);
                             $next_label = [
                                 'draft' => 'Draf',
-                                'review' => 'Review',
-                                'approved' => 'Disetujui',
                                 'active' => 'Aktif',
-                                'retired' => 'Tidak Berlaku',
-                            ][$next_key] ?? ucfirst($next_status);
+                            ][$next_key] ?? 'Legacy (hanya-baca)';
                         ?>
                         <?php echo form_open('lpmpi/spmi-standards/version/transition/' . (int) $version->id, ['class' => 'tw-inline']); ?>
                             <input type="hidden" name="status" value="<?php echo html_escape($next_status); ?>">
@@ -119,7 +114,7 @@ if (!empty($standards)) {
                         </a>
                         <?php if ($mutable): ?>
                             <?php echo form_open('lpmpi/spmi-standards/source/delete/' . (int) $version->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus dokumen sumber PDF ini?');"]); ?>
-                                <button class="std-button tw-text-xs tw-border tw-border-rose-200 tw-text-rose-700 hover:tw-bg-rose-50" type="submit">
+                                <button class="std-button std-button-danger tw-text-xs tw-py-1 tw-px-2.5" type="submit">
                                     <?php echo $icon('trash'); ?> Hapus PDF
                                 </button>
                             <?php echo form_close(); ?>
@@ -196,6 +191,11 @@ if (!empty($standards)) {
                                         <a class="std-button std-button-secondary tw-text-xs tw-py-1 tw-px-2.5" href="<?php echo site_url('lpmpi/spmi-indicators/indicator/create/' . (int) $std->id); ?>">
                                             <?php echo $icon('plus'); ?> Tambah Indikator
                                         </a>
+                                        <?php echo form_open('lpmpi/spmi-standards/standard/delete/' . (int) $std->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus standar ini beserta indikatornya?');"]); ?>
+                                            <button class="std-button std-button-danger tw-text-xs tw-py-1 tw-px-2.5" type="submit" title="Hapus Standar">
+                                                <?php echo $icon('trash'); ?> Hapus
+                                            </button>
+                                        <?php echo form_close(); ?>
                                         <a class="std-button std-button-secondary tw-text-xs tw-py-1 tw-px-2.5" href="<?php echo site_url('lpmpi/spmi-standards/standard/edit/' . (int) $std->id); ?>" title="Edit Standar">
                                             <?php echo $icon('edit'); ?> Edit
                                         </a>
@@ -263,6 +263,11 @@ if (!empty($standards)) {
                                                         <a class="std-button std-button-secondary tw-text-xs tw-py-1 tw-px-2.5" href="<?php echo site_url('lpmpi/spmi-indicators/indicator/edit/' . (int) $ind->id); ?>">
                                                             <?php echo $icon('edit'); ?> Edit
                                                         </a>
+                                                        <?php echo form_open('lpmpi/spmi-indicators/indicator/delete/' . (int) $ind->id, ['class' => 'tw-inline', 'onsubmit' => "return confirm('Hapus indikator ini beserta targetnya?');"]); ?>
+                                                            <button class="std-button std-button-danger tw-text-xs tw-py-1 tw-px-2.5" type="submit" title="Hapus Indikator">
+                                                                <?php echo $icon('trash'); ?> Hapus
+                                                            </button>
+                                                        <?php echo form_close(); ?>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>

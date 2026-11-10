@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS `spmi_historical_reports` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `report_number` VARCHAR(128) NOT NULL,
+    `title` VARCHAR(200) NOT NULL,
+    `academic_year` VARCHAR(20) NOT NULL,
+    `version_label` VARCHAR(200) NULL,
+    `auditee_name` VARCHAR(200) NULL,
+    `report_date` DATE NULL,
+    `description` TEXT NULL,
+    `stored_name` VARCHAR(255) NOT NULL,
+    `original_name` VARCHAR(255) NOT NULL,
+    `mime_type` VARCHAR(127) NOT NULL,
+    `file_size` INT UNSIGNED NOT NULL,
+    `uploaded_by` INT NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_spmi_historical_reports_stored_name` (`stored_name`),
+    KEY `idx_spmi_historical_reports_academic_year` (`academic_year`),
+    KEY `idx_spmi_historical_reports_report_date` (`report_date`),
+    KEY `idx_spmi_historical_reports_uploaded_by` (`uploaded_by`),
+    CONSTRAINT `fk_spmi_historical_reports_uploaded_by` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

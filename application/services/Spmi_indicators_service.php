@@ -14,7 +14,7 @@ class Spmi_indicators_service
     public function indicators($standard_id) { return $this->model->get_indicators($standard_id); }
     public function targets($indicator_id) { return $this->model->get_targets($indicator_id); }
     public function target($id) { return $this->model->find_target($id); }
-    public function is_mutable($version) { return $version && in_array($version->status, ['draft', 'review'], TRUE); }
+    public function is_mutable($version) { return $version && $version->status === 'draft'; }
 
     public function create_indicator($standard_id, $data)
     {
@@ -48,6 +48,23 @@ class Spmi_indicators_service
         return $this->finish($ok, $ok ? 'Indikator SPMI berhasil diperbarui.' : 'Indikator SPMI gagal diperbarui.');
     }
 
+    public function delete_indicator($id)
+    {
+        if (!$this->ci->db->trans_begin()) return $this->fail('Indikator SPMI gagal dihapus.');
+        $indicator = $this->model->find_indicator_for_update((int) $id);
+        $parent = $indicator ? $this->model->find_standard((int) $indicator->standard_id) : NULL;
+        $version = $parent ? $this->model->find_version((int) $parent->version_id, TRUE) : NULL;
+        $standard = $version ? $this->model->find_standard((int) $indicator->standard_id, TRUE) : NULL;
+        $indicator = $standard ? $this->model->lock_indicator((int) $id) : NULL;
+        if (!$version || !$standard || !$indicator || (int) $standard->version_id !== (int) $version->id || (int) $indicator->standard_id !== (int) $standard->id) return $this->rollback('Indikator tidak ditemukan.');
+        if ($version->status !== 'draft') return $this->rollback('Indikator hanya dapat dihapus pada versi draft.');
+        if ($this->model->indicator_has_assignments((int) $id)) return $this->rollback('Indikator tidak dapat dihapus karena sudah memiliki riwayat penugasan audit AMI.');
+        if ($this->model->indicator_has_legacy_dependencies((int) $id)) return $this->rollback('Indikator tidak dapat dihapus karena masih dipakai data instrumen SPMI lama.');
+        if (!$this->model->delete_indicator_targets((int) $id)) return $this->rollback('Target indikator gagal dihapus.');
+        if (!$this->model->delete_indicator((int) $id)) return $this->rollback('Indikator SPMI gagal dihapus.');
+        return $this->finish(TRUE, 'Indikator SPMI beserta targetnya berhasil dihapus.', 'Indikator SPMI gagal dihapus.');
+    }
+
     public function create_target($indicator_id, $data)
     {
         return $this->save_target($indicator_id, 0, $data);
@@ -74,6 +91,7 @@ class Spmi_indicators_service
     }
     private function indicator_data($data, $standard_id) { return ['standard_id' => (int) $standard_id, 'indicator_code' => strtoupper(trim((string) (isset($data['indicator_code']) ? $data['indicator_code'] : ''))), 'indicator_type' => (string) (isset($data['indicator_type']) ? $data['indicator_type'] : ''), 'title' => trim((string) (isset($data['title']) ? $data['title'] : '')), 'scope_organization_unit_id' => (int) (isset($data['scope_organization_unit_id']) ? $data['scope_organization_unit_id'] : 0), 'responsible_organization_unit_id' => (int) (isset($data['responsible_organization_unit_id']) ? $data['responsible_organization_unit_id'] : 0), 'responsible_pic_name' => trim((string) (isset($data['responsible_pic_name']) ? $data['responsible_pic_name'] : '')) ?: NULL, 'evidence_requirement' => trim((string) (isset($data['evidence_requirement']) ? $data['evidence_requirement'] : '')), 'evidence_policy' => trim((string) (isset($data['evidence_policy']) ? $data['evidence_policy'] : 'none'))]; }
     private function validate_indicator($payload) { if ($payload['indicator_code'] === '' || strlen($payload['indicator_code']) > 64 || !preg_match('/^[A-Z0-9._-]+$/', $payload['indicator_code'])) return 'Kode indikator tidak valid.'; if (!in_array($payload['indicator_type'], ['IKU', 'IKT'], TRUE)) return 'Jenis indikator tidak valid.'; if ($payload['title'] === '' || strlen($payload['title']) > 200) return 'Judul indikator wajib diisi dan maksimal 200 karakter.'; if ($payload['responsible_pic_name'] !== NULL && strlen($payload['responsible_pic_name']) > 200) return 'Nama PIC maksimal 200 karakter.'; if ($payload['evidence_requirement'] === '') return 'Kebutuhan bukti wajib diisi.'; if (!in_array($payload['evidence_policy'], ['none', 'file', 'url', 'either', 'both'], TRUE)) return 'Kebijakan bukti tidak valid.'; return NULL; }
-    private function finish($success, $message) { $this->ci->db->trans_complete(); return $success && $this->ci->db->trans_status() ? ['success' => TRUE, 'message' => $message] : $this->fail($message); }
+    private function finish($success, $message, $failure_message = NULL) { $completed = $this->ci->db->trans_complete(); return $success && $completed && $this->ci->db->trans_status() ? ['success' => TRUE, 'message' => $message] : $this->fail($failure_message ?: $message); }
+    private function rollback($message) { $this->ci->db->trans_rollback(); return $this->fail($message); }
     private function fail($message) { return ['success' => FALSE, 'message' => $message]; }
 }

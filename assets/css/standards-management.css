@@ -2489,6 +2489,18 @@
   color: var(--std-blue);
 }
 
+#standards-root .std-button-danger {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
+#standards-root .std-button-danger:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  color: #9f1239;
+}
+
 #standards-root .std-icon {
   flex: 0 0 auto;
   height: 16px;
@@ -2575,6 +2587,16 @@
 #standards-root .std-dropdown-item:hover {
   background: var(--std-blue-soft);
   color: var(--std-blue);
+  text-decoration: none;
+}
+
+#standards-root .std-dropdown-item-danger {
+  color: #be123c;
+}
+
+#standards-root .std-dropdown-item-danger:hover {
+  background: #fff1f2;
+  color: #9f1239;
   text-decoration: none;
 }
 

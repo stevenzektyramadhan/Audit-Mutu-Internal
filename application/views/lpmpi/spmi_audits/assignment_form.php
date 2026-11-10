@@ -23,7 +23,7 @@ $version_status_labels = [
         </header>
         <div class="assignment-note" role="note"><span class="assignment-note-icon" aria-hidden="true">&#9432;</span><span>Penugasan ini dibuat sebagai draf. Setiap standar yang dipilih akan menyalin snapshot versi, indikator, kebijakan bukti, rubrik global 1–4, serta identitas auditor dan auditi.</span></div>
         <?php if (empty($versions) || empty($standards_by_version) || empty($auditors) || empty($auditees)): ?>
-            <section class="assignment-card" aria-labelledby="assignment-prerequisite-title"><div class="assignment-section-head"><span class="assignment-section-index">!</span><div><h2 id="assignment-prerequisite-title">Prasyarat belum lengkap</h2><p>Pastikan tersedia versi draf/review dengan standar, serta akun auditor dan auditi.</p></div></div></section>
+            <section class="assignment-card" aria-labelledby="assignment-prerequisite-title"><div class="assignment-section-head"><span class="assignment-section-index">!</span><div><h2 id="assignment-prerequisite-title">Prasyarat belum lengkap</h2><p>Pastikan tersedia versi aktif dengan standar, serta akun auditor dan auditi.</p></div></div></section>
         <?php else: ?>
             <?php echo form_open('lpmpi/spmi-audits/assignment/store/' . (int) $cycle->id); ?>
             <section class="assignment-card" aria-labelledby="assignment-info-title">
