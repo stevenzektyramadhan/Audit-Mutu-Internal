@@ -55,11 +55,7 @@ class Spmi_standards_service
         $this->ci->db->trans_start();
         $version = $this->model->find_version((int) $id, TRUE);
         if (!$this->is_mutable($version) || !isset(self::TRANSITIONS[$version->status]) || !in_array($next_status, self::TRANSITIONS[$version->status], TRUE)) return $this->finish(FALSE, 'Transisi status tidak diizinkan.');
-        $db_debug = $this->ci->db->db_debug;
-        if ($next_status === 'active') $this->ci->db->db_debug = FALSE;
         $ok = $this->model->update_version($id, ['status' => $next_status]);
-        $this->ci->db->db_debug = $db_debug;
-        if (!$ok && $next_status === 'active' && $this->is_duplicate_active_error()) return $this->finish(FALSE, 'Hanya satu versi yang dapat aktif.');
         return $this->finish($ok, $ok ? 'Status versi berhasil diubah.' : 'Status versi gagal diubah.');
     }
 
@@ -160,7 +156,6 @@ class Spmi_standards_service
     public function clear_source($id) { return $this->guard_mutable_update($id, ['source_file_path' => NULL], TRUE); }
     private function guard_mutable_update($id, $data, $require_source = FALSE) { $this->ci->db->trans_start(); $version = $this->model->find_version($id, TRUE); if (!$this->is_mutable($version)) return $this->finish(FALSE, 'Versi ini bersifat hanya-baca.'); if ($require_source && empty($version->source_file_path)) return $this->finish(FALSE, 'Dokumen sumber tidak ditemukan.'); $previous_source_file_path = $version->source_file_path; $ok = $this->model->update_version($id, $data); $result = $this->finish($ok, $ok ? 'Dokumen sumber berhasil diperbarui.' : 'Dokumen sumber gagal diperbarui.'); if ($result['success']) $result['previous_source_file_path'] = $previous_source_file_path; return $result; }
     private function version_data($data) { return ['version_code' => strtoupper(trim((string) (isset($data['version_code']) ? $data['version_code'] : ''))), 'title' => trim((string) (isset($data['title']) ? $data['title'] : '')), 'description' => trim((string) (isset($data['description']) ? $data['description'] : ''))]; }
-    private function is_duplicate_active_error() { return $this->is_duplicate_key_error(); }
     private function is_duplicate_key_error() { $error = $this->ci->db->error(); return isset($error['code']) && (int) $error['code'] === 1062; }
     private function finish($success, $message, $failure_message = NULL) { $completed = $this->ci->db->trans_complete(); return $success && $completed && $this->ci->db->trans_status() ? $this->ok($message) : $this->fail($failure_message ?: $message); }
     private function rollback($message) { $this->ci->db->trans_rollback(); return $this->fail($message); }

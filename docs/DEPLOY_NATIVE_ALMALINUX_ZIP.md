@@ -84,7 +84,26 @@ akhirnya adalah `/var/www/html/ami/index.php`, bukan
 ```
 
 
-## FILE APA YANG HARUS DIEDIT TIM IT
+## 3. Ringkasan Hal yang Wajib Diubah Manual oleh Tim IT
+
+Saat menerima rilis ini, Tim IT **wajib melakukan penyesuaian manual** pada 4 bagian berikut di server target:
+
+1. **Edit 3 File Konfigurasi Production** di `application/config/production/`:
+   - `config.php` (`base_url` HTTPS, `encryption_key` minimal 32 karakter, `sess_save_path`, `log_path`, `cookie_secure`, `index_page`).
+   - `database.php` (`hostname`, `username`, `password`, `database`).
+   - `ami.php` (`private_storage_path`, `public_uploads_path`, serta integrasi opsional).
+2. **Buat & Set Izin Direktori Upload (Termasuk Folder Baru `spmi_historical_reports`)**:
+   - Pastikan 11 subfolder di dalam `uploads/` tersedia dan writable oleh user PHP-FPM: `audit_evidence`, `bukti_auditor`, `instrumen`, `penetapan`, `ppepp_documents`, `profil`, `rtm_photos`, **`spmi_historical_reports`**, `spmi_source`, `tmp`, dan `user_photos`.
+3. **Sesuaikan Konfigurasi Server Block Nginx**:
+   - Sesuaikan `server_name`, path sertifikat SSL, `root`, serta socket PHP-FPM (`fastcgi_pass`).
+   - Pastikan aturan blokir akses publik (`deny all`) mencakup folder baru `uploads/spmi_historical_reports`.
+4. **Eksekusi Database / Migrasi Baru (`051` & `052`)**:
+   - **Jika database baru (Fresh Install)**: impor `database_schema.sql` (sudah mencakup skema sampai migrasi `052`) lalu jalankan `scripts/bootstrap_super_admin.php`.
+   - **Jika update server yang sudah berjalan (Existing Database)**: **wajib menjalankan manual** dua file migrasi baru secara berurutan:
+     1. `migrations/051_create_spmi_historical_reports.sql` (tabel dokumen laporan historis SPMI).
+     2. `migrations/052_allow_multiple_active_spmi_versions.sql` (membuka batas agar banyak versi standar SPMI dapat aktif bersamaan).
+
+### Detail 3 File Konfigurasi yang Diedit Tim IT
 
 Edit hanya tiga file production berikut. Cari komentar `// GANTI` pada template
 dan isi nilai yang sudah disetujui. Jangan menyalin password atau key ke tiket,
@@ -96,7 +115,7 @@ shell history, log, atau dokumen serah terima.
 | `application/config/production/database.php` | `hostname`, `username`, `password`, `database`, `dbdriver` | Gunakan user aplikasi, bukan akun DBA. |
 | `application/config/production/ami.php` | `private_storage_path`, `public_uploads_path`, integrasi yang memang dipakai | Default upload adalah `FCPATH . 'uploads/'`; ubah root private hanya bila IT menyiapkan path dan aturan SELinux-nya. |
 
-`index.php` tidak perlu diedit. File konfigurasi production yang aktif harus
+`index.php` tidak perlu diedit (kecuali jika diset ke `development` di lokal, pastikan bernilai `define('ENVIRONMENT', 'production');` di server). File konfigurasi production yang aktif harus
 dilindungi permission dan tidak boleh ditimpa ketika ZIP baru diekstrak.
 
 ## 4. Siapkan direktori, ownership, permission, dan SELinux
@@ -112,10 +131,10 @@ namei -l /var/www/html/ami/uploads
 ```
 
 Ganti `<fpm_user>` dan `<fpm_group>` dengan hasil pemeriksaan, lalu siapkan
-semua kategori yang dipakai aplikasi. Jangan memakai `chmod 777`.
+semua kategori yang dipakai aplikasi (termasuk kategori baru `spmi_historical_reports`). Jangan memakai `chmod 777`.
 
 ```bash
-sudo mkdir -p /var/www/html/ami/uploads/{audit_evidence,bukti_auditor,instrumen,penetapan,ppepp_documents,profil,rtm_photos,spmi_source,tmp,user_photos}
+sudo mkdir -p /var/www/html/ami/uploads/{audit_evidence,bukti_auditor,instrumen,penetapan,ppepp_documents,profil,rtm_photos,spmi_historical_reports,spmi_source,tmp,user_photos}
 sudo mkdir -p /var/www/html/ami/application/{cache,sessions,logs}
 sudo chown -R <fpm_user>:<fpm_group> /var/www/html/ami/uploads /var/www/html/ami/application/cache /var/www/html/ami/application/sessions /var/www/html/ami/application/logs
 sudo find /var/www/html/ami/uploads /var/www/html/ami/application/cache /var/www/html/ami/application/sessions /var/www/html/ami/application/logs -type d -exec chmod 0750 {} +
@@ -173,7 +192,7 @@ server {
         fastcgi_pass unix:<socket-php-fpm>;
     }
 
-    location ~ ^/(application|system|vendor|\.git|uploads/(audit_evidence|bukti_auditor|instrumen|penetapan|ppepp_documents|rtm_photos|spmi_source|tmp|user_photos))(/|$) {
+    location ~ ^/(application|system|vendor|\.git|uploads/(audit_evidence|bukti_auditor|instrumen|penetapan|ppepp_documents|rtm_photos|spmi_historical_reports|spmi_source|tmp|user_photos))(/|$) {
         deny all;
     }
 
@@ -193,12 +212,12 @@ sudo systemctl reload nginx
 sudo systemctl status php-fpm nginx --no-pager
 ```
 
-## 6. Database, fresh atau existing
+## 6. Database, fresh atau existing (Beserta Migrasi Rilis Ini)
 
 ### Fresh install
 
 Fresh berarti database belum berisi aplikasi. Buat database kosong dengan DBA,
-import `database_schema.sql` satu kali, lalu buat administrator pertama dengan
+import `database_schema.sql` satu kali (file ini sudah mencakup seluruh skema hingga migrasi `052`), lalu buat administrator pertama dengan
 script bootstrap. Jangan memakai `database_init.sql` sebagai alur native ini.
 
 ```bash
@@ -214,12 +233,26 @@ mariadb -u <app_user> -p -h <db_host> -e 'SELECT 1' <db_name>
 mariadb -u <app_user> -p -h <db_host> -e 'SHOW TABLES' <db_name>
 ```
 
-### Existing atau upgrade
+### Existing atau upgrade (Wajib Jalankan Migrasi `051` & `052`)
 
 Jangan import `database_schema.sql` atau bootstrap fresh ke database existing.
-Backup database dan `uploads/`, lalu jalankan hanya migration manual yang telah
-direview, belum diterapkan, dan sesuai urutan release. Jangan reset atau drop
-database. Catat migration yang dijalankan dan hasilnya pada change record IT.
+Backup database dan `uploads/` terlebih dahulu, lalu jalankan migrasi baru pada rilis ini secara berurutan menggunakan akun DBA:
+
+1. **`migrations/051_create_spmi_historical_reports.sql`** — membuat tabel `spmi_historical_reports` untuk penyimpanan dokumen laporan historis SPMI/AMI.
+2. **`migrations/052_allow_multiple_active_spmi_versions.sql`** — menghapus unique index `uq_spmi_versions_active_slot` dan kolom `active_slot` pada tabel `spmi_versions` agar beberapa versi standar SPMI dapat berstatus `active` secara bersamaan.
+
+```bash
+sudo mariadb -u <dba_user> -p <db_name> < /var/www/html/ami/migrations/051_create_spmi_historical_reports.sql
+sudo mariadb -u <dba_user> -p <db_name> < /var/www/html/ami/migrations/052_allow_multiple_active_spmi_versions.sql
+```
+
+Verifikasi bahwa tabel baru sudah terbentuk dan kolom `active_slot` sudah dihapus:
+
+```bash
+mariadb -u <app_user> -p -h <db_host> -e "SHOW TABLES LIKE 'spmi_historical_reports'; SHOW CREATE TABLE spmi_versions\G" <db_name>
+```
+
+Jangan reset atau drop database. Catat migration yang dijalankan dan hasilnya pada change record IT.
 
 ## 7. Pemeriksaan konfigurasi dan doctor
 

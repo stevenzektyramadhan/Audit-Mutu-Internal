@@ -8,19 +8,28 @@
 2. Tetapkan root tunggal: `/var/www/html/ami`. Root ini harus berisi `index.php`.
 3. Transfer ZIP dan cocokkan `sha256sum` dengan checksum release.
 4. Ekstrak ZIP tanpa membuat lapisan path ganda seperti `ami/AMI/`.
-5. Siapkan `uploads/` dan kategori aplikasi; jangan hapus folder itu saat upgrade.
+5. Siapkan `uploads/` dan 11 kategori aplikasi (`audit_evidence`, `bukti_auditor`, `instrumen`, `penetapan`, `ppepp_documents`, `profil`, `rtm_photos`, **`spmi_historical_reports`**, `spmi_source`, `tmp`, `user_photos`); jangan hapus folder itu saat upgrade.
 6. Temukan user/group FPM dengan `ps`, `systemctl cat php-fpm`, `stat`, dan `namei`.
 7. Atur ownership, permission terbatas, dan SELinux fcontext. Jangan gunakan `777`.
-8. Edit hanya tiga file di tabel berikut. `index.php` tidak perlu diedit.
-9. Pasang server block Nginx, socket FPM, TLS, rewrite, dan blokir folder private.
-10. Untuk fresh, import `database_schema.sql` sekali lalu jalankan
-    `scripts/bootstrap_super_admin.php`.
-11. Untuk existing, backup lalu jalankan migration yang sudah direview. Jangan
-    import schema fresh atau reset database existing.
+8. Edit secara manual tiga file di tabel berikut (`config.php`, `database.php`, `ami.php`). Pastikan `index.php` bernilai `define('ENVIRONMENT', 'production');`.
+9. Pasang server block Nginx, socket FPM, TLS, rewrite, dan blokir folder private (termasuk `uploads/spmi_historical_reports`).
+10. Untuk **fresh install**, import `database_schema.sql` sekali (sudah mencakup skema sampai migrasi `052`) lalu jalankan `scripts/bootstrap_super_admin.php`.
+11. Untuk **existing database (update/upgrade)**, backup terlebih dahulu lalu **wajib jalankan 2 migrasi baru** secara berurutan:
+    - `migrations/051_create_spmi_historical_reports.sql`
+    - `migrations/052_allow_multiple_active_spmi_versions.sql`
+    Jangan import schema fresh atau reset database existing.
 12. Jalankan lint, doctor, `nginx -t`, status service, dan `curl -I`.
-13. Jalankan smoke test login, PPEPP upload/download/delete, foto, bukti,
-    session, dan penolakan URL langsung ke file private.
+13. Jalankan smoke test login, PPEPP upload/download/delete, unggah dokumen laporan historis SPMI, aktivasi beberapa versi standar SPMI, foto, bukti, session, dan penolakan URL langsung ke file private.
 14. Catat path, checksum, hasil test, backup, dan rollback tanpa menulis secret.
+
+## Ringkasan Perubahan Manual & Migrasi pada Rilis Ini
+
+| Komponen | Tindakan Manual Tim IT |
+|---|---|
+| **3 File Config Production** | Edit manual `application/config/production/config.php`, `database.php`, dan `ami.php`. |
+| **Folder Upload Baru** | Buat folder `/var/www/html/ami/uploads/spmi_historical_reports`, beri owner user PHP-FPM, mode `0750`, dan label SELinux `httpd_sys_rw_content_t`. |
+| **Konfigurasi Nginx** | Tambahkan `spmi_historical_reports` ke daftar folder `uploads/(...)` yang di-`deny all` pada server block Nginx, lalu `nginx -t && systemctl reload nginx`. |
+| **Migrasi Database (Existing DB)** | Jalankan `migrations/051_create_spmi_historical_reports.sql` lalu `migrations/052_allow_multiple_active_spmi_versions.sql`. (Untuk Fresh DB, cukup import `database_schema.sql`). |
 
 ## Tiga file konfigurasi
 

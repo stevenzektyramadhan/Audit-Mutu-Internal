@@ -224,7 +224,7 @@ php scripts/google_drive_oauth_bootstrap.php /absolute/client.json /absolute/ref
 
 ### Database dan Upgrade Manual
 
-Untuk database baru, tersedia dua jalur yang sama-sama hanya boleh dipakai pada database kosong: `database_schema.sql` adalah schema kanonik sampai migration `050`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk memilih kredensial operator secara interaktif; `database_init.sql` adalah schema kanonik yang sama dengan satu akun starter `super_admin` yang passwordnya sudah di-hash. `database_init.sql` bukan input upgrade atau pengganti database operasional yang sudah ada. Setelah login pertama melalui akun starter, operator wajib segera mengganti atau merotasi kredensialnya, tanpa mencatatnya di dokumentasi, command history, log, atau tiket. Jangan menjalankan migration individual setelah fresh import. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Untuk database existing, backup terlebih dahulu lalu terapkan hanya migration manual yang sudah direview dan belum diterapkan; jangan mengimpor file bootstrap fresh apa pun. Parity fresh-vs-upgrade adalah kewajiban operasional.
+Untuk database baru, tersedia dua jalur yang sama-sama hanya boleh dipakai pada database kosong: `database_schema.sql` adalah schema kanonik sampai migration `052`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk memilih kredensial operator secara interaktif; `database_init.sql` adalah schema kanonik yang sama dengan satu akun starter `super_admin` yang passwordnya sudah di-hash. `database_init.sql` bukan input upgrade atau pengganti database operasional yang sudah ada. Setelah login pertama melalui akun starter, operator wajib segera mengganti atau merotasi kredensialnya, tanpa mencatatnya di dokumentasi, command history, log, atau tiket. Jangan menjalankan migration individual setelah fresh import. `database_dummy.sql` bukan data SPMI dan tidak dipakai untuk produksi. Untuk database existing, backup terlebih dahulu lalu terapkan hanya migration manual yang sudah direview dan belum diterapkan; jangan mengimpor file bootstrap fresh apa pun. Parity fresh-vs-upgrade adalah kewajiban operasional.
 
 #### Akun Administrator Pertama
 
@@ -248,7 +248,7 @@ Untuk database yang sudah ada, backup terlebih dahulu lalu jalankan migration ba
 
 #### Database baru
 
-Untuk database kosong, pilih salah satu jalur fresh. Import `database_schema.sql`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk kredensial yang dipilih operator, atau import `database_init.sql` untuk schema kanonik dengan satu akun starter yang sudah di-hash. Kedua file hanya untuk database baru dan tidak boleh diimpor ke database existing. Jangan lanjutkan dengan migration individual karena schema kanonik sudah memuat struktur sampai `050`.
+Untuk database kosong, pilih salah satu jalur fresh. Import `database_schema.sql`, lalu jalankan `scripts/bootstrap_super_admin.php` untuk kredensial yang dipilih operator, atau import `database_init.sql` untuk schema kanonik dengan satu akun starter yang sudah di-hash. Kedua file hanya untuk database baru dan tidak boleh diimpor ke database existing. Jangan lanjutkan dengan migration individual karena schema kanonik sudah memuat struktur sampai `052`.
 
 #### Database lama yang perlu di-upgrade
 
@@ -292,6 +292,8 @@ Backup data, triggers, routines, events, dan `APP_PRIVATE_STORAGE_PATH`. Jalanka
 36. `048_add_spmi_audit_cycle_organization_unit.sql`
 37. `049_add_app_branding_settings.sql`
 38. `050_add_login_hero_settings.sql`
+39. `051_create_spmi_historical_reports.sql`
+40. `052_allow_multiple_active_spmi_versions.sql`
 
 Migration `037_add_spmi_version_report_scope.sql` bersifat aditif dan idempotent: menambahkan scope serta identitas laporan per versi dan identitas standar pada item laporan, dengan unique tuple untuk laporan versi. Laporan standar historis tetap terbaca dan tidak ditulis ulang.
 

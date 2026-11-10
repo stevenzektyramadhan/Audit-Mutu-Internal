@@ -290,12 +290,10 @@ CREATE TABLE IF NOT EXISTS `spmi_versions` (
     `title` VARCHAR(200) NOT NULL,
     `description` TEXT NULL,
     `status` ENUM('draft','review','approved','active','retired') NOT NULL DEFAULT 'draft',
-    `active_slot` TINYINT GENERATED ALWAYS AS (IF(`status` = 'active', 1, NULL)) STORED,
     `source_file_path` VARCHAR(255) NULL,
     `created_by` INT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY `uq_spmi_versions_active_slot` (`active_slot`),
     CONSTRAINT `fk_spmi_versions_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

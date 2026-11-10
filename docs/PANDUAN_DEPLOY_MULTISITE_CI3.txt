@@ -67,7 +67,7 @@ Letakkan project pada direktori virtual host yang ditentukan (misalnya: /var/www
 1. Folder Writable:
    - application/cache/ (termasuk application/cache/sessions/)
    - application/logs/
-   - uploads/ (beserta 10 subfolder: profil/, audit_evidence/, bukti_auditor/, instrumen/, penetapan/, ppepp_documents/, rtm_photos/, spmi_source/, tmp/, user_photos/)
+   - uploads/ (beserta 11 subfolder: profil/, audit_evidence/, bukti_auditor/, instrumen/, penetapan/, ppepp_documents/, rtm_photos/, spmi_historical_reports/, spmi_source/, tmp/, user_photos/)
 
 2. Perintah Atur Hak Akses:
    $ cd /path/to/Audit-Mutu-Internal
@@ -89,7 +89,7 @@ D. PERSIAPAN DATABASE MYSQL / MARIADB (IMPORT STARTER DATABASE)
 ----------------------------------------------------------------------------------------
 Untuk database baru yang kosong, pilih salah satu jalur berikut:
 - database_schema.sql, lalu php scripts/bootstrap_super_admin.php untuk memilih kredensial administrator secara interaktif.
-- database_init.sql, yang berisi schema kanonik sampai migration 050 dan satu akun starter super_admin dengan password yang sudah di-hash.
+- database_init.sql, yang berisi schema kanonik sampai migration 052 dan satu akun starter super_admin dengan password yang sudah di-hash.
 
 database_init.sql hanya untuk database baru yang kosong. Bukan file upgrade atau pengganti database operasional yang sudah ada. Setelah akses pertama, operator wajib segera mengganti atau merotasi kredensial awal. Jangan mencatatnya di dokumentasi, command history, log, atau tiket.
 
@@ -106,6 +106,12 @@ Langkah Eksekusi Database:
 
    Atau, khusus database baru yang kosong, gunakan schema seeded:
    $ mysql -u [dba_user] -p ami_db < database_init.sql
+
+Khusus Database yang Sudah Berjalan (Existing DB - Wajib Migrasi Manual):
+   Jangan impor database_schema.sql atau database_init.sql!
+   Backup database terlebih dahulu, lalu jalankan dua migrasi rilis ini secara berurutan:
+   $ mysql -u [dba_user] -p ami_db < migrations/051_create_spmi_historical_reports.sql
+   $ mysql -u [dba_user] -p ami_db < migrations/052_allow_multiple_active_spmi_versions.sql
 
 
 ----------------------------------------------------------------------------------------
@@ -174,7 +180,7 @@ server {
 
     client_max_body_size 25M;
 
-    location ~* ^/(application|system|vendor|tests|deploy|docs|scripts|\.git) {
+    location ~* ^/(application|system|vendor|tests|deploy|docs|scripts|\.git|uploads/(audit_evidence|bukti_auditor|instrumen|penetapan|ppepp_documents|rtm_photos|spmi_historical_reports|spmi_source|tmp|user_photos))(/|$) {
         deny all;
         return 404;
     }

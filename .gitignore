@@ -73,10 +73,11 @@ docs/assets/manual-pengguna/*
 !docs/assets/manual-pengguna/manifest.md
 !docs/assets/manual-pengguna/*.png
 
-# Production configuration files containing real secrets must never be tracked in git
+# Production and local development configuration overrides
 application/config/production/*.php
 !application/config/production/*.php.example
 !application/config/production/index.html
+application/config/development/
 
 # Local dummy data and feature-testing fixtures
 /database_dummy.sql

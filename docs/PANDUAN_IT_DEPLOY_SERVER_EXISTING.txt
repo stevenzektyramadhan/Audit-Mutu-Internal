@@ -7,45 +7,74 @@ DAFTAR TUGAS YANG HARUS DILAKUKAN TIM IT (ACTION ITEMS)
 
 1. EKSTRAK APLIKASI
    - Letakkan isi folder paket di web root (misal: /var/www/html/ami).
-   - Pastikan file index.php berada langsung di root folder tersebut.
+   - Pastikan file index.php berada langsung di root folder tersebut dan bernilai:
+     define('ENVIRONMENT', 'production');
 
-2. SET ATURAN PERMISSION & SELINUX
-   - Atur kepemilikan folder web root ke user/group web server (misal: nginx / apache).
-   - Pastikan folder berikut memiliki izin tulis (writable):
-     * uploads/
-     * application/cache/
+2. SET ATURAN PERMISSION, FOLDER UPLOAD BARU & SELINUX (MANUAL)
+   - Atur kepemilikan folder runtime ke user/group PHP-FPM/web server (misal: nginx / apache).
+   - Pastikan folder berikut dibuat secara manual bila belum ada dan memiliki izin tulis (writable):
+     * uploads/ beserta 11 subfoldernya:
+       - uploads/audit_evidence/
+       - uploads/bukti_auditor/
+       - uploads/instrumen/
+       - uploads/penetapan/
+       - uploads/ppepp_documents/
+       - uploads/profil/
+       - uploads/rtm_photos/
+       - uploads/spmi_historical_reports/  <-- FOLDER BARU PADA RILIS INI
+       - uploads/spmi_source/
+       - uploads/tmp/
+       - uploads/user_photos/
+     * application/cache/ (dan application/cache/sessions/)
      * application/logs/
-   - Jika SELinux berstatus Enforcing, beri konteks 'httpd_sys_rw_content_t' pada ketiga folder di atas.
+   - Jika SELinux berstatus Enforcing, beri konteks 'httpd_sys_rw_content_t' pada ketiga folder di atas:
+     sudo mkdir -p /var/www/html/ami/uploads/{audit_evidence,bukti_auditor,instrumen,penetapan,ppepp_documents,profil,rtm_photos,spmi_historical_reports,spmi_source,tmp,user_photos}
+     sudo semanage fcontext -a -t httpd_sys_rw_content_t '/var/www/html/ami/uploads(/.*)?'
+     sudo restorecon -Rv /var/www/html/ami/uploads
 
-3. SETUP DATABASE (PILIH SALAH SATU):
-   - Buat database MySQL/MariaDB baru (contoh nama: 'ami', charset utf8mb4).
-   - Buat user database dengan hak akses penuh ke database tersebut.
-   - Eksekusi database:
-     * OPSI A (Rekomendasi - Cepat & Praktis):
-       Impor file 'database_init.sql' ke database 'ami'.
-       File ini sudah otomatis membuat seluruh tabel terbaru sekaligus akun Super Admin awal.
-       Saat pertama kali login, sistem akan otomatis mewajibkan pergantian password.
-     * OPSI B (Custom Akun Admin via Terminal):
-       Impor file 'database_schema.sql' (hanya skema tabel kosong).
-       Lalu jalankan perintah terminal:
-       php scripts/bootstrap_super_admin.php
-       (Masukkan nama, email, dan password admin yang diinginkan).
+3. SETUP DATABASE ATAU JALANKAN MIGRASI MANUAL:
+   A. JIKA INSTALASI BARU (FRESH DATABASE):
+      - Buat database MySQL/MariaDB baru (contoh nama: 'ami', charset utf8mb4).
+      - Buat user database dengan hak akses ke database tersebut.
+      - Pilih salah satu metode impor awal (sudah mencakup seluruh skema sampai migrasi 052):
+        * OPSI A1 (Cepat & Praktis):
+          Impor file 'database_init.sql' ke database 'ami'.
+          File ini sudah otomatis membuat seluruh tabel terbaru (termasuk spmi_historical_reports) sekaligus akun Super Admin awal.
+          Saat pertama kali login, sistem akan otomatis mewajibkan pergantian password.
+        * OPSI A2 (Custom Akun Admin via Terminal):
+          Impor file 'database_schema.sql' (hanya skema tabel kosong).
+          Lalu jalankan perintah terminal:
+          php scripts/bootstrap_super_admin.php
+          (Masukkan nama, email, dan password admin yang diinginkan).
 
-4. SESUAIKAN 3 FILE KONFIGURASI
-   Buka folder: application/config/production/
+   B. JIKA UPDATE SERVER YANG SUDAH BERJALAN (EXISTING DATABASE - WAJIB MIGRASI MANUAL):
+      - JANGAN mengimpor ulang 'database_init.sql' atau 'database_schema.sql' agar data lama tidak terhapus.
+      - Backup database terlebih dahulu.
+      - Jalankan 2 file migrasi baru pada rilis ini secara berurutan:
+        1) migrations/051_create_spmi_historical_reports.sql
+           (Membuat tabel spmi_historical_reports untuk fitur unggah dokumen laporan historis SPMI).
+        2) migrations/052_allow_multiple_active_spmi_versions.sql
+           (Menghapus batas unique active_slot pada tabel spmi_versions agar lebih dari satu versi standar SPMI dapat berstatus aktif sekaligus).
+      - Contoh perintah terminal:
+        mysql -u <user_db> -p ami < /var/www/html/ami/migrations/051_create_spmi_historical_reports.sql
+        mysql -u <user_db> -p ami < /var/www/html/ami/migrations/052_allow_multiple_active_spmi_versions.sql
+
+4. SESUAIKAN 3 FILE KONFIGURASI SECARA MANUAL
+   Buka folder: application/config/production/ (salin dari file .example bila belum ada)
    - config.php   : Isi 'base_url' dengan domain/subdomain kampus (wajib HTTPS), dan isi 'encryption_key' minimal 32 karakter acak.
-   - database.php : Isi username, password, dan nama database yang telah dibuat.
-   - ami.php      : Pengaturan path storage (biarkan default menggunakan folder uploads/ lokal).
+   - database.php : Isi hostname, username, password, dan nama database yang telah dibuat.
+   - ami.php      : Pengaturan path storage (biarkan default menggunakan FCPATH . 'uploads/' lokal, atau sesuaikan bila memakai path di luar webroot).
 
-5. BUAT VIRTUAL HOST / SERVER BLOCK NGINX
-   - Buat file konfigurasi vhost baru untuk domain aplikasi AMI.
+5. BUAT / UPDATE VIRTUAL HOST SERVER BLOCK NGINX SECARA MANUAL
+   - Buat atau perbarui file konfigurasi vhost untuk domain aplikasi AMI.
    - Arahkan 'root' ke /var/www/html/ami dan 'index' ke index.php.
    - Arahkan eksekusi PHP ke socket atau port PHP-FPM server.
-   - Blokir akses langsung via web ke folder: application, system, vendor, serta subfolder uploads privat (audit_evidence, ppepp_documents, dll.).
+   - Blokir akses langsung via web (deny all) ke folder: application, system, vendor, serta seluruh subfolder uploads privat termasuk folder baru 'spmi_historical_reports':
+     uploads/(audit_evidence|bukti_auditor|instrumen|penetapan|ppepp_documents|rtm_photos|spmi_historical_reports|spmi_source|tmp|user_photos)
    - Blokir eksekusi file script .php di dalam seluruh folder uploads.
-   - Reload Nginx setelah konfigurasi valid (nginx -t).
+   - Uji dan reload Nginx setelah konfigurasi valid (sudo nginx -t && sudo systemctl reload nginx).
 
 6. VERIFIKASI AKHIR
    - Jalankan tool diagnosa dari terminal:
      php scripts/ami_doctor.php
-   - Buka URL domain di browser, pastikan halaman login terbuka normal dan coba login dengan akun Super Admin.
+   - Buka URL domain di browser, pastikan halaman login terbuka normal, coba login dengan akun Super Admin, serta uji fitur unggah dokumen historis di menu Laporan SPMI dan aktivasi versi standar SPMI.

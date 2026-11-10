@@ -24,7 +24,7 @@ Panduan ini adalah handoff operasional untuk operator IT pemula. Ikuti urutan A 
 
 1. Source CodeIgniter 3 memakai root release yang berisi `index.php`. Jangan menganggap repository ini sudah memiliki pola `public/` terpisah. Root web adalah `/var/www/ami/current`, dan `index.php` berada langsung di sana.
 2. Release aktif memakai `/var/www/ami/current`. Release sebelumnya disimpan sebagai direktori release terpisah agar rollback tidak menimpa file.
-3. Runtime private storage memakai `/var/lib/ami/private`. Kategori yang wajib disiapkan adalah `audit_evidence`, `bukti_auditor`, `instrumen`, `penetapan`, `ppepp_documents`, `rtm_photos`, `spmi_source`, `tmp`, dan `user_photos`.
+3. Runtime private storage memakai `/var/lib/ami/private`. Kategori yang wajib disiapkan adalah `audit_evidence`, `bukti_auditor`, `instrumen`, `penetapan`, `ppepp_documents`, `rtm_photos`, `spmi_historical_reports`, `spmi_source`, `tmp`, dan `user_photos`.
 4. Public upload hanya memakai `/var/lib/ami/public_uploads/profil`. Jangan menaruh bukti, PPEPP, RTM, atau file private di public upload.
 5. Session eksternal memakai `/var/lib/ami/sessions`. Log aplikasi memakai `/var/log/ami`.
 6. Konfigurasi production dimuat melalui `APP_PRODUCTION_CONFIG_FILE`. Pada FPM, hanya `CI_ENV` dan `APP_PRODUCTION_CONFIG_FILE` yang menjadi environment aplikasi. File production memakai template native `deploy/config/production.php.example` dengan kelompok `app`, `database`, `email`, `google_drive`, dan `integrations`.
@@ -172,8 +172,8 @@ EXIT;
 **D2. Import schema sekali, dengan akun DBA:**
 
 Tersedia dua jalur fresh, dan keduanya hanya untuk database yang benar-benar baru dan kosong:
-1. `database_schema.sql`: Schema kanonik sampai migration `050`; setelah import, jalankan `scripts/bootstrap_super_admin.php` untuk memilih kredensial operator secara interaktif.
-2. `database_init.sql`: Schema kanonik sampai migration `050` dengan satu akun starter `super_admin` yang passwordnya sudah di-hash.
+1. `database_schema.sql`: Schema kanonik sampai migration `052`; setelah import, jalankan `scripts/bootstrap_super_admin.php` untuk memilih kredensial operator secara interaktif.
+2. `database_init.sql`: Schema kanonik sampai migration `052` dengan satu akun starter `super_admin` yang passwordnya sudah di-hash.
 
 `database_init.sql` bukan input upgrade atau pengganti database operasional yang sudah ada. Setelah akses pertama melalui akun starter, operator wajib segera mengganti atau merotasi kredensial awal. Jangan mencatat kredensial itu di dokumentasi, command history, log, atau tiket.
 
@@ -198,7 +198,7 @@ sudo mariadb -u [ISI_DBA] -p -e 'USE ami; SHOW TABLES;'
 - Jangan menjalankan `database_schema.sql` atau `database_init.sql`.
 - Buat backup database, private storage, public uploads yang berisi data, session bila diperlukan, dan `APP_ENCRYPTION_KEY` melalui prosedur backup terkontrol.
 - Bandingkan migration yang sudah diterapkan dengan `migrations/` memakai sejarah deployment, bukan tebakan dari nama tabel.
-- Terapkan hanya migration yang belum diterapkan, numerik, satu per satu, dengan DBA.
+- Terapkan hanya migration yang belum diterapkan, numerik, satu per satu, dengan DBA (untuk rilis ini jalankan berurutan: `migrations/051_create_spmi_historical_reports.sql` lalu `migrations/052_allow_multiple_active_spmi_versions.sql`).
 - Berhenti pada error pertama. Jangan memakai `--force`, jangan mematikan foreign key checks, dan jangan menjalankan blok `DOWN` historis.
 
 **Jika gagal:** hentikan traffic dan deployment. Jangan mengulang import atau migration secara buta. Pulihkan pasangan backup database dan storage setelah review DBA.
@@ -297,7 +297,7 @@ sudo stat -c '%U:%G %a %n' /etc/ami /etc/ami/production.php /etc/php-fpm.d/ami.c
 
 ```bash
 sudo install -d -o ami -g ami -m 0700 /var/lib/ami/private
-sudo install -d -o ami -g ami -m 0700 /var/lib/ami/private/{audit_evidence,bukti_auditor,instrumen,penetapan,ppepp_documents,rtm_photos,spmi_source,tmp,user_photos}
+sudo install -d -o ami -g ami -m 0700 /var/lib/ami/private/{audit_evidence,bukti_auditor,instrumen,penetapan,ppepp_documents,rtm_photos,spmi_historical_reports,spmi_source,tmp,user_photos}
 sudo install -d -o ami -g ami -m 0755 /var/lib/ami/public_uploads /var/lib/ami/public_uploads/profil
 sudo install -d -o ami -g ami -m 0700 /var/lib/ami/sessions
 sudo install -d -o ami -g ami -m 0750 /var/log/ami

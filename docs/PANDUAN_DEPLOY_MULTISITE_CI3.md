@@ -79,7 +79,7 @@ Letakkan project pada direktori virtual host yang ditentukan (misalnya: `/var/ww
 Aplikasi membutuhkan izin tulis (writable) pada folder berikut:
 - `application/cache/` (termasuk subfolder `application/cache/sessions/`)
 - `application/logs/`
-- `uploads/` (beserta 10 subfolder: `profil/`, `audit_evidence/`, `bukti_auditor/`, `instrumen/`, `penetapan/`, `ppepp_documents/`, `rtm_photos/`, `spmi_source/`, `tmp/`, `user_photos/`)
+- `uploads/` (beserta 11 subfolder: `profil/`, `audit_evidence/`, `bukti_auditor/`, `instrumen/`, `penetapan/`, `ppepp_documents/`, `rtm_photos/`, `spmi_historical_reports/`, `spmi_source/`, `tmp/`, `user_photos/`)
 
 ### 2. Perintah Atur Hak Akses (AlmaLinux / RHEL / CentOS / Ubuntu)
 Sesuaikan user/group web server (misal `nginx:nginx`, `apache:apache`, atau `www-data:www-data`):
@@ -113,7 +113,7 @@ sudo restorecon -Rv /path/to/Audit-Mutu-Internal
 
 Untuk database baru yang kosong, pilih salah satu jalur berikut:
 - `database_schema.sql`, lalu `php scripts/bootstrap_super_admin.php` untuk memilih kredensial administrator secara interaktif.
-- `database_init.sql`, yang berisi schema kanonik sampai migration `050` dan satu akun starter `super_admin` dengan password yang sudah di-hash.
+- `database_init.sql`, yang berisi schema kanonik sampai migration `052` dan satu akun starter `super_admin` dengan password yang sudah di-hash.
 
 `database_init.sql` hanya untuk database baru yang kosong. Bukan file upgrade atau pengganti database operasional yang sudah ada. Setelah akses pertama, operator wajib segera mengganti atau merotasi kredensial awal. Jangan mencatatnya di dokumentasi, command history, log, atau tiket.
 
@@ -137,7 +137,10 @@ Untuk database baru yang kosong, pilih salah satu jalur berikut:
    mysql -u [dba_user] -p ami_db < database_init.sql
    ```
 
-Jangan mengimpor file bootstrap ke database existing. Untuk database existing, backup terlebih dahulu lalu terapkan hanya migration manual yang sudah direview dan belum diterapkan, satu per satu. Jangan menjalankan file bootstrap fresh sebagai upgrade.
+Jangan mengimpor file bootstrap ke database existing. Untuk database existing, backup terlebih dahulu lalu terapkan hanya migration manual yang sudah direview dan belum diterapkan, satu per satu. Pada rilis ini, jalankan berurutan:
+- `migrations/051_create_spmi_historical_reports.sql`
+- `migrations/052_allow_multiple_active_spmi_versions.sql`
+Jangan menjalankan file bootstrap fresh sebagai upgrade.
 
 ---
 
@@ -240,8 +243,8 @@ server {
 
     client_max_body_size 25M;
 
-    # Proteksi direktori dan file sensitif
-    location ~* ^/(application|system|vendor|tests|deploy|docs|scripts|\.git) {
+    # Proteksi direktori dan file sensitif serta subfolder uploads privat
+    location ~* ^/(application|system|vendor|tests|deploy|docs|scripts|\.git|uploads/(audit_evidence|bukti_auditor|instrumen|penetapan|ppepp_documents|rtm_photos|spmi_historical_reports|spmi_source|tmp|user_photos))(/|$) {
         deny all;
         return 404;
     }

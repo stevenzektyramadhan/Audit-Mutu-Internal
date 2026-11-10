@@ -50,6 +50,7 @@ $paths = [
     'standards_css' => $repositoryRoot . '/assets/css/standards-management.css',
     'reports_css' => $repositoryRoot . '/assets/css/spmi-reports.css',
     'historical_migration' => $repositoryRoot . '/migrations/051_create_spmi_historical_reports.sql',
+    'multi_active_migration' => $repositoryRoot . '/migrations/052_allow_multiple_active_spmi_versions.sql',
     'database_schema' => $repositoryRoot . '/database_schema.sql',
     'database_init' => $repositoryRoot . '/database_init.sql',
 ];
@@ -145,7 +146,22 @@ foreach (['database_schema', 'database_init'] as $schema) {
         stripos($source[$schema], 'legacy_ami_archive_') === false,
         $schema . ' excludes optional legacy archive tables'
     );
+    spmi_lifecycle_assert(
+        stripos($source[$schema], 'uq_spmi_versions_active_slot') === false
+            && stripos($source[$schema], 'active_slot') === false,
+        $schema . ' allows multiple active SPMI versions simultaneously'
+    );
 }
+spmi_lifecycle_assert(
+    stripos($source['multi_active_migration'], 'uq_spmi_versions_active_slot') !== false
+        && stripos($source['multi_active_migration'], 'active_slot') !== false,
+    'migration 052 drops single-active slot constraint'
+);
+spmi_lifecycle_assert(
+    stripos($service, 'Hanya satu versi yang dapat aktif') === false
+        && stripos($service, 'is_duplicate_active_error') === false,
+    'standards service allows activating multiple SPMI versions simultaneously'
+);
 
 spmi_lifecycle_assert(
     preg_match('/CREATE TABLE IF NOT EXISTS `spmi_historical_reports`/', $source['historical_migration']) === 1,
